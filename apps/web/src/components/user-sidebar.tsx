@@ -8,14 +8,17 @@ import { AccountMenu } from "./account-menu";
 import { BrandMark } from "./brand";
 import { NavLink } from "./nav-link";
 
-const link = "rounded-md px-3 py-2.5 text-sm text-fg-secondary no-underline hover:bg-sunken hover:text-fg";
+type Recent = { id: string; thread_id: string | null; title: string };
+
+const link =
+  "rounded-md px-3 py-2.5 text-sm text-fg-secondary no-underline hover:bg-sunken hover:text-fg";
 const active = "bg-accent-soft font-medium text-fg";
 
 /**
- * The user app's left sidebar (prototype: Home.html). Recent chats and the approvals count
- * appear once conversations (Phase 1) and approvals (Phase 3) exist.
+ * The user app's left sidebar (prototype: Home.html) with the most recent chats. The approvals
+ * count appears with approvals (Phase 3).
  */
-export function UserSidebar({ me }: { me: Me }) {
+export function UserSidebar({ me, recent }: { me: Me; recent: Recent[] }) {
   const t = useTranslations();
   return (
     <aside className="flex flex-col gap-[18px] border-line bg-surface px-4 py-5 max-[900px]:basis-full max-[900px]:border-b min-[901px]:sticky min-[901px]:top-0 min-[901px]:h-screen min-[901px]:w-[280px] min-[901px]:shrink-0 min-[901px]:overflow-y-auto min-[901px]:border-r">
@@ -46,6 +49,23 @@ export function UserSidebar({ me }: { me: Me }) {
           {t("nav.help")}
         </NavLink>
       </nav>
+      {recent.length > 0 ? (
+        <nav aria-label={t("nav.recent")} className="flex flex-col gap-0.5">
+          <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-[0.06em] text-fg-muted uppercase">
+            {t("nav.recent")}
+          </div>
+          {recent.map((c) => (
+            <NavLink
+              key={c.id}
+              href={`/chat/${c.thread_id}`}
+              className={`${link} truncate`}
+              activeClassName={active}
+            >
+              {c.title || t("library.untitled")}
+            </NavLink>
+          ))}
+        </nav>
+      ) : null}
       <div className="mt-auto border-t border-divider pt-2">
         <AccountMenu
           name={me.name || me.email || ""}

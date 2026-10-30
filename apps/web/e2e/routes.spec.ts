@@ -7,11 +7,13 @@ import { expectNoA11yViolations, signIn, USERS } from "./fixtures";
 const titles = en.screens as Record<string, { title: string }>;
 // One entry per route; screens that are states of another route are covered by it.
 const routed = SCREENS.filter((s) => !s.stateOf && s.shell !== "public");
+// Built screens show real data and are covered by their own specs (chat.spec.ts, ...).
+const placeholders = routed.filter((s) => !s.built);
 
 test.describe("as a platform admin", () => {
   test.use({ storageState: USERS.admin.state });
 
-  for (const s of routed) {
+  for (const s of placeholders) {
     test(`${s.file} → ${s.route}`, async ({ page }) => {
       await page.goto(samplePath(s.route));
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[s.key]!.title);
@@ -55,7 +57,7 @@ test.describe("as an employee without admin roles", () => {
   test.use({ storageState: USERS.employee.state });
 
   test("user routes open", async ({ page }) => {
-    for (const s of routed.filter((x) => x.shell === "user")) {
+    for (const s of placeholders.filter((x) => x.shell === "user")) {
       await page.goto(samplePath(s.route));
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[s.key]!.title);
     }

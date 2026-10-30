@@ -45,3 +45,17 @@ Threads are owned by the token's subject (the Aegra auth hook). A thread stays w
 ## Stored per answer
 
 The conversation, the question, and the answer are stored, with: mode, pipeline version, tokens, latency, groundedness, external egress, the run id as trace id, and the cited chunks (document, ordinal `n`, quote, score, page). Feedback and hand-off requests attach to the answer.
+
+## Chat UI
+
+The chat uses the LangGraph client's `useStream` (`@langchain/langgraph-sdk` 1.12.4) against the proxy, with components built on Veyntora's design system to match the prototype. assistant-ui is **not** used for now:
+
+- its runtime renders tokens as they stream, while the default "block" mode shows nothing before the grounding check;
+- the citation chips, no-answer and hand-off states, and data-egress badge are custom anyway;
+- adding it later only changes the presentation layer.
+
+**Open question for the product owner:** should assistant-ui be adopted for the agent screens in Phase 3?
+
+- Answer text is parsed into paragraphs, bold runs and `[n]` citation chips and rendered as React text. Model output is never inserted as HTML.
+- A new chat starts on Home: a thread is created, then `/chat/<thread>` sends the first question once. The conversation row is written with the first answer.
+- Auto and Agent modes, attaching files, sharing and "report wrong source" are shown disabled with the phase that builds them.

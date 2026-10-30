@@ -499,6 +499,49 @@
         "title": "ChunkingStrategy",
         "type": "string"
       },
+      "CitationOut": {
+        "properties": {
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quote": {
+            "title": "Quote",
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "document_id",
+          "quote",
+          "page"
+        ],
+        "title": "CitationOut",
+        "type": "object"
+      },
       "CitationPolicy": {
         "enum": [
           "required",
@@ -4429,6 +4472,53 @@
         ]
       }
     },
+    "/v1/chat/messages/{message_id}/citations": {
+      "get": {
+        "operationId": "citations_v1_chat_messages__message_id__citations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CitationOut"
+                  },
+                  "title": "Response Citations V1 Chat Messages  Message Id  Citations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The sources an answer cites",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
     "/v1/chat/messages/{message_id}/feedback": {
       "put": {
         "operationId": "put_feedback_v1_chat_messages__message_id__feedback_put",
@@ -4520,6 +4610,48 @@
           }
         },
         "summary": "Ask a human expert instead",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/threads/{thread_id}": {
+      "get": {
+        "operationId": "conversation_by_thread_v1_chat_threads__thread_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The conversation behind a chat thread",
         "tags": [
           "chat"
         ]

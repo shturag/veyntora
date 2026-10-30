@@ -67,13 +67,19 @@ def test_run_body_is_rebuilt_from_what_the_chat_needs() -> None:
             }
         },
         {"input": {"chatbot_id": BOT, "messages": [{"type": "human", "content": "  "}]}},
-        {
-            "input": {"chatbot_id": BOT, "messages": [{"type": "human", "content": "q"}]},
-            "stream_mode": ["debug"],
-        },
     ],
 )
 def test_bad_runs_are_refused(bad: dict[str, object]) -> None:
     with pytest.raises(HTTPException) as err:
         _run_body(bad)
     assert err.value.status_code == 422
+
+
+def test_unsupported_stream_modes_are_dropped() -> None:
+    body = _run_body(
+        {
+            "input": {"chatbot_id": BOT, "messages": [{"type": "human", "content": "q"}]},
+            "stream_mode": ["debug", "events", "custom"],
+        }
+    )
+    assert body["stream_mode"] == ["custom"]

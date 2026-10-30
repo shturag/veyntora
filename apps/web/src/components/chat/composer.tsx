@@ -1,0 +1,108 @@
+"use client";
+
+import { Button, PhaseGatedButton, Tooltip, cn } from "@veyntora/ui";
+import { Paperclip } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useId, useState, type FormEvent, type KeyboardEvent } from "react";
+
+/**
+ * Question box with the answer-mode switch (prototype: Home.html, ChatFast.html). Fast is the
+ * only mode until the router and the agent arrive (Phase 3); the others are shown disabled.
+ */
+export function Composer({
+  onSubmit,
+  busy = false,
+  disabled = false,
+  rows = 3,
+  autoFocus = false,
+  submitLabel,
+}: {
+  onSubmit: (question: string) => void;
+  busy?: boolean;
+  disabled?: boolean;
+  rows?: number;
+  autoFocus?: boolean;
+  submitLabel?: string;
+}) {
+  const t = useTranslations("chat");
+  const [text, setText] = useState("");
+  const id = useId();
+  const ready = text.trim().length > 0 && !busy && !disabled;
+
+  function send(event?: FormEvent) {
+    event?.preventDefault();
+    if (!ready) return;
+    onSubmit(text.trim());
+    setText("");
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) send(event);
+  }
+
+  return (
+    <form
+      onSubmit={send}
+      className="flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-3.5 shadow-[0_2px_10px_rgba(27,27,31,0.05)]"
+    >
+      <label htmlFor={id} className="sr-only">
+        {t("askLabel")}
+      </label>
+      <textarea
+        id={id}
+        rows={rows}
+        value={text}
+        maxLength={8000}
+        autoFocus={autoFocus}
+        disabled={disabled}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={onKeyDown}
+        placeholder={t("placeholder")}
+        className="resize-none border-0 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
+      />
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <PhaseGatedButton phase={1} label={t("attachLater")} size="lg" className="w-11 px-0">
+            <Paperclip aria-hidden className="size-4" />
+          </PhaseGatedButton>
+          <div
+            role="radiogroup"
+            aria-label={t("mode")}
+            className="flex gap-0.5 rounded-md bg-sunken p-[3px]"
+          >
+            {(["auto", "fast", "agent"] as const).map((mode) =>
+              mode === "fast" ? (
+                <span
+                  key={mode}
+                  role="radio"
+                  aria-checked="true"
+                  className="rounded-[8px] bg-surface px-3 py-1.5 text-[13px] font-medium text-fg shadow-sm"
+                >
+                  {t(`modes.${mode}`)}
+                </span>
+              ) : (
+                <Tooltip key={mode} content={t("modeLater", { phase: 3 })}>
+                  <span
+                    role="radio"
+                    aria-checked="false"
+                    aria-disabled="true"
+                    tabIndex={0}
+                    className={cn(
+                      "rounded-[8px] px-3 py-1.5 text-[13px] text-fg-muted",
+                      "cursor-not-allowed",
+                    )}
+                  >
+                    {t(`modes.${mode}`)}
+                  </span>
+                </Tooltip>
+              ),
+            )}
+          </div>
+        </div>
+        <Button type="submit" variant="primary" size="lg" disabled={!ready}>
+          {busy ? t("answering") : (submitLabel ?? t("ask"))}
+        </Button>
+      </div>
+    </form>
+  );
+}

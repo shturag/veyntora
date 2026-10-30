@@ -38,6 +38,8 @@ export type Screen = {
   area?: AdminArea;
   /** For screens that are states of another route rather than their own page. */
   stateOf?: string;
+  /** Built with real data (no longer a phase placeholder); covered by its own e2e tests. */
+  built?: true;
 };
 
 export const SAMPLE_ID = "00000000-0000-0000-0000-000000000000";
@@ -50,14 +52,14 @@ export const SCREENS: readonly Screen[] = [
   { key: "help", file: "Help.html", route: "/help", shell: "public", phase: 1 },
 
   // user app
-  { key: "home", file: "Home.html", route: "/home", shell: "user", phase: 1 },
-  { key: "chat", file: "Main.html", route: "/chat/[id]", shell: "user", phase: 1 },
+  { key: "home", file: "Home.html", route: "/home", shell: "user", phase: 1, built: true },
+  { key: "chat", file: "Main.html", route: "/chat/[id]", shell: "user", phase: 1, built: true },
   { key: "chatFast", file: "ChatFast.html", route: "/chat/[id]", shell: "user", phase: 1, stateOf: "chat" },
   { key: "agentRunning", file: "AgentRunning.html", route: "/chat/[id]", shell: "user", phase: 3, stateOf: "chat" },
   { key: "chatStates", file: "ChatStates.html", route: "/chat/[id]", shell: "user", phase: 1, stateOf: "chat" },
   { key: "mobile", file: "Mobile.html", route: "/chat/[id]", shell: "user", phase: 1, stateOf: "chat" },
-  { key: "source", file: "Source.html", route: "/source/[id]", shell: "user", phase: 1 },
-  { key: "library", file: "Library.html", route: "/library", shell: "user", phase: 1 },
+  { key: "source", file: "Source.html", route: "/source/[id]", shell: "user", phase: 1, built: true },
+  { key: "library", file: "Library.html", route: "/library", shell: "user", phase: 1, built: true },
   { key: "savedAnswers", file: "SavedAnswers.html", route: "/saved", shell: "user", phase: 5 },
   { key: "approvals", file: "Approvals.html", route: "/approvals", shell: "user", phase: 3 },
   { key: "handoff", file: "Handoff.html", route: "/handoff", shell: "user", phase: 5 },

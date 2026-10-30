@@ -22,6 +22,7 @@ from starlette.background import BackgroundTask
 from veyntora_api.auth.deps import CurrentPrincipal, DbSession, State
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.conversations import (
+    Citation,
     Conversation,
     Feedback,
     Handoff,
@@ -81,9 +82,8 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     out["input"] = {"chatbot_id": chatbot_id, "messages": [{"type": "human", "content": content}]}
     modes = out.get("stream_mode") or ["values"]
     modes = [modes] if isinstance(modes, str) else modes
-    if not set(modes) <= _STREAM_MODES:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unsupported stream mode")
-    out["stream_mode"] = modes
+    # The client asks for the modes it tracks; anything else (debug, events) is dropped.
+    out["stream_mode"] = [m for m in modes if m in _STREAM_MODES] or ["values"]
     out["assistant_id"] = GRAPH
     return out
 
@@ -181,6 +181,34 @@ async def conversations(
     ]
 
 
+@router.get("/threads/{thread_id}", summary="The conversation behind a chat thread")
+async def conversation_by_thread(
+    thread_id: str, principal: CurrentPrincipal, db: DbSession
+) -> ConversationOut:
+    row = (
+        await db.execute(
+            sa.select(Conversation, Chatbot.name)
+            .join(Chatbot, Chatbot.id == Conversation.chatbot_id)
+            .where(
+                Conversation.thread_id == thread_id,
+                Conversation.user_id == principal.user_id,
+                Conversation.deleted_at.is_(None),
+            )
+        )
+    ).first()
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Conversation not found")
+    c, name = row
+    return ConversationOut(
+        id=c.id,
+        thread_id=c.thread_id,
+        chatbot_id=c.chatbot_id,
+        chatbot_name=name,
+        title=c.title,
+        updated_at=c.updated_at,
+    )
+
+
 @router.delete(
     "/conversations/{conversation_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -272,6 +300,35 @@ async def handoff(message_id: UUID, principal: CurrentPrincipal, db: DbSession) 
 
 
 # ---------------------------------------------------------------- sources
+
+
+class CitationOut(BaseModel):
+    n: int
+    document_id: UUID | None
+    quote: str
+    page: int | None
+
+
+@router.get("/messages/{message_id}/citations", summary="The sources an answer cites")
+async def citations(
+    message_id: UUID, principal: CurrentPrincipal, db: DbSession
+) -> list[CitationOut]:
+    await _own_answer(db, principal, message_id)
+    principals = await user_principals(db, principal.user_id)
+    rows = (
+        await db.execute(
+            sa.select(Citation, Document)
+            .outerjoin(Document, Document.id == Citation.document_id)
+            .where(Citation.message_id == message_id)
+            .order_by(Citation.ordinal)
+        )
+    ).all()
+    # A quote stays visible only while the user may still read its document.
+    return [
+        CitationOut(n=c.ordinal, document_id=c.document_id, quote=c.quote, page=c.page)
+        for c, doc in rows
+        if doc is not None and may_read(principals, doc)
+    ]
 
 
 class DocumentView(BaseModel):

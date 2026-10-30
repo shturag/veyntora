@@ -490,6 +490,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/chat/messages/{message_id}/citations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sources an answer cites */
+        get: operations["citations_v1_chat_messages__message_id__citations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/chat/messages/{message_id}/feedback": {
         parameters: {
             query?: never;
@@ -518,6 +535,23 @@ export interface paths {
         put?: never;
         /** Ask a human expert instead */
         post: operations["handoff_v1_chat_messages__message_id__handoff_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chat/threads/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The conversation behind a chat thread */
+        get: operations["conversation_by_thread_v1_chat_threads__thread_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -793,6 +827,17 @@ export interface components {
          * @enum {string}
          */
         ChunkingStrategy: "structure" | "fixed" | "semantic";
+        /** CitationOut */
+        CitationOut: {
+            /** Document Id */
+            document_id: string | null;
+            /** N */
+            n: number;
+            /** Page */
+            page: number | null;
+            /** Quote */
+            quote: string;
+        };
         /**
          * CitationPolicy
          * @enum {string}
@@ -2769,6 +2814,37 @@ export interface operations {
             };
         };
     };
+    citations_v1_chat_messages__message_id__citations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                message_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CitationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     put_feedback_v1_chat_messages__message_id__feedback_put: {
         parameters: {
             query?: never;
@@ -2822,6 +2898,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HandoffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conversation_by_thread_v1_chat_threads__thread_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"];
                 };
             };
             /** @description Validation Error */
