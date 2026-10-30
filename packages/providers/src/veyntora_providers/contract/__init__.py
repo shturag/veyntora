@@ -54,8 +54,8 @@ async def _reranker_orders_by_score(provider: RerankerProvider) -> None:
 async def _vector_store_empty_acl_matches_nothing(store: VectorStore) -> None:
     hits = await store.hybrid_search(
         "__contract_probe__",
-        HybridQuery(dense=None, sparse=None),
-        AclFilter(user_ids=(), group_ids=()),
+        HybridQuery(text="probe", dense=None),
+        AclFilter(principals=()),
         k=5,
     )
     if hits:

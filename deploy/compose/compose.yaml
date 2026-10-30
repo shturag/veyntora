@@ -459,6 +459,7 @@ services:
     environment:
       <<: *app-env
       VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
+      VEY_DB_NULL_POOL: "true"
     volumes:
       - openbao-runtime-token:/run/openbao:ro
     depends_on:

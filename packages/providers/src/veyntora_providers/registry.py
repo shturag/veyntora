@@ -1,7 +1,6 @@
 """Adapter registry: maps (capability, adapter name) to a factory.
 
-Adapters register themselves at import time. Phase 0 ships the registry only; the first
-adapters (vLLM/OpenAI-compatible, LiteLLM, TEI, Qdrant, Docling, ...) arrive in Phase 1.
+Adapters register themselves when `veyntora_providers.adapters` is imported.
 """
 
 from __future__ import annotations
@@ -11,8 +10,9 @@ from typing import Any
 
 from veyntora_providers.instance import ProviderInstanceConfig
 from veyntora_providers.interfaces import Capability
+from veyntora_providers.secrets import NoSecrets, SecretReader
 
-AdapterFactory = Callable[[ProviderInstanceConfig], Any]
+AdapterFactory = Callable[[ProviderInstanceConfig, SecretReader], Any]
 
 _REGISTRY: dict[tuple[Capability, str], AdapterFactory] = {}
 
@@ -32,14 +32,14 @@ def register(capability: Capability, adapter: str) -> Callable[[AdapterFactory],
     return decorator
 
 
-def create(config: ProviderInstanceConfig) -> Any:
+def create(config: ProviderInstanceConfig, secrets: SecretReader | None = None) -> Any:
     try:
         factory = _REGISTRY[(config.capability, config.adapter)]
     except KeyError:
         raise UnknownAdapterError(
             f"no adapter {config.adapter!r} for capability {config.capability.value}"
         ) from None
-    return factory(config)
+    return factory(config, secrets or NoSecrets())
 
 
 def adapters_for(capability: Capability) -> list[str]:

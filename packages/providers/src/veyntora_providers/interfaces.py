@@ -121,32 +121,35 @@ class RerankerProvider(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class AclFilter:
-    """Identities of the asking user. A chunk matches if any identity is in its ACL.
+    """Principals of the asking user: ``user:<id>`` plus ``group:<id>`` for every group.
 
-    Built from the user's identities on every search; an empty filter matches nothing.
+    Built from the user's identities on every search. A chunk matches if any principal is
+    in its ``acl`` payload. An empty filter matches nothing, ever.
     """
 
-    user_ids: tuple[str, ...]
-    group_ids: tuple[str, ...]
+    principals: tuple[str, ...]
 
     def is_empty(self) -> bool:
-        return not self.user_ids and not self.group_ids
+        return not self.principals
 
 
 @dataclass(frozen=True, slots=True)
 class Point:
     id: str
     dense: list[float]
-    sparse: SparseVector | None
+    # Text for the store's own sparse (BM25) encoding; None disables the sparse side.
+    text: str | None
     payload: Mapping[str, Any]
 
 
 @dataclass(frozen=True, slots=True)
 class HybridQuery:
+    text: str
     dense: list[float] | None
-    sparse: SparseVector | None
     dense_weight: float = 0.6
-    metadata_filter: str = ""
+    sparse: bool = True
+    # Exact-match payload filters set by the admin (field -> allowed values).
+    must_match: Mapping[str, tuple[str | int | bool, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,7 +161,15 @@ class Hit:
 
 @runtime_checkable
 class VectorStore(Protocol):
+    async def ensure_collection(self, collection: str, dimensions: int) -> None: ...
+
     async def upsert(self, collection: str, points: Sequence[Point]) -> None: ...
+
+    async def delete_by_document(self, collection: str, document_id: str) -> None: ...
+
+    async def set_acl(
+        self, collection: str, document_id: str, principals: Sequence[str]
+    ) -> None: ...
 
     async def hybrid_search(
         self, collection: str, query: HybridQuery, acl_filter: AclFilter, k: int
@@ -170,17 +181,16 @@ class VectorStore(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class FileRef:
-    bucket: str
-    key: str
-    mime_type: str
     filename: str
+    mime_type: str
+    content: bytes = field(repr=False)
 
 
 @dataclass(frozen=True, slots=True)
 class ParsedSection:
     heading_path: tuple[str, ...]
     text: str
-    page: int | None = None
+    pages: tuple[int, ...] = ()
     is_table: bool = False
 
 
@@ -188,6 +198,7 @@ class ParsedSection:
 class ParsedDoc:
     title: str
     language: str | None
+    # Chunk-sized sections when ParseOptions.chunk_max_tokens is set, else whole sections.
     sections: list[ParsedSection]
     page_count: int | None = None
 
@@ -197,6 +208,10 @@ class ParseOptions:
     ocr: bool = True
     extract_tables: bool = True
     describe_images: bool = False
+    # Structure-aware chunking by the parser (headings, lists, tables), capped at this many
+    # tokens of `chunk_tokenizer`. None returns whole sections for the caller to chunk.
+    chunk_max_tokens: int | None = None
+    chunk_tokenizer: str = "BAAI/bge-m3"
 
 
 @runtime_checkable

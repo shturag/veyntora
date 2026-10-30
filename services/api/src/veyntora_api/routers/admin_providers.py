@@ -1,0 +1,146 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Annotated, Any
+from uuid import UUID
+
+import sqlalchemy as sa
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from pydantic import BaseModel, SecretStr
+from veyntora_providers.interfaces import Capability, Hosting
+
+from veyntora_api.auth.deps import Ctx, DbSession, Principal, State, require_admin_area
+from veyntora_api.db.models.providers import HealthStatus, ProviderInstance
+from veyntora_api.providers.service import (
+    ProviderError,
+    ProviderInput,
+    ProviderUpdate,
+    create_provider,
+    set_secret,
+    update_provider,
+)
+
+router = APIRouter(prefix="/v1/admin/providers", tags=["admin: providers"])
+
+Viewer = Annotated[Principal, Depends(require_admin_area("providers", "viewer"))]
+Editor = Annotated[Principal, Depends(require_admin_area("providers", "editor"))]
+
+TEST_QUEUE_KEY = "vey:provider-test"
+
+
+class ProviderOut(BaseModel):
+    """Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry."""
+
+    id: UUID
+    capability: Capability
+    adapter: str
+    name: str
+    endpoint: str | None
+    model: str | None
+    options: dict[str, Any]
+    hosting: Hosting
+    region: str | None
+    enabled: bool
+    has_secret: bool
+    secret_last4: str | None
+    secret_expires_at: datetime | None
+    health_status: HealthStatus
+    health_detail: str | None
+    health_checked_at: datetime | None
+    version: int
+
+    @classmethod
+    def of(cls, p: ProviderInstance) -> ProviderOut:
+        return cls(
+            id=p.id,
+            capability=p.capability,
+            adapter=p.adapter,
+            name=p.name,
+            endpoint=p.endpoint,
+            model=p.model,
+            options=p.options,
+            hosting=p.hosting,
+            region=p.region,
+            enabled=p.enabled,
+            has_secret=p.secret_ref is not None,
+            secret_last4=p.secret_last4,
+            secret_expires_at=p.secret_expires_at,
+            health_status=p.health_status,
+            health_detail=p.health_detail,
+            health_checked_at=p.health_checked_at,
+            version=p.version,
+        )
+
+
+async def _get(db: DbSession, provider_id: UUID) -> ProviderInstance:
+    row = await db.get(ProviderInstance, provider_id)
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Provider not found")
+    return row
+
+
+@router.get("", summary="Provider instances, optionally by capability")
+async def list_providers(
+    _: Viewer, db: DbSession, capability: Capability | None = None
+) -> list[ProviderOut]:
+    q = sa.select(ProviderInstance).order_by(ProviderInstance.capability, ProviderInstance.name)
+    if capability is not None:
+        q = q.where(ProviderInstance.capability == capability)
+    return [ProviderOut.of(p) for p in (await db.execute(q)).scalars()]
+
+
+@router.post("", status_code=status.HTTP_201_CREATED, summary="Add a provider instance")
+async def add_provider(
+    data: ProviderInput, _: Editor, ctx: Ctx, db: DbSession, state: State
+) -> ProviderOut:
+    try:
+        row = await create_provider(db, ctx, state.secrets, data)
+    except ProviderError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    await db.commit()
+    return ProviderOut.of(row)
+
+
+@router.patch("/{provider_id}", summary="Change a provider instance")
+async def change_provider(
+    provider_id: UUID,
+    data: ProviderUpdate,
+    _: Editor,
+    ctx: Ctx,
+    db: DbSession,
+    if_match: Annotated[int | None, Header(alias="If-Match")] = None,
+) -> ProviderOut:
+    row = await update_provider(db, ctx, await _get(db, provider_id), data, if_match)
+    await db.commit()
+    return ProviderOut.of(row)
+
+
+class SecretInput(BaseModel):
+    secret: SecretStr
+    expires_at: datetime | None = None
+
+
+@router.put("/{provider_id}/secret", summary="Store or replace the key (write-only)")
+async def put_secret(
+    provider_id: UUID, data: SecretInput, _: Editor, ctx: Ctx, db: DbSession, state: State
+) -> ProviderOut:
+    row = await _get(db, provider_id)
+    try:
+        await set_secret(db, ctx, state.secrets, row, value=data.secret, expires_at=data.expires_at)
+    except ProviderError as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    await db.commit()
+    return ProviderOut.of(row)
+
+
+@router.post(
+    "/{provider_id}/test",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Run the contract tests against the live instance (async)",
+)
+async def test_provider(provider_id: UUID, _: Editor, db: DbSession, state: State) -> ProviderOut:
+    """Queued for a worker: only runtime services may read the key. Poll the instance for
+    `health_checked_at` to see the result."""
+    row = await _get(db, provider_id)
+    await state.redis.rpush(TEST_QUEUE_KEY, str(row.id))
+    return ProviderOut.of(row)

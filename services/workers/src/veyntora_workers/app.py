@@ -23,6 +23,8 @@ from veyntora_api.core.logging import configure_logging
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.settings import get_settings
 
+from veyntora_workers.provider_tests import run_queued_provider_tests
+
 HEARTBEAT_KEY = "vey:workers:heartbeat"
 
 settings = get_settings()
@@ -40,6 +42,7 @@ app.conf.update(
     beat_schedule={
         "heartbeat": {"task": "veyntora.heartbeat", "schedule": timedelta(seconds=30)},
         "relay-outbox": {"task": "veyntora.relay_outbox", "schedule": timedelta(seconds=10)},
+        "provider-tests": {"task": "veyntora.provider_tests", "schedule": timedelta(seconds=5)},
         "identity-sync": {
             "task": "veyntora.identity_sync",
             "schedule": timedelta(minutes=int(os.environ.get("VEY_IDENTITY_SYNC_MINUTES", "15"))),
@@ -79,3 +82,8 @@ def identity_sync() -> None:
             await authz.close()
 
     _run(go())
+
+
+@app.task(name="veyntora.provider_tests")
+def provider_tests() -> int:
+    return _run(run_queued_provider_tests(settings))

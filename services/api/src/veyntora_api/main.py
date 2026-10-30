@@ -18,7 +18,7 @@ from veyntora_api.authz.fga import Authz
 from veyntora_api.core.config_service import VersionConflictError
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.core.state import AppState
-from veyntora_api.routers import auth, me, status
+from veyntora_api.routers import admin_providers, auth, me, status
 from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.settings import Settings, get_settings
 
@@ -128,4 +128,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(status.router)
     app.include_router(auth.router)
     app.include_router(me.router)
+    app.include_router(admin_providers.router)
     return app

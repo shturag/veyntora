@@ -11,3 +11,4 @@
 | [0007](0007-audit-hash-chain.md) | Append-only, hash-chained audit log |
 | [0008](0008-config-write-path.md) | One write path for configuration |
 | [0009](0009-local-stack.md) | Local stack choices |
+| [0010](0010-phase1-retrieval-and-providers.md) | Retrieval and provider adapters (Phase 1) |

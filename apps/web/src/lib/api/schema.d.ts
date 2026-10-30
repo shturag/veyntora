@@ -72,6 +72,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Provider instances, optionally by capability */
+        get: operations["list_providers_v1_admin_providers_get"];
+        put?: never;
+        /** Add a provider instance */
+        post: operations["add_provider_v1_admin_providers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/providers/{provider_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a provider instance */
+        patch: operations["change_provider_v1_admin_providers__provider_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/providers/{provider_id}/secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Store or replace the key (write-only) */
+        put: operations["put_secret_v1_admin_providers__provider_id__secret_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/providers/{provider_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run the contract tests against the live instance (async)
+         * @description Queued for a worker: only runtime services may read the key. Poll the instance for
+         *     `health_checked_at` to see the result.
+         */
+        post: operations["test_provider_v1_admin_providers__provider_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me": {
         parameters: {
             query?: never;
@@ -144,6 +217,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * Capability
+         * @enum {string}
+         */
+        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail";
         /** ChatbotSummary */
         ChatbotSummary: {
             /** Avatar */
@@ -183,6 +261,16 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * HealthStatus
+         * @enum {string}
+         */
+        HealthStatus: "unknown" | "healthy" | "degraded" | "down";
+        /**
+         * Hosting
+         * @enum {string}
+         */
+        Hosting: "self_hosted" | "external";
         /**
          * Level
          * @enum {string}
@@ -243,6 +331,92 @@ export interface components {
              */
             updated_at: string;
         };
+        /** ProviderInput */
+        ProviderInput: {
+            /** Adapter */
+            adapter: string;
+            capability: components["schemas"]["Capability"];
+            /** Endpoint */
+            endpoint?: string | null;
+            /** Fallback Instance Id */
+            fallback_instance_id?: string | null;
+            hosting: components["schemas"]["Hosting"];
+            /** Model */
+            model?: string | null;
+            /** Name */
+            name: string;
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            };
+            /** Region */
+            region?: string | null;
+            /** Secret */
+            secret?: string | null;
+            /** Secret Expires At */
+            secret_expires_at?: string | null;
+        };
+        /**
+         * ProviderOut
+         * @description Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.
+         */
+        ProviderOut: {
+            /** Adapter */
+            adapter: string;
+            capability: components["schemas"]["Capability"];
+            /** Enabled */
+            enabled: boolean;
+            /** Endpoint */
+            endpoint: string | null;
+            /** Has Secret */
+            has_secret: boolean;
+            /** Health Checked At */
+            health_checked_at: string | null;
+            /** Health Detail */
+            health_detail: string | null;
+            health_status: components["schemas"]["HealthStatus"];
+            hosting: components["schemas"]["Hosting"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model: string | null;
+            /** Name */
+            name: string;
+            /** Options */
+            options: {
+                [key: string]: unknown;
+            };
+            /** Region */
+            region: string | null;
+            /** Secret Expires At */
+            secret_expires_at: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Version */
+            version: number;
+        };
+        /** ProviderUpdate */
+        ProviderUpdate: {
+            /** Enabled */
+            enabled?: boolean | null;
+            /** Endpoint */
+            endpoint?: string | null;
+            /** Fallback Instance Id */
+            fallback_instance_id?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Options */
+            options?: {
+                [key: string]: unknown;
+            } | null;
+            /** Region */
+            region?: string | null;
+        };
         /** PublicInfoOut */
         PublicInfoOut: {
             /** Chat Retention Days */
@@ -266,6 +440,16 @@ export interface components {
             platform_admin: boolean;
             /** Security Reviewer */
             security_reviewer: boolean;
+        };
+        /** SecretInput */
+        SecretInput: {
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Secret
+             * Format: password
+             */
+            secret: string;
         };
         /** SessionInfo */
         SessionInfo: {
@@ -408,6 +592,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionInfo"];
+                };
+            };
+        };
+    };
+    list_providers_v1_admin_providers_get: {
+        parameters: {
+            query?: {
+                capability?: components["schemas"]["Capability"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_provider_v1_admin_providers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_provider_v1_admin_providers__provider_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_secret_v1_admin_providers__provider_id__secret_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecretInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_provider_v1_admin_providers__provider_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

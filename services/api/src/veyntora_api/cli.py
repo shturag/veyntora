@@ -13,8 +13,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import getpass
 import json
+import os
+import sys
 from pathlib import Path
+from uuid import UUID
 
 import aioboto3
 import httpx
@@ -27,10 +31,13 @@ from alembic.config import Config
 from veyntora_api.auth.identity import full_sync
 from veyntora_api.auth.keycloak_admin import KeycloakAdmin
 from veyntora_api.authz.fga import PLATFORM, Authz, Tuple, bootstrap_tuples, ensure_store_and_model
+from veyntora_api.core.context import Actor, RequestContext
 from veyntora_api.core.logging import configure_logging
+from veyntora_api.db.models.governance import ActorType
 from veyntora_api.db.models.identity import Group
 from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.settings import Settings, get_settings
 
 log = structlog.get_logger()
@@ -120,7 +127,84 @@ async def bootstrap(s: Settings) -> None:
         await authz.close()
 
 
-def main() -> None:
+def _cli_ctx() -> RequestContext:
+    who = os.environ.get("USER") or os.environ.get("HOSTNAME") or "operator"
+    return RequestContext(actor=Actor(ActorType.SYSTEM, f"cli:{who}", f"CLI ({who})"))
+
+
+async def providers_cmd(s: Settings, args: argparse.Namespace) -> None:
+    from pydantic import SecretStr  # noqa: PLC0415
+
+    from veyntora_api.db.models.providers import ProviderInstance  # noqa: PLC0415
+    from veyntora_api.providers.service import ProviderInput, create_provider  # noqa: PLC0415
+    from veyntora_api.routers.admin_providers import TEST_QUEUE_KEY  # noqa: PLC0415
+
+    async with get_sessionmaker()() as db:
+        if args.action == "list":
+            rows = (
+                await db.execute(sa.select(ProviderInstance).order_by(ProviderInstance.name))
+            ).scalars()
+            for r in rows:
+                key = (
+                    f"key …{r.secret_last4}"
+                    if r.secret_last4
+                    else ("key set" if r.secret_ref else "no key")
+                )
+                sys.stdout.write(
+                    f"{r.id}  {r.capability.value:<12} {r.adapter:<18} {r.hosting.value:<11} "
+                    f"{r.health_status.value:<8} {key:<12} {r.name}\n"
+                )
+            return
+        if args.action == "test":
+            from redis.asyncio import Redis  # noqa: PLC0415
+
+            redis = Redis.from_url(s.redis_url, decode_responses=True)
+            row = await db.get(ProviderInstance, args.id)
+            if row is None:
+                raise SystemExit("provider not found")
+            before = row.health_checked_at
+            await redis.rpush(TEST_QUEUE_KEY, str(row.id))
+            await redis.aclose()
+            for _ in range(60):
+                await asyncio.sleep(1)
+                await db.refresh(row)
+                if row.health_checked_at != before:
+                    sys.stdout.write(
+                        f"{row.health_status.value}: {row.health_detail or 'all checks passed'}\n"
+                    )
+                    return
+            raise SystemExit("no worker picked up the test within 60 s")
+        secret: SecretStr | None = None
+        if args.secret_stdin:
+            secret = SecretStr(sys.stdin.readline().strip())
+        elif args.ask_secret:
+            secret = SecretStr(getpass.getpass("API key (input hidden): ").strip())
+        data = ProviderInput(
+            capability=args.capability,
+            adapter=args.adapter,
+            name=args.name,
+            endpoint=args.endpoint,
+            model=args.model,
+            hosting=args.hosting,
+            region=args.region,
+            options=json.loads(args.options or "{}"),
+            secret=secret,
+        )
+        writer = (
+            SecretWriter.from_token_file(s.openbao_url, s.openbao_token_file, s.openbao_kv_mount)
+            if secret is not None
+            else None
+        )
+        try:
+            row = await create_provider(db, _cli_ctx(), writer, data)
+            await db.commit()
+        finally:
+            if writer is not None:
+                await writer.close()
+        sys.stdout.write(f"created {row.id} ({row.capability.value}/{row.adapter})\n")
+
+
+def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="veyntora-api")
     sub = parser.add_subparsers(dest="cmd", required=True)
     serve = sub.add_parser("serve")
@@ -132,7 +216,28 @@ def main() -> None:
     sub.add_parser("sync-identities")
     openapi = sub.add_parser("openapi")
     openapi.add_argument("output", type=Path)
-    args = parser.parse_args()
+    prov = sub.add_parser("providers")
+    psub = prov.add_subparsers(dest="action", required=True)
+    psub.add_parser("list")
+    ptest = psub.add_parser("test")
+    ptest.add_argument("id", type=UUID)
+    padd = psub.add_parser("add")
+    padd.add_argument("--capability", required=True)
+    padd.add_argument("--adapter", required=True)
+    padd.add_argument("--name", required=True)
+    padd.add_argument("--hosting", required=True, choices=["self_hosted", "external"])
+    padd.add_argument("--endpoint")
+    padd.add_argument("--model")
+    padd.add_argument("--region")
+    padd.add_argument("--options", help="JSON object")
+    key = padd.add_mutually_exclusive_group()
+    key.add_argument("--ask-secret", action="store_true", help="prompt for the key (hidden)")
+    key.add_argument("--secret-stdin", action="store_true", help="read the key from stdin")
+    return parser
+
+
+def main() -> None:
+    args = _parser().parse_args()
 
     settings = get_settings()
     configure_logging(settings.log_level, json=settings.environment != "local")
@@ -162,6 +267,8 @@ def main() -> None:
                 await authz.close()
 
         asyncio.run(run())
+    elif args.cmd == "providers":
+        asyncio.run(providers_cmd(settings, args))
     elif args.cmd == "openapi":
         from veyntora_api.main import create_app  # noqa: PLC0415 - avoid app import for other cmds
 

@@ -7,13 +7,17 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 from veyntora_api.settings import get_settings
 
 
 @lru_cache
 def get_engine() -> AsyncEngine:
-    return create_async_engine(get_settings().database_url, pool_pre_ping=True, pool_size=10)
+    settings = get_settings()
+    if settings.db_null_pool:
+        return create_async_engine(settings.database_url, poolclass=NullPool)
+    return create_async_engine(settings.database_url, pool_pre_ping=True, pool_size=10)
 
 
 @lru_cache

@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     public_base_url: str = "http://localhost:3000"
 
     database_url: str = "postgresql+asyncpg://veyntora:veyntora@localhost:5432/veyntora"
+    # Workers run each task in a fresh event loop, so pooled connections must not outlive it.
+    db_null_pool: bool = False
     redis_url: str = "redis://localhost:6379/0"
 
     # Keycloak. `oidc_issuer` is the public issuer that appears in tokens; the internal

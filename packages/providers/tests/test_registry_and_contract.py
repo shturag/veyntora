@@ -35,11 +35,11 @@ def test_unknown_adapter_raises() -> None:
 
 def test_register_and_create() -> None:
     sentinel = object()
-    registry.register(Capability.RERANKER, "unit-test-adapter")(lambda _cfg: sentinel)
+    registry.register(Capability.RERANKER, "unit-test-adapter")(lambda _cfg, _s: sentinel)
     assert registry.create(_config("unit-test-adapter")) is sentinel
     assert "unit-test-adapter" in registry.adapters_for(Capability.RERANKER)
     with pytest.raises(ValueError, match="already registered"):
-        registry.register(Capability.RERANKER, "unit-test-adapter")(lambda _cfg: sentinel)
+        registry.register(Capability.RERANKER, "unit-test-adapter")(lambda _cfg, _s: sentinel)
 
 
 class _ReverseReranker:
@@ -52,7 +52,16 @@ class _ReverseReranker:
 class _LeakyStore:
     """Deliberately broken: ignores the ACL filter."""
 
+    async def ensure_collection(self, collection: str, dimensions: int) -> None:
+        return None
+
     async def upsert(self, collection: str, points: Sequence[Point]) -> None:
+        return None
+
+    async def delete_by_document(self, collection: str, document_id: str) -> None:
+        return None
+
+    async def set_acl(self, collection: str, document_id: str, principals: Sequence[str]) -> None:
         return None
 
     async def hybrid_search(
