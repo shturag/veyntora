@@ -1,0 +1,325 @@
+"use client";
+
+import { Button } from "@veyntora/ui";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useRef, useState, type FormEvent } from "react";
+
+import type { components } from "@/lib/api/schema";
+import { api, CSRF_HEADERS } from "@/lib/chat";
+
+import {
+  GroupPicker,
+  SharePointFields,
+  inputClass,
+  labelClass,
+  sharePointFrom,
+  useAction,
+  type GroupOption,
+  type SharePointSettings,
+} from "./source-forms";
+
+type Source = components["schemas"]["SourceOut"];
+
+function Feedback({ error, done }: { error: string | null; done: string | null }) {
+  if (error)
+    return (
+      <p role="alert" className="m-0 text-sm text-red">
+        {error}
+      </p>
+    );
+  if (done)
+    return (
+      <p role="status" className="m-0 text-sm text-green">
+        {done}
+      </p>
+    );
+  return null;
+}
+
+/** Sync now, pause/resume, test connection. */
+export function SourceActions({ source, canEdit }: { source: Source; canEdit: boolean }) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
+  if (!canEdit) return null;
+  const act = (path: string, init: RequestInit, message: string) =>
+    run(async () => {
+      setDone(null);
+      await api(path, init);
+      setDone(message);
+      router.refresh();
+    });
+  const paused = source.status === "paused";
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="primary"
+          disabled={busy || paused}
+          onClick={() =>
+            act(
+              `/v1/admin/sources/${source.id}/sync`,
+              { method: "POST", body: "{}" },
+              t("syncQueued"),
+            )
+          }
+        >
+          {t("syncNow")}
+        </Button>
+        {source.type === "sharepoint" ? (
+          <Button
+            disabled={busy}
+            onClick={() =>
+              act(
+                `/v1/admin/sources/${source.id}/test`,
+                { method: "POST", body: "{}" },
+                t("testQueued"),
+              )
+            }
+          >
+            {t("test")}
+          </Button>
+        ) : null}
+        <Button
+          disabled={busy}
+          onClick={() =>
+            act(
+              `/v1/admin/sources/${source.id}`,
+              {
+                method: "PATCH",
+                headers: { "If-Match": String(source.version) },
+                body: JSON.stringify({ status: paused ? "active" : "paused" }),
+              },
+              paused ? t("resumed") : t("paused"),
+            )
+          }
+        >
+          {paused ? t("resume") : t("pause")}
+        </Button>
+      </div>
+      <Feedback error={error} done={done} />
+    </div>
+  );
+}
+
+/** Who may read an upload source's documents (changes reach every chunk via an ACL sync). */
+export function ReadersForm({ source, groups }: { source: Source; groups: GroupOption[] }) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    void run(async () => {
+      await api(`/v1/admin/sources/${source.id}`, {
+        method: "PATCH",
+        headers: { "If-Match": String(source.version) },
+        body: JSON.stringify({
+          acl: { groups: form.getAll("readers").map(String), users: source.acl?.users ?? [] },
+        }),
+      });
+      setDone(t("readersSaved"));
+      router.refresh();
+    });
+  }
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-3">
+      <GroupPicker groups={groups} selected={source.acl?.groups ?? []} name="readers" />
+      <div>
+        <Button type="submit" disabled={busy}>
+          {t("saveReaders")}
+        </Button>
+      </div>
+      <Feedback error={error} done={done} />
+    </form>
+  );
+}
+
+export function SharePointSettingsForm({
+  source,
+  groups,
+}: {
+  source: Source;
+  groups: GroupOption[];
+}) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
+  const sp = source.sharepoint!;
+  const settings: SharePointSettings = {
+    tenant_id: sp.tenant_id,
+    client_id: sp.client_id,
+    site_url: sp.site_url,
+    include_paths: sp.include_paths ?? [],
+    group_map: sp.group_map ?? {},
+  };
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    void run(async () => {
+      await api(`/v1/admin/sources/${source.id}`, {
+        method: "PATCH",
+        headers: { "If-Match": String(source.version) },
+        body: JSON.stringify({
+          sharepoint: sharePointFrom(form),
+          schedule: String(form.get("schedule") || "") || null,
+        }),
+      });
+      setDone(t("settingsSaved"));
+      router.refresh();
+    });
+  }
+  function secret(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formEl = event.currentTarget;
+    const form = new FormData(formEl);
+    const expires = String(form.get("expires") || "");
+    void run(async () => {
+      await api(`/v1/admin/sources/${source.id}/secret`, {
+        method: "PUT",
+        body: JSON.stringify({
+          secret: String(form.get("secret")),
+          expires_at: expires ? new Date(`${expires}T00:00:00Z`).toISOString() : null,
+        }),
+      });
+      formEl.reset();
+      setDone(t("secretSaved"));
+      router.refresh();
+    });
+  }
+  return (
+    <div className="flex flex-col gap-5">
+      <form onSubmit={save} className="flex flex-col gap-3">
+        <SharePointFields groups={groups} value={settings} schedule={source.schedule} />
+        <div>
+          <Button type="submit" disabled={busy}>
+            {t("saveSettings")}
+          </Button>
+        </div>
+      </form>
+      <form onSubmit={secret} className="flex flex-col gap-2 border-t border-divider pt-4">
+        <p className="m-0 text-sm text-fg-secondary">
+          {sp.has_secret
+            ? t("secretSet", {
+                last4: sp.secret_last4 ?? "····",
+                expiry: sp.secret_expires_at?.slice(0, 10) ?? t("noExpiry"),
+              })
+            : t("noSecret")}
+        </p>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className={`${labelClass} min-w-56 flex-1`}>
+            {t("newSecret")}
+            <input
+              name="secret"
+              type="password"
+              autoComplete="off"
+              required
+              className={inputClass}
+            />
+          </label>
+          <label className={labelClass}>
+            {t("expires")}
+            <input name="expires" type="date" className={inputClass} />
+          </label>
+          <Button type="submit" disabled={busy}>
+            {t("replaceSecret")}
+          </Button>
+        </div>
+      </form>
+      <Feedback error={error} done={done} />
+    </div>
+  );
+}
+
+/** Upload files into an upload source (multipart; scanned, then indexed). */
+export function UploadFiles({ sourceId }: { sourceId: string }) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const ref = useRef<HTMLInputElement>(null);
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const files = ref.current?.files;
+    if (!files?.length) return;
+    const body = new FormData();
+    for (const f of Array.from(files)) body.append("files", f);
+    void run(async () => {
+      const res = await fetch(`/api/v1/admin/sources/${sourceId}/documents`, {
+        method: "POST",
+        body,
+        headers: CSRF_HEADERS,
+      });
+      if (!res.ok) {
+        const detail = ((await res.json().catch(() => ({}))) as { detail?: unknown }).detail;
+        throw new Error(typeof detail === "string" ? detail : String(res.status));
+      }
+      if (ref.current) ref.current.value = "";
+      setDone(t("uploaded", { count: files.length }));
+      router.refresh();
+    });
+  }
+  return (
+    <form onSubmit={submit} className="flex flex-wrap items-end gap-2">
+      <label className={`${labelClass} min-w-64 flex-1`}>
+        {t("files")}
+        <input
+          ref={ref}
+          name="files"
+          type="file"
+          multiple
+          required
+          accept=".pdf,.docx,.pptx,.xlsx,.html,.htm,.md,.txt,.csv,.png,.jpg,.jpeg,.tif,.tiff"
+          className="text-sm"
+        />
+      </label>
+      <Button type="submit" variant="primary" disabled={busy}>
+        {busy ? t("uploading") : t("upload")}
+      </Button>
+      <div className="basis-full">
+        <Feedback error={error} done={done} />
+      </div>
+    </form>
+  );
+}
+
+export function DocumentActions({
+  sourceId,
+  documentId,
+}: {
+  sourceId: string;
+  documentId: string;
+}) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const { busy, run } = useAction();
+  const act = (path: string, method: string) =>
+    run(async () => {
+      await api(path, { method, ...(method === "POST" ? { body: "{}" } : {}) });
+      router.refresh();
+    });
+  return (
+    <div className="flex gap-1.5">
+      <Button
+        size="sm"
+        disabled={busy}
+        onClick={() => act(`/v1/admin/sources/${sourceId}/documents/${documentId}/reindex`, "POST")}
+      >
+        {t("reindex")}
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-red"
+        disabled={busy}
+        onClick={() => act(`/v1/admin/sources/${sourceId}/documents/${documentId}`, "DELETE")}
+      >
+        {t("remove")}
+      </Button>
+    </div>
+  );
+}

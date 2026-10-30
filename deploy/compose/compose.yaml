@@ -33,8 +33,9 @@ x-app-env: &app-env
   VEY_CLAMAV_ADDRESS: clamav:3310
   # Set to false only on machines that cannot run ClamAV; documents then show "not scanned".
   VEY_SCAN_REQUIRED: ${VEY_SCAN_REQUIRED:-true}
-  VEY_TEI_EMBED_URL: http://tei-embed:80
-  VEY_TEI_RERANK_URL: http://tei-rerank:80
+  # Local model servers are opt-in (profile local-models); set these when you run them.
+  VEY_TEI_EMBED_URL: ${VEY_TEI_EMBED_URL:-}
+  VEY_TEI_RERANK_URL: ${VEY_TEI_RERANK_URL:-}
   VEY_LANGFUSE_URL: http://langfuse:3000
   VEY_ALEMBIC_INI: /app/services/api/alembic.ini
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
@@ -248,9 +249,14 @@ services:
   # BGE-M3 dense + sparse embeddings and the cross-encoder reranker on CPU. The local
   # build only selects the upstream image for this machine's architecture (tei/Dockerfile).
   tei-embed:
+    profiles: [local-models]
     build: ./tei
     image: veyntora/tei-cpu:1.9.4
-    command: ["--model-id", "BAAI/bge-m3", "--port", "80", "--max-client-batch-size", "64"]
+    # On CPU, ONNX Runtime keeps the warm-up allocation for max-batch-tokens: about 4.5 GB at
+    # 1024, 6 GB at 2048, more than 8 GB at the 16k default. 1024 fits a 16 GB machine; inputs
+    # above it are truncated for the dense vector only (BM25 sees all text). Chunks default to
+    # 500 tokens. Production sets this per GPU (Helm values).
+    command: ["--model-id", "BAAI/bge-m3", "--port", "80", "--max-client-batch-size", "64", "--max-batch-tokens", "1024"]
     # BGE-M3 on CPU needs about 4 GB of memory; give Docker Desktop at least 16 GB.
     restart: on-failure:5
     volumes: [hf-embed:/data]
@@ -263,10 +269,12 @@ services:
       start_period: 60s
 
   tei-rerank:
+    profiles: [local-models]
     # Same image as tei-embed, which builds it.
     image: veyntora/tei-cpu:1.9.4
     pull_policy: never
-    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--port", "80"]
+    # Scores query + chunk (not the parent section), so 1024 tokens is enough; see tei-embed.
+    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--port", "80", "--max-batch-tokens", "1024"]
     restart: on-failure:5
     volumes: [hf-rerank:/data]
     ports: ["127.0.0.1:8086:80"]
@@ -276,6 +284,9 @@ services:
       timeout: 5s
       retries: 90
       start_period: 60s
+    # Warm-ups peak together otherwise; start after the embedder is up.
+    depends_on:
+      tei-embed: { condition: service_healthy }
 
   docling:
     image: quay.io/docling-project/docling-serve-cpu:v1.38.2

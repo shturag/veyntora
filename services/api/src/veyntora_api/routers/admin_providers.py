@@ -7,11 +7,13 @@ from uuid import UUID
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, SecretStr
+from veyntora_providers import registry
 from veyntora_providers.interfaces import Capability, Hosting
 
 from veyntora_api.auth.deps import Ctx, DbSession, Principal, State, require_admin_area
 from veyntora_api.db.models.providers import HealthStatus, ProviderInstance
 from veyntora_api.providers.service import (
+    EXTERNAL_ADAPTERS,
     ProviderError,
     ProviderInput,
     ProviderUpdate,
@@ -77,6 +79,22 @@ async def _get(db: DbSession, provider_id: UUID) -> ProviderInstance:
     if row is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Provider not found")
     return row
+
+
+class AdapterOut(BaseModel):
+    capability: Capability
+    adapter: str
+    # Vendor APIs outside the network must be marked external.
+    external_only: bool
+
+
+@router.get("/adapters", summary="Adapters this installation can create instances of")
+async def list_adapters(_: Viewer) -> list[AdapterOut]:
+    return [
+        AdapterOut(capability=cap, adapter=a, external_only=a in EXTERNAL_ADAPTERS)
+        for cap in Capability
+        for a in registry.adapters_for(cap)
+    ]
 
 
 @router.get("", summary="Provider instances, optionally by capability")

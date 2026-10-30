@@ -1,6 +1,28 @@
 {
   "components": {
     "schemas": {
+      "AdapterOut": {
+        "properties": {
+          "adapter": {
+            "title": "Adapter",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/Capability"
+          },
+          "external_only": {
+            "title": "External Only",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "capability",
+          "adapter",
+          "external_only"
+        ],
+        "title": "AdapterOut",
+        "type": "object"
+      },
       "AgentSpec": {
         "additionalProperties": false,
         "properties": {
@@ -1152,6 +1174,37 @@
         ],
         "title": "GroundednessAction",
         "type": "string"
+      },
+      "GroupOption": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "path"
+        ],
+        "title": "GroupOption",
+        "type": "object"
       },
       "GroupOut": {
         "properties": {
@@ -2446,6 +2499,201 @@
         "title": "SessionInfo",
         "type": "object"
       },
+      "SharePointOut": {
+        "additionalProperties": false,
+        "description": "Connection settings without the secret; plus what the last test and sync found.",
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "group_map": {
+            "additionalProperties": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Group Map",
+            "type": "object"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "last_test": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "site_url": {
+            "maxLength": 1024,
+            "pattern": "^https://[^/\\s]+\\.sharepoint\\.com(/.*)?$",
+            "title": "Site Url",
+            "type": "string"
+          },
+          "tenant_id": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9.-]+$",
+            "title": "Tenant Id",
+            "type": "string"
+          },
+          "unmapped": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmapped",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "client_id",
+          "site_url",
+          "has_secret",
+          "secret_last4",
+          "secret_expires_at",
+          "last_test",
+          "unmapped"
+        ],
+        "title": "SharePointOut",
+        "type": "object"
+      },
+      "SharePointSettings": {
+        "additionalProperties": false,
+        "description": "Where to read and how to map permissions. The client secret is set separately.",
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "group_map": {
+            "additionalProperties": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Group Map",
+            "type": "object"
+          },
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "site_url": {
+            "maxLength": 1024,
+            "pattern": "^https://[^/\\s]+\\.sharepoint\\.com(/.*)?$",
+            "title": "Site Url",
+            "type": "string"
+          },
+          "tenant_id": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9.-]+$",
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "client_id",
+          "site_url"
+        ],
+        "title": "SharePointSettings",
+        "type": "object"
+      },
+      "SharePointSourceInput": {
+        "additionalProperties": false,
+        "properties": {
+          "client_secret": {
+            "format": "password",
+            "title": "Client Secret",
+            "type": "string",
+            "writeOnly": true
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SharePointSettings"
+          }
+        },
+        "required": [
+          "name",
+          "settings",
+          "client_secret"
+        ],
+        "title": "SharePointSourceInput",
+        "type": "object"
+      },
       "SourceAcl": {
         "additionalProperties": false,
         "description": "Who may read documents of an upload source. Veyntora group and user ids.",
@@ -2507,6 +2755,27 @@
             "title": "Name",
             "type": "string"
           },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule"
+          },
+          "sharepoint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharePointOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "status": {
             "$ref": "#/components/schemas/SourceStatus"
           },
@@ -2524,6 +2793,8 @@
           "name",
           "status",
           "acl",
+          "sharepoint",
+          "schedule",
           "documents",
           "version",
           "last_synced_at"
@@ -2579,6 +2850,27 @@
               }
             ],
             "title": "Name"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule"
+          },
+          "sharepoint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharePointSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "status": {
             "anyOf": [
@@ -3664,6 +3956,31 @@
         ]
       }
     },
+    "/v1/admin/providers/adapters": {
+      "get": {
+        "operationId": "list_adapters_v1_admin_providers_adapters_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdapterOut"
+                  },
+                  "title": "Response List Adapters V1 Admin Providers Adapters Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Adapters this installation can create instances of",
+        "tags": [
+          "admin: providers"
+        ]
+      }
+    },
     "/v1/admin/providers/{provider_id}": {
       "patch": {
         "operationId": "change_provider_v1_admin_providers__provider_id__patch",
@@ -3894,7 +4211,114 @@
         ]
       }
     },
+    "/v1/admin/sources/groups": {
+      "get": {
+        "operationId": "groups_v1_admin_sources_groups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOption"
+                  },
+                  "title": "Response Groups V1 Admin Sources Groups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Groups that can be given read access or mapped from a source",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/sharepoint": {
+      "post": {
+        "operationId": "create_sharepoint_v1_admin_sources_sharepoint_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SharePointSourceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Connect a SharePoint site",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
     "/v1/admin/sources/{source_id}": {
+      "get": {
+        "operationId": "get_source_v1_admin_sources__source_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One data source",
+        "tags": [
+          "admin: sources"
+        ]
+      },
       "patch": {
         "operationId": "change_source_v1_admin_sources__source_id__patch",
         "parameters": [
@@ -4248,6 +4672,59 @@
         ]
       }
     },
+    "/v1/admin/sources/{source_id}/secret": {
+      "put": {
+        "operationId": "put_secret_v1_admin_sources__source_id__secret_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the connector secret (write-only)",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
     "/v1/admin/sources/{source_id}/sync": {
       "post": {
         "operationId": "sync_source_v1_admin_sources__source_id__sync_post",
@@ -4286,6 +4763,49 @@
           }
         },
         "summary": "Re-sync now",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/test": {
+      "post": {
+        "operationId": "test_source_v1_admin_sources__source_id__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test the connection (runs in a worker; see sharepoint.last_test)",
         "tags": [
           "admin: sources"
         ]

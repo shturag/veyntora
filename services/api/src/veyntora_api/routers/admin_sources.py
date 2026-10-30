@@ -12,10 +12,11 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, Header, HTTPException, UploadFile, status
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 
 from veyntora_api.auth.deps import Ctx, DbSession, Principal, State, require_admin_area
 from veyntora_api.authz.fga import PLATFORM, Tuple
+from veyntora_api.db.models.identity import Group
 from veyntora_api.db.models.knowledge import (
     DataSource,
     Document,
@@ -31,10 +32,23 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.knowledge import service as svc
 from veyntora_api.storage import ObjectStore
 
+# The worker reads this list (veyntora_workers.sources); the API cannot read secrets.
+SOURCE_TEST_QUEUE = "vey:source-test"
+
 router = APIRouter(prefix="/v1/admin/sources", tags=["admin: sources"])
 
 Viewer = Annotated[Principal, Depends(require_admin_area("sources", "viewer"))]
 Editor = Annotated[Principal, Depends(require_admin_area("sources", "editor"))]
+
+
+class SharePointOut(svc.SharePointSettings):
+    """Connection settings without the secret; plus what the last test and sync found."""
+
+    has_secret: bool
+    secret_last4: str | None
+    secret_expires_at: datetime | None
+    last_test: dict[str, Any] | None
+    unmapped: list[str]
 
 
 class SourceOut(BaseModel):
@@ -43,6 +57,8 @@ class SourceOut(BaseModel):
     name: str
     status: SourceStatus
     acl: svc.SourceAcl | None
+    sharepoint: SharePointOut | None
+    schedule: str | None
     documents: int
     version: int
     last_synced_at: datetime | None
@@ -102,9 +118,27 @@ async def _source_out(db: DbSession, s: DataSource) -> SourceOut:
         name=s.name,
         status=s.status,
         acl=svc.source_acl(s) if s.type is SourceType.UPLOAD else None,
+        sharepoint=_sharepoint(s),
+        schedule=s.schedule,
         documents=int(count or 0),
         version=s.version,
         last_synced_at=s.last_synced_at,
+    )
+
+
+def _sharepoint(s: DataSource) -> SharePointOut | None:
+    if s.type is not SourceType.SHAREPOINT:
+        return None
+    settings = {k: s.config.get(k) for k in svc.SharePointSettings.model_fields}
+    return SharePointOut.model_validate(
+        {
+            **settings,
+            "has_secret": s.secret_ref is not None,
+            "secret_last4": s.secret_last4,
+            "secret_expires_at": s.secret_expires_at,
+            "last_test": s.config.get("last_test"),
+            "unmapped": s.config.get("unmapped") or [],
+        }
     )
 
 
@@ -162,6 +196,23 @@ async def list_sources(_: Viewer, db: DbSession) -> list[SourceOut]:
     return [await _source_out(db, s) for s in rows]
 
 
+class GroupOption(BaseModel):
+    id: UUID
+    name: str
+    path: str | None
+
+
+@router.get("/groups", summary="Groups that can be given read access or mapped from a source")
+async def groups(_: Viewer, db: DbSession) -> list[GroupOption]:
+    rows = (await db.execute(sa.select(Group).order_by(Group.name))).scalars()
+    return [GroupOption(id=g.id, name=g.name, path=g.keycloak_path) for g in rows]
+
+
+@router.get("/{source_id}", summary="One data source")
+async def get_source(source_id: UUID, _: Viewer, db: DbSession) -> SourceOut:
+    return await _source_out(db, await _source(db, source_id))
+
+
 @router.post("", status_code=status.HTTP_201_CREATED, summary="Create an upload source")
 async def create_source(
     data: svc.UploadSourceInput, principal: Editor, ctx: Ctx, db: DbSession, state: State
@@ -171,6 +222,54 @@ async def create_source(
     out = await _source_out(db, row)
     await db.commit()
     return out
+
+
+@router.post(
+    "/sharepoint", status_code=status.HTTP_201_CREATED, summary="Connect a SharePoint site"
+)
+async def create_sharepoint(
+    data: svc.SharePointSourceInput, principal: Editor, ctx: Ctx, db: DbSession, state: State
+) -> SourceOut:
+    row = await svc.create_sharepoint_source(db, ctx, state.secrets, data, principal.user_id)
+    await state.require_authz().write([Tuple(PLATFORM, "platform", f"source:{row.id}")])
+    await state.redis.rpush(SOURCE_TEST_QUEUE, str(row.id))
+    out = await _source_out(db, row)
+    await db.commit()
+    return out
+
+
+class SecretInput(BaseModel):
+    secret: SecretStr
+    expires_at: datetime | None = None
+
+
+@router.put("/{source_id}/secret", summary="Replace the connector secret (write-only)")
+async def put_secret(
+    source_id: UUID, data: SecretInput, _: Editor, ctx: Ctx, db: DbSession, state: State
+) -> SourceOut:
+    row = await _source(db, source_id)
+    if row.type is SourceType.UPLOAD:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Upload sources have no secret")
+    await svc.set_source_secret(
+        db, ctx, state.secrets, row, value=data.secret, expires_at=data.expires_at
+    )
+    await state.redis.rpush(SOURCE_TEST_QUEUE, str(row.id))
+    out = await _source_out(db, row)
+    await db.commit()
+    return out
+
+
+@router.post(
+    "/{source_id}/test",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Test the connection (runs in a worker; see sharepoint.last_test)",
+)
+async def test_source(source_id: UUID, _: Editor, db: DbSession, state: State) -> SourceOut:
+    row = await _source(db, source_id)
+    if row.type is SourceType.UPLOAD:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Nothing to test for uploads")
+    await state.redis.rpush(SOURCE_TEST_QUEUE, str(row.id))
+    return await _source_out(db, row)
 
 
 @router.patch("/{source_id}", summary="Rename, pause or change who may read")

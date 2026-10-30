@@ -246,6 +246,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/providers/adapters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Adapters this installation can create instances of */
+        get: operations["list_adapters_v1_admin_providers_adapters_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/providers/{provider_id}": {
         parameters: {
             query?: never;
@@ -319,7 +336,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/sources/{source_id}": {
+    "/v1/admin/sources/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Groups that can be given read access or mapped from a source */
+        get: operations["groups_v1_admin_sources_groups_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/sharepoint": {
         parameters: {
             query?: never;
             header?: never;
@@ -327,6 +361,24 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        /** Connect a SharePoint site */
+        post: operations["create_sharepoint_v1_admin_sources_sharepoint_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One data source */
+        get: operations["get_source_v1_admin_sources__source_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -405,6 +457,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/sources/{source_id}/secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the connector secret (write-only) */
+        put: operations["put_secret_v1_admin_sources__source_id__secret_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/sources/{source_id}/sync": {
         parameters: {
             query?: never;
@@ -416,6 +485,23 @@ export interface paths {
         put?: never;
         /** Re-sync now */
         post: operations["sync_source_v1_admin_sources__source_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test the connection (runs in a worker; see sharepoint.last_test) */
+        post: operations["test_source_v1_admin_sources__source_id__test_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -630,6 +716,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdapterOut */
+        AdapterOut: {
+            /** Adapter */
+            adapter: string;
+            capability: components["schemas"]["Capability"];
+            /** External Only */
+            external_only: boolean;
+        };
         /** AgentSpec */
         AgentSpec: {
             /** Llm Instance Id */
@@ -1100,6 +1194,18 @@ export interface components {
          * @enum {string}
          */
         GroundednessAction: "warn" | "block";
+        /** GroupOption */
+        GroupOption: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Path */
+            path: string | null;
+        };
         /** GroupOut */
         GroupOut: {
             /**
@@ -1618,6 +1724,75 @@ export interface components {
             signed_in: boolean;
         };
         /**
+         * SharePointOut
+         * @description Connection settings without the secret; plus what the last test and sync found.
+         */
+        SharePointOut: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Group Map */
+            group_map?: {
+                [key: string]: string;
+            };
+            /** Has Secret */
+            has_secret: boolean;
+            /** Include Paths */
+            include_paths?: string[];
+            /** Last Test */
+            last_test: {
+                [key: string]: unknown;
+            } | null;
+            /** Secret Expires At */
+            secret_expires_at: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Site Url */
+            site_url: string;
+            /** Tenant Id */
+            tenant_id: string;
+            /** Unmapped */
+            unmapped: string[];
+        };
+        /**
+         * SharePointSettings
+         * @description Where to read and how to map permissions. The client secret is set separately.
+         */
+        SharePointSettings: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Group Map */
+            group_map?: {
+                [key: string]: string;
+            };
+            /** Include Paths */
+            include_paths?: string[];
+            /** Site Url */
+            site_url: string;
+            /** Tenant Id */
+            tenant_id: string;
+        };
+        /** SharePointSourceInput */
+        SharePointSourceInput: {
+            /**
+             * Client Secret
+             * Format: password
+             */
+            client_secret: string;
+            /** Name */
+            name: string;
+            /** Schedule */
+            schedule?: string | null;
+            /** Secret Expires At */
+            secret_expires_at?: string | null;
+            settings: components["schemas"]["SharePointSettings"];
+        };
+        /**
          * SourceAcl
          * @description Who may read documents of an upload source. Veyntora group and user ids.
          */
@@ -1641,6 +1816,9 @@ export interface components {
             last_synced_at: string | null;
             /** Name */
             name: string;
+            /** Schedule */
+            schedule: string | null;
+            sharepoint: components["schemas"]["SharePointOut"] | null;
             status: components["schemas"]["SourceStatus"];
             type: components["schemas"]["SourceType"];
             /** Version */
@@ -1661,6 +1839,9 @@ export interface components {
             acl?: components["schemas"]["SourceAcl"] | null;
             /** Name */
             name?: string | null;
+            /** Schedule */
+            schedule?: string | null;
+            sharepoint?: components["schemas"]["SharePointSettings"] | null;
             status?: components["schemas"]["SourceStatus"] | null;
         };
         /** StatusOut */
@@ -2300,6 +2481,26 @@ export interface operations {
             };
         };
     };
+    list_adapters_v1_admin_providers_adapters_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdapterOut"][];
+                };
+            };
+        };
+    };
     change_provider_v1_admin_providers__provider_id__patch: {
         parameters: {
             query?: never;
@@ -2438,6 +2639,90 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    groups_v1_admin_sources_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOption"][];
+                };
+            };
+        };
+    };
+    create_sharepoint_v1_admin_sources_sharepoint_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SharePointSourceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_source_v1_admin_sources__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2659,6 +2944,41 @@ export interface operations {
             };
         };
     };
+    put_secret_v1_admin_sources__source_id__secret_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SecretInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     sync_source_v1_admin_sources__source_id__sync_post: {
         parameters: {
             query?: never;
@@ -2677,6 +2997,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_source_v1_admin_sources__source_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
                 };
             };
             /** @description Validation Error */

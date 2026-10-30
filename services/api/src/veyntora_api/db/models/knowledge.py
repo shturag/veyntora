@@ -121,10 +121,17 @@ class SourceAttachment(IdMixin, TimestampMixin, VersionedMixin, Base):
 
 class Document(IdMixin, TimestampMixin, Base):
     __tablename__ = "documents"
-    __table_args__ = (sa.UniqueConstraint("source_id", "path"),)
+    __table_args__ = (
+        sa.UniqueConstraint("source_id", "path"),
+        sa.UniqueConstraint("source_id", "external_id", name="uq_documents_source_id_external_id"),
+    )
 
     source_id: Mapped[UUID] = mapped_column(sa.ForeignKey("data_sources.id", ondelete="CASCADE"))
     path: Mapped[str] = mapped_column(sa.String(2048))
+    # The source system's id (SharePoint drive/item); paths change on rename, this does not.
+    external_id: Mapped[str | None] = mapped_column(sa.String(512))
+    # The source's version tag (SharePoint cTag); unchanged means no download on sync.
+    external_version: Mapped[str | None] = mapped_column(sa.String(255))
     title: Mapped[str] = mapped_column(sa.String(1024), default="", server_default="")
     url: Mapped[str | None] = mapped_column(sa.String(2048))
     mime_type: Mapped[str | None] = mapped_column(sa.String(255))

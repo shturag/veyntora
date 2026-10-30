@@ -57,6 +57,7 @@ from veyntora_workers.chunking import (
     detect_language,
     fixed_chunks,
 )
+from veyntora_workers.connectors.sync import resync_sharepoint_acl, sync_sharepoint
 
 log = structlog.get_logger()
 
@@ -114,6 +115,7 @@ class Ingestor:
         self.db = db
         self.settings = settings
         self.objects = objects
+        self.secrets = secrets
         self.adapters = Adapters(db, secrets)
         # Originals to delete once the database change that drops them is committed.
         self._delete_after_commit: list[str] = []
@@ -126,9 +128,12 @@ class Ingestor:
         while self._delete_after_commit:
             await self.objects.delete(self._delete_after_commit.pop())
 
+    def delete_after_commit(self, key: str) -> None:
+        self._delete_after_commit.append(key)
+
     def _drop_original(self, doc: Document) -> None:
         if doc.object_key:
-            self._delete_after_commit.append(doc.object_key)
+            self.delete_after_commit(doc.object_key)
             doc.object_key = None
 
     # ------------------------------------------------------------ dispatch
@@ -139,7 +144,11 @@ class Ingestor:
             doc = await self._locked(job.document_id, wait=False)
             stats = await self.index_document(doc, force=job.kind is not IngestJobKind.UPLOAD)
         elif job.kind is IngestJobKind.SYNC:
-            stats = await self.sync_source(job.source_id)
+            source = await self.db.get(DataSource, job.source_id)
+            if source is not None and source.type is SourceType.SHAREPOINT:
+                stats = await sync_sharepoint(self, source)
+            else:
+                stats = await self.sync_source(job.source_id)
         elif job.kind is IngestJobKind.ACL_SYNC:
             stats = await self.sync_acl(job.source_id)
         elif job.kind is IngestJobKind.DELETE:
@@ -394,21 +403,26 @@ class Ingestor:
         source = await self.db.get(DataSource, source_id)
         if source is None:
             return {"skipped": "source deleted"}
-        if source.type is not SourceType.UPLOAD:
-            raise ValueError("ACL sync for connected sources arrives with their connectors")
-        acl = source_acl(source).model_dump(mode="json")
-        principals = principals_of(acl)
-        docs = list(
-            (
-                await self.db.execute(
-                    sa.select(Document).where(
-                        Document.source_id == source_id, Document.status != DocumentStatus.DELETED
+        if source.type is SourceType.SHAREPOINT:
+            docs = await resync_sharepoint_acl(self, source)
+        elif source.type is SourceType.UPLOAD:
+            acl = source_acl(source).model_dump(mode="json")
+            docs = list(
+                (
+                    await self.db.execute(
+                        sa.select(Document).where(
+                            Document.source_id == source_id,
+                            Document.status != DocumentStatus.DELETED,
+                        )
                     )
-                )
-            ).scalars()
-        )
+                ).scalars()
+            )
+            for doc in docs:
+                doc.acl = acl
+        else:
+            raise ValueError(f"ACL sync for {source.type.value} sources is not available")
         for doc in docs:
-            doc.acl = acl
+            principals = principals_of(doc.acl)
             for idx in await self._indexes(doc):
                 if idx.vector_store_instance_id is None:
                     continue

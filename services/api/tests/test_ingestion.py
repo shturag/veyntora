@@ -635,3 +635,31 @@ async def test_scan_result_survives_an_embedding_outage(
     ing.adapters.by_id[world.embed] = FakeEmbedder()  # type: ignore[attr-defined]
     assert (await ing.index_document(doc, force=False))["indexed"] == 1
     assert scans == 1
+
+
+async def test_documents_reach_an_external_embedder_only_with_the_data_rule(
+    world: World,
+) -> None:
+    bot, source = await _bot_with_source(world)
+    external = await _provider(world.db, Capability.EMBEDDING, "voyage", Hosting.EXTERNAL)
+    spec = world.spec()
+    spec.ingestion.embedding_instance_id = external
+    spec.retrieval.embedding_instance_id = external
+    await bots.save_draft(world.db, CTX, bot, spec, expected_version=None)
+    assert await profiles_for_source(world.db, source.id) == [], "no rule: nothing is sent"
+
+    await bots.set_governance(
+        world.db, CTX, bot, bots.GovernanceInput(allowed_external_instance_ids=[external])
+    )
+    assert await profiles_for_source(world.db, source.id) == [], "PII masking still required"
+
+    await bots.set_governance(
+        world.db,
+        CTX,
+        bot,
+        bots.GovernanceInput(
+            allowed_external_instance_ids=[external], mask_pii_before_external=False
+        ),
+    )
+    [profile] = await profiles_for_source(world.db, source.id)
+    assert profile.embedding_instance_id == external

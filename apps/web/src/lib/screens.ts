@@ -92,11 +92,11 @@ export const SCREENS: readonly Screen[] = [
   { key: "playground", file: "Playground.html", route: "/admin/playground", shell: "admin", phase: 2, area: "playground" },
 
   // admin: data, providers, tools, channels
-  { key: "dataSources", file: "DataSources.html", route: "/admin/sources", shell: "admin", phase: 1, area: "sources" },
-  { key: "connectSource", file: "ConnectSource.html", route: "/admin/sources/new", shell: "admin", phase: 1, area: "sources" },
-  { key: "sourceDetail", file: "SourceDetail.html", route: "/admin/sources/[id]", shell: "admin", phase: 1, area: "sources" },
-  { key: "providers", file: "Providers.html", route: "/admin/providers", shell: "admin", phase: 2, area: "providers" },
-  { key: "addProvider", file: "AddProvider.html", route: "/admin/providers/new", shell: "admin", phase: 2, area: "providers" },
+  { key: "dataSources", file: "DataSources.html", route: "/admin/sources", shell: "admin", phase: 1, area: "sources", built: true },
+  { key: "connectSource", file: "ConnectSource.html", route: "/admin/sources/new", shell: "admin", phase: 1, area: "sources", built: true },
+  { key: "sourceDetail", file: "SourceDetail.html", route: "/admin/sources/[id]", shell: "admin", phase: 1, area: "sources", built: true },
+  { key: "providers", file: "Providers.html", route: "/admin/providers", shell: "admin", phase: 2, area: "providers", built: true },
+  { key: "addProvider", file: "AddProvider.html", route: "/admin/providers/new", shell: "admin", phase: 2, area: "providers", built: true },
   { key: "mcpServers", file: "MCPServers.html", route: "/admin/tools", shell: "admin", phase: 3, area: "tools" },
   { key: "mcpRegister", file: "MCPRegister.html", route: "/admin/tools/new", shell: "admin", phase: 3, area: "tools" },
   { key: "mcpServerDetail", file: "MCPServerDetail.html", route: "/admin/tools/[id]", shell: "admin", phase: 3, area: "tools" },

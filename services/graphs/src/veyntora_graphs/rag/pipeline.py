@@ -113,10 +113,13 @@ class Source:
     document_id: str
     title: str
     section: str
+    # The parent section when the pipeline keeps one, else the chunk; this is what the model
+    # reads and what is quoted. `chunk_text` is what the reranker scores.
     text: str
     page: int | None
     score: float
     updated: str | None = None
+    chunk_text: str = ""
 
 
 @dataclass(slots=True)
@@ -245,7 +248,10 @@ async def retrieve(
     dense = None
     if ret.search_type is not SearchType.SPARSE:
         embedder = await adapters.get(ctx.profile.embedding_instance_id)
-        dense = (await embedder.embed([query])).dense[0]
+        embed_query = getattr(embedder, "embed_query", None)
+        dense = (
+            await embed_query(query) if embed_query else (await embedder.embed([query])).dense[0]
+        )
     store = await adapters.get(ctx.profile.vector_store_instance_id)
     hits: list[Hit] = await store.hybrid_search(
         ctx.profile.collection,
@@ -293,6 +299,7 @@ async def _recheck(db: AsyncSession, ctx: RunContext, hits: Sequence[Hit]) -> li
                 title=str(h.payload.get("title") or doc.title or doc.path),
                 section=str(h.payload.get("section") or ""),
                 text=str(h.payload.get("parent_text") or h.payload.get("text") or ""),
+                chunk_text=str(h.payload.get("text") or ""),
                 page=int(pages[0]) if pages else None,
                 score=h.score,
                 updated=h.payload.get("updated"),
@@ -343,7 +350,9 @@ async def _score(
 ) -> list[Source]:
     reranker = await adapters.get(instance_id)
     scored = await reranker.rerank(
-        query, [Doc(str(i), c.text) for i, c in enumerate(candidates)], len(candidates)
+        query,
+        [Doc(str(i), c.chunk_text or c.text) for i, c in enumerate(candidates)],
+        len(candidates),
     )
     out = []
     for s in scored:

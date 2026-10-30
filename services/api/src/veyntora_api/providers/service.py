@@ -27,7 +27,7 @@ from veyntora_api.db.models.providers import HealthStatus, ProviderInstance
 from veyntora_api.secrets.openbao import SecretWriter
 
 # Adapters that call a vendor outside the network: they must be marked external.
-EXTERNAL_ADAPTERS = frozenset({"anthropic"})
+EXTERNAL_ADAPTERS = frozenset({"anthropic", "voyage"})
 
 
 class ProviderInput(BaseModel):

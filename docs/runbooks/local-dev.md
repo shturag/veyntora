@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Docker Desktop (or Docker Engine) with Compose v2.20+. Give it **at least 16 GB of memory**. With 8 GB, TEI, Docling and Langfuse are OOM-killed (ClamAV adds about 1 GB).
+- Docker Desktop (or Docker Engine) with Compose v2.20+. Give it **at least 16 GB of memory**. No model servers run locally: embeddings, reranking and the LLM use provider APIs whose keys you add under Admin → Providers & keys. To run TEI anyway: `docker compose --profile local-models up -d` and set `VEY_TEI_EMBED_URL`/`VEY_TEI_RERANK_URL` (needs about 11 GB more).
 - For working on the code: uv 0.13, Python 3.12 (`uv python install 3.12`), Node 24, pnpm 12.
 
 ## Start

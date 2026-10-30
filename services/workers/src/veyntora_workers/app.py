@@ -25,6 +25,7 @@ from veyntora_api.settings import get_settings
 
 from veyntora_workers.ingest import requeue_stuck, run_pending
 from veyntora_workers.provider_tests import run_queued_provider_tests
+from veyntora_workers.sources import run_due_schedules, run_queued_source_tests
 
 HEARTBEAT_KEY = "vey:workers:heartbeat"
 
@@ -50,6 +51,8 @@ app.conf.update(
             "schedule": timedelta(seconds=3),
             "options": {"expires": 3},
         },
+        "source-tests": {"task": "veyntora.source_tests", "schedule": timedelta(seconds=5)},
+        "source-schedules": {"task": "veyntora.source_schedules", "schedule": timedelta(minutes=1)},
         "ingest-requeue-stuck": {
             "task": "veyntora.ingest_requeue_stuck",
             "schedule": timedelta(minutes=5),
@@ -112,3 +115,13 @@ def ingest_requeue_stuck() -> int:
             return await requeue_stuck(db)
 
     return _run(go())
+
+
+@app.task(name="veyntora.source_tests")
+def source_tests() -> int:
+    return _run(run_queued_source_tests(settings))
+
+
+@app.task(name="veyntora.source_schedules")
+def source_schedules() -> int:
+    return _run(run_due_schedules())

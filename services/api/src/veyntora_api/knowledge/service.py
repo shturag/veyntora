@@ -14,7 +14,7 @@ from typing import Any
 from uuid import UUID
 
 import sqlalchemy as sa
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from veyntora_api.core import audit
@@ -32,6 +32,7 @@ from veyntora_api.db.models.knowledge import (
     SourceStatus,
     SourceType,
 )
+from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.storage import ObjectStore, object_key
 
 # Extension -> MIME type sent to the parser. Anything else is refused at upload.
@@ -84,12 +85,42 @@ class UploadSourceInput(BaseModel):
     acl: SourceAcl
 
 
+# Sync schedules offered in the console (cron, UTC). Null means manual sync only.
+SCHEDULES = ("0 * * * *", "0 */4 * * *", "0 6 * * *")
+
+
+class SharePointSettings(BaseModel):
+    """Where to read and how to map permissions. The client secret is set separately."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tenant_id: str = Field(min_length=3, max_length=255, pattern=r"^[A-Za-z0-9.-]+$")
+    client_id: UUID
+    site_url: str = Field(max_length=1024, pattern=r"^https://[^/\s]+\.sharepoint\.com(/.*)?$")
+    # Folder prefixes inside the site ("Policies/HR"); empty means every library.
+    include_paths: list[str] = Field(default_factory=list, max_length=50)
+    # "entra:<group id>" or "site:<SharePoint group name>" -> Veyntora group id.
+    group_map: dict[str, UUID] = Field(default_factory=dict)
+
+
+class SharePointSourceInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=255)
+    settings: SharePointSettings
+    client_secret: SecretStr
+    secret_expires_at: datetime | None = None
+    schedule: str | None = None
+
+
 class SourceUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
     acl: SourceAcl | None = None
     status: SourceStatus | None = None
+    schedule: str | None = None
+    sharepoint: SharePointSettings | None = None
 
 
 def principals_of(acl: dict[str, Any]) -> list[str]:
@@ -143,8 +174,23 @@ async def update_source(
     expected_version: int | None,
     triggered_by: UUID | None = None,
 ) -> DataSource:
-    changes: dict[str, Any] = data.model_dump(exclude_unset=True, exclude={"acl"})
+    changes: dict[str, Any] = data.model_dump(exclude_unset=True, exclude={"acl", "sharepoint"})
+    if "schedule" in changes and changes["schedule"] not in (None, *SCHEDULES):
+        raise KnowledgeError("choose one of the offered sync schedules")
     acl_changed = False
+    if data.sharepoint is not None:
+        if row.type is not SourceType.SHAREPOINT:
+            raise KnowledgeError("SharePoint settings only apply to SharePoint sources")
+        await _check_group_map(db, data.sharepoint)
+        new = data.sharepoint.model_dump(mode="json")
+        old = {k: row.config.get(k) for k in new}
+        # A new site or tenant starts over; a new group mapping re-reads permissions.
+        reset = any(old[k] != new[k] for k in ("tenant_id", "client_id", "site_url"))
+        acl_changed = old["group_map"] != new["group_map"]
+        config = {**row.config, **new}
+        if reset:
+            config["state"] = {}
+        changes["config"] = config
     if data.acl is not None:
         if row.type is not SourceType.UPLOAD:
             raise KnowledgeError("permissions of this source come from the source system")
@@ -157,7 +203,81 @@ async def update_source(
     )
     if acl_changed:
         await enqueue(db, row.id, IngestJobKind.ACL_SYNC, triggered_by=triggered_by)
+    if data.sharepoint is not None:
+        await enqueue(db, row.id, IngestJobKind.SYNC, triggered_by=triggered_by)
     return row
+
+
+async def _check_group_map(db: AsyncSession, settings: SharePointSettings) -> None:
+    for key in settings.group_map:
+        if not key.startswith(("entra:", "site:")) or len(key) < 7:
+            raise KnowledgeError(f"{key!r}: map keys start with entra: or site:")
+    ids = set(settings.group_map.values())
+    if ids:
+        found = set((await db.execute(sa.select(Group.id).where(Group.id.in_(ids)))).scalars())
+        if missing := [str(g) for g in ids if g not in found]:
+            raise KnowledgeError(f"unknown groups: {', '.join(missing)}")
+
+
+async def create_sharepoint_source(
+    db: AsyncSession,
+    ctx: RequestContext,
+    secrets: SecretWriter | None,
+    data: SharePointSourceInput,
+    owner_id: UUID | None,
+) -> DataSource:
+    if secrets is None:
+        raise KnowledgeError("the secret store is not available")
+    if data.schedule not in (None, *SCHEDULES):
+        raise KnowledgeError("choose one of the offered sync schedules")
+    await _check_group_map(db, data.settings)
+    if await db.scalar(sa.select(DataSource.id).where(DataSource.name == data.name)):
+        raise KnowledgeError(f"a source named {data.name!r} already exists")
+    row = DataSource(
+        type=SourceType.SHAREPOINT,
+        name=data.name,
+        config={**data.settings.model_dump(mode="json"), "state": {}},
+        schedule=data.schedule,
+        status=SourceStatus.ACTIVE,
+        owner_id=owner_id,
+    )
+    await ConfigService(db, ctx).create(row, action="source.create")
+    await set_source_secret(
+        db, ctx, secrets, row, value=data.client_secret, expires_at=data.secret_expires_at
+    )
+    return row
+
+
+async def set_source_secret(
+    db: AsyncSession,
+    ctx: RequestContext,
+    secrets: SecretWriter | None,
+    row: DataSource,
+    *,
+    value: SecretStr,
+    expires_at: datetime | None,
+) -> None:
+    """Store or replace the connector's secret in OpenBao. Only last 4 and expiry are kept."""
+    if secrets is None:
+        raise KnowledgeError("the secret store is not available")
+    rotating = row.secret_ref is not None
+    before = {"secret_last4": row.secret_last4}
+    ref = await secrets.put(f"sources/{row.id}", value.get_secret_value(), expires_at)
+    row.secret_ref, row.secret_last4, row.secret_expires_at = ref.ref, ref.last4, expires_at
+    row.version += 1
+    await db.flush()
+    await audit.record(
+        db,
+        ctx,
+        action="source.secret_rotate" if rotating else "source.secret_set",
+        target_type="data_source",
+        target_id=str(row.id),
+        before=before if rotating else None,
+        after={
+            "secret_last4": row.secret_last4,
+            "secret_expires_at": expires_at.isoformat() if expires_at else None,
+        },
+    )
 
 
 async def enqueue(
