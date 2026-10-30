@@ -16,7 +16,8 @@ import sqlalchemy as sa
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_providers.interfaces import Capability, Hosting
-from veyntora_spec.pipeline import ChunkingStrategy, PipelineSpec
+from veyntora_spec.filters import FilterError, parse_filter
+from veyntora_spec.pipeline import PipelineSpec
 
 from veyntora_api.authz.fga import PLATFORM, Authz, Tuple
 from veyntora_api.core import audit
@@ -163,6 +164,7 @@ _EXPECTED: dict[str, Capability] = {
     "router.router_instance_id": Capability.LLM,
     "guardrails.input_guardrail_instance_id": Capability.GUARDRAIL,
     "guardrails.output_guardrail_instance_id": Capability.GUARDRAIL,
+    "guardrails.pii_instance_id": Capability.GUARDRAIL,
 }
 
 
@@ -201,11 +203,16 @@ async def reference_problems(
 
 
 async def external_problems(
-    db: AsyncSession, bot: Chatbot, rows: dict[UUID, ProviderInstance]
+    db: AsyncSession, bot: Chatbot, rows: dict[UUID, ProviderInstance], spec: PipelineSpec
 ) -> list[str]:
-    """Data stays in-house unless a data rule allows this external provider for this bot."""
+    """Data stays in-house unless a data rule allows this external provider for this bot.
+
+    When the rule asks for masking, external models are allowed once the pipeline has a PII
+    provider; that provider is the masker and is exempt from masking itself.
+    """
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     allowed = set(rule.allowed_external_instance_ids) if rule else set()
+    masker = spec.guardrails.pii_instance_id
     problems = []
     for p in rows.values():
         if p.hosting is not Hosting.EXTERNAL:
@@ -214,10 +221,12 @@ async def external_problems(
             problems.append(
                 f"{p.name} is an external provider; allow it in this chatbot's data rules first"
             )
-        elif rule is not None and rule.mask_pii_before_external:
+        elif (
+            rule is not None and rule.mask_pii_before_external and p.id != masker and masker is None
+        ):
             problems.append(
-                f"the data rule asks to mask personal data before {p.name}; masking arrives "
-                "with guardrails (Phase 2), so switch the rule off to use this provider now"
+                f"the data rule asks to mask personal data before {p.name}; choose a PII "
+                "provider on the Guardrails page, or switch the rule off"
             )
     return problems
 
@@ -232,8 +241,10 @@ async def save_draft(
     change_note: str = "",
 ) -> PipelineVersion:
     """Replace the draft spec. The chatbot's version guards against concurrent editors."""
-    if spec.ingestion.chunking is ChunkingStrategy.SEMANTIC:
-        raise ChatbotError("semantic chunking arrives with the Pipeline pages (Phase 2)")
+    try:
+        parse_filter(spec.retrieval.metadata_filter)
+    except FilterError as exc:
+        raise ChatbotError(f"metadata filter: {exc}") from exc
     problems, _ = await reference_problems(db, spec)
     if problems:
         raise ChatbotError("; ".join(problems))
@@ -266,7 +277,7 @@ async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
     spec = PipelineSpec.model_validate(draft.spec)
     problems = spec.publish_problems()
     ref_problems, rows = await reference_problems(db, spec)
-    return problems + ref_problems + await external_problems(db, bot, rows)
+    return problems + ref_problems + await external_problems(db, bot, rows, spec)
 
 
 async def publish(
@@ -320,8 +331,9 @@ async def rollback(
         raise ChatbotError(f"version {number} was never published")
     if target.id == bot.live_version_id:
         return target
-    _, rows = await reference_problems(db, PipelineSpec.model_validate(target.spec))
-    if problems := await external_problems(db, bot, rows):
+    target_spec = PipelineSpec.model_validate(target.spec)
+    _, rows = await reference_problems(db, target_spec)
+    if problems := await external_problems(db, bot, rows, target_spec):
         raise ChatbotError("; ".join(problems))
     previous = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
     if previous is not None:

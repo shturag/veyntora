@@ -46,3 +46,16 @@ def test_chunking_changes_the_profile_but_structure_ignores_overlap() -> None:
     spec.ingestion.chunk_size_tokens = 300
     smaller = index_profile(spec)
     assert smaller is not None and smaller.key != fixed.key
+
+
+def test_semantic_threshold_only_matters_for_semantic_chunking() -> None:
+    spec = _spec()
+    base = index_profile(spec)
+    spec.ingestion.semantic_similarity_threshold = 0.5
+    assert index_profile(spec) == base, "no effect on structure-aware chunking"
+    spec.ingestion.chunking = ChunkingStrategy.SEMANTIC
+    first = index_profile(spec)
+    spec.ingestion.semantic_similarity_threshold = 0.8
+    second = index_profile(spec)
+    assert first is not None and second is not None and first.key != second.key
+    assert IndexProfile.from_json(second.as_json()) == second

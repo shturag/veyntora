@@ -1,0 +1,168 @@
+/**
+ * The Pipeline pages (prototype: Pipeline*.html) as data: each section edits one part of the
+ * draft PipelineSpec. Field names are the spec's; labels live in messages under "pipeline".
+ */
+
+import type { PipelineSpec } from "@veyntora/spec";
+
+export type SectionKey =
+  "ingestion" | "retrieval" | "rerank" | "generation" | "agent" | "router" | "guardrails";
+
+export type Field =
+  | { name: string; kind: "instance"; capability: string; optional?: boolean }
+  | { name: string; kind: "select"; options: readonly string[] }
+  | { name: string; kind: "number"; min: number; max: number; step?: number; optional?: boolean }
+  | { name: string; kind: "toggle" }
+  | { name: string; kind: "text" }
+  | { name: string; kind: "textarea"; rows?: number }
+  | { name: string; kind: "list" }
+  | { name: string; kind: "multi"; options: readonly string[]; locked?: readonly string[] };
+
+export type Section = {
+  key: SectionKey;
+  spec: keyof PipelineSpec;
+  /** URL segment under /admin/pipelines/[botId]; retrieval is the overview page. */
+  path: string;
+  /** Runtime arrives in this phase; settings are saved now. */
+  runtimePhase?: number;
+  fields: readonly Field[];
+};
+
+export const SECTIONS: readonly Section[] = [
+  {
+    key: "ingestion",
+    spec: "ingestion",
+    path: "ingestion",
+    fields: [
+      { name: "parser_instance_id", kind: "instance", capability: "parser" },
+      { name: "embedding_instance_id", kind: "instance", capability: "embedding" },
+      { name: "chunking", kind: "select", options: ["structure", "fixed", "semantic"] },
+      { name: "chunk_size_tokens", kind: "number", min: 64, max: 8192, step: 16 },
+      { name: "chunk_overlap_tokens", kind: "number", min: 0, max: 2048, step: 8 },
+      { name: "semantic_similarity_threshold", kind: "number", min: 0, max: 1, step: 0.05 },
+      { name: "parent_chunk", kind: "select", options: ["section", "off"] },
+      { name: "ocr", kind: "toggle" },
+      { name: "extract_tables", kind: "toggle" },
+      { name: "describe_images", kind: "toggle" },
+      {
+        name: "metadata",
+        kind: "multi",
+        options: ["source_title_section", "language", "updated_date", "acl", "contextual_header"],
+        locked: ["acl"],
+      },
+    ],
+  },
+  {
+    key: "retrieval",
+    spec: "retrieval",
+    path: "",
+    fields: [
+      { name: "vector_store_instance_id", kind: "instance", capability: "vector_store" },
+      { name: "embedding_instance_id", kind: "instance", capability: "embedding" },
+      { name: "search_type", kind: "select", options: ["hybrid", "dense", "sparse"] },
+      { name: "top_k", kind: "number", min: 1, max: 200 },
+      { name: "dense_weight", kind: "number", min: 0, max: 1, step: 0.1 },
+      { name: "sparse_min_term_match", kind: "number", min: 1, max: 10 },
+      { name: "german_compound_splitting", kind: "toggle" },
+      { name: "query_rewrite", kind: "toggle" },
+      { name: "metadata_filter", kind: "text" },
+    ],
+  },
+  {
+    key: "rerank",
+    spec: "rerank",
+    path: "rerank",
+    fields: [
+      { name: "enabled", kind: "toggle" },
+      { name: "reranker_instance_id", kind: "instance", capability: "reranker", optional: true },
+      { name: "fallback", kind: "select", options: ["skip", "instance"] },
+      { name: "fallback_instance_id", kind: "instance", capability: "reranker", optional: true },
+      { name: "top_n", kind: "number", min: 1, max: 50 },
+      { name: "min_score", kind: "number", min: 0, max: 1, step: 0.05 },
+      { name: "max_chunks_per_document", kind: "number", min: 1, max: 50, optional: true },
+      { name: "prefer_newer", kind: "toggle" },
+    ],
+  },
+  {
+    key: "generation",
+    spec: "generation",
+    path: "generation",
+    fields: [
+      { name: "llm_instance_id", kind: "instance", capability: "llm" },
+      { name: "temperature", kind: "number", min: 0, max: 2, step: 0.1 },
+      { name: "max_answer_tokens", kind: "number", min: 32, max: 32768, step: 32 },
+      { name: "system_prompt", kind: "textarea", rows: 8 },
+      { name: "citations", kind: "select", options: ["required", "optional"] },
+      { name: "if_ungrounded", kind: "select", options: ["no_answer", "warn"] },
+      { name: "answer_language", kind: "select", options: ["auto", "de", "en"] },
+    ],
+  },
+  {
+    key: "agent",
+    spec: "agent",
+    path: "agent",
+    runtimePhase: 3,
+    fields: [
+      { name: "llm_instance_id", kind: "instance", capability: "llm", optional: true },
+      { name: "max_steps", kind: "number", min: 1, max: 50 },
+      { name: "timeout_seconds", kind: "number", min: 5, max: 3600 },
+      { name: "token_budget", kind: "number", min: 1000, max: 2000000, step: 1000 },
+    ],
+  },
+  {
+    key: "router",
+    spec: "router",
+    path: "router",
+    runtimePhase: 3,
+    fields: [
+      { name: "allowed_modes", kind: "multi", options: ["auto", "fast", "agent"] },
+      { name: "default_mode", kind: "select", options: ["auto", "fast", "agent"] },
+      { name: "router_instance_id", kind: "instance", capability: "llm", optional: true },
+      { name: "agent_when_live_data", kind: "toggle" },
+      { name: "agent_when_multi_source", kind: "toggle" },
+      { name: "agent_when_action", kind: "toggle" },
+      { name: "agent_when_low_confidence", kind: "toggle" },
+      { name: "escalate_below", kind: "number", min: 0, max: 1, step: 0.05 },
+      { name: "instructions", kind: "textarea", rows: 4 },
+    ],
+  },
+  {
+    key: "guardrails",
+    spec: "guardrails",
+    path: "guardrails",
+    fields: [
+      {
+        name: "input_guardrail_instance_id",
+        kind: "instance",
+        capability: "guardrail",
+        optional: true,
+      },
+      {
+        name: "output_guardrail_instance_id",
+        kind: "instance",
+        capability: "guardrail",
+        optional: true,
+      },
+      { name: "pii_instance_id", kind: "instance", capability: "guardrail", optional: true },
+      { name: "pii", kind: "select", options: ["mask", "block", "off"] },
+      { name: "injection", kind: "select", options: ["block", "warn"] },
+      { name: "blocked_topics", kind: "list" },
+      { name: "blocked_topic_action", kind: "select", options: ["refuse", "handoff"] },
+      { name: "groundedness_threshold", kind: "number", min: 0, max: 1, step: 0.05 },
+      { name: "groundedness_action", kind: "select", options: ["block", "warn"] },
+      { name: "citation_required", kind: "toggle" },
+      { name: "no_promises", kind: "toggle" },
+      { name: "blocked_message", kind: "textarea", rows: 2 },
+    ],
+  },
+];
+
+export function section(key: SectionKey): Section {
+  const s = SECTIONS.find((x) => x.key === key);
+  if (!s) throw new Error(`unknown pipeline section ${key}`);
+  return s;
+}
+
+export function sectionHref(botId: string, s: Section): string {
+  return `/admin/pipelines/${botId}${s.path ? `/${s.path}` : ""}`;
+}

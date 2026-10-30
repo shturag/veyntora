@@ -289,16 +289,16 @@ async def test_creating_a_chatbot_writes_owner_and_draft(world: World) -> None:
         )
 
 
-async def test_draft_rejects_wrong_provider_kinds_and_semantic_chunking(world: World) -> None:
+async def test_draft_rejects_wrong_provider_kinds_and_bad_filters(world: World) -> None:
     bot, _ = await _bot_with_source(world)
     wrong = world.spec()
     wrong.retrieval.embedding_instance_id = world.parser
     with pytest.raises(bots.ChatbotError, match="needs a embedding provider"):
         await bots.save_draft(world.db, CTX, bot, wrong, expected_version=None)
-    semantic = world.spec()
-    semantic.ingestion.chunking = "semantic"  # type: ignore[assignment]
-    with pytest.raises(bots.ChatbotError, match="Phase 2"):
-        await bots.save_draft(world.db, CTX, bot, semantic, expected_version=None)
+    bad = world.spec()
+    bad.retrieval.metadata_filter = "acl in [user:x]"
+    with pytest.raises(bots.ChatbotError, match="metadata filter"):
+        await bots.save_draft(world.db, CTX, bot, bad, expected_version=None)
 
 
 async def test_external_llm_needs_a_data_rule_before_publishing(world: World) -> None:

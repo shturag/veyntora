@@ -694,7 +694,9 @@
       "voyage": "Voyage AI",
       "cohere_compatible": "Cohere-kompatibel",
       "qdrant": "Qdrant",
-      "docling": "Docling"
+      "docling": "Docling",
+      "azure_pii": "Azure AI Language (PII)",
+      "llama_guard": "Llama Guard"
     },
     "health": {
       "unknown": "Nicht getestet",
@@ -914,6 +916,262 @@
     "stuck": {
       "title": "Kommst du nicht weiter?",
       "body": "Prüfe, ob der Dienst normal läuft, oder wende dich an dein Plattform-Team."
+    }
+  },
+  "pipeline": {
+    "title": "Pipelines",
+    "subtitle": "Wie jeder Assistent Antworten findet und schreibt. Du bearbeitest einen Entwurf; Veröffentlichen macht ihn live.",
+    "noChatbots": "Noch keine Chatbots.",
+    "draftBadge": "v{version} · Entwurf",
+    "liveBadge": "Live: v{version}",
+    "notLive": "Nicht live",
+    "steps": "Pipeline-Schritte",
+    "checks": "Vor dem Veröffentlichen",
+    "readyToPublish": "Bereit zum Veröffentlichen.",
+    "publish": "v{version} veröffentlichen",
+    "publishFailed": "Nicht veröffentlicht: {code}",
+    "saved": "Entwurf gespeichert.",
+    "saveFailed": "Nicht gespeichert: {code}",
+    "saveDraft": "Entwurf speichern",
+    "changeNote": "Änderungsnotiz (optional)",
+    "none": "Keine",
+    "choose": "Auswählen…",
+    "external": "extern",
+    "locked": "immer aktiv",
+    "runtimeLater": "Diese Einstellungen werden mit dem Entwurf gespeichert; sie wirken, sobald Agent und Router in Phase {phase} kommen.",
+    "sections": {
+      "ingestion": "Aufbereitung",
+      "retrieval": "Suche",
+      "rerank": "Neubewertung",
+      "generation": "Antwort",
+      "agent": "Agent",
+      "router": "Router",
+      "guardrails": "Schutzregeln"
+    },
+    "f": {
+      "parser_instance_id": {
+        "label": "Dokumentparser"
+      },
+      "embedding_instance_id": {
+        "label": "Embedding-Instanz",
+        "hint": "Eine Änderung indiziert alle verbundenen Quellen neu."
+      },
+      "chunking": {
+        "label": "Aufteilung in Abschnitte"
+      },
+      "chunk_size_tokens": {
+        "label": "Abschnittsgröße (Tokens)"
+      },
+      "chunk_overlap_tokens": {
+        "label": "Überlappung (Tokens)",
+        "hint": "Nur bei fester Größe."
+      },
+      "semantic_similarity_threshold": {
+        "label": "Schwelle für semantische Teilung",
+        "hint": "Nur bei semantischer Aufteilung: Ein neuer Abschnitt beginnt, wo die Ähnlichkeit der Sätze unter diesen Wert fällt."
+      },
+      "parent_chunk": {
+        "label": "Übergeordneter Abschnitt",
+        "hint": "Gib dem Modell den ganzen Abschnitt um einen Treffer."
+      },
+      "ocr": {
+        "label": "Texterkennung für Scans"
+      },
+      "extract_tables": {
+        "label": "Tabellen extrahieren"
+      },
+      "describe_images": {
+        "label": "Bilder beschreiben",
+        "hint": "Startet ein Bildmodell im Parser; ohne GPU langsam."
+      },
+      "metadata": {
+        "label": "Metadaten an jedem Abschnitt"
+      },
+      "vector_store_instance_id": {
+        "label": "Vektorspeicher-Instanz"
+      },
+      "search_type": {
+        "label": "Suchart"
+      },
+      "top_k": {
+        "label": "Kandidaten (Top-k)"
+      },
+      "dense_weight": {
+        "label": "Gewicht der semantischen Suche",
+        "hint": "Nur hybrid; die Stichwortsuche bekommt 1 − diesen Wert."
+      },
+      "sparse_min_term_match": {
+        "label": "Mindestanzahl passender Wörter",
+        "hint": "Kandidaten müssen mindestens so viele Wörter der Frage enthalten."
+      },
+      "german_compound_splitting": {
+        "label": "Deutsche Komposita zerlegen",
+        "hint": "„Rückerstattungsrichtlinie“ findet auch „Rückerstattung“ und „Richtlinie“."
+      },
+      "query_rewrite": {
+        "label": "Rückfragen umformulieren",
+        "hint": "Macht aus „und für E-Books?“ vor der Suche eine vollständige Frage."
+      },
+      "metadata_filter": {
+        "label": "Metadatenfilter",
+        "hint": "Zum Beispiel: language in [de, en] AND source_id = <id>. Berechtigungsfilter kommen immer dazu und lassen sich nicht entfernen."
+      },
+      "enabled": {
+        "label": "Kandidaten neu bewerten"
+      },
+      "reranker_instance_id": {
+        "label": "Reranker-Instanz"
+      },
+      "fallback": {
+        "label": "Wenn der Reranker ausfällt"
+      },
+      "fallback_instance_id": {
+        "label": "Ersatz-Reranker"
+      },
+      "top_n": {
+        "label": "Quellen für das Modell"
+      },
+      "min_score": {
+        "label": "Mindestrelevanz",
+        "hint": "Darunter fällt eine Quelle weg; ohne Quellen gibt es keine Antwort."
+      },
+      "max_chunks_per_document": {
+        "label": "Höchstens Abschnitte pro Dokument"
+      },
+      "prefer_newer": {
+        "label": "Bei Gleichstand neuere Dokumente bevorzugen"
+      },
+      "llm_instance_id": {
+        "label": "LLM-Instanz"
+      },
+      "temperature": {
+        "label": "Temperatur",
+        "hint": "Claude-Modelle ignorieren diese Einstellung."
+      },
+      "max_answer_tokens": {
+        "label": "Maximale Antwortlänge (Tokens)"
+      },
+      "system_prompt": {
+        "label": "Systemanweisung",
+        "hint": "Variablen: {company}, {user_name}, {user_team}, {today}. Regeln für Zitate und „keine Antwort“ kommen immer dazu."
+      },
+      "citations": {
+        "label": "Zitate"
+      },
+      "if_ungrounded": {
+        "label": "Wenn die Antwort nicht belegt ist"
+      },
+      "answer_language": {
+        "label": "Antwortsprache"
+      },
+      "max_steps": {
+        "label": "Maximale Schritte"
+      },
+      "timeout_seconds": {
+        "label": "Zeitlimit (Sekunden)"
+      },
+      "token_budget": {
+        "label": "Token-Budget pro Lauf"
+      },
+      "allowed_modes": {
+        "label": "Erlaubte Modi"
+      },
+      "default_mode": {
+        "label": "Standardmodus"
+      },
+      "router_instance_id": {
+        "label": "Router-Modell"
+      },
+      "agent_when_live_data": {
+        "label": "Agent bei Live-Daten"
+      },
+      "agent_when_multi_source": {
+        "label": "Agent bei Fragen über mehrere Quellen"
+      },
+      "agent_when_action": {
+        "label": "Agent, wenn eine Aktion gewünscht ist"
+      },
+      "agent_when_low_confidence": {
+        "label": "Eskalieren, wenn Schnell unsicher ist"
+      },
+      "escalate_below": {
+        "label": "Eskalieren unter Konfidenz"
+      },
+      "instructions": {
+        "label": "Anweisungen für den Router"
+      },
+      "input_guardrail_instance_id": {
+        "label": "Sicherheitsprüfung der Frage",
+        "hint": "Prüft die Frage (Llama Guard), bevor etwas anderes läuft."
+      },
+      "output_guardrail_instance_id": {
+        "label": "Sicherheitsprüfung der Antwort",
+        "hint": "Prüft die Antwort, bevor sie angezeigt wird."
+      },
+      "pii": {
+        "label": "Personenbezogene Daten vor externen Modellen",
+        "hint": "Maskieren: durch Platzhalter ersetzt, bevor ein externes Modell sie sieht, und in der Antwort wieder eingesetzt. Blockieren: Die Frage wird abgelehnt."
+      },
+      "injection": {
+        "label": "Prompt-Injection"
+      },
+      "blocked_topics": {
+        "label": "Gesperrte Themen",
+        "hint": "Eins pro Zeile."
+      },
+      "blocked_topic_action": {
+        "label": "Bei gesperrtem Thema"
+      },
+      "groundedness_threshold": {
+        "label": "Schwelle für Belegtheit"
+      },
+      "groundedness_action": {
+        "label": "Unter der Schwelle"
+      },
+      "citation_required": {
+        "label": "Zitate verlangen"
+      },
+      "no_promises": {
+        "label": "Keine Zusagen",
+        "hint": "Antworten blockieren, die Erstattungen, Fristen oder Ausnahmen zusagen."
+      },
+      "blocked_message": {
+        "label": "Nachricht bei Sperre"
+      },
+      "pii_instance_id": {
+        "label": "PII-Anbieter",
+        "hint": "Findet Namen, Adressen und Kennungen (z. B. Azure AI Language). E-Mail, IBAN, Telefon- und Kartennummern finden lokale Regeln immer."
+      }
+    },
+    "o": {
+      "structure": "Strukturbasiert",
+      "fixed": "Feste Größe",
+      "semantic": "Semantisch",
+      "section": "Abschnitt",
+      "off": "Aus",
+      "source_title_section": "Quelle, Titel und Abschnitt",
+      "language": "Sprache",
+      "updated_date": "Änderungsdatum",
+      "acl": "Berechtigungen",
+      "contextual_header": "Kontext-Überschrift",
+      "hybrid": "Hybrid (RRF)",
+      "dense": "Nur semantisch",
+      "sparse": "Nur Stichworte",
+      "skip": "Suchreihenfolge behalten",
+      "instance": "Ersatz-Reranker nutzen",
+      "required": "Für jede Aussage",
+      "optional": "Optional",
+      "no_answer": "Durch „keine Antwort gefunden“ ersetzen",
+      "warn": "Mit Warnung anzeigen",
+      "auto": "Auto",
+      "de": "Deutsch",
+      "en": "Englisch",
+      "fast": "Schnell",
+      "agent": "Agent",
+      "mask": "Maskieren",
+      "block": "Blockieren",
+      "refuse": "Ablehnen",
+      "handoff": "Person anbieten"
     }
   }
 }

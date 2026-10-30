@@ -13,6 +13,7 @@ PostgreSQL, so a revoked or deleted document disappears at once, before the inde
 from __future__ import annotations
 
 import hashlib
+import re
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -32,9 +33,11 @@ from veyntora_providers.interfaces import (
     HybridQuery,
     Usage,
 )
+from veyntora_spec.filters import parse_filter
 from veyntora_spec.pipeline import (
     CitationPolicy,
     GroundednessAction,
+    PiiAction,
     PipelineSpec,
     RerankFallback,
     SearchType,
@@ -55,6 +58,14 @@ from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.rag import grounding
+from veyntora_api.rag.guard import (
+    Masker,
+    Span,
+    check_input,
+    check_output,
+    find_pii,
+    guard_instances,
+)
 from veyntora_api.rag.tracing import Trace
 
 log = structlog.get_logger()
@@ -105,6 +116,8 @@ class RunContext:
     source_ids: tuple[str, ...]
     providers: dict[UUID, ProviderInstance]
     company: str
+    # The data rule requires masking personal data before external providers.
+    mask_external: bool = True
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         row = self.providers.get(instance_id) if instance_id else None
@@ -199,6 +212,7 @@ async def load_context(
             spec.rerank.reranker_instance_id if spec.rerank.enabled else None,
             spec.rerank.fallback_instance_id if spec.rerank.enabled else None,
             spec.generation.llm_instance_id,
+            *guard_instances(spec),
         )
         if i is not None
     }
@@ -215,10 +229,11 @@ async def load_context(
         # Publishing checks this too; checked again in case the data rule changed since.
         if rule is None or p.id not in rule.allowed_external_instance_ids:
             raise RunRefusedError("This assistant is not allowed to use an external model.")
-        if rule.mask_pii_before_external:
+        masker = spec.guardrails.pii_instance_id
+        if rule.mask_pii_before_external and masker is None:
             raise RunRefusedError(
-                "This assistant's data rule requires PII masking before external models, "
-                "which arrives with guardrails (Phase 2)."
+                "This assistant's data rule requires masking personal data before external "
+                "models, but its pipeline has no PII provider."
             )
     settings = await db.get(PlatformSettings, 1)
     return RunContext(
@@ -235,6 +250,7 @@ async def load_context(
         source_ids=source_ids,
         providers=providers,
         company=settings.company_name if settings else "",
+        mask_external=rule.mask_pii_before_external if rule else True,
     )
 
 
@@ -245,7 +261,12 @@ async def retrieve(
     db: AsyncSession, adapters: AdapterSource, ctx: RunContext, query: str
 ) -> list[Source]:
     ret = ctx.spec.retrieval
-    if not ctx.source_ids:
+    narrowing = parse_filter(ret.metadata_filter)
+    sources = ctx.source_ids
+    if "source_id" in narrowing:
+        # A filter can only narrow: never to sources the chatbot does not use.
+        sources = tuple(s for s in sources if s in narrowing.pop("source_id"))
+    if not sources or any(not v for v in narrowing.values()):
         return []
     dense = None
     if ret.search_type is not SearchType.SPARSE:
@@ -262,12 +283,26 @@ async def retrieve(
             dense=dense,
             dense_weight=ret.dense_weight if ret.search_type is SearchType.HYBRID else 1.0,
             sparse=ret.search_type is not SearchType.DENSE,
-            must_match={"profile": (ctx.profile.key,), "source_id": ctx.source_ids},
+            must_match={**narrowing, "profile": (ctx.profile.key,), "source_id": sources},
         ),
         AclFilter(ctx.principals),
         k=ret.top_k,
     )
-    return await _recheck(db, ctx, hits)
+    found = await _recheck(db, ctx, hits)
+    if ret.sparse_min_term_match > 1:
+        found = [
+            s for s in found if _terms_matched(query, s.chunk_text) >= ret.sparse_min_term_match
+        ]
+    return found
+
+
+_TERM = re.compile(r"[^\W\d_]{3,}", re.UNICODE)
+
+
+def _terms_matched(query: str, text: str) -> int:
+    """Distinct words of the question (5-letter prefixes, as in grounding) found in the text."""
+    words = {w.lower()[:5] for w in _TERM.findall(text)}
+    return len({w.lower()[:5] for w in _TERM.findall(query)} & words)
 
 
 async def _recheck(db: AsyncSession, ctx: RunContext, hits: Sequence[Hit]) -> list[Source]:
@@ -479,6 +514,77 @@ async def _find_sources(
     return sources, skipped, external
 
 
+@dataclass
+class _Run:
+    """State shared by the steps of one answer."""
+
+    started: float
+    steps: dict[str, int] = field(default_factory=dict)
+    usage: Usage = field(default_factory=lambda: Usage(0, 0))
+    egress: bool = False
+    warning: str | None = None
+    skipped: bool = False
+
+    def finish(self, result: Answer) -> Answer:
+        result.usage = self.usage
+        result.external_egress = self.egress
+        result.steps = self.steps
+        result.rerank_skipped = self.skipped
+        result.warning = result.warning or self.warning
+        result.latency_ms = round((time.perf_counter() - self.started) * 1000)
+        return result
+
+
+async def _adapter(adapters: AdapterSource, instance_id: UUID | None) -> Any:
+    return await adapters.get(instance_id) if instance_id is not None else None
+
+
+async def _guard_input(
+    adapters: AdapterSource,
+    ctx: RunContext,
+    run: _Run,
+    question: str,
+    *,
+    language: str,
+    tr: Trace,
+) -> tuple[str, Masker, Any, bool, Answer | None]:
+    """PII and safety checks on the question. Returns the (masked) question to show
+    external services, the masker, the PII adapter, whether masking is needed, and an
+    answer to stop with, if any."""
+    g = ctx.spec.guardrails
+    # Personal data leaves for an external model only masked (data rule or pipeline setting).
+    llm_external = ctx.hosting(ctx.spec.generation.llm_instance_id) is Hosting.EXTERNAL
+    need_mask = llm_external and (ctx.mask_external or g.pii is PiiAction.MASK)
+    pii = await _adapter(adapters, g.pii_instance_id)
+    masker = Masker()
+    spans: list[Span] = []
+    if g.pii is PiiAction.BLOCK or need_mask:
+        t0 = time.perf_counter()
+        with tr.step("pii") as step:
+            [spans] = await find_pii(pii, [question], language)
+            step.set(found=len(spans), provider=bool(pii))
+        run.egress |= ctx.hosting(g.pii_instance_id) is Hosting.EXTERNAL
+        run.steps["pii"] = round((time.perf_counter() - t0) * 1000)
+    guarded = masker.mask(question, spans) if need_mask else question
+
+    with tr.step("input_check") as step:
+        outcome = await check_input(
+            ctx.spec,
+            guarded,
+            pii_found=bool(spans),
+            guard=await _adapter(adapters, g.input_guardrail_instance_id),
+        )
+        step.set(action=outcome.action, reason=outcome.reason)
+    run.egress |= ctx.hosting(g.input_guardrail_instance_id) is Hosting.EXTERNAL
+    stop = None
+    if outcome.action == "block":
+        stop = Answer("blocked", g.blocked_message, warning=outcome.reason)
+    elif outcome.action == "handoff":
+        stop = Answer("no_answer", g.blocked_message, warning=outcome.reason)
+    run.warning = outcome.warning
+    return guarded, masker, pii, need_mask, stop
+
+
 async def answer(
     db: AsyncSession,
     adapters: AdapterSource,
@@ -490,74 +596,79 @@ async def answer(
     language_hint: str = "en",
     trace: Trace | None = None,
 ) -> Answer:
-    started = time.perf_counter()
-    steps: dict[str, int] = {}
-    usage = Usage(0, 0)
+    run = _Run(started=time.perf_counter())
     emit_ = emit or (lambda _e: None)
-
-    def mark(step: str, t0: float) -> None:
-        steps[step] = round((time.perf_counter() - t0) * 1000)
-
-    spec = ctx.spec
+    spec, gen, g = ctx.spec, ctx.spec.generation, ctx.spec.guardrails
     tr = trace or Trace(None)
-    egress = False
+    no_answer = NO_ANSWER_TEXT.get(language_hint, NO_ANSWER_TEXT["en"])
+
+    guarded, masker, pii, need_mask, stop = await _guard_input(
+        adapters, ctx, run, question, language=language_hint, tr=tr
+    )
+    if stop is not None:
+        return run.finish(stop)
+    llm_external = ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
+
     query = question
     if spec.retrieval.query_rewrite and history:
         t0 = time.perf_counter()
         with tr.step("rewrite", generation=True) as step:
-            query, u = await rewrite_query(adapters, ctx, question, history)
-            step.set(**_usage_attrs(ctx, spec.generation.llm_instance_id, u))
-        usage = _add(usage, u)
-        egress |= ctx.hosting(spec.generation.llm_instance_id) is Hosting.EXTERNAL
-        mark("rewrite", t0)
+            query, u = await rewrite_query(adapters, ctx, guarded, history)
+            query = masker.unmask(query)
+            step.set(**_usage_attrs(ctx, gen.llm_instance_id, u))
+        run.usage = _add(run.usage, u)
+        run.egress |= llm_external
+        run.steps["rewrite"] = round((time.perf_counter() - t0) * 1000)
 
     emit_({"type": "status", "step": "searching"})
-    sources, skipped, external = await _find_sources(db, adapters, ctx, query, tr=tr, steps=steps)
-    egress |= external
-
-    def finish(result: Answer) -> Answer:
-        result.usage = usage
-        result.external_egress = egress
-        result.steps = steps
-        result.rerank_skipped = skipped
-        result.latency_ms = round((time.perf_counter() - started) * 1000)
-        return result
-
-    no_answer = NO_ANSWER_TEXT.get(language_hint, NO_ANSWER_TEXT["en"])
+    sources, run.skipped, external = await _find_sources(
+        db, adapters, ctx, query, tr=tr, steps=run.steps
+    )
+    run.egress |= external
     if not sources:
-        return finish(Answer("no_answer", no_answer))
+        return run.finish(Answer("no_answer", no_answer))
 
     emit_({"type": "status", "step": "writing", "sources": len(sources)})
-    gen = spec.generation
-    llm = await adapters.get(gen.llm_instance_id)  # type: ignore[arg-type]
-    messages = [
-        ChatMessage("system", system_prompt(ctx, gen.answer_language)),
-        *history[-2 * _HISTORY_TURNS :],
-        ChatMessage("user", f"{sources_block(sources)}\n\nQuestion: {question}"),
-    ]
-    # In "block" mode nothing is shown before the check passes ("grounded or silent").
+    # In "block" mode nothing is shown before the checks pass ("grounded or silent"); masked
+    # answers are never streamed because the placeholders are replaced afterwards.
     blocking = (
-        spec.guardrails.groundedness_action is GroundednessAction.BLOCK
+        g.groundedness_action is GroundednessAction.BLOCK
         or gen.if_ungrounded is UngroundedAction.NO_ANSWER
+        or need_mask
+        or g.output_guardrail_instance_id is not None
     )
-    t0 = time.perf_counter()
-    with tr.step("generate", generation=True) as step:
-        text, u = await _complete(llm, messages, gen.max_answer_tokens, None if blocking else emit)
-        step.set(**_usage_attrs(ctx, gen.llm_instance_id, u), streamed=not blocking)
-    usage = _add(usage, u)
-    egress |= ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
-    mark("generate", t0)
+    text = await _generate(
+        adapters,
+        ctx,
+        run,
+        question=question,
+        history=history,
+        sources=sources,
+        masker=masker if need_mask else None,
+        pii=pii,
+        language=language_hint,
+        emit=None if blocking else emit,
+        tr=tr,
+    )
 
     if grounding.is_no_answer(text):
-        return finish(Answer("no_answer", no_answer, sources=sources))
-    outcome, problem, check = verdict(spec, text, sources, blocking=blocking)
-    if outcome == "blocked":
+        return run.finish(Answer("no_answer", no_answer, sources=sources))
+    result, problem, check = verdict(spec, text, sources, blocking=blocking)
+    if result == "blocked":
         log.info("answer.blocked", reason=problem, groundedness=check.score)
-        return finish(
+        return run.finish(
             Answer("blocked", no_answer, sources=sources, groundedness=check.score, warning=problem)
         )
+    with tr.step("output_check") as step:
+        out = await check_output(
+            spec, question, text, guard=await _adapter(adapters, g.output_guardrail_instance_id)
+        )
+        step.set(action=out.action, reason=out.reason)
+    run.egress |= ctx.hosting(g.output_guardrail_instance_id) is Hosting.EXTERNAL
+    if out.action != "allow":
+        return run.finish(Answer("blocked", g.blocked_message, sources=sources, warning=out.reason))
     cited = [(n, sources[n - 1]) for n in check.cited]
-    return finish(
+    return run.finish(
         Answer(
             "answered",
             text.strip(),
@@ -567,6 +678,51 @@ async def answer(
             warning=problem,
         )
     )
+
+
+async def _generate(
+    adapters: AdapterSource,
+    ctx: RunContext,
+    run: _Run,
+    *,
+    question: str,
+    history: Sequence[ChatMessage],
+    sources: Sequence[Source],
+    masker: Masker | None,
+    pii: Any,
+    language: str,
+    emit: Emit | None,
+    tr: Trace,
+) -> str:
+    gen = ctx.spec.generation
+    block = sources_block(sources)
+    turns = list(history[-2 * _HISTORY_TURNS :])
+    if masker is not None:
+        texts = [block, question, *(m.content for m in turns)]
+        found = await find_pii(pii, texts, language)
+        block, question = masker.mask(block, found[0]), masker.mask(question, found[1])
+        turns = [
+            ChatMessage(m.role, masker.mask(m.content, spans))
+            for m, spans in zip(turns, found[2:], strict=True)
+        ]
+    messages = [
+        ChatMessage("system", system_prompt(ctx, gen.answer_language)),
+        *turns,
+        ChatMessage("user", f"{block}\n\nQuestion: {question}"),
+    ]
+    llm = await adapters.get(gen.llm_instance_id)  # type: ignore[arg-type]
+    t0 = time.perf_counter()
+    with tr.step("generate", generation=True) as step:
+        text, u = await _complete(llm, messages, gen.max_answer_tokens, emit)
+        step.set(
+            **_usage_attrs(ctx, gen.llm_instance_id, u),
+            streamed=emit is not None,
+            masked=masker.count if masker else 0,
+        )
+    run.usage = _add(run.usage, u)
+    run.egress |= ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
+    run.steps["generate"] = round((time.perf_counter() - t0) * 1000)
+    return masker.unmask(text) if masker is not None else text
 
 
 def _usage_attrs(ctx: RunContext, instance_id: UUID | None, usage: Usage) -> dict[str, Any]:

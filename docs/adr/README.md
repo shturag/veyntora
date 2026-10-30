@@ -16,3 +16,4 @@
 | [0012](0012-fast-rag.md) | Fast RAG graph, chat proxy, grounding (Phase 1) |
 | [0013](0013-hosted-providers-and-sharepoint.md) | Hosted model APIs locally, Providers page, SharePoint connector |
 | [0014](0014-my-files-traces-evaluation.md) | My files, answer traces, evaluation runner (Phase 1) |
+| [0015](0015-pipeline-editor-and-guardrails.md) | Pipeline editor, retrieval settings, guardrails (Phase 2) |

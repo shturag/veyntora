@@ -1308,13 +1308,15 @@ export interface components {
             input_guardrail_instance_id?: string | null;
             /**
              * No Promises
-             * @default true
+             * @default false
              */
             no_promises: boolean;
             /** Output Guardrail Instance Id */
             output_guardrail_instance_id?: string | null;
             /** @default mask */
             pii: components["schemas"]["PiiAction"];
+            /** Pii Instance Id */
+            pii_instance_id?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {

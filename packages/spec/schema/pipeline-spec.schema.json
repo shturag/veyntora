@@ -327,7 +327,7 @@
           "title": "Input Guardrail Instance Id"
         },
         "no_promises": {
-          "default": true,
+          "default": false,
           "title": "No Promises",
           "type": "boolean"
         },
@@ -347,6 +347,19 @@
         "pii": {
           "$ref": "#/$defs/PiiAction",
           "default": "mask"
+        },
+        "pii_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pii Instance Id"
         }
       },
       "title": "GuardrailsSpec",

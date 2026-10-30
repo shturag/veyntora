@@ -229,6 +229,8 @@ class GroundednessAction(StrEnum):
 class GuardrailsSpec(_Spec):
     input_guardrail_instance_id: InstanceRef | None = None
     output_guardrail_instance_id: InstanceRef | None = None
+    # Finds personal data to mask or block (e.g. azure_pii). Local rules always run as well.
+    pii_instance_id: InstanceRef | None = None
     pii: PiiAction = PiiAction.MASK
     injection: InjectionAction = InjectionAction.BLOCK
     blocked_topics: list[Annotated[str, Field(min_length=1, max_length=200)]] = Field(
@@ -238,7 +240,7 @@ class GuardrailsSpec(_Spec):
     groundedness_threshold: Score = 0.7
     groundedness_action: GroundednessAction = GroundednessAction.BLOCK
     citation_required: bool = True
-    no_promises: bool = True
+    no_promises: bool = False
     blocked_message: str = "I can't help with that here. You can ask a human expert instead."
 
 
@@ -365,4 +367,9 @@ class PipelineSpec(_Spec):
             problems.append("agent.llm_instance_id is not set")
         if not self.generation.system_prompt.strip():
             problems.append("generation.system_prompt is empty")
+        g = self.guardrails
+        if g.no_promises and g.output_guardrail_instance_id is None:
+            problems.append("guardrails.no_promises needs an output safety check instance")
+        if g.blocked_topics and g.input_guardrail_instance_id is None:
+            problems.append("guardrails.blocked_topics needs an input safety check instance")
         return problems

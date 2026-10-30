@@ -37,7 +37,9 @@ def may_send(rule: GovernanceRule | None, provider: ProviderInstance | None) -> 
     return (
         rule is not None
         and provider.id in rule.allowed_external_instance_ids
-        and not rule.mask_pii_before_external  # masking arrives with guardrails (Phase 2)
+        # Documents are not masked before embedding: an external parser or embedder needs
+        # the masking rule switched off (fail closed).
+        and not rule.mask_pii_before_external
     )
 
 

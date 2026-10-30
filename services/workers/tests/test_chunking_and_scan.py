@@ -95,3 +95,23 @@ async def test_unreachable_scanner_is_not_clean() -> None:
     assert not await clamd.ping("127.0.0.1:1")
     with pytest.raises(clamd.ScannerUnavailableError):
         await clamd.scan_bytes("127.0.0.1:1", b"data", wait_s=1)
+
+
+async def test_semantic_chunks_split_where_meaning_changes() -> None:
+    from veyntora_workers.chunking import semantic_chunks  # noqa: PLC0415
+
+    text = (
+        "Refunds take five days. Refunds go to the original card. "
+        "The canteen opens at noon. The canteen serves soup."
+    )
+
+    async def embed(texts: list[str]) -> list[list[float]]:
+        return [[1.0, 0.0] if "Refund" in t else [0.0, 1.0] for t in texts]
+
+    chunks = await semantic_chunks([ParsedSection(("Misc",), text)], embed, 0.5, 500)
+    assert [c.text for c in chunks] == [
+        "Refunds take five days. Refunds go to the original card.",
+        "The canteen opens at noon. The canteen serves soup.",
+    ]
+    capped = await semantic_chunks([ParsedSection((), text)], embed, 0.0, 8)
+    assert all(approx_tokens(c.text) <= 13 for c in capped) and len(capped) == 4

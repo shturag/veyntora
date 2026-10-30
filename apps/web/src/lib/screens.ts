@@ -82,13 +82,13 @@ export const SCREENS: readonly Screen[] = [
   { key: "botCreatePublish", file: "BotCreatePublish.html", route: "/admin/chatbots/new/publish", shell: "wizard", phase: 4, area: "chatbots" },
 
   // admin: pipelines (per chatbot)
-  { key: "pipeline", file: "Pipeline.html", route: "/admin/pipelines/[botId]", shell: "admin", phase: 2, area: "pipelines" },
-  { key: "pipelineIngestion", file: "PipelineIngestion.html", route: "/admin/pipelines/[botId]/ingestion", shell: "admin", phase: 2, area: "pipelines" },
-  { key: "pipelineRerank", file: "PipelineRerank.html", route: "/admin/pipelines/[botId]/rerank", shell: "admin", phase: 2, area: "pipelines" },
-  { key: "pipelineGeneration", file: "PipelineGeneration.html", route: "/admin/pipelines/[botId]/generation", shell: "admin", phase: 2, area: "pipelines" },
-  { key: "pipelineAgent", file: "PipelineAgent.html", route: "/admin/pipelines/[botId]/agent", shell: "admin", phase: 2, area: "pipelines" },
-  { key: "pipelineRouter", file: "PipelineRouter.html", route: "/admin/pipelines/[botId]/router", shell: "admin", phase: 2, area: "pipelines" },
-  { key: "pipelineGuardrails", file: "PipelineGuardrails.html", route: "/admin/pipelines/[botId]/guardrails", shell: "admin", phase: 2, area: "pipelines" },
+  { key: "pipeline", file: "Pipeline.html", route: "/admin/pipelines/[botId]", shell: "admin", phase: 2, area: "pipelines", built: true },
+  { key: "pipelineIngestion", file: "PipelineIngestion.html", route: "/admin/pipelines/[botId]/ingestion", shell: "admin", phase: 2, area: "pipelines", built: true },
+  { key: "pipelineRerank", file: "PipelineRerank.html", route: "/admin/pipelines/[botId]/rerank", shell: "admin", phase: 2, area: "pipelines", built: true },
+  { key: "pipelineGeneration", file: "PipelineGeneration.html", route: "/admin/pipelines/[botId]/generation", shell: "admin", phase: 2, area: "pipelines", built: true },
+  { key: "pipelineAgent", file: "PipelineAgent.html", route: "/admin/pipelines/[botId]/agent", shell: "admin", phase: 2, area: "pipelines", built: true },
+  { key: "pipelineRouter", file: "PipelineRouter.html", route: "/admin/pipelines/[botId]/router", shell: "admin", phase: 2, area: "pipelines", built: true },
+  { key: "pipelineGuardrails", file: "PipelineGuardrails.html", route: "/admin/pipelines/[botId]/guardrails", shell: "admin", phase: 2, area: "pipelines", built: true },
   { key: "playground", file: "Playground.html", route: "/admin/playground", shell: "admin", phase: 2, area: "playground" },
 
   // admin: data, providers, tools, channels

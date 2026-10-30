@@ -56,6 +56,7 @@ from veyntora_workers.chunking import (
     contextual_text,
     detect_language,
     fixed_chunks,
+    semantic_chunks,
 )
 from veyntora_workers.connectors.sync import resync_sharepoint_acl, sync_sharepoint
 
@@ -106,6 +107,20 @@ def _parser_file(doc: Document, content: bytes) -> FileRef:
 class _Work:
     content: bytes | None = None
     parsed: dict[tuple[Any, ...], ParsedDoc] = field(default_factory=dict)
+
+
+async def _chunks(profile: IndexProfile, parsed: ParsedDoc, embedder: Any) -> list[Chunk]:
+    if profile.chunking is ChunkingStrategy.STRUCTURE:
+        return as_chunks(parsed.sections)
+    if profile.chunking is ChunkingStrategy.SEMANTIC:
+
+        async def embed(texts: list[str]) -> list[list[float]]:
+            return list((await embedder.embed(texts)).dense)
+
+        return await semantic_chunks(
+            parsed.sections, embed, profile.semantic_threshold, profile.chunk_size_tokens
+        )
+    return fixed_chunks(parsed.sections, profile.chunk_size_tokens, profile.chunk_overlap_tokens)
 
 
 class Ingestor:
@@ -299,16 +314,9 @@ class Ingestor:
         return work.parsed[key]
 
     async def _index_profile(self, doc: Document, profile: IndexProfile, work: _Work) -> int:
-        if profile.chunking is ChunkingStrategy.SEMANTIC:
-            raise ValueError("semantic chunking arrives with the Pipeline pages (Phase 2)")
         parsed = await self._parse(doc, profile, work)
-        chunks: list[Chunk] = (
-            as_chunks(parsed.sections)
-            if profile.chunking is ChunkingStrategy.STRUCTURE
-            else fixed_chunks(
-                parsed.sections, profile.chunk_size_tokens, profile.chunk_overlap_tokens
-            )
-        )
+        embedder = await self.adapters.get(profile.embedding_instance_id)
+        chunks = await _chunks(profile, parsed, embedder)
         if not chunks:
             raise ParseFailedError("no text extracted")
         title = parsed.title if parsed.title and parsed.title != doc.path else doc.title
@@ -320,7 +328,6 @@ class Ingestor:
             contextual_text(doc.title, c) if ChunkMetadata.CONTEXTUAL_HEADER in meta else c.text
             for c in chunks
         ]
-        embedder = await self.adapters.get(profile.embedding_instance_id)
         vectors = (await embedder.embed(texts)).dense
         if len(vectors) != len(chunks):
             raise ValueError("the embedding server returned a different number of vectors")

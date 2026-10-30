@@ -55,7 +55,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...init,
     headers: { "content-type": "application/json", ...CSRF_HEADERS, ...(init.headers ?? {}) },
   });
-  if (!res.ok) throw new Error(`${res.status}`);
+  if (!res.ok) {
+    // The API's own message (validation reasons are written for people), else the status.
+    const detail = ((await res.json().catch(() => ({}))) as { detail?: unknown }).detail;
+    throw new Error(typeof detail === "string" ? detail : `${res.status}`);
+  }
   return (res.status === 204 ? undefined : await res.json()) as T;
 }
 

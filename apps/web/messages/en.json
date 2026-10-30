@@ -694,7 +694,9 @@
       "voyage": "Voyage AI",
       "cohere_compatible": "Cohere-compatible",
       "qdrant": "Qdrant",
-      "docling": "Docling"
+      "docling": "Docling",
+      "azure_pii": "Azure AI Language (PII)",
+      "llama_guard": "Llama Guard"
     },
     "health": {
       "unknown": "Not tested",
@@ -914,6 +916,262 @@
     "stuck": {
       "title": "Still stuck?",
       "body": "Check whether the service is running normally, or contact your platform team."
+    }
+  },
+  "pipeline": {
+    "title": "Pipelines",
+    "subtitle": "How each assistant finds and writes its answers. You edit a draft; publishing makes it live.",
+    "noChatbots": "No chatbots yet.",
+    "draftBadge": "v{version} · Draft",
+    "liveBadge": "Live: v{version}",
+    "notLive": "Not live",
+    "steps": "Pipeline steps",
+    "checks": "Before publishing",
+    "readyToPublish": "Ready to publish.",
+    "publish": "Publish v{version}",
+    "publishFailed": "Not published: {code}",
+    "saved": "Draft saved.",
+    "saveFailed": "Not saved: {code}",
+    "saveDraft": "Save draft",
+    "changeNote": "Change note (optional)",
+    "none": "None",
+    "choose": "Choose…",
+    "external": "external",
+    "locked": "always on",
+    "runtimeLater": "These settings are saved with the draft; they take effect when the agent and router arrive in Phase {phase}.",
+    "sections": {
+      "ingestion": "Ingestion",
+      "retrieval": "Retrieval",
+      "rerank": "Reranking",
+      "generation": "Generation",
+      "agent": "Agent",
+      "router": "Router",
+      "guardrails": "Guardrails"
+    },
+    "f": {
+      "parser_instance_id": {
+        "label": "Document parser"
+      },
+      "embedding_instance_id": {
+        "label": "Embedding instance",
+        "hint": "Changing it re-indexes every attached source."
+      },
+      "chunking": {
+        "label": "Chunking strategy"
+      },
+      "chunk_size_tokens": {
+        "label": "Chunk size (tokens)"
+      },
+      "chunk_overlap_tokens": {
+        "label": "Overlap (tokens)",
+        "hint": "Fixed-size chunking only."
+      },
+      "semantic_similarity_threshold": {
+        "label": "Semantic split threshold",
+        "hint": "Semantic chunking only: a new chunk starts where sentence similarity drops below this."
+      },
+      "parent_chunk": {
+        "label": "Parent chunk",
+        "hint": "Give the model the whole section around a matching chunk."
+      },
+      "ocr": {
+        "label": "OCR for scanned pages"
+      },
+      "extract_tables": {
+        "label": "Extract tables"
+      },
+      "describe_images": {
+        "label": "Describe images",
+        "hint": "Runs a vision model inside the parser; slow without a GPU."
+      },
+      "metadata": {
+        "label": "Metadata on every chunk"
+      },
+      "vector_store_instance_id": {
+        "label": "Vector store instance"
+      },
+      "search_type": {
+        "label": "Search type"
+      },
+      "top_k": {
+        "label": "Top-k candidates"
+      },
+      "dense_weight": {
+        "label": "Dense weight",
+        "hint": "Hybrid only; the keyword side gets 1 − this."
+      },
+      "sparse_min_term_match": {
+        "label": "Minimum matching terms",
+        "hint": "Candidates must contain at least this many words of the question."
+      },
+      "german_compound_splitting": {
+        "label": "German compound splitting",
+        "hint": "\"Rückerstattungsrichtlinie\" also matches \"Rückerstattung\" and \"Richtlinie\"."
+      },
+      "query_rewrite": {
+        "label": "Rewrite follow-up questions",
+        "hint": "Turns \"and for e-books?\" into a full question before searching."
+      },
+      "metadata_filter": {
+        "label": "Metadata filter",
+        "hint": "For example: language in [de, en] AND source_id = <id>. Permission filters are always added and cannot be removed."
+      },
+      "enabled": {
+        "label": "Rerank candidates"
+      },
+      "reranker_instance_id": {
+        "label": "Reranker instance"
+      },
+      "fallback": {
+        "label": "If the reranker fails"
+      },
+      "fallback_instance_id": {
+        "label": "Fallback reranker"
+      },
+      "top_n": {
+        "label": "Sources passed to the model"
+      },
+      "min_score": {
+        "label": "Minimum relevance",
+        "hint": "Below this, a source is dropped; no sources means no answer."
+      },
+      "max_chunks_per_document": {
+        "label": "Max chunks per document"
+      },
+      "prefer_newer": {
+        "label": "Prefer newer documents on ties"
+      },
+      "llm_instance_id": {
+        "label": "LLM instance"
+      },
+      "temperature": {
+        "label": "Temperature",
+        "hint": "Claude models ignore this setting."
+      },
+      "max_answer_tokens": {
+        "label": "Max answer tokens"
+      },
+      "system_prompt": {
+        "label": "System prompt",
+        "hint": "Variables: {company}, {user_name}, {user_team}, {today}. Citation and no-answer rules are always added."
+      },
+      "citations": {
+        "label": "Citations"
+      },
+      "if_ungrounded": {
+        "label": "If the answer isn't grounded"
+      },
+      "answer_language": {
+        "label": "Answer language"
+      },
+      "max_steps": {
+        "label": "Max steps"
+      },
+      "timeout_seconds": {
+        "label": "Timeout (seconds)"
+      },
+      "token_budget": {
+        "label": "Token budget per run"
+      },
+      "allowed_modes": {
+        "label": "Allowed modes"
+      },
+      "default_mode": {
+        "label": "Default mode"
+      },
+      "router_instance_id": {
+        "label": "Router model"
+      },
+      "agent_when_live_data": {
+        "label": "Use Agent when live data is needed"
+      },
+      "agent_when_multi_source": {
+        "label": "Use Agent for multi-source questions"
+      },
+      "agent_when_action": {
+        "label": "Use Agent when an action is asked for"
+      },
+      "agent_when_low_confidence": {
+        "label": "Escalate when Fast is unsure"
+      },
+      "escalate_below": {
+        "label": "Escalate below confidence"
+      },
+      "instructions": {
+        "label": "Router instructions"
+      },
+      "input_guardrail_instance_id": {
+        "label": "Input safety check",
+        "hint": "Checks the question (Llama Guard) before anything else runs."
+      },
+      "output_guardrail_instance_id": {
+        "label": "Output safety check",
+        "hint": "Checks the answer before it is shown."
+      },
+      "pii": {
+        "label": "Personal data before external models",
+        "hint": "Mask: replaced with placeholders before an external model sees them, and put back in the answer. Block: the question is refused."
+      },
+      "injection": {
+        "label": "Prompt injection"
+      },
+      "blocked_topics": {
+        "label": "Blocked topics",
+        "hint": "One per line."
+      },
+      "blocked_topic_action": {
+        "label": "When a topic is blocked"
+      },
+      "groundedness_threshold": {
+        "label": "Groundedness threshold"
+      },
+      "groundedness_action": {
+        "label": "If below the threshold"
+      },
+      "citation_required": {
+        "label": "Require citations"
+      },
+      "no_promises": {
+        "label": "No promises",
+        "hint": "Block answers that promise refunds, deadlines or exceptions."
+      },
+      "blocked_message": {
+        "label": "Message when something is blocked"
+      },
+      "pii_instance_id": {
+        "label": "PII provider",
+        "hint": "Finds names, addresses and IDs (e.g. Azure AI Language). E-mail, IBAN, phone and card numbers are always found by local rules."
+      }
+    },
+    "o": {
+      "structure": "Structure-aware",
+      "fixed": "Fixed size",
+      "semantic": "Semantic",
+      "section": "Section",
+      "off": "Off",
+      "source_title_section": "Source, title and section",
+      "language": "Language",
+      "updated_date": "Updated date",
+      "acl": "Permissions",
+      "contextual_header": "Contextual header",
+      "hybrid": "Hybrid (RRF)",
+      "dense": "Dense only",
+      "sparse": "Keyword only",
+      "skip": "Keep search order",
+      "instance": "Use a fallback reranker",
+      "required": "Required for every fact",
+      "optional": "Optional",
+      "no_answer": "Replace with \"no answer found\"",
+      "warn": "Show with a warning",
+      "auto": "Auto",
+      "de": "German",
+      "en": "English",
+      "fast": "Fast",
+      "agent": "Agent",
+      "mask": "Mask",
+      "block": "Block",
+      "refuse": "Refuse",
+      "handoff": "Offer a person"
     }
   }
 }

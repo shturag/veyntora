@@ -48,6 +48,7 @@ export type InputGuardrailInstanceId = string | null;
 export type NoPromises = boolean;
 export type OutputGuardrailInstanceId = string | null;
 export type PiiAction = "mask" | "block" | "off";
+export type PiiInstanceId = string | null;
 export type ChunkOverlapTokens = number;
 export type ChunkSizeTokens = number;
 export type ChunkingStrategy = "structure" | "fixed" | "semantic";
@@ -150,6 +151,7 @@ export interface GuardrailsSpec {
   no_promises?: NoPromises;
   output_guardrail_instance_id?: OutputGuardrailInstanceId;
   pii?: PiiAction;
+  pii_instance_id?: PiiInstanceId;
 }
 export interface IngestionSpec {
   chunk_overlap_tokens?: ChunkOverlapTokens;

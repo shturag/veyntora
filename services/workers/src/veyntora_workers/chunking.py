@@ -1,4 +1,4 @@
-"""Turn parsed sections into chunks: fixed-size splitting, language, contextual headers.
+"""Turn parsed sections into chunks: fixed-size and semantic splitting, language, headers.
 
 Structure-aware chunks come ready from the parser (Docling's hybrid chunker). Fixed chunking
 splits sections by an approximate token count (words x 1.3, close to BGE-M3 for German and
@@ -8,6 +8,7 @@ English); exact tokenisation is not needed to respect the model's input limit.
 from __future__ import annotations
 
 import re
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
 from veyntora_providers.interfaces import ParsedSection
@@ -74,3 +75,49 @@ def contextual_text(title: str, chunk: Chunk) -> str:
     """Prefix the chunk with where it comes from, so a bare paragraph still matches."""
     header = " > ".join(p for p in (title, *chunk.heading_path) if p)
     return f"{header}\n\n{chunk.text}" if header else chunk.text
+
+
+_SENTENCE = re.compile(r"(?<=[.!?])\s+(?=[A-ZÄÖÜ0-9\"„(])")
+
+
+def sentences(text: str) -> list[str]:
+    return [s.strip() for s in _SENTENCE.split(text) if s.strip()]
+
+
+def _cosine(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b, strict=True))
+    na = sum(x * x for x in a) ** 0.5
+    nb = sum(y * y for y in b) ** 0.5
+    return dot / (na * nb) if na and nb else 0.0
+
+
+async def semantic_chunks(
+    sections: list[ParsedSection],
+    embed: Callable[[list[str]], Awaitable[list[list[float]]]],
+    threshold: float,
+    max_tokens: int,
+) -> list[Chunk]:
+    """Split each section where neighbouring sentences stop being similar.
+
+    Sentences are embedded with the pipeline's own embedding model; a new chunk starts when
+    the cosine similarity to the previous sentence drops below `threshold`, or before the chunk
+    would exceed `max_tokens`. Chunks never cross section boundaries.
+    """
+    out: list[Chunk] = []
+    for s in sections:
+        parts = sentences(s.text)
+        if not parts:
+            continue
+        vectors = await embed(parts)
+        current: list[str] = [parts[0]]
+        for prev, sentence, vec, prev_vec in zip(
+            parts, parts[1:], vectors[1:], vectors, strict=False
+        ):
+            del prev
+            too_big = approx_tokens(" ".join([*current, sentence])) > max_tokens
+            if too_big or _cosine(prev_vec, vec) < threshold:
+                out.append(Chunk(" ".join(current), s.heading_path, s.pages, s.is_table))
+                current = []
+            current.append(sentence)
+        out.append(Chunk(" ".join(current), s.heading_path, s.pages, s.is_table))
+    return out

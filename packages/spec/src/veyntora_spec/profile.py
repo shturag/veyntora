@@ -31,10 +31,14 @@ class IndexProfile:
     describe_images: bool
     parent_chunk: ParentChunk
     metadata: tuple[ChunkMetadata, ...]
+    # Semantic chunking only (0.0 otherwise, so other strategies keep their key).
+    semantic_threshold: float = 0.0
 
     def as_json(self) -> dict[str, Any]:
         out = asdict(self)
         out["metadata"] = sorted(m.value for m in self.metadata)
+        if not self.semantic_threshold:
+            del out["semantic_threshold"]  # keeps keys of existing profiles unchanged
         plain: dict[str, Any] = json.loads(json.dumps(out, default=str))
         return plain
 
@@ -61,6 +65,7 @@ class IndexProfile:
             describe_images=bool(data["describe_images"]),
             parent_chunk=ParentChunk(data["parent_chunk"]),
             metadata=tuple(ChunkMetadata(m) for m in data["metadata"]),
+            semantic_threshold=float(data.get("semantic_threshold", 0.0)),
         )
 
 
@@ -91,4 +96,7 @@ def index_profile(spec: PipelineSpec) -> IndexProfile | None:
         describe_images=ing.describe_images,
         parent_chunk=ing.parent_chunk,
         metadata=tuple(sorted(set(ing.metadata), key=lambda m: m.value)),
+        semantic_threshold=(
+            ing.semantic_similarity_threshold if ing.chunking is ChunkingStrategy.SEMANTIC else 0.0
+        ),
     )
