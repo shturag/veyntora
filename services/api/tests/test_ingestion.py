@@ -413,6 +413,7 @@ async def test_identical_upload_is_not_queued_twice(world: World) -> None:
         max_bytes=10_000,
     )
     assert doc.path == "policy.md", "directory parts are stripped"
+    assert doc.updated_at is not None, "readable without lazy IO (responses use it)"
     assert job is not None and job.kind is IngestJobKind.UPLOAD
     assert doc.acl == {"groups": [str(world.group.id)], "users": []}
     assert world.objects.data[doc.object_key or ""] == POLICY

@@ -21,9 +21,9 @@ from veyntora_api.db.models.chatbots import ChatbotStatus
 from veyntora_api.db.models.conversations import Citation, Conversation, Message, MessageRole
 from veyntora_api.db.models.identity import GroupSource, Membership, User
 from veyntora_api.knowledge import service as knowledge
+from veyntora_api.rag import pipeline
+from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
 from veyntora_graphs import fast_rag
-from veyntora_graphs.rag import pipeline
-from veyntora_graphs.rag.pipeline import RunRefusedError, answer, load_context
 from veyntora_providers.interfaces import (
     AclFilter,
     ChatChunk,
@@ -319,3 +319,65 @@ async def bots_with_source(rag: Rag) -> tuple[UUID, Any]:
 
 def test_policy_fixture_is_markdown() -> None:
     assert POLICY.startswith(b"# Refund policy")
+
+
+async def test_my_files_answer_only_their_owner(rag: Rag) -> None:
+    w = rag.w
+    mine = await knowledge.ensure_personal_source(w.db, CTX, w.user.id)
+    doc, _ = await knowledge.add_upload(
+        w.db,
+        CTX,
+        w.objects,  # type: ignore[arg-type]
+        mine,
+        filename="pricing-draft.md",
+        content=b"# Pricing draft\n\nThe premium plan costs 42 euros per seat and month.\n",
+        uploader_id=w.user.id,
+        max_bytes=100_000,
+    )
+    stats = await w.ingestor().index_document(doc, force=False)
+    assert stats["indexed"] == 1, "personal files are indexed for the live chatbots"
+    assert {tuple(p.payload["acl"]) for p in rag.vectors.of(doc.id)} == {(f"user:{w.user.id}",)}
+
+    rag.llm.reply = "The premium plan costs 42 euros per seat and month [1]."
+    result = await rag.ask("What does the premium plan cost per seat?")
+    assert result.outcome == "answered"
+    assert result.cited[0][1].document_id == str(doc.id)
+
+    # A colleague in the same group, chatting with the same assistant, cannot see it.
+    colleague = User(keycloak_sub="sub-colleague", email="c@example.com", display_name="C")
+    w.db.add(colleague)
+    await w.db.flush()
+    w.db.add(Membership(user_id=colleague.id, group_id=w.group.id, source=GroupSource.MANUAL))
+    await w.db.flush()
+    rag.llm.calls.clear()
+    other = await rag.ask("What does the premium plan cost per seat?", subject="sub-colleague")
+    assert all(s.document_id != str(doc.id) for s in other.sources)
+
+
+async def test_trace_has_the_steps_but_no_document_text(rag: Rag) -> None:
+    from opentelemetry.sdk.trace import TracerProvider  # noqa: PLC0415
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor  # noqa: PLC0415
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: PLC0415
+        InMemorySpanExporter,
+    )
+    from veyntora_api.rag.tracing import Trace  # noqa: PLC0415
+
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    trace = Trace(provider.get_tracer("test"))
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    with trace.run("fast_rag", **{"langfuse.trace.input": "refund?"}):
+        await answer(
+            rag.w.db, rag.adapters(), ctx, "Can digital products be refunded?", trace=trace
+        )
+
+    spans = {s.name: s for s in exporter.get_finished_spans()}
+    assert {"fast_rag", "retrieve", "rerank", "generate"} <= set(spans)
+    assert trace.id == format(spans["fast_rag"].context.trace_id, "032x")
+    generate = spans["generate"].attributes or {}
+    assert generate["langfuse.observation.type"] == "generation"
+    assert generate["gen_ai.usage.input_tokens"] == 120
+    assert generate["veyntora.external"] is True
+    everything = " ".join(str(v) for s in spans.values() for v in (s.attributes or {}).values())
+    assert "can't be refunded once downloaded" not in everything, "no chunk text in traces"

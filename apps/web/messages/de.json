@@ -601,7 +601,6 @@
       "agent": "Agent"
     },
     "modeLater": "Auto und Agent kommen in Phase {phase}. Schnell beantwortet Fragen jetzt aus Dokumenten.",
-    "attachLater": "Dateien anhängen kommt mit „Meine Dateien“ in der Bibliothek, später in Phase 1.",
     "noAssistantsTitle": "Noch keine Assistenten",
     "noAssistantsBody": "Du hast noch keinen Zugriff auf einen Assistenten. Bitte deine Admins, dich hinzuzufügen.",
     "startFailed": "Der Chat konnte nicht gestartet werden. Versuch es noch einmal.",
@@ -639,7 +638,10 @@
     "share": "Teilen",
     "shareLater": "Antworten teilen kommt mit gespeicherten Antworten in Phase {phase}.",
     "moreOptions": "Weitere Optionen",
-    "deleteChat": "Chat löschen"
+    "deleteChat": "Chat löschen",
+    "attach": "Dateien zu „Meine Dateien“ hinzufügen",
+    "attached": "{count, plural, one {Zu „Meine Dateien“ hinzugefügt. Du kannst danach fragen, sobald sie indiziert ist.} other {# Dateien zu „Meine Dateien“ hinzugefügt. Du kannst danach fragen, sobald sie indiziert sind.}}",
+    "attachFailed": "Die Dateien konnten nicht hochgeladen werden."
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -868,5 +870,50 @@
     "unmappedTitle": "Nicht zugeordnete Berechtigungen",
     "unmappedNone": "Alle bisher gesehenen Berechtigungen sind zugeordnet.",
     "unmappedHint": "Diese SharePoint-Berechtigungen wurden verworfen. Ordne sie oben zu, um ihren Mitgliedern Zugriff zu geben."
+  },
+  "myFiles": {
+    "title": "Meine Dateien",
+    "hint": "Nur du siehst sie. Deine Chats durchsuchen sie, sobald sie indiziert sind.",
+    "choose": "Dateien auswählen",
+    "upload": "Hochladen",
+    "uploading": "Lädt hoch…",
+    "loadFailed": "Deine Dateien konnten nicht geladen werden.",
+    "uploadFailed": "Hochladen fehlgeschlagen.",
+    "ready": "Bereit",
+    "indexing": "Noch nicht indiziert",
+    "failed": "Fehlgeschlagen",
+    "infected": "Virus gefunden",
+    "remove": "{name} entfernen",
+    "empty": "Noch keine Dateien."
+  },
+  "helpPage": {
+    "back": "Zurück zum Chat",
+    "title": "Hilfe",
+    "status": "Systemstatus",
+    "privacyLink": "Datenschutzhinweis lesen",
+    "modes": {
+      "title": "Wie Antworten entstehen",
+      "body": "Der Schnellmodus durchsucht die Dokumente, die du öffnen darfst, und antwortet daraus in wenigen Sekunden. Die Modi Auto und Agent, die mehrere Schritte durchgehen und Aktionen zur Freigabe vorbereiten können, sind noch nicht verfügbar."
+    },
+    "checking": {
+      "title": "Antworten prüfen",
+      "body": "Jede Aussage in einer Antwort hat eine Nummer. Klick darauf, um die verwendete Stelle zu sehen und das Dokument zu öffnen. Wenn die Dokumente deine Frage nicht beantworten, sagt der Assistent das, statt zu raten, und du kannst die Frage an eine Person weitergeben. Wenn eine Antwort falsch wirkt, bewerte sie."
+    },
+    "files": {
+      "title": "Deine eigenen Dateien",
+      "body": "Lade PDFs, Word-Dateien und andere Dokumente unter „Chats & Wissen“ hoch oder mit der Büroklammer im Chat. Nur du siehst sie, und deine Chats durchsuchen sie, sobald sie indiziert sind. Du kannst sie jederzeit entfernen."
+    },
+    "access": {
+      "title": "Warum sehe ich einen Assistenten nicht?",
+      "body": "Jeder Assistent ist für bestimmte Teams freigegeben. Frag deine Führungskraft oder das Plattform-Team nach Zugriff."
+    },
+    "privacy": {
+      "title": "Datenschutz",
+      "body": "Antworten werden aus Unternehmensdokumenten erzeugt, auf die du Zugriff hast, und können falsch sein. Deine Chats werden gespeichert, damit du zu ihnen zurückkehren kannst; du kannst einen Chat über sein Menü löschen. KI-Modelle laufen auf den eigenen Servern deines Unternehmens, außer ein Assistent darf einen externen Anbieter nutzen: Solche Antworten tragen die Kennzeichnung „Externes Modell“."
+    },
+    "stuck": {
+      "title": "Kommst du nicht weiter?",
+      "body": "Prüfe, ob der Dienst normal läuft, oder wende dich an dein Plattform-Team."
+    }
   }
 }

@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     tei_embed_url: str = ""
     tei_rerank_url: str = ""
     langfuse_url: str = "http://localhost:3001"
+    # Project keys for traces (graphs). Empty keys switch tracing off.
+    langfuse_public_key: str = ""
+    langfuse_secret_key: SecretStr = SecretStr("")
 
     alembic_ini: Path = Path(__file__).resolve().parents[2] / "alembic.ini"
 

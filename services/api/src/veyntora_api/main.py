@@ -27,6 +27,7 @@ from veyntora_api.routers import (
     auth,
     chat,
     me,
+    me_files,
     status,
 )
 from veyntora_api.secrets.openbao import SecretWriter
@@ -144,6 +145,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(status.router)
     app.include_router(auth.router)
     app.include_router(me.router)
+    app.include_router(me_files.router)
     app.include_router(chat.router)
     app.include_router(admin_providers.router)
     app.include_router(admin_chatbots.router)

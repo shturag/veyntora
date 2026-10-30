@@ -678,6 +678,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's own files */
+        get: operations["list_files_v1_me_files_get"];
+        put?: never;
+        /** Upload files for yourself */
+        post: operations["upload_files_v1_me_files_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/files/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove one of your files */
+        delete: operations["delete_file_v1_me_files__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/public/info": {
         parameters: {
             query?: never;
@@ -791,6 +826,11 @@ export interface components {
         };
         /** Body_upload_documents_v1_admin_sources__source_id__documents_post */
         Body_upload_documents_v1_admin_sources__source_id__documents_post: {
+            /** Files */
+            files: string[];
+        };
+        /** Body_upload_files_v1_me_files_post */
+        Body_upload_files_v1_me_files_post: {
             /** Files */
             files: string[];
         };
@@ -1045,6 +1085,27 @@ export interface components {
             rating: components["schemas"]["Rating"];
             /** Reason */
             reason?: ("wrong" | "outdated" | "incomplete" | "not_relevant" | "other") | null;
+        };
+        /** FileOut */
+        FileOut: {
+            /** Error */
+            error: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            scan_status: components["schemas"]["ScanStatus"];
+            /** Size Bytes */
+            size_bytes: number | null;
+            status: components["schemas"]["DocumentStatus"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** FlowEdge */
         FlowEdge: {
@@ -3329,6 +3390,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatbotSummary"][];
+                };
+            };
+        };
+    };
+    list_files_v1_me_files_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"][];
+                };
+            };
+        };
+    };
+    upload_files_v1_me_files_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_files_v1_me_files_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_file_v1_me_files__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

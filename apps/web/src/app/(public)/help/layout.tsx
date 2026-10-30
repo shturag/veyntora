@@ -17,7 +17,10 @@ export default async function HelpLayout({ children }: { children: ReactNode }) 
           {t("status.back")}
         </Link>
       </header>
-      <main id="main" className="mx-auto box-border w-full max-w-[860px] px-7 py-9 max-[640px]:px-4">
+      <main
+        id="main"
+        className="mx-auto box-border w-full max-w-[860px] px-7 py-9 max-[640px]:px-4"
+      >
         {children}
       </main>
     </div>

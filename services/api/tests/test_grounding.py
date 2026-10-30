@@ -1,5 +1,5 @@
-from veyntora_graphs.rag import grounding
-from veyntora_graphs.rag.pipeline import language_of
+from veyntora_api.rag import grounding
+from veyntora_api.rag.pipeline import language_of
 
 SOURCES = [
     "Digital products can't be refunded once they have been downloaded by the customer.",

@@ -15,3 +15,4 @@
 | [0011](0011-ingestion.md) | Ingestion, index profiles, virus scan, chatbot setup (Phase 1) |
 | [0012](0012-fast-rag.md) | Fast RAG graph, chat proxy, grounding (Phase 1) |
 | [0013](0013-hosted-providers-and-sharepoint.md) | Hosted model APIs locally, Providers page, SharePoint connector |
+| [0014](0014-my-files-traces-evaluation.md) | My files, answer traces, evaluation runner (Phase 1) |

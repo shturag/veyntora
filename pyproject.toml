@@ -53,6 +53,11 @@ ignore = [
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "print".msg = "Use structlog; print bypasses the secret scrubber."
 
+[[tool.mypy.overrides]]
+# PyYAML ships no type stubs.
+module = ["yaml"]
+ignore_missing_imports = true
+
 [tool.mypy]
 python_version = "3.12"
 strict = true

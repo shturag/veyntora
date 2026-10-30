@@ -48,3 +48,36 @@ test.describe("chat screens as an employee", () => {
     expect(overflow).toBeLessThanOrEqual(0);
   });
 });
+
+test.describe("my files", () => {
+  test.use({ storageState: USERS.employee.state });
+
+  test("an employee uploads a private file and removes it again", async ({ page }) => {
+    await page.goto("/library");
+    const panel = page.getByRole("region", { name: "My files" });
+    await panel.getByLabel("Choose files").setInputFiles({
+      name: "e2e-notes.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from("# Notes\n\nPrivate notes for the end-to-end test.\n"),
+    });
+    await panel.getByRole("button", { name: "Upload" }).click();
+    await expect(panel.getByText("e2e-notes.md", { exact: true })).toBeVisible();
+    // Another user cannot see it: the API lists only the caller's own files.
+    const mine = (await (await page.request.get("/api/v1/me/files")).json()) as { name: string }[];
+    expect(mine.map((f) => f.name)).toContain("e2e-notes.md");
+    await panel.getByRole("button", { name: "Remove e2e-notes.md" }).click();
+    await expect(panel.getByText("e2e-notes.md", { exact: true })).toHaveCount(0);
+  });
+
+  test("a disguised executable is refused", async ({ page }) => {
+    await page.goto("/library");
+    const panel = page.getByRole("region", { name: "My files" });
+    await panel.getByLabel("Choose files").setInputFiles({
+      name: "invoice.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from("MZ\x90\x00 not a pdf"),
+    });
+    await panel.getByRole("button", { name: "Upload" }).click();
+    await expect(panel.getByRole("alert")).toContainText("not a valid .pdf");
+  });
+});

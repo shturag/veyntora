@@ -49,7 +49,7 @@ export const SCREENS: readonly Screen[] = [
   { key: "landing", file: "index.html", route: "/", shell: "public", phase: 0 },
   { key: "signIn", file: "SignIn.html", route: "/sign-in", shell: "public", phase: 0 },
   { key: "status", file: "Status.html", route: "/status", shell: "public", phase: 0 },
-  { key: "help", file: "Help.html", route: "/help", shell: "public", phase: 1 },
+  { key: "help", file: "Help.html", route: "/help", shell: "public", phase: 1, built: true },
 
   // user app
   { key: "home", file: "Home.html", route: "/home", shell: "user", phase: 1, built: true },

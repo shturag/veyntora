@@ -2232,6 +2232,8 @@ dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "openfga-sdk" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
     { name = "prometheus-client" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -2255,6 +2257,8 @@ requires-dist = [
     { name = "fastapi", specifier = "==0.162.0" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "openfga-sdk", specifier = "==0.10.5" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.45.2" },
+    { name = "opentelemetry-sdk", specifier = "==1.45.2" },
     { name = "prometheus-client", specifier = "==0.26.0" },
     { name = "pydantic", specifier = "==2.14.2" },
     { name = "pydantic-settings", specifier = "==2.16.2" },
@@ -2333,12 +2337,14 @@ version = "0.1.0"
 source = { editable = "services/workers" }
 dependencies = [
     { name = "celery", extra = ["redis"] },
+    { name = "pyyaml" },
     { name = "veyntora-api" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "celery", extras = ["redis"], specifier = "==5.6.3" },
+    { name = "pyyaml", specifier = "==6.0.3" },
     { name = "veyntora-api", editable = "services/api" },
 ]
 

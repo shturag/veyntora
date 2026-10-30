@@ -24,18 +24,18 @@ from veyntora_api.authz.fga import Authz
 from veyntora_api.db.models.conversations import RequestedMode
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.providers.runtime import Adapters
-from veyntora_api.settings import get_settings
-from veyntora_providers.interfaces import ChatMessage
-from veyntora_providers.secrets import OpenBaoReader
-
-from veyntora_graphs.rag.pipeline import (
+from veyntora_api.rag.pipeline import (
     Answer,
     RunRefusedError,
     answer,
     language_of,
     load_context,
 )
-from veyntora_graphs.rag.record import conversation_for, record
+from veyntora_api.rag.record import conversation_for, record
+from veyntora_api.rag.tracing import new_trace
+from veyntora_api.settings import get_settings
+from veyntora_providers.interfaces import ChatMessage
+from veyntora_providers.secrets import OpenBaoReader
 
 log = structlog.get_logger()
 
@@ -127,20 +127,48 @@ async def answer_node(state: State, config: RunnableConfig) -> dict[str, Any]:
         except RunRefusedError as exc:
             return {"messages": [_refusal(str(exc))]}
         adapters = Adapters(db, reader)
-        try:
-            result = await answer(
-                db,
-                adapters,
-                ctx,
-                question,
-                history=_history(messages[:-1]),
-                emit=writer,
-                language_hint=language_of(question),
+        trace = new_trace()
+        with trace.run(
+            "fast_rag",
+            **{
+                "langfuse.user.id": str(ctx.user_id),
+                "langfuse.session.id": thread_id,
+                "langfuse.trace.input": question,
+                "langfuse.trace.metadata.chatbot": ctx.chatbot_name,
+                "langfuse.trace.metadata.pipeline_version": ctx.version_number,
+                "langfuse.trace.metadata.run_id": run_id,
+            },
+        ):
+            try:
+                result = await answer(
+                    db,
+                    adapters,
+                    ctx,
+                    question,
+                    history=_history(messages[:-1]),
+                    emit=writer,
+                    language_hint=language_of(question),
+                    trace=trace,
+                )
+            finally:
+                await adapters.close()
+            trace.set(
+                **{
+                    "langfuse.trace.output": result.text,
+                    "langfuse.trace.metadata.outcome": result.outcome,
+                    "langfuse.trace.metadata.groundedness": result.groundedness,
+                    "langfuse.trace.metadata.external_egress": result.external_egress,
+                    "langfuse.trace.metadata.latency_ms": result.latency_ms,
+                }
             )
-        finally:
-            await adapters.close()
         message_id = await record(
-            db, conv, ctx, question, result, requested=RequestedMode.FAST, trace_id=run_id
+            db,
+            conv,
+            ctx,
+            question,
+            result,
+            requested=RequestedMode.FAST,
+            trace_id=trace.id or run_id,
         )
         await db.commit()
     log.info(

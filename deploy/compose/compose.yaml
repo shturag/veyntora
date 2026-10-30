@@ -510,6 +510,9 @@ services:
       # Veyntora settings (database, OpenFGA, OpenBao reader) for the graphs; see ADR 0012.
       <<: *app-env
       VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
+      # Traces per answer (ADR 0014); the same project keys Langfuse is initialised with.
+      VEY_LANGFUSE_PUBLIC_KEY: ${VEY_LANGFUSE_PUBLIC_KEY:-pk-lf-dev}
+      VEY_LANGFUSE_SECRET_KEY: ${VEY_LANGFUSE_SECRET_KEY:-sk-lf-dev}
       DATABASE_URL: postgresql://aegra:${VEY_AEGRA_DB_PASSWORD:-dev-aegra-db}@postgres:5432/aegra
       REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/2
       REDIS_BROKER_ENABLED: "true"

@@ -6,7 +6,12 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
   "veyntora-api",
   "celery[redis]==5.6.3",
+  # Evaluation sets (veyntora-eval).
+  "pyyaml==6.0.3",
 ]
+
+[project.scripts]
+veyntora-eval = "veyntora_workers.evaluation:main"
 
 [build-system]
 requires = ["hatchling==1.33.0"]

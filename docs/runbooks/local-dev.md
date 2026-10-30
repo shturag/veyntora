@@ -51,3 +51,18 @@ Run the web app outside Docker against the compose API: `API_INTERNAL_URL=http:/
 - **Uploads stay "pending":** check `docker compose ps clamav tei-embed docling`. ClamAV downloads signatures on first start (a few minutes); jobs retry with backoff, see `GET /v1/admin/sources/{id}/jobs`. Only on a machine that cannot run ClamAV, set `VEY_SCAN_REQUIRED=false` in `.env`; documents then show "not scanned".
 - **`remaining connection slots are reserved`:** the dev Postgres allows 300 connections. Check `pg_stat_activity` for a service with a runaway pool.
 - **Start from scratch:** `make reset && make up`.
+
+## Phase 1 evaluation
+
+After adding providers under Admin → Providers & keys (parser, embedding, vector store, LLM, optionally a reranker), take their ids from the Providers page and run:
+
+```bash
+docker compose run --rm -v ./evals:/evals:ro workers veyntora-eval /evals/phase1 \
+  --parser <id> --embedding <id> --store <id> --llm <id> [--reranker <id>]
+```
+
+It prints PASS/FAIL per question and a summary (citations, no-answer, permission leak count, p95 latency), and cleans up after itself.
+
+## Traces
+
+Answers are traced in Langfuse at http://localhost:3001 (sign in as `admin@veyntora.local`; the password is `VEY_LANGFUSE_ADMIN_PASSWORD` from `.env`). The trace id is stored with each answer.

@@ -601,7 +601,6 @@
       "agent": "Agent"
     },
     "modeLater": "Auto and Agent arrive in Phase {phase}. Fast answers from documents now.",
-    "attachLater": "Attaching files comes with My files in the Library, later in Phase 1.",
     "noAssistantsTitle": "No assistants yet",
     "noAssistantsBody": "You don't have access to an assistant yet. Ask your admin to add you to one.",
     "startFailed": "The chat could not be started. Try again.",
@@ -639,7 +638,10 @@
     "share": "Share",
     "shareLater": "Sharing answers arrives with saved answers in Phase {phase}.",
     "moreOptions": "More options",
-    "deleteChat": "Delete chat"
+    "deleteChat": "Delete chat",
+    "attach": "Attach files to My files",
+    "attached": "{count, plural, one {Added to My files. You can ask about it once it is indexed.} other {# files added to My files. You can ask about them once they are indexed.}}",
+    "attachFailed": "The files could not be uploaded."
   },
   "source": {
     "updated": "updated {date}",
@@ -868,5 +870,50 @@
     "unmappedTitle": "Unmapped permissions",
     "unmappedNone": "Every permission seen so far is mapped.",
     "unmappedHint": "These SharePoint principals were dropped. Map them above to give their members access."
+  },
+  "myFiles": {
+    "title": "My files",
+    "hint": "Only you can see these. Your chats search them once they are indexed.",
+    "choose": "Choose files",
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "loadFailed": "Your files could not be loaded.",
+    "uploadFailed": "Upload failed.",
+    "ready": "Ready",
+    "indexing": "Not indexed yet",
+    "failed": "Failed",
+    "infected": "Virus found",
+    "remove": "Remove {name}",
+    "empty": "No files yet."
+  },
+  "helpPage": {
+    "back": "Back to chat",
+    "title": "Help",
+    "status": "System status",
+    "privacyLink": "Read the privacy notice",
+    "modes": {
+      "title": "How answers are made",
+      "body": "Fast mode searches the documents you are allowed to open and answers from them in a few seconds. Auto and Agent modes, which can work through several steps and prepare actions for your approval, are not available yet."
+    },
+    "checking": {
+      "title": "Checking answers",
+      "body": "Every fact in an answer has a number. Click it to see the passage the answer used, and open the document. If the documents do not answer your question, the assistant says so instead of guessing, and you can pass the question to a person. If an answer looks wrong, rate it."
+    },
+    "files": {
+      "title": "Your own files",
+      "body": "Upload PDFs, Word files and other documents under Chats & knowledge, or with the paper clip in a chat. Only you can see them, and your chats search them once they are indexed. You can remove them at any time."
+    },
+    "access": {
+      "title": "Why can't I see an assistant?",
+      "body": "Each assistant is shared with specific teams. Ask your manager or the platform team for access."
+    },
+    "privacy": {
+      "title": "Privacy",
+      "body": "Answers are generated from company documents you have access to and can be wrong. Your chats are stored so you can come back to them; you can delete a chat from its menu. AI models run on your company's own servers unless an assistant is allowed to use an external provider: such answers carry an \"External model\" label."
+    },
+    "stuck": {
+      "title": "Still stuck?",
+      "body": "Check whether the service is running normally, or contact your platform team."
+    }
   }
 }

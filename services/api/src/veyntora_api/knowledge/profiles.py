@@ -24,7 +24,7 @@ from veyntora_api.db.models.chatbots import (
     PipelineVersion,
 )
 from veyntora_api.db.models.governance import GovernanceRule
-from veyntora_api.db.models.knowledge import SourceAttachment
+from veyntora_api.db.models.knowledge import DataSource, SourceAttachment
 from veyntora_api.db.models.providers import ProviderInstance
 
 log = structlog.get_logger()
@@ -48,33 +48,35 @@ async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexPr
     the chatbot's data rule allows that provider: documents are sent to it during indexing,
     long before anyone asks a question, and drafts are indexed too.
     """
-    bots = (
-        (
-            await db.execute(
-                sa.select(Chatbot)
-                .join(SourceAttachment, SourceAttachment.chatbot_id == Chatbot.id)
-                .where(
-                    SourceAttachment.source_id == source_id,
-                    SourceAttachment.enabled.is_(True),
-                    Chatbot.status != ChatbotStatus.ARCHIVED,
-                )
+    source = await db.get(DataSource, source_id)
+    if source is None:
+        return []
+    personal = source.uploaded_by is not None
+    if personal:
+        # "My files" are searched by every chat of their owner: index them for the live
+        # chatbots. Only their owner can read the chunks.
+        query = sa.select(Chatbot).where(Chatbot.status == ChatbotStatus.LIVE)
+    else:
+        query = (
+            sa.select(Chatbot)
+            .join(SourceAttachment, SourceAttachment.chatbot_id == Chatbot.id)
+            .where(
+                SourceAttachment.source_id == source_id,
+                SourceAttachment.enabled.is_(True),
+                Chatbot.status != ChatbotStatus.ARCHIVED,
             )
         )
-        .scalars()
-        .all()
-    )
+    bots = (await db.execute(query)).scalars().all()
     if not bots:
         return []
     bot_ids = [b.id for b in bots]
     published = {v for b in bots for v in (b.live_version_id, b.canary_version_id) if v}
+    drafts = sa.false() if personal else PipelineVersion.status == PipelineStatus.DRAFT
     versions = (
         await db.execute(
             sa.select(PipelineVersion.chatbot_id, PipelineVersion.spec).where(
                 PipelineVersion.chatbot_id.in_(bot_ids),
-                sa.or_(
-                    PipelineVersion.id.in_(published),
-                    PipelineVersion.status == PipelineStatus.DRAFT,
-                ),
+                sa.or_(PipelineVersion.id.in_(published), drafts),
             )
         )
     ).all()

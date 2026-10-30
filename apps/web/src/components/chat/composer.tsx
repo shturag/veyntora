@@ -1,9 +1,11 @@
 "use client";
 
-import { Button, PhaseGatedButton, Tooltip, cn } from "@veyntora/ui";
+import { Button, Tooltip, cn } from "@veyntora/ui";
 import { Paperclip } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+
+import { ACCEPT, uploadMyFiles } from "./my-files";
 
 /**
  * Question box with the answer-mode switch (prototype: Home.html, ChatFast.html). Fast is the
@@ -28,6 +30,25 @@ export function Composer({
   const [text, setText] = useState("");
   const id = useId();
   const ready = text.trim().length > 0 && !busy && !disabled;
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [attaching, setAttaching] = useState(false);
+  const [attachNote, setAttachNote] = useState<{ ok: boolean; text: string } | null>(null);
+
+  // Attached files go to "My files": private to you and searched by your chats once indexed.
+  async function attach(el: HTMLInputElement) {
+    if (!el.files?.length) return;
+    setAttaching(true);
+    setAttachNote(null);
+    try {
+      await uploadMyFiles(el.files);
+      setAttachNote({ ok: true, text: t("attached", { count: el.files.length }) });
+    } catch (e) {
+      setAttachNote({ ok: false, text: e instanceof Error ? e.message : t("attachFailed") });
+    } finally {
+      el.value = "";
+      setAttaching(false);
+    }
+  }
 
   function send(event?: FormEvent) {
     event?.preventDefault();
@@ -62,9 +83,26 @@ export function Composer({
       />
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex flex-wrap items-center gap-2">
-          <PhaseGatedButton phase={1} label={t("attachLater")} size="lg" className="w-11 px-0">
+          <Button
+            type="button"
+            size="lg"
+            className="w-11 px-0"
+            aria-label={t("attach")}
+            disabled={attaching}
+            onClick={() => fileInput.current?.click()}
+          >
             <Paperclip aria-hidden className="size-4" />
-          </PhaseGatedButton>
+          </Button>
+          <input
+            ref={fileInput}
+            type="file"
+            multiple
+            accept={ACCEPT}
+            className="hidden"
+            tabIndex={-1}
+            aria-hidden
+            onChange={(e) => void attach(e.currentTarget)}
+          />
           <div
             role="radiogroup"
             aria-label={t("mode")}
@@ -103,6 +141,14 @@ export function Composer({
           {busy ? t("answering") : (submitLabel ?? t("ask"))}
         </Button>
       </div>
+      {attachNote ? (
+        <p
+          role={attachNote.ok ? "status" : "alert"}
+          className={cn("m-0 text-xs", attachNote.ok ? "text-fg-muted" : "text-red")}
+        >
+          {attachNote.text}
+        </p>
+      ) : null}
     </form>
   );
 }

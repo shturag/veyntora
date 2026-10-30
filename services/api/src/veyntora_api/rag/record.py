@@ -6,6 +6,7 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from veyntora_api.db.models.conversations import (
     Citation,
     Conversation,
@@ -14,8 +15,7 @@ from veyntora_api.db.models.conversations import (
     RequestedMode,
     UsedMode,
 )
-
-from veyntora_graphs.rag.pipeline import Answer, RunContext, RunRefusedError
+from veyntora_api.rag.pipeline import Answer, RunContext, RunRefusedError
 
 
 async def conversation_for(

@@ -23,13 +23,6 @@ from uuid import UUID
 import sqlalchemy as sa
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
-from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineVersion
-from veyntora_api.db.models.governance import GovernanceRule
-from veyntora_api.db.models.identity import Group, Membership, User
-from veyntora_api.db.models.knowledge import Document, DocumentStatus, SourceAttachment
-from veyntora_api.db.models.platform import PlatformSettings
-from veyntora_api.db.models.providers import ProviderInstance
-from veyntora_api.knowledge.service import principals_of
 from veyntora_providers.interfaces import (
     AclFilter,
     ChatMessage,
@@ -49,7 +42,20 @@ from veyntora_spec.pipeline import (
 )
 from veyntora_spec.profile import IndexProfile, index_profile
 
-from veyntora_graphs.rag import grounding
+from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineVersion
+from veyntora_api.db.models.governance import GovernanceRule
+from veyntora_api.db.models.identity import Group, Membership, User
+from veyntora_api.db.models.knowledge import (
+    DataSource,
+    Document,
+    DocumentStatus,
+    SourceAttachment,
+)
+from veyntora_api.db.models.platform import PlatformSettings
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.knowledge.service import principals_of
+from veyntora_api.rag import grounding
+from veyntora_api.rag.tracing import Trace
 
 log = structlog.get_logger()
 
@@ -179,16 +185,12 @@ async def load_context(
         )
     ).all()
     principals = (f"user:{user.id}", *(f"group:{g.id}" for g in groups))
-    source_ids = tuple(
-        str(s)
-        for s in (
-            await db.execute(
-                sa.select(SourceAttachment.source_id).where(
-                    SourceAttachment.chatbot_id == bot.id, SourceAttachment.enabled.is_(True)
-                )
-            )
-        ).scalars()
+    attached = sa.select(SourceAttachment.source_id).where(
+        SourceAttachment.chatbot_id == bot.id, SourceAttachment.enabled.is_(True)
     )
+    # The asker's own "My files" are searched too; their chunks are readable only by them.
+    own = sa.select(DataSource.id).where(DataSource.uploaded_by == user.id)
+    source_ids = tuple(str(s) for s in (await db.execute(attached.union(own))).scalars())
     used = {
         i
         for i in (
@@ -438,6 +440,45 @@ def _add(a: Usage, b: Usage) -> Usage:
     return Usage(a.prompt_tokens + b.prompt_tokens, a.completion_tokens + b.completion_tokens)
 
 
+async def _find_sources(
+    db: AsyncSession,
+    adapters: AdapterSource,
+    ctx: RunContext,
+    query: str,
+    *,
+    tr: Trace,
+    steps: dict[str, int],
+) -> tuple[list[Source], bool, bool]:
+    """Hybrid search, then rerank. Returns (sources, rerank skipped, external egress)."""
+    spec = ctx.spec
+    t0 = time.perf_counter()
+    with tr.step("retrieve") as step:
+        candidates = await retrieve(db, adapters, ctx, query)
+        step.set(
+            top_k=spec.retrieval.top_k,
+            candidates=len(candidates),
+            search=spec.retrieval.search_type.value,
+        )
+    external = ctx.hosting(spec.retrieval.embedding_instance_id) is Hosting.EXTERNAL
+    steps["retrieve"] = round((time.perf_counter() - t0) * 1000)
+    t0 = time.perf_counter()
+    with tr.step("rerank") as step:
+        sources, skipped = await rerank(adapters, ctx, query, candidates)
+        step.set(
+            kept=len(sources),
+            skipped=skipped,
+            min_score=spec.rerank.min_score,
+            sources=[
+                {"title": s.title, "section": s.section, "score": round(s.score, 3)}
+                for s in sources
+            ],
+        )
+    if spec.rerank.enabled and not skipped and candidates:
+        external |= ctx.hosting(spec.rerank.reranker_instance_id) is Hosting.EXTERNAL
+    steps["rerank"] = round((time.perf_counter() - t0) * 1000)
+    return sources, skipped, external
+
+
 async def answer(
     db: AsyncSession,
     adapters: AdapterSource,
@@ -447,6 +488,7 @@ async def answer(
     history: Sequence[ChatMessage] = (),
     emit: Emit | None = None,
     language_hint: str = "en",
+    trace: Trace | None = None,
 ) -> Answer:
     started = time.perf_counter()
     steps: dict[str, int] = {}
@@ -457,25 +499,21 @@ async def answer(
         steps[step] = round((time.perf_counter() - t0) * 1000)
 
     spec = ctx.spec
+    tr = trace or Trace(None)
     egress = False
     query = question
     if spec.retrieval.query_rewrite and history:
         t0 = time.perf_counter()
-        query, u = await rewrite_query(adapters, ctx, question, history)
+        with tr.step("rewrite", generation=True) as step:
+            query, u = await rewrite_query(adapters, ctx, question, history)
+            step.set(**_usage_attrs(ctx, spec.generation.llm_instance_id, u))
         usage = _add(usage, u)
         egress |= ctx.hosting(spec.generation.llm_instance_id) is Hosting.EXTERNAL
         mark("rewrite", t0)
 
     emit_({"type": "status", "step": "searching"})
-    t0 = time.perf_counter()
-    candidates = await retrieve(db, adapters, ctx, query)
-    egress |= ctx.hosting(spec.retrieval.embedding_instance_id) is Hosting.EXTERNAL
-    mark("retrieve", t0)
-    t0 = time.perf_counter()
-    sources, skipped = await rerank(adapters, ctx, query, candidates)
-    if spec.rerank.enabled and not skipped and candidates:
-        egress |= ctx.hosting(spec.rerank.reranker_instance_id) is Hosting.EXTERNAL
-    mark("rerank", t0)
+    sources, skipped, external = await _find_sources(db, adapters, ctx, query, tr=tr, steps=steps)
+    egress |= external
 
     def finish(result: Answer) -> Answer:
         result.usage = usage
@@ -503,7 +541,9 @@ async def answer(
         or gen.if_ungrounded is UngroundedAction.NO_ANSWER
     )
     t0 = time.perf_counter()
-    text, u = await _complete(llm, messages, gen.max_answer_tokens, None if blocking else emit)
+    with tr.step("generate", generation=True) as step:
+        text, u = await _complete(llm, messages, gen.max_answer_tokens, None if blocking else emit)
+        step.set(**_usage_attrs(ctx, gen.llm_instance_id, u), streamed=not blocking)
     usage = _add(usage, u)
     egress |= ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
     mark("generate", t0)
@@ -527,6 +567,17 @@ async def answer(
             warning=problem,
         )
     )
+
+
+def _usage_attrs(ctx: RunContext, instance_id: UUID | None, usage: Usage) -> dict[str, Any]:
+    row = ctx.providers.get(instance_id) if instance_id else None
+    return {
+        "gen_ai.request.model": row.model if row else None,
+        "gen_ai.usage.input_tokens": usage.prompt_tokens,
+        "gen_ai.usage.output_tokens": usage.completion_tokens,
+        "veyntora.provider": row.name if row else None,
+        "veyntora.external": bool(row and row.hosting is Hosting.EXTERNAL),
+    }
 
 
 def verdict(

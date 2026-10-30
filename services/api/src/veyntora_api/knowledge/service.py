@@ -418,6 +418,8 @@ async def add_upload(
     job = await enqueue(
         db, source.id, IngestJobKind.UPLOAD, document_id=doc.id, triggered_by=uploader_id
     )
+    # Server-set timestamps are expired after the flush; load them now (no lazy IO in async).
+    await db.refresh(doc, ["created_at", "updated_at"])
     return doc, job
 
 
@@ -467,3 +469,28 @@ def may_read(principals: list[str], doc: Document) -> bool:
     return doc.status is not DocumentStatus.DELETED and bool(
         set(principals) & set(principals_of(doc.acl))
     )
+
+
+async def personal_source(db: AsyncSession, user_id: UUID) -> DataSource | None:
+    """The user's own upload source ("My files"). Only that user can read its documents."""
+    row: DataSource | None = await db.scalar(
+        sa.select(DataSource).where(DataSource.uploaded_by == user_id)
+    )
+    return row
+
+
+async def ensure_personal_source(
+    db: AsyncSession, ctx: RequestContext, user_id: UUID
+) -> DataSource:
+    row = await personal_source(db, user_id)
+    if row is None:
+        row = DataSource(
+            type=SourceType.UPLOAD,
+            name=f"My files · {user_id}",
+            config={"acl": {"users": [str(user_id)], "groups": []}},
+            status=SourceStatus.ACTIVE,
+            owner_id=user_id,
+            uploaded_by=user_id,
+        )
+        await ConfigService(db, ctx).create(row, action="source.create_personal")
+    return row
