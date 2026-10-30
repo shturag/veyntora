@@ -1,0 +1,489 @@
+"""Chatbots, their pipeline versions, attached sources, data rules and access.
+
+Shared by the admin API and the CLI. Configuration changes go through ConfigService.
+Pipeline versions are immutable once published: the current draft is edited, publishing
+makes it live and starts a new draft, rollback makes an earlier version live again.
+Roles per chatbot live in OpenFGA only.
+"""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from typing import Any, Literal
+from uuid import UUID
+
+import sqlalchemy as sa
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+from veyntora_providers.interfaces import Capability, Hosting
+from veyntora_spec.pipeline import ChunkingStrategy, PipelineSpec
+
+from veyntora_api.authz.fga import PLATFORM, Authz, Tuple
+from veyntora_api.core import audit
+from veyntora_api.core.config_service import ConfigService, VersionConflictError
+from veyntora_api.core.context import RequestContext
+from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineStatus, PipelineVersion
+from veyntora_api.db.models.governance import GovernanceRule
+from veyntora_api.db.models.identity import Group, User
+from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAttachment
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.knowledge.service import enqueue
+
+Role = Literal["owner", "editor", "approver", "user"]
+ROLES: tuple[Role, ...] = ("owner", "editor", "approver", "user")
+
+
+class ChatbotError(ValueError):
+    pass
+
+
+class ChatbotInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{1,63}$")
+    name: str = Field(min_length=1, max_length=255)
+    description: str = Field(default="", max_length=2000)
+    welcome_message: str = Field(default="", max_length=2000)
+    answer_language: str = Field(default="auto", max_length=16)
+
+
+class ChatbotUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    welcome_message: str | None = Field(default=None, max_length=2000)
+    answer_language: str | None = Field(default=None, max_length=16)
+    status: Literal["live", "paused", "archived"] | None = None
+
+
+class Attachment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source_id: UUID
+    weight: float = Field(1.0, gt=0, le=10)
+    enabled: bool = True
+
+
+class GovernanceInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    chat_retention_days: int = Field(90, ge=1, le=3650)
+    trace_retention_days: int = Field(30, ge=1, le=3650)
+    allowed_external_instance_ids: list[UUID] = Field(default_factory=list)
+    allow_byok: bool = False
+    mask_pii_before_external: bool = True
+
+
+class Grant(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # "user:<uuid>" or "group:<uuid>"
+    principal: str = Field(pattern=r"^(user|group):[0-9a-f-]{36}$")
+    role: Role
+
+
+def chatbot_ref(bot_id: UUID) -> str:
+    return f"chatbot:{bot_id}"
+
+
+# ---------------------------------------------------------------- chatbots
+
+
+async def create_chatbot(
+    db: AsyncSession, ctx: RequestContext, authz: Authz, data: ChatbotInput, owner_id: UUID | None
+) -> Chatbot:
+    if await db.scalar(sa.select(Chatbot.id).where(Chatbot.slug == data.slug)):
+        raise ChatbotError(f"the address {data.slug!r} is already taken")
+    bot = Chatbot(**data.model_dump(), status=ChatbotStatus.DRAFT, owner_id=owner_id)
+    await ConfigService(db, ctx).create(bot, action="chatbot.create")
+    db.add(
+        PipelineVersion(
+            chatbot_id=bot.id,
+            number=1,
+            spec=PipelineSpec().model_dump(mode="json"),
+            status=PipelineStatus.DRAFT,
+            created_by=owner_id,
+        )
+    )
+    await db.flush()
+    # Written before the caller commits: a tuple for a row that never committed is harmless,
+    # a committed chatbot without tuples would be unreachable.
+    writes = [Tuple(PLATFORM, "platform", chatbot_ref(bot.id))]
+    if owner_id is not None:
+        writes.append(Tuple(f"user:{owner_id}", "owner", chatbot_ref(bot.id)))
+    await authz.write(writes)
+    return bot
+
+
+async def update_chatbot(
+    db: AsyncSession,
+    ctx: RequestContext,
+    bot: Chatbot,
+    data: ChatbotUpdate,
+    expected_version: int | None,
+) -> Chatbot:
+    if data.status == "live" and bot.live_version_id is None:
+        raise ChatbotError("publish a pipeline version before going live")
+    return await ConfigService(db, ctx).update(
+        bot, data, expected_version=expected_version, action="chatbot.update"
+    )
+
+
+async def draft_of(db: AsyncSession, bot: Chatbot) -> PipelineVersion:
+    draft = await db.scalar(
+        sa.select(PipelineVersion).where(
+            PipelineVersion.chatbot_id == bot.id, PipelineVersion.status == PipelineStatus.DRAFT
+        )
+    )
+    if draft is None:
+        raise ChatbotError("this chatbot has no draft")
+    return draft
+
+
+async def _next_number(db: AsyncSession, bot_id: UUID) -> int:
+    current = await db.scalar(
+        sa.select(sa.func.max(PipelineVersion.number)).where(PipelineVersion.chatbot_id == bot_id)
+    )
+    return int(current or 0) + 1
+
+
+# ---------------------------------------------------------------- pipeline checks
+
+
+_EXPECTED: dict[str, Capability] = {
+    "ingestion.parser_instance_id": Capability.PARSER,
+    "ingestion.embedding_instance_id": Capability.EMBEDDING,
+    "retrieval.vector_store_instance_id": Capability.VECTOR_STORE,
+    "retrieval.embedding_instance_id": Capability.EMBEDDING,
+    "rerank.reranker_instance_id": Capability.RERANKER,
+    "rerank.fallback_instance_id": Capability.RERANKER,
+    "generation.llm_instance_id": Capability.LLM,
+    "agent.llm_instance_id": Capability.LLM,
+    "router.router_instance_id": Capability.LLM,
+    "guardrails.input_guardrail_instance_id": Capability.GUARDRAIL,
+    "guardrails.output_guardrail_instance_id": Capability.GUARDRAIL,
+}
+
+
+def instance_refs(spec: PipelineSpec) -> dict[str, UUID]:
+    out: dict[str, UUID] = {}
+    for path in _EXPECTED:
+        section, field = path.split(".")
+        value = getattr(getattr(spec, section), field)
+        if value is not None:
+            out[path] = value
+    return out
+
+
+async def reference_problems(
+    db: AsyncSession, spec: PipelineSpec
+) -> tuple[list[str], dict[UUID, ProviderInstance]]:
+    refs = instance_refs(spec)
+    rows = {
+        p.id: p
+        for p in (
+            await db.execute(
+                sa.select(ProviderInstance).where(ProviderInstance.id.in_(set(refs.values())))
+            )
+        ).scalars()
+    }
+    problems = []
+    for path, ref in refs.items():
+        row = rows.get(ref)
+        if row is None:
+            problems.append(f"{path} points to a provider that does not exist")
+        elif row.capability is not _EXPECTED[path]:
+            problems.append(f"{path} needs a {_EXPECTED[path].value} provider, not {row.name}")
+        elif not row.enabled:
+            problems.append(f"{path}: provider {row.name} is disabled")
+    return problems, rows
+
+
+async def external_problems(
+    db: AsyncSession, bot: Chatbot, rows: dict[UUID, ProviderInstance]
+) -> list[str]:
+    """Data stays in-house unless a data rule allows this external provider for this bot."""
+    rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
+    allowed = set(rule.allowed_external_instance_ids) if rule else set()
+    return [
+        f"{p.name} is an external provider; allow it in this chatbot's data rules first"
+        for p in rows.values()
+        if p.hosting is Hosting.EXTERNAL and p.id not in allowed
+    ]
+
+
+async def save_draft(
+    db: AsyncSession,
+    ctx: RequestContext,
+    bot: Chatbot,
+    spec: PipelineSpec,
+    *,
+    expected_version: int | None,
+    change_note: str = "",
+) -> PipelineVersion:
+    """Replace the draft spec. The chatbot's version guards against concurrent editors."""
+    if spec.ingestion.chunking is ChunkingStrategy.SEMANTIC:
+        raise ChatbotError("semantic chunking arrives with the Pipeline pages (Phase 2)")
+    problems, _ = await reference_problems(db, spec)
+    if problems:
+        raise ChatbotError("; ".join(problems))
+    if expected_version is not None and bot.version != expected_version:
+        raise VersionConflictError("chatbot", str(bot.id), expected_version, bot.version)
+    draft = await draft_of(db, bot)
+    before = draft.spec
+    after = spec.model_dump(mode="json")
+    if before == after and draft.change_note == change_note:
+        return draft
+    draft.spec = after
+    draft.change_note = change_note
+    bot.version += 1
+    await db.flush()
+    await audit.record(
+        db,
+        ctx,
+        action="pipeline.draft_update",
+        target_type="pipeline_version",
+        target_id=str(draft.id),
+        before={"spec": before},
+        after={"spec": after, "chatbot_version": bot.version},
+    )
+    await _sync_attached_sources(db, bot.id, None)
+    return draft
+
+
+async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
+    draft = await draft_of(db, bot)
+    spec = PipelineSpec.model_validate(draft.spec)
+    problems = spec.publish_problems()
+    ref_problems, rows = await reference_problems(db, spec)
+    return problems + ref_problems + await external_problems(db, bot, rows)
+
+
+async def publish(
+    db: AsyncSession, ctx: RequestContext, bot: Chatbot, triggered_by: UUID | None
+) -> PipelineVersion:
+    if problems := await publish_problems(db, bot):
+        raise ChatbotError("; ".join(problems))
+    draft = await draft_of(db, bot)
+    previous = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
+    if previous is not None:
+        previous.status = PipelineStatus.ARCHIVED
+    draft.status = PipelineStatus.LIVE
+    draft.published_at = datetime.now(UTC)
+    bot.live_version_id = draft.id
+    if bot.status is ChatbotStatus.DRAFT:
+        bot.status = ChatbotStatus.LIVE
+    bot.version += 1
+    db.add(
+        PipelineVersion(
+            chatbot_id=bot.id,
+            number=await _next_number(db, bot.id),
+            spec=draft.spec,
+            status=PipelineStatus.DRAFT,
+            created_by=triggered_by,
+        )
+    )
+    await db.flush()
+    await audit.record(
+        db,
+        ctx,
+        action="pipeline.publish",
+        target_type="chatbot",
+        target_id=str(bot.id),
+        before={"live_version": previous.number if previous else None},
+        after={"live_version": draft.number, "version_id": str(draft.id)},
+    )
+    await _sync_attached_sources(db, bot.id, triggered_by)
+    return draft
+
+
+async def rollback(
+    db: AsyncSession, ctx: RequestContext, bot: Chatbot, number: int, triggered_by: UUID | None
+) -> PipelineVersion:
+    """Make an earlier published version live again (the current draft is kept)."""
+    target = await db.scalar(
+        sa.select(PipelineVersion).where(
+            PipelineVersion.chatbot_id == bot.id, PipelineVersion.number == number
+        )
+    )
+    if target is None or target.published_at is None:
+        raise ChatbotError(f"version {number} was never published")
+    if target.id == bot.live_version_id:
+        return target
+    _, rows = await reference_problems(db, PipelineSpec.model_validate(target.spec))
+    if problems := await external_problems(db, bot, rows):
+        raise ChatbotError("; ".join(problems))
+    previous = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
+    if previous is not None:
+        previous.status = PipelineStatus.ARCHIVED
+    target.status = PipelineStatus.LIVE
+    bot.live_version_id = target.id
+    bot.version += 1
+    await db.flush()
+    await audit.record(
+        db,
+        ctx,
+        action="pipeline.rollback",
+        target_type="chatbot",
+        target_id=str(bot.id),
+        before={"live_version": previous.number if previous else None},
+        after={"live_version": target.number},
+    )
+    await _sync_attached_sources(db, bot.id, triggered_by)
+    return target
+
+
+# ---------------------------------------------------------------- sources
+
+
+async def _sync_attached_sources(db: AsyncSession, bot_id: UUID, triggered_by: UUID | None) -> None:
+    """Index attached sources into any profile the bot's versions now need."""
+    source_ids = (
+        await db.execute(
+            sa.select(SourceAttachment.source_id).where(
+                SourceAttachment.chatbot_id == bot_id, SourceAttachment.enabled.is_(True)
+            )
+        )
+    ).scalars()
+    for source_id in source_ids:
+        await enqueue(db, source_id, IngestJobKind.SYNC, triggered_by=triggered_by)
+
+
+async def set_sources(
+    db: AsyncSession,
+    ctx: RequestContext,
+    bot: Chatbot,
+    items: list[Attachment],
+    triggered_by: UUID | None,
+) -> list[SourceAttachment]:
+    wanted = {i.source_id: i for i in items}
+    if len(wanted) != len(items):
+        raise ChatbotError("a source is listed twice")
+    if wanted:
+        found = set(
+            (await db.execute(sa.select(DataSource.id).where(DataSource.id.in_(wanted)))).scalars()
+        )
+        if missing := [str(s) for s in wanted if s not in found]:
+            raise ChatbotError(f"unknown sources: {', '.join(missing)}")
+    svc = ConfigService(db, ctx)
+    current = {
+        a.source_id: a
+        for a in (
+            await db.execute(
+                sa.select(SourceAttachment).where(SourceAttachment.chatbot_id == bot.id)
+            )
+        ).scalars()
+    }
+    for source_id, old in current.items():
+        if source_id not in wanted:
+            await svc.delete(old, action="chatbot.source_detach")
+    for source_id, item in wanted.items():
+        row = current.get(source_id)
+        if row is None:
+            await svc.create(
+                SourceAttachment(
+                    chatbot_id=bot.id, source_id=source_id, weight=item.weight, enabled=item.enabled
+                ),
+                action="chatbot.source_attach",
+            )
+        else:
+            await svc.update(
+                row,
+                {"weight": item.weight, "enabled": item.enabled},
+                action="chatbot.source_update",
+            )
+        if item.enabled:
+            await enqueue(db, source_id, IngestJobKind.SYNC, triggered_by=triggered_by)
+    return list(
+        (
+            await db.execute(
+                sa.select(SourceAttachment).where(SourceAttachment.chatbot_id == bot.id)
+            )
+        ).scalars()
+    )
+
+
+# ---------------------------------------------------------------- governance
+
+
+async def set_governance(
+    db: AsyncSession, ctx: RequestContext, bot: Chatbot, data: GovernanceInput
+) -> GovernanceRule:
+    ids = set(data.allowed_external_instance_ids)
+    if ids:
+        rows = (
+            await db.execute(sa.select(ProviderInstance).where(ProviderInstance.id.in_(ids)))
+        ).scalars()
+        by_id = {r.id: r for r in rows}
+        for i in ids:
+            row = by_id.get(i)
+            if row is None:
+                raise ChatbotError(f"unknown provider {i}")
+            if row.hosting is not Hosting.EXTERNAL:
+                raise ChatbotError(f"{row.name} is self-hosted; only external providers are listed")
+    values: dict[str, Any] = data.model_dump()
+    values["allowed_external_instance_ids"] = sorted(ids, key=str)
+    svc = ConfigService(db, ctx)
+    rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
+    if rule is None:
+        return await svc.create(
+            GovernanceRule(chatbot_id=bot.id, **values), action="governance.create"
+        )
+    return await svc.update(rule, values, action="governance.update")
+
+
+# ---------------------------------------------------------------- access
+
+
+def _subject(principal: str) -> str:
+    kind, _, ident = principal.partition(":")
+    return f"group:{ident}#member" if kind == "group" else principal
+
+
+def _principal(subject: str) -> str:
+    return subject.removesuffix("#member")
+
+
+async def read_access(authz: Authz, bot_id: UUID) -> list[Grant]:
+    tuples = await authz.read(chatbot_ref(bot_id))
+    return [
+        Grant.model_validate({"principal": _principal(t.user), "role": t.relation})
+        for t in tuples
+        if t.relation in ROLES
+    ]
+
+
+async def set_access(
+    db: AsyncSession, ctx: RequestContext, authz: Authz, bot: Chatbot, grants: list[Grant]
+) -> list[Grant]:
+    users = {UUID(g.principal[5:]) for g in grants if g.principal.startswith("user:")}
+    groups = {UUID(g.principal[6:]) for g in grants if g.principal.startswith("group:")}
+    if users:
+        found = set((await db.execute(sa.select(User.id).where(User.id.in_(users)))).scalars())
+        if missing := users - found:
+            raise ChatbotError(f"unknown users: {', '.join(map(str, missing))}")
+    if groups:
+        found = set((await db.execute(sa.select(Group.id).where(Group.id.in_(groups)))).scalars())
+        if missing := groups - found:
+            raise ChatbotError(f"unknown groups: {', '.join(map(str, missing))}")
+    if not any(g.role == "owner" for g in grants):
+        raise ChatbotError("a chatbot needs at least one owner")
+
+    current = {(g.principal, g.role) for g in await read_access(authz, bot.id)}
+    wanted = {(g.principal, g.role) for g in grants}
+    obj = chatbot_ref(bot.id)
+    await audit.record(
+        db,
+        ctx,
+        action="chatbot.access_update",
+        target_type="chatbot",
+        target_id=str(bot.id),
+        before={"grants": sorted(f"{r}:{p}" for p, r in current)},
+        after={"grants": sorted(f"{r}:{p}" for p, r in wanted)},
+    )
+    await authz.write(
+        writes=[Tuple(_subject(p), r, obj) for p, r in wanted - current],
+        deletes=[Tuple(_subject(p), r, obj) for p, r in current - wanted],
+    )
+    return [Grant(principal=p, role=r) for p, r in sorted(wanted)]

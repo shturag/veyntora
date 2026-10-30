@@ -15,10 +15,12 @@ from veyntora_api.auth.oidc import OidcClient
 from veyntora_api.auth.sessions import SessionStore
 from veyntora_api.auth.tokens import TokenValidator
 from veyntora_api.authz.fga import Authz
+from veyntora_api.chatbots.service import ChatbotError
 from veyntora_api.core.config_service import VersionConflictError
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.core.state import AppState
-from veyntora_api.routers import admin_providers, auth, me, status
+from veyntora_api.knowledge.service import KnowledgeError
+from veyntora_api.routers import admin_chatbots, admin_providers, admin_sources, auth, me, status
 from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.settings import Settings, get_settings
 
@@ -121,6 +123,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def version_conflict(_request: Request, exc: VersionConflictError) -> JSONResponse:
         return JSONResponse({"detail": str(exc)}, status_code=409)
 
+    @app.exception_handler(ChatbotError)
+    @app.exception_handler(KnowledgeError)
+    async def invalid_change(_request: Request, exc: ValueError) -> JSONResponse:
+        # Domain checks that failed (unknown source, external provider not allowed, ...).
+        return JSONResponse({"detail": str(exc)}, status_code=422)
+
     @app.get("/metrics", include_in_schema=False)
     async def metrics() -> Response:
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
@@ -129,4 +137,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(me.router)
     app.include_router(admin_providers.router)
+    app.include_router(admin_chatbots.router)
+    app.include_router(admin_sources.router)
     return app

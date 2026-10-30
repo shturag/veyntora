@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Docker Desktop (or Docker Engine) with Compose v2.20+. Give it **at least 16 GB of memory**. With 8 GB, TEI and Langfuse are OOM-killed.
+- Docker Desktop (or Docker Engine) with Compose v2.20+. Give it **at least 16 GB of memory**. With 8 GB, TEI, Docling and Langfuse are OOM-killed (ClamAV adds about 1 GB).
 - For working on the code: uv 0.13, Python 3.12 (`uv python install 3.12`), Node 24, pnpm 12.
 
 ## Start
@@ -47,6 +47,7 @@ Run the web app outside Docker against the compose API: `API_INTERNAL_URL=http:/
 ## Troubleshooting
 
 - **`ModuleNotFoundError: veyntora_*` on macOS:** uv marks `.venv` hidden and Python 3.12 skips hidden `.pth` files. Use the Makefile targets (they set `PYTHONPATH`), or run `chflags -R nohidden .venv`.
-- **TEI or Langfuse keep restarting with exit 137:** raise Docker Desktop memory to 16 GB or more.
+- **TEI, Docling or Langfuse keep restarting with exit 137:** raise Docker Desktop memory to 16 GB or more.
+- **Uploads stay "pending":** check `docker compose ps clamav tei-embed docling`. ClamAV downloads signatures on first start (a few minutes); jobs retry with backoff, see `GET /v1/admin/sources/{id}/jobs`. Only on a machine that cannot run ClamAV, set `VEY_SCAN_REQUIRED=false` in `.env`; documents then show "not scanned".
 - **`remaining connection slots are reserved`:** the dev Postgres allows 300 connections. Check `pg_stat_activity` for a service with a runaway pool.
 - **Start from scratch:** `make reset && make up`.

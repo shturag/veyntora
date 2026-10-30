@@ -30,6 +30,9 @@ x-app-env: &app-env
   VEY_LITELLM_URL: http://litellm:4000
   VEY_GRAPHS_URL: http://graphs:2026
   VEY_DOCLING_URL: http://docling:5001
+  VEY_CLAMAV_ADDRESS: clamav:3310
+  # Set to false only on machines that cannot run ClamAV; documents then show "not scanned".
+  VEY_SCAN_REQUIRED: ${VEY_SCAN_REQUIRED:-true}
   VEY_TEI_EMBED_URL: http://tei-embed:80
   VEY_TEI_RERANK_URL: http://tei-rerank:80
   VEY_LANGFUSE_URL: http://langfuse:3000
@@ -286,6 +289,18 @@ services:
       retries: 30
       start_period: 30s
 
+  clamav:
+    # Virus scan for uploads (clamd INSTREAM on 3310). Downloads signatures on first start,
+    # which takes a few minutes; needs about 1.5 GB of memory.
+    image: clamav/clamav-debian:1.5.1
+    volumes: [clamav:/var/lib/clamav]
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+
   vllm:
     profiles: [gpu]
     image: vllm/vllm-openai:v0.32.0
@@ -532,6 +547,7 @@ volumes:
   openbao-api-token:
   openbao-runtime-token:
   hf-cache:
+  clamav:
   hf-embed:
   hf-rerank:
   clickhouse:

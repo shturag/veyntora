@@ -4,7 +4,8 @@ Permission-aware retrieval lives here: every query carries the asking user's pri
 as a payload filter inside *both* prefetches, so a chunk the user may not read is never
 a candidate, let alone a result. An empty principal set returns no hits without querying.
 
-Payload per chunk: `document_id`, `source_id`, `acl` (list of principals), plus the
+Payload per chunk: `document_id`, `source_id`, `profile` (index profile key), `acl`
+(list of principals), plus the
 metadata chosen in the ingestion spec (title, section, language, updated, page, text).
 """
 
@@ -31,7 +32,7 @@ from veyntora_providers.secrets import SecretReader
 DENSE = "dense"
 SPARSE = "bm25"
 BM25_MODEL = "qdrant/bm25"
-_INDEXED_KEYWORDS = ("acl", "document_id", "source_id", "language")
+_INDEXED_KEYWORDS = ("acl", "document_id", "source_id", "profile", "language")
 
 
 class QdrantStore:
@@ -99,11 +100,20 @@ class QdrantStore:
             batch.append(models.PointStruct(id=p.id, vector=vector, payload=dict(p.payload)))
         await qc.upsert(collection, points=batch, wait=True)
 
-    async def delete_by_document(self, collection: str, document_id: str) -> None:
+    async def delete_by_document(
+        self, collection: str, document_id: str, profile: str | None = None
+    ) -> None:
         qc = await self._qc()
+        if not await qc.collection_exists(collection):
+            return
+        must: list[models.Condition] = [
+            models.FieldCondition(key="document_id", match=models.MatchAny(any=[document_id]))
+        ]
+        if profile is not None:
+            must.append(models.FieldCondition(key="profile", match=models.MatchAny(any=[profile])))
         await qc.delete(
             collection,
-            points_selector=models.FilterSelector(filter=_match("document_id", [document_id])),
+            points_selector=models.FilterSelector(filter=models.Filter(must=must)),
             wait=True,
         )
 

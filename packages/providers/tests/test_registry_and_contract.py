@@ -58,7 +58,9 @@ class _LeakyStore:
     async def upsert(self, collection: str, points: Sequence[Point]) -> None:
         return None
 
-    async def delete_by_document(self, collection: str, document_id: str) -> None:
+    async def delete_by_document(
+        self, collection: str, document_id: str, profile: str | None = None
+    ) -> None:
         return None
 
     async def set_acl(self, collection: str, document_id: str, principals: Sequence[str]) -> None:

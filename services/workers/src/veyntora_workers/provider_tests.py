@@ -13,6 +13,7 @@ import structlog
 from redis.asyncio import Redis
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.providers.runtime import config_of
 from veyntora_api.providers.service import mark_health
 from veyntora_api.routers.admin_providers import TEST_QUEUE_KEY
 from veyntora_api.settings import Settings
@@ -21,25 +22,9 @@ from veyntora_providers import (
     registry,
 )
 from veyntora_providers.contract import run_contract
-from veyntora_providers.instance import ProviderInstanceConfig
 from veyntora_providers.secrets import OpenBaoReader
 
 log = structlog.get_logger()
-
-
-def config_of(row: ProviderInstance) -> ProviderInstanceConfig:
-    return ProviderInstanceConfig(
-        id=row.id,
-        capability=row.capability,
-        adapter=row.adapter,
-        name=row.name,
-        endpoint=row.endpoint,
-        model=row.model,
-        options=row.options,
-        secret_ref=row.secret_ref,
-        hosting=row.hosting,
-        fallback_instance_id=row.fallback_instance_id,
-    )
 
 
 async def test_instance(row: ProviderInstance, reader: OpenBaoReader) -> tuple[bool, str]:

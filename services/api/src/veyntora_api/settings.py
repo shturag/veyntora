@@ -50,6 +50,12 @@ class Settings(BaseSettings):
     s3_secret_key: SecretStr = SecretStr("")
     s3_bucket: str = "veyntora"
 
+    # Uploads: virus scan with clamd (host:port). Scanning is required unless switched off
+    # explicitly; documents then show "not scanned" in the admin console.
+    clamav_address: str = ""
+    scan_required: bool = True
+    upload_max_bytes: int = 50 * 1024 * 1024
+
     # Health targets for the status page. Empty means the component is not deployed.
     qdrant_url: str = "http://localhost:6333"
     litellm_url: str = "http://localhost:4000"

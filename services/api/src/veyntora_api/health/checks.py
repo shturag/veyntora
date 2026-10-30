@@ -15,6 +15,7 @@ import sqlalchemy as sa
 from redis.asyncio import Redis
 
 from veyntora_api.db.session import get_engine
+from veyntora_api.knowledge import clamd
 from veyntora_api.settings import Settings
 
 
@@ -97,6 +98,13 @@ def build_probes(settings: Settings, http: httpx.AsyncClient, redis: Redis) -> d
         "docling": _http(http, f"{settings.docling_url.rstrip('/')}/health"),
         "langfuse": _http(http, f"{settings.langfuse_url.rstrip('/')}/api/public/health"),
     }
+    if settings.clamav_address:
+
+        async def clamav() -> None:
+            if not await clamd.ping(settings.clamav_address):
+                raise RuntimeError("clamd did not answer PING")
+
+        probes["clamav"] = clamav
     if settings.tei_embed_url:
         probes["tei_embed"] = _http(http, f"{settings.tei_embed_url.rstrip('/')}/health")
     if settings.tei_rerank_url:
@@ -114,7 +122,8 @@ COMPONENTS: dict[str, dict[str, tuple[str, ...]]] = {
     "agent": {"required": ("postgres", "valkey", "litellm", "graphs", "openfga"), "degrading": ()},
     "documents": {
         "required": ("postgres", "workers", "s3", "qdrant"),
-        "degrading": ("docling", "tei_embed"),
+        # Without the scanner, uploads wait in the queue; existing documents still work.
+        "degrading": ("docling", "tei_embed", "clamav"),
     },
     "signin": {"required": ("keycloak", "postgres", "valkey"), "degrading": ()},
 }

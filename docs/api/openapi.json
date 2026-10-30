@@ -1,6 +1,141 @@
 {
   "components": {
     "schemas": {
+      "AgentSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "llm_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Instance Id"
+          },
+          "max_steps": {
+            "default": 6,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "timeout_seconds": {
+            "default": 60,
+            "maximum": 3600.0,
+            "minimum": 5.0,
+            "title": "Timeout Seconds",
+            "type": "integer"
+          },
+          "token_budget": {
+            "default": 40000,
+            "maximum": 2000000.0,
+            "minimum": 1000.0,
+            "title": "Token Budget",
+            "type": "integer"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/AgentToolBinding"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "title": "AgentSpec",
+        "type": "object"
+      },
+      "AgentToolBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "tool_id": {
+            "format": "uuid",
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id"
+        ],
+        "title": "AgentToolBinding",
+        "type": "object"
+      },
+      "Attachment": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "weight": {
+            "default": 1.0,
+            "exclusiveMinimum": 0.0,
+            "maximum": 10.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "source_id"
+        ],
+        "title": "Attachment",
+        "type": "object"
+      },
+      "AttachmentOut": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "source_id",
+          "weight",
+          "enabled"
+        ],
+        "title": "AttachmentOut",
+        "type": "object"
+      },
+      "Body_upload_documents_v1_admin_sources__source_id__documents_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "contentMediaType": "application/octet-stream",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "Body_upload_documents_v1_admin_sources__source_id__documents_post",
+        "type": "object"
+      },
       "Capability": {
         "enum": [
           "llm",
@@ -11,6 +146,224 @@
           "guardrail"
         ],
         "title": "Capability",
+        "type": "string"
+      },
+      "ChatbotDetail": {
+        "properties": {
+          "answer_language": {
+            "title": "Answer Language",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/VersionOut"
+          },
+          "draft_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Version"
+          },
+          "governance": {
+            "$ref": "#/components/schemas/GovernanceOut"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "live_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Live Version"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "publish_problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Publish Problems",
+            "type": "array"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ChatbotStatus"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "welcome_message": {
+            "title": "Welcome Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "welcome_message",
+          "answer_language",
+          "status",
+          "live_version",
+          "draft_version",
+          "version",
+          "draft",
+          "publish_problems",
+          "sources",
+          "governance"
+        ],
+        "title": "ChatbotDetail",
+        "type": "object"
+      },
+      "ChatbotInput": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_language": {
+            "default": "auto",
+            "maxLength": 16,
+            "title": "Answer Language",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+            "title": "Slug",
+            "type": "string"
+          },
+          "welcome_message": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Welcome Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name"
+        ],
+        "title": "ChatbotInput",
+        "type": "object"
+      },
+      "ChatbotOut": {
+        "properties": {
+          "answer_language": {
+            "title": "Answer Language",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "draft_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Version"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "live_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Live Version"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ChatbotStatus"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "welcome_message": {
+            "title": "Welcome Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "welcome_message",
+          "answer_language",
+          "status",
+          "live_version",
+          "draft_version",
+          "version"
+        ],
+        "title": "ChatbotOut",
+        "type": "object"
+      },
+      "ChatbotStatus": {
+        "enum": [
+          "draft",
+          "live",
+          "paused",
+          "archived"
+        ],
+        "title": "ChatbotStatus",
         "type": "string"
       },
       "ChatbotSummary": {
@@ -54,6 +407,106 @@
         "title": "ChatbotSummary",
         "type": "object"
       },
+      "ChatbotUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_language": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Language"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "live",
+                  "paused",
+                  "archived"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "welcome_message": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Welcome Message"
+          }
+        },
+        "title": "ChatbotUpdate",
+        "type": "object"
+      },
+      "ChunkMetadata": {
+        "enum": [
+          "source_title_section",
+          "language",
+          "updated_date",
+          "acl",
+          "contextual_header"
+        ],
+        "title": "ChunkMetadata",
+        "type": "string"
+      },
+      "ChunkingStrategy": {
+        "enum": [
+          "structure",
+          "fixed",
+          "semantic"
+        ],
+        "title": "ChunkingStrategy",
+        "type": "string"
+      },
+      "CitationPolicy": {
+        "enum": [
+          "required",
+          "optional"
+        ],
+        "title": "CitationPolicy",
+        "type": "string"
+      },
       "ComponentOut": {
         "properties": {
           "key": {
@@ -70,6 +523,431 @@
         ],
         "title": "ComponentOut",
         "type": "object"
+      },
+      "DocumentOut": {
+        "properties": {
+          "chunk_count": {
+            "title": "Chunk Count",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "indexes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Indexes",
+            "type": "array"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mime Type"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "scan_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scan Detail"
+          },
+          "scan_status": {
+            "$ref": "#/components/schemas/ScanStatus"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DocumentStatus"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "title",
+          "mime_type",
+          "size_bytes",
+          "language",
+          "status",
+          "error",
+          "scan_status",
+          "scan_detail",
+          "chunk_count",
+          "indexes",
+          "updated_at"
+        ],
+        "title": "DocumentOut",
+        "type": "object"
+      },
+      "DocumentStatus": {
+        "enum": [
+          "pending",
+          "indexed",
+          "failed",
+          "deleted"
+        ],
+        "title": "DocumentStatus",
+        "type": "string"
+      },
+      "DraftInput": {
+        "properties": {
+          "change_note": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Change Note",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PipelineSpec"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "DraftInput",
+        "type": "object"
+      },
+      "FlowEdge": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target"
+        ],
+        "title": "FlowEdge",
+        "type": "object"
+      },
+      "FlowNode": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "provider_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Instance Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FlowNodeType"
+          },
+          "x": {
+            "default": 0.0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "default": 0.0,
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "title": "FlowNode",
+        "type": "object"
+      },
+      "FlowNodeType": {
+        "enum": [
+          "input",
+          "router",
+          "retriever",
+          "reranker",
+          "llm",
+          "agent_llm",
+          "mcp_tool",
+          "condition",
+          "guardrail",
+          "human_approval",
+          "output"
+        ],
+        "title": "FlowNodeType",
+        "type": "string"
+      },
+      "FlowSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/FlowEdge"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/FlowNode"
+            },
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "title": "FlowSpec",
+        "type": "object"
+      },
+      "GenerationSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_language": {
+            "default": "auto",
+            "title": "Answer Language",
+            "type": "string"
+          },
+          "citations": {
+            "$ref": "#/components/schemas/CitationPolicy",
+            "default": "required"
+          },
+          "if_ungrounded": {
+            "$ref": "#/components/schemas/UngroundedAction",
+            "default": "no_answer"
+          },
+          "llm_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Instance Id"
+          },
+          "max_answer_tokens": {
+            "default": 800,
+            "maximum": 32768.0,
+            "minimum": 32.0,
+            "title": "Max Answer Tokens",
+            "type": "integer"
+          },
+          "system_prompt": {
+            "default": "",
+            "title": "System Prompt",
+            "type": "string"
+          },
+          "temperature": {
+            "default": 0.2,
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Temperature",
+            "type": "number"
+          }
+        },
+        "title": "GenerationSpec",
+        "type": "object"
+      },
+      "GovernanceInput": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_byok": {
+            "default": false,
+            "title": "Allow Byok",
+            "type": "boolean"
+          },
+          "allowed_external_instance_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Allowed External Instance Ids",
+            "type": "array"
+          },
+          "chat_retention_days": {
+            "default": 90,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Chat Retention Days",
+            "type": "integer"
+          },
+          "mask_pii_before_external": {
+            "default": true,
+            "title": "Mask Pii Before External",
+            "type": "boolean"
+          },
+          "trace_retention_days": {
+            "default": 30,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Trace Retention Days",
+            "type": "integer"
+          }
+        },
+        "title": "GovernanceInput",
+        "type": "object"
+      },
+      "GovernanceOut": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_byok": {
+            "default": false,
+            "title": "Allow Byok",
+            "type": "boolean"
+          },
+          "allowed_external_instance_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Allowed External Instance Ids",
+            "type": "array"
+          },
+          "chat_retention_days": {
+            "default": 90,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Chat Retention Days",
+            "type": "integer"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "mask_pii_before_external": {
+            "default": true,
+            "title": "Mask Pii Before External",
+            "type": "boolean"
+          },
+          "trace_retention_days": {
+            "default": 30,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Trace Retention Days",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "configured"
+        ],
+        "title": "GovernanceOut",
+        "type": "object"
+      },
+      "Grant": {
+        "additionalProperties": false,
+        "properties": {
+          "principal": {
+            "pattern": "^(user|group):[0-9a-f-]{36}$",
+            "title": "Principal",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "editor",
+              "approver",
+              "user"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "principal",
+          "role"
+        ],
+        "title": "Grant",
+        "type": "object"
+      },
+      "GroundednessAction": {
+        "enum": [
+          "warn",
+          "block"
+        ],
+        "title": "GroundednessAction",
+        "type": "string"
       },
       "GroupOut": {
         "properties": {
@@ -102,6 +980,84 @@
         "title": "GroupOut",
         "type": "object"
       },
+      "GuardrailsSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "blocked_message": {
+            "default": "I can't help with that here. You can ask a human expert instead.",
+            "title": "Blocked Message",
+            "type": "string"
+          },
+          "blocked_topic_action": {
+            "$ref": "#/components/schemas/TopicAction",
+            "default": "refuse"
+          },
+          "blocked_topics": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Blocked Topics",
+            "type": "array"
+          },
+          "citation_required": {
+            "default": true,
+            "title": "Citation Required",
+            "type": "boolean"
+          },
+          "groundedness_action": {
+            "$ref": "#/components/schemas/GroundednessAction",
+            "default": "block"
+          },
+          "groundedness_threshold": {
+            "default": 0.7,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Groundedness Threshold",
+            "type": "number"
+          },
+          "injection": {
+            "$ref": "#/components/schemas/InjectionAction",
+            "default": "block"
+          },
+          "input_guardrail_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Guardrail Instance Id"
+          },
+          "no_promises": {
+            "default": true,
+            "title": "No Promises",
+            "type": "boolean"
+          },
+          "output_guardrail_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Guardrail Instance Id"
+          },
+          "pii": {
+            "$ref": "#/components/schemas/PiiAction",
+            "default": "mask"
+          }
+        },
+        "title": "GuardrailsSpec",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -131,6 +1087,196 @@
           "external"
         ],
         "title": "Hosting",
+        "type": "string"
+      },
+      "IngestJobKind": {
+        "enum": [
+          "sync",
+          "reindex",
+          "ocr_retry",
+          "acl_sync",
+          "upload",
+          "delete"
+        ],
+        "title": "IngestJobKind",
+        "type": "string"
+      },
+      "IngestionSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "chunk_overlap_tokens": {
+            "default": 50,
+            "maximum": 2048.0,
+            "minimum": 0.0,
+            "title": "Chunk Overlap Tokens",
+            "type": "integer"
+          },
+          "chunk_size_tokens": {
+            "default": 500,
+            "maximum": 8192.0,
+            "minimum": 64.0,
+            "title": "Chunk Size Tokens",
+            "type": "integer"
+          },
+          "chunking": {
+            "$ref": "#/components/schemas/ChunkingStrategy",
+            "default": "structure"
+          },
+          "describe_images": {
+            "default": false,
+            "title": "Describe Images",
+            "type": "boolean"
+          },
+          "embedding_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Instance Id"
+          },
+          "extract_tables": {
+            "default": true,
+            "title": "Extract Tables",
+            "type": "boolean"
+          },
+          "metadata": {
+            "items": {
+              "$ref": "#/components/schemas/ChunkMetadata"
+            },
+            "title": "Metadata",
+            "type": "array"
+          },
+          "ocr": {
+            "default": true,
+            "title": "Ocr",
+            "type": "boolean"
+          },
+          "parent_chunk": {
+            "$ref": "#/components/schemas/ParentChunk",
+            "default": "section"
+          },
+          "parser_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parser Instance Id"
+          },
+          "semantic_similarity_threshold": {
+            "default": 0.75,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Semantic Similarity Threshold",
+            "type": "number"
+          }
+        },
+        "title": "IngestionSpec",
+        "type": "object"
+      },
+      "InjectionAction": {
+        "enum": [
+          "block",
+          "warn"
+        ],
+        "title": "InjectionAction",
+        "type": "string"
+      },
+      "JobOut": {
+        "properties": {
+          "attempts": {
+            "title": "Attempts",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/IngestJobKind"
+          },
+          "stats": {
+            "additionalProperties": true,
+            "title": "Stats",
+            "type": "object"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "document_id",
+          "attempts",
+          "stats",
+          "error",
+          "created_at",
+          "finished_at"
+        ],
+        "title": "JobOut",
+        "type": "object"
+      },
+      "JobStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ],
+        "title": "JobStatus",
         "type": "string"
       },
       "Level": {
@@ -229,6 +1375,15 @@
         "title": "MeOut",
         "type": "object"
       },
+      "Mode": {
+        "enum": [
+          "auto",
+          "fast",
+          "agent"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
       "NoticeKind": {
         "enum": [
           "incident",
@@ -291,6 +1446,60 @@
           "updated_at"
         ],
         "title": "NoticeOut",
+        "type": "object"
+      },
+      "ParentChunk": {
+        "enum": [
+          "section",
+          "off"
+        ],
+        "title": "ParentChunk",
+        "type": "string"
+      },
+      "PiiAction": {
+        "enum": [
+          "mask",
+          "block",
+          "off"
+        ],
+        "title": "PiiAction",
+        "type": "string"
+      },
+      "PipelineSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentSpec"
+          },
+          "flow": {
+            "$ref": "#/components/schemas/FlowSpec"
+          },
+          "generation": {
+            "$ref": "#/components/schemas/GenerationSpec"
+          },
+          "guardrails": {
+            "$ref": "#/components/schemas/GuardrailsSpec"
+          },
+          "ingestion": {
+            "$ref": "#/components/schemas/IngestionSpec"
+          },
+          "rerank": {
+            "$ref": "#/components/schemas/RerankSpec"
+          },
+          "retrieval": {
+            "$ref": "#/components/schemas/RetrievalSpec"
+          },
+          "router": {
+            "$ref": "#/components/schemas/RouterSpec"
+          },
+          "schema_version": {
+            "const": 1,
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "title": "PipelineSpec",
         "type": "object"
       },
       "ProviderInput": {
@@ -681,6 +1890,158 @@
         "title": "PublicInfoOut",
         "type": "object"
       },
+      "RerankFallback": {
+        "enum": [
+          "instance",
+          "skip"
+        ],
+        "title": "RerankFallback",
+        "type": "string"
+      },
+      "RerankSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "fallback": {
+            "$ref": "#/components/schemas/RerankFallback",
+            "default": "skip"
+          },
+          "fallback_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Instance Id"
+          },
+          "max_chunks_per_document": {
+            "anyOf": [
+              {
+                "maximum": 50.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 2,
+            "title": "Max Chunks Per Document"
+          },
+          "min_score": {
+            "default": 0.3,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Score",
+            "type": "number"
+          },
+          "prefer_newer": {
+            "default": false,
+            "title": "Prefer Newer",
+            "type": "boolean"
+          },
+          "reranker_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reranker Instance Id"
+          },
+          "top_n": {
+            "default": 5,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Top N",
+            "type": "integer"
+          }
+        },
+        "title": "RerankSpec",
+        "type": "object"
+      },
+      "RetrievalSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "dense_weight": {
+            "default": 0.6,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Dense Weight",
+            "type": "number"
+          },
+          "embedding_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedding Instance Id"
+          },
+          "german_compound_splitting": {
+            "default": true,
+            "title": "German Compound Splitting",
+            "type": "boolean"
+          },
+          "metadata_filter": {
+            "default": "",
+            "title": "Metadata Filter",
+            "type": "string"
+          },
+          "query_rewrite": {
+            "default": false,
+            "title": "Query Rewrite",
+            "type": "boolean"
+          },
+          "search_type": {
+            "$ref": "#/components/schemas/SearchType",
+            "default": "hybrid"
+          },
+          "sparse_min_term_match": {
+            "default": 1,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Sparse Min Term Match",
+            "type": "integer"
+          },
+          "top_k": {
+            "default": 20,
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "type": "integer"
+          },
+          "vector_store_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vector Store Instance Id"
+          }
+        },
+        "title": "RetrievalSpec",
+        "type": "object"
+      },
       "Roles": {
         "properties": {
           "auditor": {
@@ -708,6 +2069,102 @@
         ],
         "title": "Roles",
         "type": "object"
+      },
+      "RollbackInput": {
+        "properties": {
+          "number": {
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number"
+        ],
+        "title": "RollbackInput",
+        "type": "object"
+      },
+      "RouterSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_when_action": {
+            "default": true,
+            "title": "Agent When Action",
+            "type": "boolean"
+          },
+          "agent_when_live_data": {
+            "default": true,
+            "title": "Agent When Live Data",
+            "type": "boolean"
+          },
+          "agent_when_low_confidence": {
+            "default": true,
+            "title": "Agent When Low Confidence",
+            "type": "boolean"
+          },
+          "agent_when_multi_source": {
+            "default": true,
+            "title": "Agent When Multi Source",
+            "type": "boolean"
+          },
+          "allowed_modes": {
+            "items": {
+              "$ref": "#/components/schemas/Mode"
+            },
+            "title": "Allowed Modes",
+            "type": "array"
+          },
+          "default_mode": {
+            "$ref": "#/components/schemas/Mode",
+            "default": "auto"
+          },
+          "escalate_below": {
+            "default": 0.55,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Escalate Below",
+            "type": "number"
+          },
+          "instructions": {
+            "default": "",
+            "title": "Instructions",
+            "type": "string"
+          },
+          "router_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Router Instance Id"
+          }
+        },
+        "title": "RouterSpec",
+        "type": "object"
+      },
+      "ScanStatus": {
+        "enum": [
+          "pending",
+          "clean",
+          "infected",
+          "skipped",
+          "not_required"
+        ],
+        "title": "ScanStatus",
+        "type": "string"
+      },
+      "SearchType": {
+        "enum": [
+          "dense",
+          "sparse",
+          "hybrid"
+        ],
+        "title": "SearchType",
+        "type": "string"
       },
       "SecretInput": {
         "properties": {
@@ -749,6 +2206,154 @@
         "title": "SessionInfo",
         "type": "object"
       },
+      "SourceAcl": {
+        "additionalProperties": false,
+        "description": "Who may read documents of an upload source. Veyntora group and user ids.",
+        "properties": {
+          "groups": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "users": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Users",
+            "type": "array"
+          }
+        },
+        "title": "SourceAcl",
+        "type": "object"
+      },
+      "SourceOut": {
+        "properties": {
+          "acl": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceAcl"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "documents": {
+            "title": "Documents",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SourceStatus"
+          },
+          "type": {
+            "$ref": "#/components/schemas/SourceType"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "status",
+          "acl",
+          "documents",
+          "version",
+          "last_synced_at"
+        ],
+        "title": "SourceOut",
+        "type": "object"
+      },
+      "SourceStatus": {
+        "enum": [
+          "active",
+          "paused",
+          "error",
+          "disconnected"
+        ],
+        "title": "SourceStatus",
+        "type": "string"
+      },
+      "SourceType": {
+        "enum": [
+          "sharepoint",
+          "confluence",
+          "smb",
+          "s3",
+          "website",
+          "database",
+          "upload"
+        ],
+        "title": "SourceType",
+        "type": "string"
+      },
+      "SourceUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "acl": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceAcl"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "SourceUpdate",
+        "type": "object"
+      },
       "StatusOut": {
         "properties": {
           "checked_at": {
@@ -781,6 +2386,59 @@
           "notices"
         ],
         "title": "StatusOut",
+        "type": "object"
+      },
+      "TopicAction": {
+        "enum": [
+          "refuse",
+          "handoff"
+        ],
+        "title": "TopicAction",
+        "type": "string"
+      },
+      "UngroundedAction": {
+        "enum": [
+          "warn",
+          "no_answer"
+        ],
+        "title": "UngroundedAction",
+        "type": "string"
+      },
+      "UploadResult": {
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/DocumentOut"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "document",
+          "queued"
+        ],
+        "title": "UploadResult",
+        "type": "object"
+      },
+      "UploadSourceInput": {
+        "additionalProperties": false,
+        "properties": {
+          "acl": {
+            "$ref": "#/components/schemas/SourceAcl"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "acl"
+        ],
+        "title": "UploadSourceInput",
         "type": "object"
       },
       "ValidationError": {
@@ -821,6 +2479,54 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VersionOut": {
+        "properties": {
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "spec": {
+            "additionalProperties": true,
+            "title": "Spec",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "change_note",
+          "published_at",
+          "spec"
+        ],
+        "title": "VersionOut",
         "type": "object"
       }
     }
@@ -1017,6 +2723,612 @@
         "summary": "Whether the caller has a valid session",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/admin/chatbots": {
+      "get": {
+        "operationId": "list_chatbots_v1_admin_chatbots_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChatbotOut"
+                  },
+                  "title": "Response List Chatbots V1 Admin Chatbots Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Chatbots the caller may administer",
+        "tags": [
+          "admin: chatbots"
+        ]
+      },
+      "post": {
+        "operationId": "create_chatbot_v1_admin_chatbots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatbotInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatbotDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a chatbot (draft)",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}": {
+      "get": {
+        "operationId": "get_chatbot_v1_admin_chatbots__bot_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatbotDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A chatbot with its draft, sources and data rules",
+        "tags": [
+          "admin: chatbots"
+        ]
+      },
+      "patch": {
+        "operationId": "change_chatbot_v1_admin_chatbots__bot_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatbotUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatbotDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change name, texts or status",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/access": {
+      "get": {
+        "operationId": "get_access_v1_admin_chatbots__bot_id__access_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Grant"
+                  },
+                  "title": "Response Get Access V1 Admin Chatbots  Bot Id  Access Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Who has which role on this chatbot",
+        "tags": [
+          "admin: chatbots"
+        ]
+      },
+      "put": {
+        "operationId": "put_access_v1_admin_chatbots__bot_id__access_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/Grant"
+                },
+                "title": "Grants",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Grant"
+                  },
+                  "title": "Response Put Access V1 Admin Chatbots  Bot Id  Access Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the role grants on this chatbot",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/governance": {
+      "put": {
+        "operationId": "put_governance_v1_admin_chatbots__bot_id__governance_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GovernanceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernanceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Data rules: retention, allowed external providers",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/pipeline/draft": {
+      "put": {
+        "operationId": "put_draft_v1_admin_chatbots__bot_id__pipeline_draft_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatbotDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the draft pipeline spec",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/pipeline/publish": {
+      "post": {
+        "operationId": "publish_v1_admin_chatbots__bot_id__pipeline_publish_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatbotDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish the draft (checks must pass)",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/pipeline/rollback": {
+      "post": {
+        "operationId": "rollback_v1_admin_chatbots__bot_id__pipeline_rollback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatbotDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Make an earlier published version live",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/pipeline/versions": {
+      "get": {
+        "operationId": "list_versions_v1_admin_chatbots__bot_id__pipeline_versions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VersionOut"
+                  },
+                  "title": "Response List Versions V1 Admin Chatbots  Bot Id  Pipeline Versions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "All pipeline versions, newest first",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/sources": {
+      "put": {
+        "operationId": "put_sources_v1_admin_chatbots__bot_id__sources_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "$ref": "#/components/schemas/Attachment"
+                },
+                "title": "Items",
+                "type": "array"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentOut"
+                  },
+                  "title": "Response Put Sources V1 Admin Chatbots  Bot Id  Sources Put",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the sources this chatbot answers from",
+        "tags": [
+          "admin: chatbots"
         ]
       }
     },
@@ -1275,6 +3587,467 @@
         "summary": "Run the contract tests against the live instance (async)",
         "tags": [
           "admin: providers"
+        ]
+      }
+    },
+    "/v1/admin/sources": {
+      "get": {
+        "operationId": "list_sources_v1_admin_sources_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceOut"
+                  },
+                  "title": "Response List Sources V1 Admin Sources Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "All data sources",
+        "tags": [
+          "admin: sources"
+        ]
+      },
+      "post": {
+        "operationId": "create_source_v1_admin_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadSourceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create an upload source",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}": {
+      "patch": {
+        "operationId": "change_source_v1_admin_sources__source_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename, pause or change who may read",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/documents": {
+      "get": {
+        "operationId": "list_documents_v1_admin_sources__source_id__documents_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentOut"
+                  },
+                  "title": "Response List Documents V1 Admin Sources  Source Id  Documents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Documents of a source",
+        "tags": [
+          "admin: sources"
+        ]
+      },
+      "post": {
+        "operationId": "upload_documents_v1_admin_sources__source_id__documents_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_documents_v1_admin_sources__source_id__documents_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UploadResult"
+                  },
+                  "title": "Response Upload Documents V1 Admin Sources  Source Id  Documents Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload files (scanned, then indexed)",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/documents/{document_id}": {
+      "delete": {
+        "operationId": "delete_document_v1_admin_sources__source_id__documents__document_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a document from every index",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/documents/{document_id}/reindex": {
+      "post": {
+        "operationId": "reindex_document_v1_admin_sources__source_id__documents__document_id__reindex_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Parse and index the document again",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/jobs": {
+      "get": {
+        "operationId": "list_jobs_v1_admin_sources__source_id__jobs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JobOut"
+                  },
+                  "title": "Response List Jobs V1 Admin Sources  Source Id  Jobs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recent ingestion jobs of a source",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/sync": {
+      "post": {
+        "operationId": "sync_source_v1_admin_sources__source_id__sync_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Re-sync now",
+        "tags": [
+          "admin: sources"
         ]
       }
     },

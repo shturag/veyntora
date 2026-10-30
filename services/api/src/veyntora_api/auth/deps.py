@@ -181,3 +181,10 @@ async def platform_roles(state: AppState, principal: Principal) -> dict[str, boo
         [CheckItem(principal.fga, r, PLATFORM) for r in roles]
     )
     return dict(zip(roles, allowed, strict=True))
+
+
+async def require_relation(state: AppState, principal: Principal, relation: str, obj: str) -> None:
+    """Raise 403 unless the caller holds `relation` on `obj` (e.g. can_publish on chatbot:x)."""
+    if not await state.require_authz().check(principal.fga, relation, obj):
+        log.info("authz.denied", relation=relation, object=obj)
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Not allowed")

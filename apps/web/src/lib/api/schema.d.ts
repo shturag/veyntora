@@ -72,6 +72,162 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chatbots the caller may administer */
+        get: operations["list_chatbots_v1_admin_chatbots_get"];
+        put?: never;
+        /** Create a chatbot (draft) */
+        post: operations["create_chatbot_v1_admin_chatbots_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A chatbot with its draft, sources and data rules */
+        get: operations["get_chatbot_v1_admin_chatbots__bot_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change name, texts or status */
+        patch: operations["change_chatbot_v1_admin_chatbots__bot_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who has which role on this chatbot */
+        get: operations["get_access_v1_admin_chatbots__bot_id__access_get"];
+        /** Replace the role grants on this chatbot */
+        put: operations["put_access_v1_admin_chatbots__bot_id__access_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/governance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Data rules: retention, allowed external providers */
+        put: operations["put_governance_v1_admin_chatbots__bot_id__governance_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/pipeline/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the draft pipeline spec */
+        put: operations["put_draft_v1_admin_chatbots__bot_id__pipeline_draft_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/pipeline/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish the draft (checks must pass) */
+        post: operations["publish_v1_admin_chatbots__bot_id__pipeline_publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/pipeline/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make an earlier published version live */
+        post: operations["rollback_v1_admin_chatbots__bot_id__pipeline_rollback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/pipeline/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All pipeline versions, newest first */
+        get: operations["list_versions_v1_admin_chatbots__bot_id__pipeline_versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the sources this chatbot answers from */
+        put: operations["put_sources_v1_admin_chatbots__bot_id__sources_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/providers": {
         parameters: {
             query?: never;
@@ -139,6 +295,127 @@ export interface paths {
          *     `health_checked_at` to see the result.
          */
         post: operations["test_provider_v1_admin_providers__provider_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All data sources */
+        get: operations["list_sources_v1_admin_sources_get"];
+        put?: never;
+        /** Create an upload source */
+        post: operations["create_source_v1_admin_sources_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename, pause or change who may read */
+        patch: operations["change_source_v1_admin_sources__source_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Documents of a source */
+        get: operations["list_documents_v1_admin_sources__source_id__documents_get"];
+        put?: never;
+        /** Upload files (scanned, then indexed) */
+        post: operations["upload_documents_v1_admin_sources__source_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a document from every index */
+        delete: operations["delete_document_v1_admin_sources__source_id__documents__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/documents/{document_id}/reindex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Parse and index the document again */
+        post: operations["reindex_document_v1_admin_sources__source_id__documents__document_id__reindex_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent ingestion jobs of a source */
+        get: operations["list_jobs_v1_admin_sources__source_id__jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-sync now */
+        post: operations["sync_source_v1_admin_sources__source_id__sync_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -217,11 +494,164 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AgentSpec */
+        AgentSpec: {
+            /** Llm Instance Id */
+            llm_instance_id?: string | null;
+            /**
+             * Max Steps
+             * @default 6
+             */
+            max_steps: number;
+            /**
+             * Timeout Seconds
+             * @default 60
+             */
+            timeout_seconds: number;
+            /**
+             * Token Budget
+             * @default 40000
+             */
+            token_budget: number;
+            /** Tools */
+            tools?: components["schemas"]["AgentToolBinding"][];
+        };
+        /** AgentToolBinding */
+        AgentToolBinding: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Tool Id
+             * Format: uuid
+             */
+            tool_id: string;
+        };
+        /** Attachment */
+        Attachment: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Weight
+             * @default 1
+             */
+            weight: number;
+        };
+        /** AttachmentOut */
+        AttachmentOut: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Weight */
+            weight: number;
+        };
+        /** Body_upload_documents_v1_admin_sources__source_id__documents_post */
+        Body_upload_documents_v1_admin_sources__source_id__documents_post: {
+            /** Files */
+            files: string[];
+        };
         /**
          * Capability
          * @enum {string}
          */
         Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail";
+        /** ChatbotDetail */
+        ChatbotDetail: {
+            /** Answer Language */
+            answer_language: string;
+            /** Description */
+            description: string;
+            draft: components["schemas"]["VersionOut"];
+            /** Draft Version */
+            draft_version: number | null;
+            governance: components["schemas"]["GovernanceOut"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Live Version */
+            live_version: number | null;
+            /** Name */
+            name: string;
+            /** Publish Problems */
+            publish_problems: string[];
+            /** Slug */
+            slug: string;
+            /** Sources */
+            sources: components["schemas"]["AttachmentOut"][];
+            status: components["schemas"]["ChatbotStatus"];
+            /** Version */
+            version: number;
+            /** Welcome Message */
+            welcome_message: string;
+        };
+        /** ChatbotInput */
+        ChatbotInput: {
+            /**
+             * Answer Language
+             * @default auto
+             */
+            answer_language: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /**
+             * Welcome Message
+             * @default
+             */
+            welcome_message: string;
+        };
+        /** ChatbotOut */
+        ChatbotOut: {
+            /** Answer Language */
+            answer_language: string;
+            /** Description */
+            description: string;
+            /** Draft Version */
+            draft_version: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Live Version */
+            live_version: number | null;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            status: components["schemas"]["ChatbotStatus"];
+            /** Version */
+            version: number;
+            /** Welcome Message */
+            welcome_message: string;
+        };
+        /**
+         * ChatbotStatus
+         * @enum {string}
+         */
+        ChatbotStatus: "draft" | "live" | "paused" | "archived";
         /** ChatbotSummary */
         ChatbotSummary: {
             /** Avatar */
@@ -238,12 +668,237 @@ export interface components {
             /** Slug */
             slug: string;
         };
+        /** ChatbotUpdate */
+        ChatbotUpdate: {
+            /** Answer Language */
+            answer_language?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Status */
+            status?: ("live" | "paused" | "archived") | null;
+            /** Welcome Message */
+            welcome_message?: string | null;
+        };
+        /**
+         * ChunkMetadata
+         * @enum {string}
+         */
+        ChunkMetadata: "source_title_section" | "language" | "updated_date" | "acl" | "contextual_header";
+        /**
+         * ChunkingStrategy
+         * @enum {string}
+         */
+        ChunkingStrategy: "structure" | "fixed" | "semantic";
+        /**
+         * CitationPolicy
+         * @enum {string}
+         */
+        CitationPolicy: "required" | "optional";
         /** ComponentOut */
         ComponentOut: {
             /** Key */
             key: string;
             level: components["schemas"]["Level"];
         };
+        /** DocumentOut */
+        DocumentOut: {
+            /** Chunk Count */
+            chunk_count: number;
+            /** Error */
+            error: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Indexes */
+            indexes: {
+                [key: string]: unknown;
+            }[];
+            /** Language */
+            language: string | null;
+            /** Mime Type */
+            mime_type: string | null;
+            /** Path */
+            path: string;
+            /** Scan Detail */
+            scan_detail: string | null;
+            scan_status: components["schemas"]["ScanStatus"];
+            /** Size Bytes */
+            size_bytes: number | null;
+            status: components["schemas"]["DocumentStatus"];
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * DocumentStatus
+         * @enum {string}
+         */
+        DocumentStatus: "pending" | "indexed" | "failed" | "deleted";
+        /** DraftInput */
+        DraftInput: {
+            /**
+             * Change Note
+             * @default
+             */
+            change_note: string;
+            spec: components["schemas"]["PipelineSpec"];
+        };
+        /** FlowEdge */
+        FlowEdge: {
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+        };
+        /** FlowNode */
+        FlowNode: {
+            /** Id */
+            id: string;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Provider Instance Id */
+            provider_instance_id?: string | null;
+            type: components["schemas"]["FlowNodeType"];
+            /**
+             * X
+             * @default 0
+             */
+            x: number;
+            /**
+             * Y
+             * @default 0
+             */
+            y: number;
+        };
+        /**
+         * FlowNodeType
+         * @enum {string}
+         */
+        FlowNodeType: "input" | "router" | "retriever" | "reranker" | "llm" | "agent_llm" | "mcp_tool" | "condition" | "guardrail" | "human_approval" | "output";
+        /** FlowSpec */
+        FlowSpec: {
+            /** Edges */
+            edges?: components["schemas"]["FlowEdge"][];
+            /** Nodes */
+            nodes?: components["schemas"]["FlowNode"][];
+        };
+        /** GenerationSpec */
+        GenerationSpec: {
+            /**
+             * Answer Language
+             * @default auto
+             */
+            answer_language: string;
+            /** @default required */
+            citations: components["schemas"]["CitationPolicy"];
+            /** @default no_answer */
+            if_ungrounded: components["schemas"]["UngroundedAction"];
+            /** Llm Instance Id */
+            llm_instance_id?: string | null;
+            /**
+             * Max Answer Tokens
+             * @default 800
+             */
+            max_answer_tokens: number;
+            /**
+             * System Prompt
+             * @default
+             */
+            system_prompt: string;
+            /**
+             * Temperature
+             * @default 0.2
+             */
+            temperature: number;
+        };
+        /** GovernanceInput */
+        GovernanceInput: {
+            /**
+             * Allow Byok
+             * @default false
+             */
+            allow_byok: boolean;
+            /** Allowed External Instance Ids */
+            allowed_external_instance_ids?: string[];
+            /**
+             * Chat Retention Days
+             * @default 90
+             */
+            chat_retention_days: number;
+            /**
+             * Mask Pii Before External
+             * @default true
+             */
+            mask_pii_before_external: boolean;
+            /**
+             * Trace Retention Days
+             * @default 30
+             */
+            trace_retention_days: number;
+        };
+        /** GovernanceOut */
+        GovernanceOut: {
+            /**
+             * Allow Byok
+             * @default false
+             */
+            allow_byok: boolean;
+            /** Allowed External Instance Ids */
+            allowed_external_instance_ids?: string[];
+            /**
+             * Chat Retention Days
+             * @default 90
+             */
+            chat_retention_days: number;
+            /** Configured */
+            configured: boolean;
+            /**
+             * Mask Pii Before External
+             * @default true
+             */
+            mask_pii_before_external: boolean;
+            /**
+             * Trace Retention Days
+             * @default 30
+             */
+            trace_retention_days: number;
+        };
+        /** Grant */
+        Grant: {
+            /** Principal */
+            principal: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "owner" | "editor" | "approver" | "user";
+        };
+        /**
+         * GroundednessAction
+         * @enum {string}
+         */
+        GroundednessAction: "warn" | "block";
         /** GroupOut */
         GroupOut: {
             /**
@@ -255,6 +910,43 @@ export interface components {
             name: string;
             /** Path */
             path: string | null;
+        };
+        /** GuardrailsSpec */
+        GuardrailsSpec: {
+            /**
+             * Blocked Message
+             * @default I can't help with that here. You can ask a human expert instead.
+             */
+            blocked_message: string;
+            /** @default refuse */
+            blocked_topic_action: components["schemas"]["TopicAction"];
+            /** Blocked Topics */
+            blocked_topics?: string[];
+            /**
+             * Citation Required
+             * @default true
+             */
+            citation_required: boolean;
+            /** @default block */
+            groundedness_action: components["schemas"]["GroundednessAction"];
+            /**
+             * Groundedness Threshold
+             * @default 0.7
+             */
+            groundedness_threshold: number;
+            /** @default block */
+            injection: components["schemas"]["InjectionAction"];
+            /** Input Guardrail Instance Id */
+            input_guardrail_instance_id?: string | null;
+            /**
+             * No Promises
+             * @default true
+             */
+            no_promises: boolean;
+            /** Output Guardrail Instance Id */
+            output_guardrail_instance_id?: string | null;
+            /** @default mask */
+            pii: components["schemas"]["PiiAction"];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -271,6 +963,91 @@ export interface components {
          * @enum {string}
          */
         Hosting: "self_hosted" | "external";
+        /**
+         * IngestJobKind
+         * @enum {string}
+         */
+        IngestJobKind: "sync" | "reindex" | "ocr_retry" | "acl_sync" | "upload" | "delete";
+        /** IngestionSpec */
+        IngestionSpec: {
+            /**
+             * Chunk Overlap Tokens
+             * @default 50
+             */
+            chunk_overlap_tokens: number;
+            /**
+             * Chunk Size Tokens
+             * @default 500
+             */
+            chunk_size_tokens: number;
+            /** @default structure */
+            chunking: components["schemas"]["ChunkingStrategy"];
+            /**
+             * Describe Images
+             * @default false
+             */
+            describe_images: boolean;
+            /** Embedding Instance Id */
+            embedding_instance_id?: string | null;
+            /**
+             * Extract Tables
+             * @default true
+             */
+            extract_tables: boolean;
+            /** Metadata */
+            metadata?: components["schemas"]["ChunkMetadata"][];
+            /**
+             * Ocr
+             * @default true
+             */
+            ocr: boolean;
+            /** @default section */
+            parent_chunk: components["schemas"]["ParentChunk"];
+            /** Parser Instance Id */
+            parser_instance_id?: string | null;
+            /**
+             * Semantic Similarity Threshold
+             * @default 0.75
+             */
+            semantic_similarity_threshold: number;
+        };
+        /**
+         * InjectionAction
+         * @enum {string}
+         */
+        InjectionAction: "block" | "warn";
+        /** JobOut */
+        JobOut: {
+            /** Attempts */
+            attempts: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Document Id */
+            document_id: string | null;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["IngestJobKind"];
+            /** Stats */
+            stats: {
+                [key: string]: unknown;
+            };
+            status: components["schemas"]["JobStatus"];
+        };
+        /**
+         * JobStatus
+         * @enum {string}
+         */
+        JobStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
         /**
          * Level
          * @enum {string}
@@ -305,6 +1082,11 @@ export interface components {
             roles: components["schemas"]["Roles"];
         };
         /**
+         * Mode
+         * @enum {string}
+         */
+        Mode: "auto" | "fast" | "agent";
+        /**
          * NoticeKind
          * @enum {string}
          */
@@ -330,6 +1112,33 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * ParentChunk
+         * @enum {string}
+         */
+        ParentChunk: "section" | "off";
+        /**
+         * PiiAction
+         * @enum {string}
+         */
+        PiiAction: "mask" | "block" | "off";
+        /** PipelineSpec */
+        PipelineSpec: {
+            agent?: components["schemas"]["AgentSpec"];
+            flow?: components["schemas"]["FlowSpec"];
+            generation?: components["schemas"]["GenerationSpec"];
+            guardrails?: components["schemas"]["GuardrailsSpec"];
+            ingestion?: components["schemas"]["IngestionSpec"];
+            rerank?: components["schemas"]["RerankSpec"];
+            retrieval?: components["schemas"]["RetrievalSpec"];
+            router?: components["schemas"]["RouterSpec"];
+            /**
+             * Schema Version
+             * @default 1
+             * @constant
+             */
+            schema_version: 1;
         };
         /** ProviderInput */
         ProviderInput: {
@@ -430,6 +1239,84 @@ export interface components {
             /** Privacy Notice Url */
             privacy_notice_url: string | null;
         };
+        /**
+         * RerankFallback
+         * @enum {string}
+         */
+        RerankFallback: "instance" | "skip";
+        /** RerankSpec */
+        RerankSpec: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** @default skip */
+            fallback: components["schemas"]["RerankFallback"];
+            /** Fallback Instance Id */
+            fallback_instance_id?: string | null;
+            /**
+             * Max Chunks Per Document
+             * @default 2
+             */
+            max_chunks_per_document: number | null;
+            /**
+             * Min Score
+             * @default 0.3
+             */
+            min_score: number;
+            /**
+             * Prefer Newer
+             * @default false
+             */
+            prefer_newer: boolean;
+            /** Reranker Instance Id */
+            reranker_instance_id?: string | null;
+            /**
+             * Top N
+             * @default 5
+             */
+            top_n: number;
+        };
+        /** RetrievalSpec */
+        RetrievalSpec: {
+            /**
+             * Dense Weight
+             * @default 0.6
+             */
+            dense_weight: number;
+            /** Embedding Instance Id */
+            embedding_instance_id?: string | null;
+            /**
+             * German Compound Splitting
+             * @default true
+             */
+            german_compound_splitting: boolean;
+            /**
+             * Metadata Filter
+             * @default
+             */
+            metadata_filter: string;
+            /**
+             * Query Rewrite
+             * @default false
+             */
+            query_rewrite: boolean;
+            /** @default hybrid */
+            search_type: components["schemas"]["SearchType"];
+            /**
+             * Sparse Min Term Match
+             * @default 1
+             */
+            sparse_min_term_match: number;
+            /**
+             * Top K
+             * @default 20
+             */
+            top_k: number;
+            /** Vector Store Instance Id */
+            vector_store_instance_id?: string | null;
+        };
         /** Roles */
         Roles: {
             /** Auditor */
@@ -441,6 +1328,60 @@ export interface components {
             /** Security Reviewer */
             security_reviewer: boolean;
         };
+        /** RollbackInput */
+        RollbackInput: {
+            /** Number */
+            number: number;
+        };
+        /** RouterSpec */
+        RouterSpec: {
+            /**
+             * Agent When Action
+             * @default true
+             */
+            agent_when_action: boolean;
+            /**
+             * Agent When Live Data
+             * @default true
+             */
+            agent_when_live_data: boolean;
+            /**
+             * Agent When Low Confidence
+             * @default true
+             */
+            agent_when_low_confidence: boolean;
+            /**
+             * Agent When Multi Source
+             * @default true
+             */
+            agent_when_multi_source: boolean;
+            /** Allowed Modes */
+            allowed_modes?: components["schemas"]["Mode"][];
+            /** @default auto */
+            default_mode: components["schemas"]["Mode"];
+            /**
+             * Escalate Below
+             * @default 0.55
+             */
+            escalate_below: number;
+            /**
+             * Instructions
+             * @default
+             */
+            instructions: string;
+            /** Router Instance Id */
+            router_instance_id?: string | null;
+        };
+        /**
+         * ScanStatus
+         * @enum {string}
+         */
+        ScanStatus: "pending" | "clean" | "infected" | "skipped" | "not_required";
+        /**
+         * SearchType
+         * @enum {string}
+         */
+        SearchType: "dense" | "sparse" | "hybrid";
         /** SecretInput */
         SecretInput: {
             /** Expires At */
@@ -456,6 +1397,52 @@ export interface components {
             /** Signed In */
             signed_in: boolean;
         };
+        /**
+         * SourceAcl
+         * @description Who may read documents of an upload source. Veyntora group and user ids.
+         */
+        SourceAcl: {
+            /** Groups */
+            groups?: string[];
+            /** Users */
+            users?: string[];
+        };
+        /** SourceOut */
+        SourceOut: {
+            acl: components["schemas"]["SourceAcl"] | null;
+            /** Documents */
+            documents: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Synced At */
+            last_synced_at: string | null;
+            /** Name */
+            name: string;
+            status: components["schemas"]["SourceStatus"];
+            type: components["schemas"]["SourceType"];
+            /** Version */
+            version: number;
+        };
+        /**
+         * SourceStatus
+         * @enum {string}
+         */
+        SourceStatus: "active" | "paused" | "error" | "disconnected";
+        /**
+         * SourceType
+         * @enum {string}
+         */
+        SourceType: "sharepoint" | "confluence" | "smb" | "s3" | "website" | "database" | "upload";
+        /** SourceUpdate */
+        SourceUpdate: {
+            acl?: components["schemas"]["SourceAcl"] | null;
+            /** Name */
+            name?: string | null;
+            status?: components["schemas"]["SourceStatus"] | null;
+        };
         /** StatusOut */
         StatusOut: {
             /**
@@ -469,6 +1456,28 @@ export interface components {
             notices: components["schemas"]["NoticeOut"][];
             overall: components["schemas"]["Level"];
         };
+        /**
+         * TopicAction
+         * @enum {string}
+         */
+        TopicAction: "refuse" | "handoff";
+        /**
+         * UngroundedAction
+         * @enum {string}
+         */
+        UngroundedAction: "warn" | "no_answer";
+        /** UploadResult */
+        UploadResult: {
+            document: components["schemas"]["DocumentOut"];
+            /** Queued */
+            queued: boolean;
+        };
+        /** UploadSourceInput */
+        UploadSourceInput: {
+            acl: components["schemas"]["SourceAcl"];
+            /** Name */
+            name: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -481,6 +1490,26 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VersionOut */
+        VersionOut: {
+            /** Change Note */
+            change_note: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Published At */
+            published_at: string | null;
+            /** Spec */
+            spec: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
         };
     };
     responses: never;
@@ -592,6 +1621,397 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionInfo"];
+                };
+            };
+        };
+    };
+    list_chatbots_v1_admin_chatbots_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotOut"][];
+                };
+            };
+        };
+    };
+    create_chatbot_v1_admin_chatbots_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatbotInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_chatbot_v1_admin_chatbots__bot_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_chatbot_v1_admin_chatbots__bot_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatbotUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_access_v1_admin_chatbots__bot_id__access_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Grant"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_access_v1_admin_chatbots__bot_id__access_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Grant"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Grant"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_governance_v1_admin_chatbots__bot_id__governance_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GovernanceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GovernanceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_draft_v1_admin_chatbots__bot_id__pipeline_draft_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_v1_admin_chatbots__bot_id__pipeline_publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rollback_v1_admin_chatbots__bot_id__pipeline_rollback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RollbackInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_versions_v1_admin_chatbots__bot_id__pipeline_versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_sources_v1_admin_chatbots__bot_id__sources_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Attachment"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -750,6 +2170,293 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sources_v1_admin_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"][];
+                };
+            };
+        };
+    };
+    create_source_v1_admin_sources_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadSourceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_source_v1_admin_sources__source_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_documents_v1_admin_sources__source_id__documents_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_documents_v1_admin_sources__source_id__documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_documents_v1_admin_sources__source_id__documents_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResult"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_document_v1_admin_sources__source_id__documents__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reindex_document_v1_admin_sources__source_id__documents__document_id__reindex_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_jobs_v1_admin_sources__source_id__jobs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_source_v1_admin_sources__source_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
                 };
             };
             /** @description Validation Error */

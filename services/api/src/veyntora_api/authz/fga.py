@@ -24,7 +24,11 @@ from openfga_sdk.client.models.write_conflict_opts import (
     ClientWriteRequestOnMissingDeletes,
     ConflictOptions,
 )
-from openfga_sdk.models import CreateStoreRequest, WriteAuthorizationModelRequest
+from openfga_sdk.models import (
+    CreateStoreRequest,
+    ReadRequestTupleKey,
+    WriteAuthorizationModelRequest,
+)
 
 PLATFORM = "platform:default"
 
@@ -99,6 +103,20 @@ class Authz:
             ClientListObjectsRequest(user=user, relation=relation, type=type_)
         )
         return list(res.objects or [])
+
+    async def read(self, obj: str, relation: str | None = None) -> list[Tuple]:
+        """Tuples written directly on an object (not computed relations)."""
+        out: list[Tuple] = []
+        token: str | None = None
+        while True:
+            opts: dict[str, Any] = {"page_size": 100}
+            if token:
+                opts["continuation_token"] = token
+            res = await self._client.read(ReadRequestTupleKey(object=obj, relation=relation), opts)
+            out += [Tuple(t.key.user, t.key.relation, t.key.object) for t in res.tuples or []]
+            token = res.continuation_token or None
+            if not token:
+                return out
 
     async def write(self, writes: Iterable[Tuple] = (), deletes: Iterable[Tuple] = ()) -> None:
         w = [t.to_client() for t in writes]

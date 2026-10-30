@@ -1,8 +1,8 @@
 """Celery app for background jobs. The `scheduler` service runs `celery beat` with this app.
 
-Phase 0 jobs: worker heartbeat (read by the status page), outbox relay (config events) and
-the scheduled Keycloak identity sync. Ingestion, ACL sync, eval and retention jobs are added
-in their phases.
+Jobs: worker heartbeat (read by the status page), outbox relay (config events), the scheduled
+Keycloak identity sync, provider tests and ingestion (claimed from `ingest_jobs`). Eval and
+retention jobs are added in their phases.
 """
 
 from __future__ import annotations
@@ -23,6 +23,7 @@ from veyntora_api.core.logging import configure_logging
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.settings import get_settings
 
+from veyntora_workers.ingest import requeue_stuck, run_pending
 from veyntora_workers.provider_tests import run_queued_provider_tests
 
 HEARTBEAT_KEY = "vey:workers:heartbeat"
@@ -43,6 +44,16 @@ app.conf.update(
         "heartbeat": {"task": "veyntora.heartbeat", "schedule": timedelta(seconds=30)},
         "relay-outbox": {"task": "veyntora.relay_outbox", "schedule": timedelta(seconds=10)},
         "provider-tests": {"task": "veyntora.provider_tests", "schedule": timedelta(seconds=5)},
+        # Ticks that wait in the broker longer than the interval are dropped, not piled up.
+        "ingest": {
+            "task": "veyntora.ingest",
+            "schedule": timedelta(seconds=3),
+            "options": {"expires": 3},
+        },
+        "ingest-requeue-stuck": {
+            "task": "veyntora.ingest_requeue_stuck",
+            "schedule": timedelta(minutes=5),
+        },
         "identity-sync": {
             "task": "veyntora.identity_sync",
             "schedule": timedelta(minutes=int(os.environ.get("VEY_IDENTITY_SYNC_MINUTES", "15"))),
@@ -87,3 +98,17 @@ def identity_sync() -> None:
 @app.task(name="veyntora.provider_tests")
 def provider_tests() -> int:
     return _run(run_queued_provider_tests(settings))
+
+
+@app.task(name="veyntora.ingest")
+def ingest() -> int:
+    return _run(run_pending(settings))
+
+
+@app.task(name="veyntora.ingest_requeue_stuck")
+def ingest_requeue_stuck() -> int:
+    async def go() -> int:
+        async with get_sessionmaker()() as db:
+            return await requeue_stuck(db)
+
+    return _run(go())

@@ -29,6 +29,7 @@ from veyntora_api.db.models.identity import (
 from veyntora_api.db.models.knowledge import (
     DataSource,
     Document,
+    DocumentIndex,
     IngestJob,
     KnowledgeIssue,
     SourceAttachment,
@@ -53,6 +54,7 @@ __all__ = [
     "Conversation",
     "DataSource",
     "Document",
+    "DocumentIndex",
     "EvalCase",
     "EvalRun",
     "EvalSet",

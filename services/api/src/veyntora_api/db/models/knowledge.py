@@ -48,6 +48,7 @@ class IngestJobKind(StrEnum):
     OCR_RETRY = "ocr_retry"
     ACL_SYNC = "acl_sync"
     UPLOAD = "upload"
+    DELETE = "delete"
 
 
 class JobStatus(StrEnum):
@@ -56,6 +57,21 @@ class JobStatus(StrEnum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
+
+class ScanStatus(StrEnum):
+    PENDING = "pending"
+    CLEAN = "clean"
+    INFECTED = "infected"
+    # Scanning was switched off by configuration (VEY_SCAN_REQUIRED=false); shown in the UI.
+    SKIPPED = "skipped"
+    # Only for documents read from systems that scan on their side (e.g. SharePoint).
+    NOT_REQUIRED = "not_required"
+
+
+class IndexStatus(StrEnum):
+    INDEXED = "indexed"
+    FAILED = "failed"
 
 
 class IssueKind(StrEnum):
@@ -121,12 +137,51 @@ class Document(IdMixin, TimestampMixin, Base):
     status: Mapped[DocumentStatus] = mapped_column(str_enum(DocumentStatus, "document_status"))
     error: Mapped[str | None] = mapped_column(sa.Text)
     chunk_count: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+    scan_status: Mapped[ScanStatus] = mapped_column(
+        str_enum(ScanStatus, "document_scan_status"),
+        default=ScanStatus.PENDING,
+        server_default=ScanStatus.PENDING.value,
+    )
+    scan_detail: Mapped[str | None] = mapped_column(sa.String(512))
+    scanned_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    uploaded_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
     source_updated_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     last_synced_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
 
+class DocumentIndex(Base):
+    """One row per document and index profile (parser + embedding + store + chunking).
+
+    Chatbots whose pipelines share a profile share the chunks. The worker reconciles the
+    profiles that attached chatbots need against these rows.
+    """
+
+    __tablename__ = "document_indexes"
+
+    document_id: Mapped[UUID] = mapped_column(
+        sa.ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
+    profile_key: Mapped[str] = mapped_column(sa.String(32), primary_key=True)
+    profile: Mapped[dict[str, Any]] = mapped_column()
+    collection: Mapped[str] = mapped_column(sa.String(128))
+    vector_store_instance_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("provider_instances.id", ondelete="SET NULL")
+    )
+    status: Mapped[IndexStatus] = mapped_column(str_enum(IndexStatus, "document_index_status"))
+    content_hash: Mapped[str | None] = mapped_column(sa.String(128))
+    chunk_count: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+    error: Mapped[str | None] = mapped_column(sa.Text)
+    indexed_at: Mapped[datetime] = utcnow_col(nullable=False)
+
+
 class IngestJob(IdMixin, Base):
     __tablename__ = "ingest_jobs"
+    __table_args__ = (
+        # Workers claim queued jobs oldest first.
+        sa.Index(
+            "ix_ingest_jobs_queued", "created_at", postgresql_where=sa.text("status = 'queued'")
+        ),
+    )
 
     source_id: Mapped[UUID] = mapped_column(
         sa.ForeignKey("data_sources.id", ondelete="CASCADE"), index=True
@@ -138,6 +193,9 @@ class IngestJob(IdMixin, Base):
     status: Mapped[JobStatus] = mapped_column(str_enum(JobStatus, "ingest_job_status"))
     stats: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     error: Mapped[str | None] = mapped_column(sa.Text)
+    attempts: Mapped[int] = mapped_column(sa.SmallInteger, default=0, server_default="0")
+    # Retries wait until this time (backoff when a dependency such as the scanner is down).
+    run_after: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     triggered_by: Mapped[UUID | None] = mapped_column(
         sa.ForeignKey("users.id", ondelete="SET NULL")
     )
