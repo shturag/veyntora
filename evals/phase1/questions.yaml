@@ -1,0 +1,63 @@
+# Each question: expected document (by file name) and facts the answer must contain
+# (case-insensitive substrings; any one string per inner list). `expect: no_answer` means
+# the corpus does not answer it. `as: employee_outside_hr` asks as a user without HR access.
+- q: How long do customers have to return physical products?
+  doc: refund-policy.md
+  facts: [["30 days", "30 Tage"]]
+- q: Can I get a refund for an e-book I already started reading?
+  doc: refund-policy.md
+  facts: [["no", "not", "expires", "nicht"]]
+- q: Who has to approve a refund of 700 euros?
+  doc: refund-policy.md
+  facts: [["team lead"]]
+- q: Wie hoch ist die Kulanzgrenze pro Kunde und Jahr?
+  doc: refund-policy.md
+  facts: [["50"]]
+- q: Which gateway should I pick in the VPN client?
+  doc: vpn-setup.md
+  facts: [["vpn-eu-central"]]
+- q: What do I do if the VPN connection keeps failing?
+  doc: vpn-setup.md
+  facts: [["ticket"], ["Network access", "4400"]]
+- q: Bis zu welchem Betrag wird ein Hotel in München erstattet?
+  doc: reisekosten.md
+  facts: [["150"]]
+- q: Ab welcher Fahrzeit darf ich 1. Klasse fahren?
+  doc: reisekosten.md
+  facts: [["4 Stunden", "4 hours"]]
+- q: When are travel expenses paid back?
+  doc: reisekosten.md
+  facts: [["salary", "Gehalt", "payroll"]]
+- q: Wie viele Tage Sonderurlaub gibt es bei der Geburt eines Kindes?
+  doc: sonderurlaub.md
+  facts: [["2"]]
+- q: Wo beantrage ich Sonderurlaub?
+  doc: sonderurlaub.md
+  facts: [["HR-Portal", "HR portal"]]
+- q: What is the first response time for a P2 ticket?
+  doc: support-sla.md
+  facts: [["4 hours", "4 Stunden"]]
+- q: Do standard customers get weekend support for system outages?
+  doc: support-sla.md
+  facts: [["no", "not", "working days", "Premium"]]
+- q: How long must a password be?
+  doc: security-passwords.md
+  facts: [["14"]]
+- q: Will IT ever ask for my password?
+  doc: security-passwords.md
+  facts: [["never", "nie"]]
+- q: How early should a team lead order a laptop for a new hire?
+  doc: onboarding-checklist.md
+  facts: [["10 working days", "10 Arbeitstage"]]
+- q: What is the salary range of band S2?
+  doc: hr-salary-bands.md
+  as: employee_outside_hr
+  expect: no_answer
+- q: Who approves a raise above 8 percent?
+  doc: hr-salary-bands.md
+  as: employee_outside_hr
+  expect: no_answer
+- q: What is the parental leave policy in the Kassel warehouse?
+  expect: no_answer
+- q: Wie ist das WLAN-Passwort für Gäste?
+  expect: no_answer
