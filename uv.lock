@@ -2279,6 +2279,7 @@ dependencies = [
     { name = "langgraph" },
     { name = "langgraph-checkpoint-postgres" },
     { name = "pyjwt", extra = ["crypto"] },
+    { name = "veyntora-api" },
     { name = "veyntora-providers" },
     { name = "veyntora-spec" },
 ]
@@ -2291,6 +2292,7 @@ requires-dist = [
     { name = "langgraph", specifier = "==1.2.18" },
     { name = "langgraph-checkpoint-postgres", specifier = "==3.2.0" },
     { name = "pyjwt", extras = ["crypto"], specifier = "==2.15.1" },
+    { name = "veyntora-api", editable = "services/api" },
     { name = "veyntora-providers", editable = "packages/providers" },
     { name = "veyntora-spec", editable = "packages/spec" },
 ]

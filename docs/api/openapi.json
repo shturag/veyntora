@@ -524,6 +524,54 @@
         "title": "ComponentOut",
         "type": "object"
       },
+      "ConversationOut": {
+        "properties": {
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "chatbot_name": {
+            "title": "Chatbot Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "thread_id",
+          "chatbot_id",
+          "chatbot_name",
+          "title",
+          "updated_at"
+        ],
+        "title": "ConversationOut",
+        "type": "object"
+      },
       "DocumentOut": {
         "properties": {
           "chunk_count": {
@@ -646,6 +694,77 @@
         "title": "DocumentStatus",
         "type": "string"
       },
+      "DocumentView": {
+        "properties": {
+          "has_original": {
+            "title": "Has Original",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "mime_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mime Type"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "path",
+          "source",
+          "mime_type",
+          "language",
+          "updated_at",
+          "has_original"
+        ],
+        "title": "DocumentView",
+        "type": "object"
+      },
       "DraftInput": {
         "properties": {
           "change_note": {
@@ -662,6 +781,48 @@
           "spec"
         ],
         "title": "DraftInput",
+        "type": "object"
+      },
+      "FeedbackInput": {
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/Rating"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "wrong",
+                  "outdated",
+                  "incomplete",
+                  "not_relevant",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "FeedbackInput",
         "type": "object"
       },
       "FlowEdge": {
@@ -1070,6 +1231,34 @@
         },
         "title": "HTTPValidationError",
         "type": "object"
+      },
+      "HandoffOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/HandoffStatus"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "title": "HandoffOut",
+        "type": "object"
+      },
+      "HandoffStatus": {
+        "enum": [
+          "open",
+          "assigned",
+          "answered",
+          "closed"
+        ],
+        "title": "HandoffStatus",
+        "type": "string"
       },
       "HealthStatus": {
         "enum": [
@@ -1889,6 +2078,14 @@
         ],
         "title": "PublicInfoOut",
         "type": "object"
+      },
+      "Rating": {
+        "enum": [
+          "up",
+          "down"
+        ],
+        "title": "Rating",
+        "type": "string"
       },
       "RerankFallback": {
         "enum": [
@@ -4048,6 +4245,283 @@
         "summary": "Re-sync now",
         "tags": [
           "admin: sources"
+        ]
+      }
+    },
+    "/v1/chat/conversations": {
+      "get": {
+        "operationId": "conversations_v1_chat_conversations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationOut"
+                  },
+                  "title": "Response Conversations V1 Chat Conversations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The user's conversations, newest first",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/conversations/{conversation_id}": {
+      "delete": {
+        "operationId": "delete_conversation_v1_chat_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a conversation from the list",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/documents/{document_id}": {
+      "get": {
+        "operationId": "document_v1_chat_documents__document_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A cited document, if the user may read it",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/documents/{document_id}/original": {
+      "get": {
+        "operationId": "original_v1_chat_documents__document_id__original_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "disposition",
+            "required": false,
+            "schema": {
+              "default": "attachment",
+              "enum": [
+                "inline",
+                "attachment"
+              ],
+              "title": "Disposition",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download the original file",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/messages/{message_id}/feedback": {
+      "put": {
+        "operationId": "put_feedback_v1_chat_messages__message_id__feedback_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackInput"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rate an answer",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/messages/{message_id}/handoff": {
+      "post": {
+        "operationId": "handoff_v1_chat_messages__message_id__handoff_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask a human expert instead",
+        "tags": [
+          "chat"
         ]
       }
     },

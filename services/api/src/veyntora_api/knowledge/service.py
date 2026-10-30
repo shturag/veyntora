@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService
 from veyntora_api.core.context import RequestContext
-from veyntora_api.db.models.identity import Group, User
+from veyntora_api.db.models.identity import Group, Membership, User
 from veyntora_api.db.models.knowledge import (
     DataSource,
     Document,
@@ -332,4 +332,18 @@ async def reindex_document(
     )
     return await enqueue(
         db, doc.source_id, IngestJobKind.REINDEX, document_id=doc.id, triggered_by=triggered_by
+    )
+
+
+async def user_principals(db: AsyncSession, user_id: UUID) -> list[str]:
+    """ACL principals of a user: themselves and every group they belong to."""
+    groups = (
+        await db.execute(sa.select(Membership.group_id).where(Membership.user_id == user_id))
+    ).scalars()
+    return [f"user:{user_id}", *(f"group:{g}" for g in groups)]
+
+
+def may_read(principals: list[str], doc: Document) -> bool:
+    return doc.status is not DocumentStatus.DELETED and bool(
+        set(principals) & set(principals_of(doc.acl))
     )

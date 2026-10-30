@@ -315,6 +315,15 @@ async def test_external_llm_needs_a_data_rule_before_publishing(world: World) ->
     await bots.set_governance(
         world.db, CTX, bot, bots.GovernanceInput(allowed_external_instance_ids=[world.llm])
     )
+    assert any("mask personal data" in p for p in await bots.publish_problems(world.db, bot))
+    await bots.set_governance(
+        world.db,
+        CTX,
+        bot,
+        bots.GovernanceInput(
+            allowed_external_instance_ids=[world.llm], mask_pii_before_external=False
+        ),
+    )
     assert await bots.publish_problems(world.db, bot) == []
     live = await bots.publish(world.db, CTX, bot, world.user.id)
     assert live.number == 1 and bot.live_version_id == live.id
@@ -324,7 +333,12 @@ async def test_external_llm_needs_a_data_rule_before_publishing(world: World) ->
 async def test_rollback_makes_an_earlier_version_live(world: World) -> None:
     bot, _ = await _bot_with_source(world)
     await bots.set_governance(
-        world.db, CTX, bot, bots.GovernanceInput(allowed_external_instance_ids=[world.llm])
+        world.db,
+        CTX,
+        bot,
+        bots.GovernanceInput(
+            allowed_external_instance_ids=[world.llm], mask_pii_before_external=False
+        ),
     )
     first = await bots.publish(world.db, CTX, bot, None)
     second = await bots.publish(world.db, CTX, bot, None)
@@ -576,7 +590,12 @@ async def test_publishing_queues_a_sync_for_attached_sources(world: World) -> No
     for j in await world.jobs(IngestJobKind.SYNC):
         j.status = JobStatus.SUCCEEDED
     await bots.set_governance(
-        world.db, CTX, bot, bots.GovernanceInput(allowed_external_instance_ids=[world.llm])
+        world.db,
+        CTX,
+        bot,
+        bots.GovernanceInput(
+            allowed_external_instance_ids=[world.llm], mask_pii_before_external=False
+        ),
     )
     await bots.publish(world.db, CTX, bot, None)
     assert [j.source_id for j in await world.jobs(IngestJobKind.SYNC)] == [source.id]

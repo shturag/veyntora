@@ -23,6 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY packages/spec packages/spec
 COPY packages/providers packages/providers
+COPY services/api services/api
 COPY services/graphs services/graphs
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable --package veyntora-graphs

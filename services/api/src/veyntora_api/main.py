@@ -20,7 +20,15 @@ from veyntora_api.core.config_service import VersionConflictError
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.core.state import AppState
 from veyntora_api.knowledge.service import KnowledgeError
-from veyntora_api.routers import admin_chatbots, admin_providers, admin_sources, auth, me, status
+from veyntora_api.routers import (
+    admin_chatbots,
+    admin_providers,
+    admin_sources,
+    auth,
+    chat,
+    me,
+    status,
+)
 from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.settings import Settings, get_settings
 
@@ -136,6 +144,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(status.router)
     app.include_router(auth.router)
     app.include_router(me.router)
+    app.include_router(chat.router)
     app.include_router(admin_providers.router)
     app.include_router(admin_chatbots.router)
     app.include_router(admin_sources.router)

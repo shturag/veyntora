@@ -496,6 +496,9 @@ services:
       dockerfile: services/graphs/Dockerfile
     image: veyntora/graphs:local
     environment:
+      # Veyntora settings (database, OpenFGA, OpenBao reader) for the graphs; see ADR 0012.
+      <<: *app-env
+      VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
       DATABASE_URL: postgresql://aegra:${VEY_AEGRA_DB_PASSWORD:-dev-aegra-db}@postgres:5432/aegra
       REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/2
       REDIS_BROKER_ENABLED: "true"
@@ -505,12 +508,11 @@ services:
       VEY_OIDC_ISSUER: http://localhost:8080/realms/veyntora
       VEY_OIDC_INTERNAL_BASE: http://keycloak:8080/realms/veyntora
       VEY_OIDC_AUDIENCE: veyntora-api
-      VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     volumes:
       - openbao-runtime-token:/run/openbao:ro
     ports: ["127.0.0.1:2026:2026"]
     depends_on:
+      migrate: { condition: service_completed_successfully }
       postgres: { condition: service_healthy }
       valkey: { condition: service_healthy }
       keycloak: { condition: service_healthy }

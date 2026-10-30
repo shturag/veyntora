@@ -206,11 +206,20 @@ async def external_problems(
     """Data stays in-house unless a data rule allows this external provider for this bot."""
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     allowed = set(rule.allowed_external_instance_ids) if rule else set()
-    return [
-        f"{p.name} is an external provider; allow it in this chatbot's data rules first"
-        for p in rows.values()
-        if p.hosting is Hosting.EXTERNAL and p.id not in allowed
-    ]
+    problems = []
+    for p in rows.values():
+        if p.hosting is not Hosting.EXTERNAL:
+            continue
+        if p.id not in allowed:
+            problems.append(
+                f"{p.name} is an external provider; allow it in this chatbot's data rules first"
+            )
+        elif rule is not None and rule.mask_pii_before_external:
+            problems.append(
+                f"the data rule asks to mask personal data before {p.name}; masking arrives "
+                "with guardrails (Phase 2), so switch the rule off to use this provider now"
+            )
+    return problems
 
 
 async def save_draft(

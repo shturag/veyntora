@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -44,6 +44,8 @@ class Principal:
     name: str
     locale: str | None
     via: Literal["session", "bearer"]
+    # The caller's Keycloak access token, forwarded to the graph server on chat runs.
+    access_token: str = field(default="", repr=False)
 
     @property
     def fga(self) -> str:
@@ -95,10 +97,10 @@ async def _principal_from_session(
     if user is None or user.keycloak_sub != claims.sub:
         await state.sessions.delete(session_id)
         return None
-    return _checked(user, "session")
+    return _checked(user, "session", session.access_token)
 
 
-def _checked(user: User, via: Literal["session", "bearer"]) -> Principal:
+def _checked(user: User, via: Literal["session", "bearer"], token: str) -> Principal:
     if user.suspended:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Account suspended")
     return Principal(
@@ -108,6 +110,7 @@ def _checked(user: User, via: Literal["session", "bearer"]) -> Principal:
         name=user.display_name,
         locale=user.locale,
         via=via,
+        access_token=token,
     )
 
 
@@ -123,7 +126,7 @@ async def optional_principal(request: Request, state: State, db: DbSession) -> P
         ).scalar_one_or_none()
         if user is None:
             raise _unauthorized("Unknown user; sign in to the web app once")
-        principal: Principal | None = _checked(user, "bearer")
+        principal: Principal | None = _checked(user, "bearer", auth[7:].strip())
     else:
         session_id = request.cookies.get(state.settings.session_cookie)
         principal = (

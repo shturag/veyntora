@@ -13,3 +13,4 @@
 | [0009](0009-local-stack.md) | Local stack choices |
 | [0010](0010-phase1-retrieval-and-providers.md) | Retrieval and provider adapters (Phase 1) |
 | [0011](0011-ingestion.md) | Ingestion, index profiles, virus scan, chatbot setup (Phase 1) |
+| [0012](0012-fast-rag.md) | Fast RAG graph, chat proxy, grounding (Phase 1) |

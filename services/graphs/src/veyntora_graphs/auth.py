@@ -58,6 +58,9 @@ async def authenticate(headers: dict[bytes | str, bytes | str]) -> dict[str, Any
 @auth.on
 async def owner_only(ctx: Auth.types.AuthContext, value: dict[str, Any]) -> dict[str, str]:
     """Threads, runs and store items are scoped to the user who created them."""
-    metadata = value.setdefault("metadata", {}) if isinstance(value, dict) else {}
-    metadata["owner"] = ctx.user.identity
+    if isinstance(value, dict):
+        # Clients may send "metadata": null; the owner is always set by the server.
+        metadata = value.get("metadata") or {}
+        metadata["owner"] = ctx.user.identity
+        value["metadata"] = metadata
     return {"owner": ctx.user.identity}

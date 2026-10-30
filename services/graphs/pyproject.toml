@@ -6,6 +6,8 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
   "veyntora-spec",
   "veyntora-providers",
+  # Database models, OpenFGA client and adapter runtime shared with the API (ADR 0012).
+  "veyntora-api",
   "aegra-cli==0.11.0",
   "aegra-api==0.11.0",
   "langgraph==1.2.18",
