@@ -1,0 +1,38 @@
+{{- if .Values.migrationJob.enabled }}
+# Runs `veyntora-api bootstrap` (Alembic + OpenFGA model + bootstrap tuples) before every
+# Argo CD sync; the sync stops if it fails.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "svc.name" . }}-migrate
+  labels: {{- include "svc.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels: {{- include "svc.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "svc.name" . }}
+      automountServiceAccountToken: false
+      containers:
+        - name: migrate
+          image: "{{ .Values.image.repository }}:{{ required "image.tag is required" .Values.image.tag }}"
+          command: {{- toYaml .Values.migrationJob.command | nindent 12 }}
+          securityContext: {{- include "svc.securityContext" . | nindent 12 }}
+          env: {{- include "svc.env" . | nindent 12 }}
+          {{- with .Values.envFromSecrets }}
+          envFrom:
+            {{- range . }}
+            - secretRef: { name: {{ . }} }
+            {{- end }}
+          {{- end }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

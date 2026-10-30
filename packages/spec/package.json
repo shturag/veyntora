@@ -1,0 +1,17 @@
+{
+  "name": "@veyntora/spec",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./ts/pipeline-spec.ts"
+  },
+  "scripts": {
+    "gen": "PYTHONPATH=src uv run --no-sync python -m veyntora_spec.export_schema schema/pipeline-spec.schema.json && json2ts --input schema/pipeline-spec.schema.json --output ts/pipeline-spec.ts --bannerComment \"/* Generated from packages/spec (PipelineSpec). Do not edit; run pnpm gen. */\" --additionalProperties false",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "json-schema-to-typescript": "16.0.0",
+    "typescript": "6.0.3"
+  }
+}

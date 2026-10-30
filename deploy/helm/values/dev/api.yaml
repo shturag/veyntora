@@ -1,0 +1,13 @@
+# api · dev. image.tag is set by CI (commit SHA); secrets come from ExternalSecrets/OpenBao.
+nameOverride: api
+image:
+  repository: ghcr.io/shturag/veyntora-api
+  tag: ""
+replicas: 1
+port: 8000
+healthPath: /readyz
+command: ["veyntora-api", "serve"]
+allowIngressFrom: [veyntora-web]
+envFromSecrets: [veyntora-api-env]
+migrationJob:
+  enabled: true

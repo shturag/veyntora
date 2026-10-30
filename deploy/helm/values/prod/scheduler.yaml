@@ -1,0 +1,12 @@
+# scheduler · prod. image.tag is set by CI (commit SHA); secrets come from ExternalSecrets/OpenBao.
+nameOverride: scheduler
+image:
+  repository: ghcr.io/shturag/veyntora-api
+  tag: ""
+replicas: 1  # beat must be a singleton
+port: 8000
+healthPath: /
+command: ["celery", "-A", "veyntora_workers.app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+envFromSecrets: [veyntora-api-env]
+service:
+  enabled: false

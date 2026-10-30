@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: veyntora
+  namespace: argocd
+spec:
+  description: Veyntora platform
+  sourceRepos: [https://github.com/shturag/veyntora.git]
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: "veyntora-*" }
+    - { server: https://kubernetes.default.svc, namespace: argocd }
+  clusterResourceWhitelist:
+    - { group: "", kind: Namespace }

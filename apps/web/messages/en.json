@@ -1,0 +1,587 @@
+{
+  "common": {
+    "brand": "Veyntora",
+    "brandMark": "V",
+    "signOut": "Sign out",
+    "adminConsole": "Admin console",
+    "switchToChat": "Switch to chat",
+    "newChat": "+ New chat",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "close": "Close",
+    "account": "Account menu",
+    "skipToContent": "Skip to content",
+    "localeNames": {
+      "en": "English",
+      "de": "Deutsch"
+    }
+  },
+  "nav": {
+    "main": "Main",
+    "home": "Home",
+    "library": "Chats & knowledge",
+    "approvals": "Approvals",
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "adminNav": {
+    "label": "Admin",
+    "title": "Admin console",
+    "sections": {
+      "build": "Build",
+      "operate": "Operate",
+      "govern": "Govern"
+    },
+    "items": {
+      "overview": "Overview",
+      "bots": "Chatbots",
+      "automations": "Automations",
+      "pipelines": "Pipelines",
+      "playground": "Playground",
+      "dataSources": "Data sources",
+      "providers": "Providers & keys",
+      "mcpServers": "Tools (MCP)",
+      "channels": "Channels & API",
+      "conversations": "Conversations",
+      "knowledgeHealth": "Knowledge health",
+      "evaluation": "Evaluation",
+      "monitoring": "Monitoring",
+      "usage": "Usage & budgets",
+      "users": "Users & groups",
+      "governance": "Governance",
+      "audit": "Audit log"
+    }
+  },
+  "wizard": {
+    "title": "New chatbot",
+    "close": "Close and go back to chatbots",
+    "steps": "Steps",
+    "step1": "1 Basics & template",
+    "step2": "2 Knowledge",
+    "step3": "3 Pipeline",
+    "step4": "4 Access",
+    "step5": "5 Test & publish"
+  },
+  "placeholder": {
+    "phase": "Phase {phase}",
+    "heading": "This screen arrives in Phase {phase}",
+    "body": "It is part of the product plan and its route, navigation and permissions are in place. Its data and actions are built in Phase {phase}, so nothing here is shown with sample data.",
+    "stateOf": "In the product this is a state of the {parent} screen, not a separate page."
+  },
+  "screens": {
+    "landing": {
+      "title": "Front page",
+      "summary": "Public landing page."
+    },
+    "signIn": {
+      "title": "Sign in",
+      "summary": "Single sign-on with your company account."
+    },
+    "status": {
+      "title": "System status",
+      "summary": "Live status of every part of the service."
+    },
+    "help": {
+      "title": "Help and privacy",
+      "summary": "Help articles, privacy notice and how answers are made."
+    },
+    "home": {
+      "title": "Home",
+      "summary": "Pick an assistant you have access to and ask a question in Auto, Fast or Agent mode."
+    },
+    "chat": {
+      "title": "Chat",
+      "summary": "Streaming answers with citations, live agent steps, stop and resume, and inline approvals."
+    },
+    "chatFast": {
+      "title": "Fast answer",
+      "summary": "A grounded answer with numbered citations, or an honest \"I don't know\" with a hand-off."
+    },
+    "agentRunning": {
+      "title": "Agent working",
+      "summary": "Live plan and tool steps, with an approval request before any write action."
+    },
+    "chatStates": {
+      "title": "Chat error and edge states",
+      "summary": "Empty, error, blocked, budget and offline states of the chat."
+    },
+    "mobile": {
+      "title": "Mobile chat",
+      "summary": "The chat on small screens."
+    },
+    "source": {
+      "title": "Source viewer",
+      "summary": "The cited document with the passage highlighted, match navigation and a permission-checked link to the original."
+    },
+    "library": {
+      "title": "Chats and knowledge",
+      "summary": "Your chat history and the files you uploaded."
+    },
+    "savedAnswers": {
+      "title": "Saved answers",
+      "summary": "Answers you saved or that were shared with your groups, refreshed when their sources change."
+    },
+    "approvals": {
+      "title": "Approvals",
+      "summary": "Actions waiting for your decision, with approve, reject and delegate."
+    },
+    "handoff": {
+      "title": "Ask a human expert",
+      "summary": "Send a question to the expert group when the assistant can't answer."
+    },
+    "settings": {
+      "title": "Settings",
+      "summary": "Language, your own API keys (BYOK), and export or delete your data."
+    },
+    "overview": {
+      "title": "Overview",
+      "summary": "Needs-attention feed, KPIs, system status and today's numbers per chatbot."
+    },
+    "bots": {
+      "title": "Chatbots",
+      "summary": "Every chatbot with status, mode, users and live version."
+    },
+    "botOverview": {
+      "title": "Chatbot overview",
+      "summary": "One chatbot's health, usage, versions and settings."
+    },
+    "botFlow": {
+      "title": "Chatbot visual pipeline",
+      "summary": "The chatbot's pipeline as an editable flow."
+    },
+    "botKnowledge": {
+      "title": "Chatbot knowledge",
+      "summary": "Attached data sources with scope and weight."
+    },
+    "botAccess": {
+      "title": "Chatbot access",
+      "summary": "Who may use, approve, edit or own this chatbot, by group or person."
+    },
+    "versions": {
+      "title": "Chatbot versions",
+      "summary": "Versions with canary roll-out, compare, promote and rollback."
+    },
+    "botCreate": {
+      "title": "New chatbot",
+      "summary": "Basics and a template: FAQ, Support agent, Research, Duplicate or Blank."
+    },
+    "botCreateKnowledge": {
+      "title": "New chatbot knowledge",
+      "summary": "Pick the data sources the chatbot answers from."
+    },
+    "botCreatePipeline": {
+      "title": "New chatbot pipeline",
+      "summary": "Choose the mode and the pipeline settings."
+    },
+    "botCreateAccess": {
+      "title": "New chatbot access",
+      "summary": "Choose the groups and people who can use the chatbot."
+    },
+    "botCreatePublish": {
+      "title": "New chatbot test and publish",
+      "summary": "Test chat, then publish."
+    },
+    "pipeline": {
+      "title": "Pipeline builder",
+      "summary": "Retrieval settings for one chatbot, with presets, evaluation and canary publish."
+    },
+    "pipelineIngestion": {
+      "title": "Pipeline ingestion",
+      "summary": "Parser, OCR, chunking and chunk metadata."
+    },
+    "pipelineRerank": {
+      "title": "Pipeline reranking",
+      "summary": "Reranker, fallback, top-n and minimum score."
+    },
+    "pipelineGeneration": {
+      "title": "Pipeline generation",
+      "summary": "Model, temperature, system prompt and citation rules."
+    },
+    "pipelineAgent": {
+      "title": "Pipeline agent tools",
+      "summary": "MCP tools, step limit, timeout and token budget."
+    },
+    "pipelineRouter": {
+      "title": "Pipeline router",
+      "summary": "Allowed modes, default mode, router model and escalation rules."
+    },
+    "pipelineGuardrails": {
+      "title": "Pipeline guardrails",
+      "summary": "PII masking, injection checks, blocked topics and groundedness."
+    },
+    "playground": {
+      "title": "Playground",
+      "summary": "Compare two pipeline versions side by side."
+    },
+    "dataSources": {
+      "title": "Data sources",
+      "summary": "Connected sources with sync status and failures."
+    },
+    "connectSource": {
+      "title": "Connect data source",
+      "summary": "SharePoint, Confluence, file share, S3, websites, databases and upload."
+    },
+    "sourceDetail": {
+      "title": "Data source detail",
+      "summary": "Sync now, pause, failures with OCR retry, history, settings and disconnect."
+    },
+    "providers": {
+      "title": "Providers and keys",
+      "summary": "Provider instances by capability, with test, key rotation and egress labels."
+    },
+    "addProvider": {
+      "title": "Add provider",
+      "summary": "Add an LLM, embedding, reranker, vector store, parser or guardrail instance."
+    },
+    "mcpServers": {
+      "title": "MCP tool servers",
+      "summary": "Registered tool servers and their tools."
+    },
+    "mcpRegister": {
+      "title": "Register MCP server",
+      "summary": "Register a server, discover its tools and tag them read or write."
+    },
+    "mcpServerDetail": {
+      "title": "MCP server detail",
+      "summary": "Tools, approver roles, allowed recipients, test call and security sign-off."
+    },
+    "channels": {
+      "title": "Channels and API",
+      "summary": "Teams app, Slack, web widget and API keys."
+    },
+    "automations": {
+      "title": "Automations",
+      "summary": "Scheduled, event-driven and watcher automations."
+    },
+    "automationNew": {
+      "title": "New automation",
+      "summary": "Create an automation from a description or a template."
+    },
+    "automationBuilder": {
+      "title": "Automation builder",
+      "summary": "Trigger, steps, run now and dry run."
+    },
+    "automationTrigger": {
+      "title": "Automation trigger",
+      "summary": "Schedule, event or watcher with conditions."
+    },
+    "automationAgentStep": {
+      "title": "Automation agent step",
+      "summary": "What the agent does in this step and which tools it may use."
+    },
+    "automationApprovalStep": {
+      "title": "Automation approval and action",
+      "summary": "Who approves and what happens after."
+    },
+    "runTrace": {
+      "title": "Run and trace detail",
+      "summary": "Step-by-step trace of one run."
+    },
+    "conversations": {
+      "title": "Conversations and feedback",
+      "summary": "Feedback review with the trace behind each answer."
+    },
+    "knowledgeHealth": {
+      "title": "Knowledge health",
+      "summary": "Stale, conflicting and missing documents and parse failures, with owner notification."
+    },
+    "evaluation": {
+      "title": "Evaluation",
+      "summary": "Ragas runs and publish gates."
+    },
+    "evalSets": {
+      "title": "Eval sets",
+      "summary": "Import, generate or build eval sets from feedback."
+    },
+    "monitoring": {
+      "title": "Monitoring",
+      "summary": "Latency, errors, GPU and external calls."
+    },
+    "usage": {
+      "title": "Usage and budgets",
+      "summary": "Spend by chatbot, group and cost centre, budgets with actions at the limit, finance export."
+    },
+    "users": {
+      "title": "Users and groups",
+      "summary": "Groups, people, roles and permissions, and access reviews."
+    },
+    "userDetail": {
+      "title": "User detail",
+      "summary": "A person's groups, access and activity; suspend."
+    },
+    "groupDetail": {
+      "title": "Group detail",
+      "summary": "A group's members and its chatbot, tool, data and budget access."
+    },
+    "groupCreate": {
+      "title": "New group",
+      "summary": "Create a rule-based or manual group."
+    },
+    "governance": {
+      "title": "Governance",
+      "summary": "Retention, external-provider rules, legal hold and GDPR requests."
+    },
+    "gdprRequest": {
+      "title": "GDPR request",
+      "summary": "Access or erasure request with progress per data store and a signed report."
+    },
+    "audit": {
+      "title": "Audit log",
+      "summary": "Searchable, append-only audit log with export and revert."
+    }
+  },
+  "landing": {
+    "navLabel": "Front page",
+    "nav": {
+      "features": "Features",
+      "how": "How it works",
+      "chatbots": "Chatbots",
+      "security": "Security",
+      "status": "Status"
+    },
+    "signIn": "Sign in",
+    "pill": "Fast answers and agents, on your own infrastructure",
+    "headline1": "Ask your company anything.",
+    "headline2": "Get answers, or get it done.",
+    "sub": "One platform with two modes. Fast answers with sources you can check. Agent mode plans, uses your tools and asks before it acts. An automatic router chooses for each question.",
+    "ctaChat": "Start a chat",
+    "ctaBuild": "Build a chatbot",
+    "ctaPipeline": "See the pipeline",
+    "flowTitle": "How a request flows",
+    "flowExample": "example",
+    "flowAria": "A question goes to the router, then either the fast lane (hybrid search, rerank, generate) or the agent lane (plan, MCP tools, approval), and both end in an answer with citations",
+    "flowFast": "FAST · cited answer",
+    "flowAgent": "AGENT · plans, calls tools, asks first",
+    "flowQuestion": "Question",
+    "flowQuestionExample": "“Reset my VPN access”",
+    "flowRouter": "Auto router",
+    "flowRouterSub": "intent + risk",
+    "flowSearch": "Hybrid search",
+    "flowRerank": "Rerank",
+    "flowGenerate": "Generate",
+    "flowPlan": "Plan",
+    "flowTools": "MCP tools",
+    "flowApproval": "Approval",
+    "flowAnswer": "Answer",
+    "flowAnswerSub": "with citations",
+    "guarantees": [
+      {
+        "value": "Cited",
+        "label": "every fact links to its source"
+      },
+      {
+        "value": "Asks first",
+        "label": "no write action without approval"
+      },
+      {
+        "value": "In-house",
+        "label": "data stays on your infrastructure by default"
+      },
+      {
+        "value": "0",
+        "label": "API keys ever shown in the UI"
+      }
+    ],
+    "featuresEyebrow": "Features",
+    "featuresTitle": "Everything a production assistant needs",
+    "featuresLead": "Every step is configured in the admin console, with no code changes.",
+    "features": {
+      "router": {
+        "title": "Two modes, one smart router",
+        "body": "Simple lookups go to fast answers. Tasks that need tools go to the agent. You set the confidence threshold and the fallback.",
+        "more": "Open router settings →",
+        "fast": "Fast",
+        "agent": "Agent",
+        "auto": "Auto"
+      },
+      "flow": {
+        "title": "Visual pipeline builder",
+        "body": "Ingestion, retrieval, reranking, generation and guardrails, each step configured per chatbot.",
+        "more": "Open the flow →"
+      },
+      "bots": {
+        "title": "Many chatbots, scoped access",
+        "body": "HR, IT, Legal and more. Each bot has its own knowledge, pipeline and groups, so people only see their bots.",
+        "more": "Manage chatbots →"
+      },
+      "providers": {
+        "title": "Modular providers and BYOK",
+        "body": "Swap LLM, embeddings, reranker, vector store or parser. Local or external. Keys live in OpenBao, write-only.",
+        "more": "Providers & keys →"
+      },
+      "tools": {
+        "title": "Tools through MCP",
+        "body": "Connect tickets, calendars, HR systems and databases as MCP servers, with per-tool permissions.",
+        "more": "Tools (MCP) →"
+      },
+      "automations": {
+        "title": "Automations and approvals",
+        "body": "Scheduled and event-driven agents that draft, check and act, and wait for a person when it matters.",
+        "more": "See automations →"
+      },
+      "health": {
+        "title": "Knowledge health",
+        "body": "Spots stale, conflicting and missing documents, and the questions your knowledge can't answer yet.",
+        "more": "Check health →"
+      },
+      "channels": {
+        "title": "Wherever people work",
+        "body": "Web app, mobile, Microsoft Teams, Slack and a REST API, all with the same permissions and sources.",
+        "more": "Channels & API →"
+      },
+      "eval": {
+        "title": "Evaluate before you ship",
+        "body": "Ragas scores on every pipeline version, traces in Langfuse, and a one-click rollback when quality drops.",
+        "more": "Open evaluation →",
+        "gateTitle": "Publish gate",
+        "faithfulness": "Faithfulness",
+        "relevance": "Answer relevance",
+        "gateNote": "A version that scores below the gate cannot be published."
+      }
+    },
+    "howEyebrow": "How it works",
+    "howTitle": "From documents to a live assistant in four steps",
+    "how": [
+      {
+        "title": "Connect data",
+        "body": "SharePoint, Confluence, file shares and databases, parsed by Docling."
+      },
+      {
+        "title": "Configure the pipeline",
+        "body": "Pick the mode, models, search and guardrails per chatbot."
+      },
+      {
+        "title": "Choose who can use it",
+        "body": "Groups from Keycloak, fine-grained rules with OpenFGA."
+      },
+      {
+        "title": "Publish and measure",
+        "body": "Web, Teams, Slack or API, with evaluation and monitoring."
+      }
+    ],
+    "botsEyebrow": "Chatbots",
+    "botsTitle": "One assistant per team, each with its own knowledge",
+    "templates": {
+      "faq": {
+        "name": "FAQ bot",
+        "body": "Fast answers from documents. Cheapest.",
+        "tag": "Fast"
+      },
+      "support": {
+        "name": "Support agent with actions",
+        "body": "Auto mode, tools, approvals.",
+        "tag": "Auto"
+      },
+      "research": {
+        "name": "Research assistant",
+        "body": "Agent mode across several sources.",
+        "tag": "Agent"
+      },
+      "new": {
+        "name": "New chatbot",
+        "body": "From a template or blank"
+      }
+    },
+    "securityEyebrow": "Security and governance",
+    "securityTitle": "Built for a corporate data centre",
+    "security": [
+      "Runs on your Kubernetes. Models served locally with vLLM.",
+      "Answers only from documents the person is allowed to read.",
+      "PII masking, guardrails, full audit log and GDPR requests.",
+      "Every external call is marked, and can be switched off."
+    ],
+    "governance": "Governance",
+    "auditLog": "Audit log",
+    "vaultTitle": "Secrets · OpenBao",
+    "vaultMode": "write-only",
+    "vault": [
+      {
+        "label": "Provider and tool keys",
+        "value": "stored in OpenBao"
+      },
+      {
+        "label": "Shown in the UI",
+        "value": "last 4 characters and expiry"
+      },
+      {
+        "label": "Read back by any API",
+        "value": "never"
+      },
+      {
+        "label": "Data leaving the network",
+        "value": "marked per request"
+      }
+    ],
+    "ctaTitle": "Ready to ask?",
+    "ctaBody": "Sign in with your company account to see the assistants your team can use.",
+    "ctaSignIn": "Sign in",
+    "ctaAdmin": "Open admin console",
+    "footer": "Veyntora",
+    "footerHelp": "Help",
+    "footerStatus": "Status",
+    "footerPrivacy": "Privacy"
+  },
+  "signIn": {
+    "tagline": "Answers from your company's documents, with sources you can check.",
+    "button": "Sign in with company account",
+    "sso": "Single sign-on. You'll see the assistants your team has access to.",
+    "notice": "You're about to use an AI assistant. Answers can be wrong; check important details in the linked source. Chats are kept for {days} days.",
+    "privacy": "Privacy notice",
+    "help": "Help",
+    "status": "System status",
+    "imprint": "Imprint",
+    "signedOut": "You are signed out.",
+    "errors": {
+      "expired": "The sign-in took too long. Please try again.",
+      "suspended": "Your account is suspended. Contact your administrator.",
+      "token": "Sign-in failed. Please try again.",
+      "access_denied": "Sign-in was cancelled.",
+      "default": "Sign-in failed. Please try again."
+    }
+  },
+  "status": {
+    "title": "Status",
+    "back": "Back to chat",
+    "overall": {
+      "operational": "All systems operational",
+      "degraded": "Partly degraded",
+      "down": "Major outage"
+    },
+    "overallBody": {
+      "operational": "Everything is working normally.",
+      "degraded": "Some parts are slower or partly unavailable. Details below.",
+      "down": "The service is unavailable. The platform team has been alerted."
+    },
+    "checked": "Checked {time}",
+    "components": {
+      "chat": "Chat & answers",
+      "agent": "Agent mode & actions",
+      "documents": "Document updates",
+      "teams": "Microsoft Teams app",
+      "signin": "Sign-in"
+    },
+    "level": {
+      "operational": "Operational",
+      "degraded": "Slower than usual",
+      "down": "Unavailable",
+      "not_configured": "Not set up"
+    },
+    "updates": "Recent updates",
+    "noUpdates": "No incidents or planned maintenance.",
+    "planned": "planned",
+    "unreachable": "The status service can't be reached right now."
+  },
+  "errors": {
+    "forbiddenTitle": "You don't have access to this page",
+    "forbiddenBody": "Ask an administrator if you think you should. Access is set per group.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page doesn't exist or was moved.",
+    "toHome": "Go to Home",
+    "unavailableTitle": "The service is unavailable",
+    "unavailableBody": "Veyntora can't reach its API. Check the system status or try again shortly.",
+    "retry": "Try again"
+  }
+}

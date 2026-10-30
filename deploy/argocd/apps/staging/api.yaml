@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: veyntora-api-staging
+  namespace: argocd
+spec:
+  project: veyntora
+  source:
+    repoURL: https://github.com/shturag/veyntora.git
+    targetRevision: main
+    path: deploy/helm/veyntora-service
+    helm:
+      releaseName: api
+      valueFiles:
+        - ../values/staging/api.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: veyntora-staging
+  # Manual sync: promoted after approval (see docs/runbooks/deploy.md).
+  syncPolicy:
+    syncOptions: [CreateNamespace=true]

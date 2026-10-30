@@ -1,0 +1,22 @@
+[project]
+name = "veyntora-graphs"
+version = "0.1.0"
+description = "Veyntora LangGraph graphs (fast_rag, agent, router) served by Aegra"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "veyntora-spec",
+  "veyntora-providers",
+  "aegra-cli==0.11.0",
+  "aegra-api==0.11.0",
+  "langgraph==1.2.18",
+  "langgraph-checkpoint-postgres==3.2.0",
+  "pyjwt[crypto]==2.15.1",
+  "httpx==0.28.1",
+]
+
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/veyntora_graphs"]

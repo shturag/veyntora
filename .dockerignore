@@ -1,0 +1,17 @@
+**/node_modules
+**/.next
+**/.turbo
+**/.venv
+**/__pycache__
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+**/test-results
+**/playwright-report
+.git
+.github
+.env
+.env.*
+deploy/compose/.state
+docs
+design

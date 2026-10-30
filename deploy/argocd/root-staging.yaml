@@ -1,0 +1,15 @@
+# App of apps for staging. Apply once: kubectl apply -n argocd -f deploy/argocd/root-staging.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: veyntora-staging
+  namespace: argocd
+spec:
+  project: veyntora
+  source:
+    repoURL: https://github.com/shturag/veyntora.git
+    targetRevision: main
+    path: deploy/argocd/apps/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd

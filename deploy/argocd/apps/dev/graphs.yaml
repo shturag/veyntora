@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: veyntora-graphs-dev
+  namespace: argocd
+spec:
+  project: veyntora
+  source:
+    repoURL: https://github.com/shturag/veyntora.git
+    targetRevision: main
+    path: deploy/helm/veyntora-service
+    helm:
+      releaseName: graphs
+      valueFiles:
+        - ../values/dev/graphs.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: veyntora-dev
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]

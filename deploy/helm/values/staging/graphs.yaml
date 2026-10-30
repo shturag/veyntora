@@ -1,0 +1,8 @@
+# graphs · staging. image.tag is set by CI (commit SHA); secrets come from ExternalSecrets/OpenBao.
+nameOverride: graphs
+image:
+  repository: ghcr.io/shturag/veyntora-graphs
+  tag: ""
+replicas: 2
+port: 2026
+healthPath: /health

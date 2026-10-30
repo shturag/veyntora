@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: veyntora-workers-dev
+  namespace: argocd
+spec:
+  project: veyntora
+  source:
+    repoURL: https://github.com/shturag/veyntora.git
+    targetRevision: main
+    path: deploy/helm/veyntora-service
+    helm:
+      releaseName: workers
+      valueFiles:
+        - ../values/dev/workers.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: veyntora-dev
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]

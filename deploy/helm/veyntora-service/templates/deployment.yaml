@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "svc.name" . }}
+  labels: {{- include "svc.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels: {{- include "svc.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "svc.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "svc.name" . }}
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: {{ .Values.runAsUser }}
+      containers:
+        - name: {{ include "svc.name" . }}
+          image: "{{ .Values.image.repository }}:{{ required "image.tag is required" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.command }}
+          command: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext: {{- include "svc.securityContext" . | nindent 12 }}
+          env: {{- include "svc.env" . | nindent 12 }}
+          {{- with .Values.envFromSecrets }}
+          envFrom:
+            {{- range . }}
+            - secretRef: { name: {{ . }} }
+            {{- end }}
+          {{- end }}
+          {{- if .Values.service.enabled }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.port }}
+          readinessProbe:
+            httpGet: { path: {{ .Values.healthPath }}, port: http }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: {{ .Values.healthPath }}, port: http }
+            periodSeconds: 20
+            failureThreshold: 6
+          {{- end }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: {}

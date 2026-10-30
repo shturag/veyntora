@@ -1,0 +1,114 @@
+/*
+ * Veyntora design tokens, taken from design/prototype (rag-platform-ui-v11).
+ * Light values are the prototype's; dark values are chosen to keep WCAG 2.2 AA contrast
+ * (4.5:1 for text, 3:1 for UI boundaries) on the dark ground.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* core palette (brief) */
+  --vey-ink: #1b1b1f;
+  --vey-ground: #f6f6f3;
+  --vey-accent: #3345b8;
+  --vey-amber: #8a5300;
+  --vey-green: #1e6b45;
+  --vey-red: #a3261b;
+
+  /* surfaces and lines */
+  --vey-surface: #ffffff;
+  --vey-sunken: #f0efea;
+  --vey-border: #e4e3de;
+  --vey-border-strong: #d6d5cf;
+  --vey-divider: #ecebe6;
+
+  /* text */
+  --vey-text: var(--vey-ink);
+  --vey-text-secondary: #45443f;
+  --vey-text-muted: #6b6a65;
+  --vey-text-subtle: #8e8d87;
+  --vey-on-accent: #ffffff;
+
+  /* accent family */
+  --vey-accent-hover: #1f2c80;
+  --vey-accent-soft: #eef0fb;
+  --vey-accent-soft-strong: #e6e8f8;
+  --vey-accent-avatar: #dce1f7;
+
+  /* status families: fg on soft bg */
+  --vey-amber-soft: #fdf0dc;
+  --vey-amber-dot: #b56e00;
+  --vey-green-soft: #e3f1ea;
+  --vey-red-soft: #fbe9e7;
+  --vey-info: #1d5e86;
+  --vey-info-soft: #e8f2f8;
+
+  /* admin navigation (dark rail in both themes) */
+  --vey-nav-bg: #1b1b1f;
+  --vey-nav-active: #34343a;
+  --vey-nav-text: #c9c8c2;
+  --vey-nav-heading: #9a9993;
+  --vey-nav-text-active: #ffffff;
+
+  /* hero (landing) */
+  --vey-hero-bg: #121318;
+  --vey-hero-panel: #1e2029;
+  --vey-hero-line: #3a3d4d;
+  --vey-hero-text-muted: #b9bac7;
+  --vey-hero-accent: #8b98f5;
+  --vey-hero-green: #5dd39e;
+  --vey-hero-amber: #e0a458;
+
+  --vey-focus: #3345b8;
+  --vey-shadow-popover: 0 24px 64px rgba(0, 0, 0, 0.25);
+
+  --vey-radius-sm: 6px;
+  --vey-radius: 8px;
+  --vey-radius-md: 10px;
+  --vey-radius-lg: 12px;
+  --vey-radius-xl: 16px;
+
+  --vey-font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --vey-font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --vey-ink: #ecebe6;
+  --vey-ground: #121318;
+  --vey-accent: #a2adf8;
+  --vey-amber: #f0b45a;
+  --vey-green: #5dd39e;
+  --vey-red: #f2877c;
+
+  --vey-surface: #1b1c23;
+  --vey-sunken: #23242d;
+  --vey-border: #2f3140;
+  --vey-border-strong: #43465a;
+  --vey-divider: #2a2c38;
+
+  --vey-text: #ecebe6;
+  --vey-text-secondary: #cfcec8;
+  --vey-text-muted: #a8a7a1;
+  --vey-text-subtle: #8d8fa0;
+  --vey-on-accent: #121318;
+
+  --vey-accent-hover: #b0b8f8;
+  --vey-accent-soft: #222747;
+  --vey-accent-soft-strong: #2a3058;
+  --vey-accent-avatar: #2a3058;
+
+  --vey-amber-soft: #3a2e1a;
+  --vey-amber-dot: #f0b45a;
+  --vey-green-soft: #18352a;
+  --vey-red-soft: #3d1f1c;
+  --vey-info: #8cc4e6;
+  --vey-info-soft: #1a2d3a;
+
+  --vey-nav-bg: #0d0e12;
+  --vey-nav-active: #2a2c38;
+
+  --vey-focus: #a2adf8;
+  --vey-shadow-popover: 0 24px 64px rgba(0, 0, 0, 0.6);
+}

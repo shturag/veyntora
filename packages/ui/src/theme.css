@@ -1,0 +1,87 @@
+/*
+ * Tailwind v4 theme mapping. Import after `tailwindcss` and tokens.css:
+ *   @import "tailwindcss"; @import "@veyntora/ui/tokens.css"; @import "@veyntora/ui/theme.css";
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-ink: var(--vey-ink);
+  --color-ground: var(--vey-ground);
+  --color-surface: var(--vey-surface);
+  --color-sunken: var(--vey-sunken);
+  --color-line: var(--vey-border);
+  --color-line-strong: var(--vey-border-strong);
+  --color-divider: var(--vey-divider);
+
+  --color-fg: var(--vey-text);
+  --color-fg-secondary: var(--vey-text-secondary);
+  --color-fg-muted: var(--vey-text-muted);
+  --color-fg-subtle: var(--vey-text-subtle);
+  --color-on-accent: var(--vey-on-accent);
+
+  --color-accent: var(--vey-accent);
+  --color-accent-hover: var(--vey-accent-hover);
+  --color-accent-soft: var(--vey-accent-soft);
+  --color-accent-soft-strong: var(--vey-accent-soft-strong);
+  --color-accent-avatar: var(--vey-accent-avatar);
+
+  --color-amber: var(--vey-amber);
+  --color-amber-soft: var(--vey-amber-soft);
+  --color-amber-dot: var(--vey-amber-dot);
+  --color-green: var(--vey-green);
+  --color-green-soft: var(--vey-green-soft);
+  --color-red: var(--vey-red);
+  --color-red-soft: var(--vey-red-soft);
+  --color-info: var(--vey-info);
+  --color-info-soft: var(--vey-info-soft);
+
+  --color-nav: var(--vey-nav-bg);
+  --color-nav-active: var(--vey-nav-active);
+  --color-nav-fg: var(--vey-nav-text);
+  --color-nav-heading: var(--vey-nav-heading);
+  --color-nav-fg-active: var(--vey-nav-text-active);
+
+  --color-hero: var(--vey-hero-bg);
+  --color-hero-panel: var(--vey-hero-panel);
+  --color-hero-line: var(--vey-hero-line);
+  --color-hero-muted: var(--vey-hero-text-muted);
+  --color-hero-accent: var(--vey-hero-accent);
+  --color-hero-green: var(--vey-hero-green);
+  --color-hero-amber: var(--vey-hero-amber);
+
+  --radius-sm: var(--vey-radius-sm);
+  --radius: var(--vey-radius);
+  --radius-md: var(--vey-radius-md);
+  --radius-lg: var(--vey-radius-lg);
+  --radius-xl: var(--vey-radius-xl);
+
+  --font-sans: var(--vey-font-sans);
+  --font-mono: var(--vey-font-mono);
+
+  --shadow-popover: var(--vey-shadow-popover);
+}
+
+@layer base {
+  html {
+    background: var(--vey-ground);
+    color: var(--vey-text);
+    font-family: var(--vey-font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--vey-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

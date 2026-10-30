@@ -1,0 +1,61 @@
+model
+  schema 1.1
+
+# People and groups. Users and groups are referenced by their Veyntora UUIDs.
+type user
+
+type group
+  relations
+    define member: [user, group#member]
+    define owner: [user]
+
+# One platform object ("platform:default") holds the global admin roles.
+type platform
+  relations
+    define platform_admin: [user, group#member]
+    define knowledge_admin: [user, group#member] or platform_admin
+    define security_reviewer: [user, group#member] or platform_admin
+    define auditor: [user, group#member]
+
+# Admin console areas (chatbots, providers, governance, audit, ...).
+# Which platform roles may edit or view an area is itself data: bootstrap tuples like
+#   admin_area:sources#editor@platform:default#knowledge_admin
+type admin_area
+  relations
+    define platform: [platform]
+    define editor: [user, group#member, platform#knowledge_admin, platform#security_reviewer] or platform_admin from platform
+    define viewer: [user, group#member, platform#knowledge_admin, platform#security_reviewer] or editor or auditor from platform
+
+# Roles per chatbot, from the Users & groups "Roles & permissions" matrix.
+# A person's highest role across their groups applies (relations are unions).
+type chatbot
+  relations
+    define platform: [platform]
+    define owner: [user, group#member] or platform_admin from platform
+    define editor: [user, group#member] or owner
+    define approver: [user, group#member] or owner
+    define user: [user, group#member] or editor or approver
+    define can_chat: user
+    define can_approve: approver
+    define can_edit_content: editor
+    define can_edit_draft: editor
+    define can_publish: owner
+    define can_manage_access: owner
+    define can_view_admin: editor or approver or auditor from platform
+
+# MCP tools. Callers come from the chatbots that bind the tool, approvers are explicit.
+type tool
+  relations
+    define platform: [platform]
+    define chatbot: [chatbot]
+    define caller: [user, group#member] or user from chatbot
+    define approver: [user, group#member] or platform_admin from platform
+    define manager: security_reviewer from platform
+
+# Data sources. Document-level ACLs live in Qdrant payloads; this controls who may
+# attach and manage a source, and who may open originals through Veyntora.
+type source
+  relations
+    define platform: [platform]
+    define reader: [user, group#member]
+    define manager: [user, group#member] or knowledge_admin from platform

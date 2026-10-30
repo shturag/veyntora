@@ -1,0 +1,22 @@
+{
+  "name": "veyntora",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "e2e": "pnpm --filter @veyntora/web e2e",
+    "gen": "pnpm --filter @veyntora/spec gen && pnpm --filter @veyntora/web gen:api",
+    "format": "prettier --write \"**/*.{ts,tsx,json,css,md,yaml,yml}\""
+  },
+  "devDependencies": {
+    "prettier": "3.9.10",
+    "turbo": "2.11.10"
+  }
+}

@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: veyntora-web-prod
+  namespace: argocd
+spec:
+  project: veyntora
+  source:
+    repoURL: https://github.com/shturag/veyntora.git
+    targetRevision: main
+    path: deploy/helm/veyntora-service
+    helm:
+      releaseName: web
+      valueFiles:
+        - ../values/prod/web.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: veyntora-prod
+  # Manual sync: promoted after approval (see docs/runbooks/deploy.md).
+  syncPolicy:
+    syncOptions: [CreateNamespace=true]

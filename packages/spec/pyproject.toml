@@ -1,0 +1,15 @@
+[project]
+name = "veyntora-spec"
+version = "0.1.0"
+description = "Veyntora pipeline spec schema (Pydantic, source of the generated TS types)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "pydantic==2.14.2",
+]
+
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/veyntora_spec"]

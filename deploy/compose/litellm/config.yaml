@@ -1,0 +1,14 @@
+# Models are not configured here. The provider registry (Phase 1/2) adds and removes
+# model routes through the LiteLLM admin API, so every model comes from versioned config
+# in PostgreSQL and nothing is hard-coded.
+model_list: []
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  store_model_in_db: true
+  disable_spend_logs: false
+
+litellm_settings:
+  telemetry: false
+  drop_params: true

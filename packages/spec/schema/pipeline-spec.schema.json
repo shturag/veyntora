@@ -1,0 +1,753 @@
+{
+  "$defs": {
+    "AgentSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "llm_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Instance Id"
+        },
+        "max_steps": {
+          "default": 6,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Max Steps",
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "default": 60,
+          "maximum": 3600,
+          "minimum": 5,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        },
+        "token_budget": {
+          "default": 40000,
+          "maximum": 2000000,
+          "minimum": 1000,
+          "title": "Token Budget",
+          "type": "integer"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/AgentToolBinding"
+          },
+          "title": "Tools",
+          "type": "array"
+        }
+      },
+      "title": "AgentSpec",
+      "type": "object"
+    },
+    "AgentToolBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "tool_id": {
+          "format": "uuid",
+          "title": "Tool Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id"
+      ],
+      "title": "AgentToolBinding",
+      "type": "object"
+    },
+    "ChunkMetadata": {
+      "enum": [
+        "source_title_section",
+        "language",
+        "updated_date",
+        "acl",
+        "contextual_header"
+      ],
+      "title": "ChunkMetadata",
+      "type": "string"
+    },
+    "ChunkingStrategy": {
+      "enum": [
+        "structure",
+        "fixed",
+        "semantic"
+      ],
+      "title": "ChunkingStrategy",
+      "type": "string"
+    },
+    "CitationPolicy": {
+      "enum": [
+        "required",
+        "optional"
+      ],
+      "title": "CitationPolicy",
+      "type": "string"
+    },
+    "FlowEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target"
+      ],
+      "title": "FlowEdge",
+      "type": "object"
+    },
+    "FlowNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "provider_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider Instance Id"
+        },
+        "type": {
+          "$ref": "#/$defs/FlowNodeType"
+        },
+        "x": {
+          "default": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0.0,
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "FlowNode",
+      "type": "object"
+    },
+    "FlowNodeType": {
+      "enum": [
+        "input",
+        "router",
+        "retriever",
+        "reranker",
+        "llm",
+        "agent_llm",
+        "mcp_tool",
+        "condition",
+        "guardrail",
+        "human_approval",
+        "output"
+      ],
+      "title": "FlowNodeType",
+      "type": "string"
+    },
+    "FlowSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/FlowEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/FlowNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        }
+      },
+      "title": "FlowSpec",
+      "type": "object"
+    },
+    "GenerationSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "answer_language": {
+          "default": "auto",
+          "title": "Answer Language",
+          "type": "string"
+        },
+        "citations": {
+          "$ref": "#/$defs/CitationPolicy",
+          "default": "required"
+        },
+        "if_ungrounded": {
+          "$ref": "#/$defs/UngroundedAction",
+          "default": "no_answer"
+        },
+        "llm_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Llm Instance Id"
+        },
+        "max_answer_tokens": {
+          "default": 800,
+          "maximum": 32768,
+          "minimum": 32,
+          "title": "Max Answer Tokens",
+          "type": "integer"
+        },
+        "system_prompt": {
+          "default": "",
+          "title": "System Prompt",
+          "type": "string"
+        },
+        "temperature": {
+          "default": 0.2,
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Temperature",
+          "type": "number"
+        }
+      },
+      "title": "GenerationSpec",
+      "type": "object"
+    },
+    "GroundednessAction": {
+      "enum": [
+        "warn",
+        "block"
+      ],
+      "title": "GroundednessAction",
+      "type": "string"
+    },
+    "GuardrailsSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "blocked_message": {
+          "default": "I can't help with that here. You can ask a human expert instead.",
+          "title": "Blocked Message",
+          "type": "string"
+        },
+        "blocked_topic_action": {
+          "$ref": "#/$defs/TopicAction",
+          "default": "refuse"
+        },
+        "blocked_topics": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Blocked Topics",
+          "type": "array"
+        },
+        "citation_required": {
+          "default": true,
+          "title": "Citation Required",
+          "type": "boolean"
+        },
+        "groundedness_action": {
+          "$ref": "#/$defs/GroundednessAction",
+          "default": "block"
+        },
+        "groundedness_threshold": {
+          "default": 0.7,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Groundedness Threshold",
+          "type": "number"
+        },
+        "injection": {
+          "$ref": "#/$defs/InjectionAction",
+          "default": "block"
+        },
+        "input_guardrail_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Guardrail Instance Id"
+        },
+        "no_promises": {
+          "default": true,
+          "title": "No Promises",
+          "type": "boolean"
+        },
+        "output_guardrail_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Guardrail Instance Id"
+        },
+        "pii": {
+          "$ref": "#/$defs/PiiAction",
+          "default": "mask"
+        }
+      },
+      "title": "GuardrailsSpec",
+      "type": "object"
+    },
+    "IngestionSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk_overlap_tokens": {
+          "default": 50,
+          "maximum": 2048,
+          "minimum": 0,
+          "title": "Chunk Overlap Tokens",
+          "type": "integer"
+        },
+        "chunk_size_tokens": {
+          "default": 500,
+          "maximum": 8192,
+          "minimum": 64,
+          "title": "Chunk Size Tokens",
+          "type": "integer"
+        },
+        "chunking": {
+          "$ref": "#/$defs/ChunkingStrategy",
+          "default": "structure"
+        },
+        "describe_images": {
+          "default": false,
+          "title": "Describe Images",
+          "type": "boolean"
+        },
+        "embedding_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Embedding Instance Id"
+        },
+        "extract_tables": {
+          "default": true,
+          "title": "Extract Tables",
+          "type": "boolean"
+        },
+        "metadata": {
+          "items": {
+            "$ref": "#/$defs/ChunkMetadata"
+          },
+          "title": "Metadata",
+          "type": "array"
+        },
+        "ocr": {
+          "default": true,
+          "title": "Ocr",
+          "type": "boolean"
+        },
+        "parent_chunk": {
+          "$ref": "#/$defs/ParentChunk",
+          "default": "section"
+        },
+        "parser_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parser Instance Id"
+        },
+        "semantic_similarity_threshold": {
+          "default": 0.75,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Semantic Similarity Threshold",
+          "type": "number"
+        }
+      },
+      "title": "IngestionSpec",
+      "type": "object"
+    },
+    "InjectionAction": {
+      "enum": [
+        "block",
+        "warn"
+      ],
+      "title": "InjectionAction",
+      "type": "string"
+    },
+    "Mode": {
+      "enum": [
+        "auto",
+        "fast",
+        "agent"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "ParentChunk": {
+      "enum": [
+        "section",
+        "off"
+      ],
+      "title": "ParentChunk",
+      "type": "string"
+    },
+    "PiiAction": {
+      "enum": [
+        "mask",
+        "block",
+        "off"
+      ],
+      "title": "PiiAction",
+      "type": "string"
+    },
+    "RerankFallback": {
+      "enum": [
+        "instance",
+        "skip"
+      ],
+      "title": "RerankFallback",
+      "type": "string"
+    },
+    "RerankSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "fallback": {
+          "$ref": "#/$defs/RerankFallback",
+          "default": "skip"
+        },
+        "fallback_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fallback Instance Id"
+        },
+        "max_chunks_per_document": {
+          "anyOf": [
+            {
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": 2,
+          "title": "Max Chunks Per Document"
+        },
+        "min_score": {
+          "default": 0.3,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Min Score",
+          "type": "number"
+        },
+        "prefer_newer": {
+          "default": false,
+          "title": "Prefer Newer",
+          "type": "boolean"
+        },
+        "reranker_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reranker Instance Id"
+        },
+        "top_n": {
+          "default": 5,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Top N",
+          "type": "integer"
+        }
+      },
+      "title": "RerankSpec",
+      "type": "object"
+    },
+    "RetrievalSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "dense_weight": {
+          "default": 0.6,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Dense Weight",
+          "type": "number"
+        },
+        "embedding_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Embedding Instance Id"
+        },
+        "german_compound_splitting": {
+          "default": true,
+          "title": "German Compound Splitting",
+          "type": "boolean"
+        },
+        "metadata_filter": {
+          "default": "",
+          "title": "Metadata Filter",
+          "type": "string"
+        },
+        "query_rewrite": {
+          "default": false,
+          "title": "Query Rewrite",
+          "type": "boolean"
+        },
+        "search_type": {
+          "$ref": "#/$defs/SearchType",
+          "default": "hybrid"
+        },
+        "sparse_min_term_match": {
+          "default": 1,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Sparse Min Term Match",
+          "type": "integer"
+        },
+        "top_k": {
+          "default": 20,
+          "maximum": 200,
+          "minimum": 1,
+          "title": "Top K",
+          "type": "integer"
+        },
+        "vector_store_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vector Store Instance Id"
+        }
+      },
+      "title": "RetrievalSpec",
+      "type": "object"
+    },
+    "RouterSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_when_action": {
+          "default": true,
+          "title": "Agent When Action",
+          "type": "boolean"
+        },
+        "agent_when_live_data": {
+          "default": true,
+          "title": "Agent When Live Data",
+          "type": "boolean"
+        },
+        "agent_when_low_confidence": {
+          "default": true,
+          "title": "Agent When Low Confidence",
+          "type": "boolean"
+        },
+        "agent_when_multi_source": {
+          "default": true,
+          "title": "Agent When Multi Source",
+          "type": "boolean"
+        },
+        "allowed_modes": {
+          "items": {
+            "$ref": "#/$defs/Mode"
+          },
+          "title": "Allowed Modes",
+          "type": "array"
+        },
+        "default_mode": {
+          "$ref": "#/$defs/Mode",
+          "default": "auto"
+        },
+        "escalate_below": {
+          "default": 0.55,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Escalate Below",
+          "type": "number"
+        },
+        "instructions": {
+          "default": "",
+          "title": "Instructions",
+          "type": "string"
+        },
+        "router_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Router Instance Id"
+        }
+      },
+      "title": "RouterSpec",
+      "type": "object"
+    },
+    "SearchType": {
+      "enum": [
+        "dense",
+        "sparse",
+        "hybrid"
+      ],
+      "title": "SearchType",
+      "type": "string"
+    },
+    "TopicAction": {
+      "enum": [
+        "refuse",
+        "handoff"
+      ],
+      "title": "TopicAction",
+      "type": "string"
+    },
+    "UngroundedAction": {
+      "enum": [
+        "warn",
+        "no_answer"
+      ],
+      "title": "UngroundedAction",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "agent": {
+      "$ref": "#/$defs/AgentSpec"
+    },
+    "flow": {
+      "$ref": "#/$defs/FlowSpec"
+    },
+    "generation": {
+      "$ref": "#/$defs/GenerationSpec"
+    },
+    "guardrails": {
+      "$ref": "#/$defs/GuardrailsSpec"
+    },
+    "ingestion": {
+      "$ref": "#/$defs/IngestionSpec"
+    },
+    "rerank": {
+      "$ref": "#/$defs/RerankSpec"
+    },
+    "retrieval": {
+      "$ref": "#/$defs/RetrievalSpec"
+    },
+    "router": {
+      "$ref": "#/$defs/RouterSpec"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    }
+  },
+  "title": "PipelineSpec",
+  "type": "object"
+}

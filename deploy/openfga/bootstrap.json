@@ -1,0 +1,33 @@
+{
+  "_comment": "Default mapping of platform roles to admin console areas. Applied idempotently by `veyntora-api bootstrap`. Platform admins edit everything and auditors view everything through the model itself.",
+  "areas": [
+    "overview",
+    "chatbots",
+    "automations",
+    "pipelines",
+    "playground",
+    "sources",
+    "providers",
+    "tools",
+    "channels",
+    "conversations",
+    "knowledge_health",
+    "evaluation",
+    "monitoring",
+    "usage",
+    "users",
+    "governance",
+    "audit"
+  ],
+  "roles": {
+    "knowledge_admin": {
+      "editor": ["sources", "knowledge_health"],
+      "viewer": ["overview", "monitoring"]
+    },
+    "security_reviewer": {
+      "editor": ["tools", "governance"],
+      "viewer": ["overview", "providers", "monitoring", "users", "audit"]
+    }
+  },
+  "chatbot_scoped_areas": ["chatbots", "pipelines", "playground", "conversations", "evaluation"]
+}

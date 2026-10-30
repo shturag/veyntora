@@ -1,0 +1,98 @@
+[project]
+name = "veyntora-workspace"
+version = "0.0.0"
+requires-python = ">=3.12,<3.13"
+description = "Veyntora monorepo (Python workspace root, not published)"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+  "packages/spec",
+  "packages/providers",
+  "services/api",
+  "services/graphs",
+  "services/workers",
+]
+
+[tool.uv.sources]
+veyntora-spec = { workspace = true }
+veyntora-providers = { workspace = true }
+veyntora-api = { workspace = true }
+veyntora-graphs = { workspace = true }
+veyntora-workers = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "mypy==2.4.1",
+  "pytest==9.2.0",
+  "pytest-asyncio==1.4.1",
+  "respx==0.23.1",
+  "ruff==0.17.3",
+  "testcontainers==4.15.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["design", "apps", "**/alembic/versions/*.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "ASYNC", "RUF", "SIM", "PTH", "TID", "PL"]
+ignore = [
+  "PLR0913",  # FastAPI dependencies make long signatures normal
+  "PLR2004",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106", "PLR2004"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"print".msg = "Use structlog; print bypasses the secret scrubber."
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+mypy_path = [
+  "packages/spec/src",
+  "packages/providers/src",
+  "services/api/src",
+  "services/graphs/src",
+  "services/workers/src",
+]
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+# The OpenFGA SDK ships py.typed but leaves many functions unannotated; contain it here.
+module = "veyntora_api.authz.fga"
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+# Celery has no type information; its task decorators are untyped.
+module = "veyntora_workers.*"
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = ["openfga_sdk.*", "celery.*", "aioboto3.*", "aegra_api.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+# Explicit so tests never depend on editable-install .pth files (see docs/runbooks/local-dev.md).
+pythonpath = [
+  "packages/spec/src",
+  "packages/providers/src",
+  "services/api/src",
+  "services/api",
+  "services/graphs/src",
+  "services/workers/src",
+]
+testpaths = ["packages", "services"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+  "integration: needs the compose stack (postgres, keycloak, openfga, openbao)",
+]

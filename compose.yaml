@@ -1,0 +1,3 @@
+# Entry point for `docker compose up` from the repository root.
+include:
+  - path: deploy/compose/compose.yaml

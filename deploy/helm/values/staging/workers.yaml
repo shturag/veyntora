@@ -1,0 +1,12 @@
+# workers · staging. image.tag is set by CI (commit SHA); secrets come from ExternalSecrets/OpenBao.
+nameOverride: workers
+image:
+  repository: ghcr.io/shturag/veyntora-api
+  tag: ""
+replicas: 2
+port: 8000
+healthPath: /
+command: ["celery", "-A", "veyntora_workers.app", "worker", "--loglevel=INFO"]
+envFromSecrets: [veyntora-api-env]
+service:
+  enabled: false

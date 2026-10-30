@@ -1,0 +1,25 @@
+# Defaults for every Veyntora service. Override per service in deploy/helm/values/<env>/<service>.yaml.
+nameOverride: ""
+image:
+  repository: ghcr.io/shturag/veyntora-api
+  tag: ""          # set by CI to the commit SHA
+  pullPolicy: IfNotPresent
+command: []
+replicas: 2
+runAsUser: 10001
+port: 8000
+healthPath: /readyz
+env: {}
+# Kubernetes Secrets that hold infrastructure credentials (database URL, OIDC client
+# secret). Provider and user keys never go here; they live in OpenBao.
+envFromSecrets: []
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits: { memory: 1Gi }
+# Namespaces whose pods may call this service. Everything else is denied.
+allowIngressFrom: []
+service:
+  enabled: true
+migrationJob:
+  enabled: false
+  command: ["veyntora-api", "bootstrap"]

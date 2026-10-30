@@ -1,0 +1,12 @@
+# web · dev. image.tag is set by CI (commit SHA); secrets come from ExternalSecrets/OpenBao.
+nameOverride: web
+image:
+  repository: ghcr.io/shturag/veyntora-web
+  tag: ""
+replicas: 1
+port: 3000
+healthPath: /sign-in
+allowIngressFrom: [ingress-nginx]
+runAsUser: 1000
+env:
+  API_INTERNAL_URL: http://api:8000

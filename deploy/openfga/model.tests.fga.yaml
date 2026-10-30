@@ -1,0 +1,152 @@
+name: Veyntora authorization model
+model_file: ./model.fga
+
+tuples:
+  # groups
+  - { user: user:anna, relation: member, object: group:finance }
+  - { user: user:marco, relation: member, object: group:support-leads }
+  - { user: group:support-leads#member, relation: member, object: group:support }
+  - { user: user:sam, relation: member, object: group:support }
+  - { user: user:pia, relation: member, object: group:platform-admins }
+  - { user: user:kai, relation: member, object: group:knowledge-team }
+  - { user: user:sec, relation: member, object: group:security }
+  - { user: user:aud, relation: member, object: group:auditors }
+
+  # platform roles
+  - { user: group:platform-admins#member, relation: platform_admin, object: platform:default }
+  - { user: group:knowledge-team#member, relation: knowledge_admin, object: platform:default }
+  - { user: group:security#member, relation: security_reviewer, object: platform:default }
+  - { user: group:auditors#member, relation: auditor, object: platform:default }
+
+  # admin areas (bootstrap mapping)
+  - { user: platform:default, relation: platform, object: admin_area:providers }
+  - { user: platform:default, relation: platform, object: admin_area:sources }
+  - { user: platform:default, relation: platform, object: admin_area:audit }
+  - { user: platform:default#knowledge_admin, relation: editor, object: admin_area:sources }
+  - { user: platform:default#security_reviewer, relation: viewer, object: admin_area:providers }
+  - { user: platform:default#security_reviewer, relation: viewer, object: admin_area:audit }
+
+  # chatbot roles
+  - { user: platform:default, relation: platform, object: chatbot:support }
+  - { user: group:support#member, relation: user, object: chatbot:support }
+  - { user: group:support-leads#member, relation: approver, object: chatbot:support }
+  - { user: user:kai, relation: editor, object: chatbot:support }
+
+  # tools
+  - { user: platform:default, relation: platform, object: tool:create_ticket }
+  - { user: chatbot:support, relation: chatbot, object: tool:create_ticket }
+  - { user: group:support-leads#member, relation: approver, object: tool:create_ticket }
+
+  # sources
+  - { user: platform:default, relation: platform, object: source:policies }
+  - { user: group:support#member, relation: reader, object: source:policies }
+
+tests:
+  - name: chatbot roles follow the permission matrix
+    check:
+      - user: user:sam
+        object: chatbot:support
+        assertions:
+          can_chat: true
+          can_approve: false
+          can_edit_content: false
+          can_publish: false
+      - user: user:marco
+        object: chatbot:support
+        assertions:
+          can_chat: true # nested group: support-leads is a member of support
+          can_approve: true
+          can_edit_draft: false
+          can_manage_access: false
+      - user: user:kai
+        object: chatbot:support
+        assertions:
+          can_chat: true
+          can_edit_draft: true
+          can_publish: false
+      - user: user:pia
+        object: chatbot:support
+        assertions:
+          can_chat: true
+          can_publish: true
+          can_manage_access: true
+      - user: user:anna
+        object: chatbot:support
+        assertions:
+          can_chat: false
+          can_view_admin: false
+      - user: user:aud
+        object: chatbot:support
+        assertions:
+          can_chat: false
+          can_view_admin: true
+          can_edit_draft: false
+    list_objects:
+      - user: user:sam
+        type: chatbot
+        assertions:
+          can_chat: [chatbot:support]
+      - user: user:anna
+        type: chatbot
+        assertions:
+          can_chat: []
+
+  - name: admin areas
+    check:
+      - user: user:pia
+        object: admin_area:providers
+        assertions:
+          editor: true
+          viewer: true
+      - user: user:sec
+        object: admin_area:providers
+        assertions:
+          editor: false
+          viewer: true
+      - user: user:kai
+        object: admin_area:sources
+        assertions:
+          editor: true
+      - user: user:kai
+        object: admin_area:providers
+        assertions:
+          viewer: false
+      - user: user:aud
+        object: admin_area:audit
+        assertions:
+          viewer: true
+          editor: false
+      - user: user:sam
+        object: admin_area:audit
+        assertions:
+          viewer: false
+
+  - name: tools and sources
+    check:
+      - user: user:sam
+        object: tool:create_ticket
+        assertions:
+          caller: true
+          approver: false
+      - user: user:marco
+        object: tool:create_ticket
+        assertions:
+          approver: true
+      - user: user:anna
+        object: tool:create_ticket
+        assertions:
+          caller: false
+      - user: user:sec
+        object: tool:create_ticket
+        assertions:
+          manager: true
+      - user: user:sam
+        object: source:policies
+        assertions:
+          reader: true
+          manager: false
+      - user: user:kai
+        object: source:policies
+        assertions:
+          manager: true
+          reader: false

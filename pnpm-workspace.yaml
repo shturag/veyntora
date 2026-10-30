@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/ui
+  - packages/spec
+
+# Only these packages may run install scripts (native binaries). Review before adding more.
+allowBuilds:
+  "@parcel/watcher": true
+  "@swc/core": true
+  unrs-resolver: true

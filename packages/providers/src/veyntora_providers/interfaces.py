@@ -1,0 +1,238 @@
+"""One interface per capability. Pipelines refer to provider instances by id, never to vendors.
+
+Adapters (vLLM, LiteLLM, TEI, Qdrant, Docling, Presidio, ...) implement these protocols and
+are registered in `registry.py`. Every adapter must pass `veyntora_providers.contract`.
+"""
+
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Mapping, Sequence
+from dataclasses import dataclass, field
+from enum import StrEnum
+from typing import Any, Literal, Protocol, runtime_checkable
+
+
+class Capability(StrEnum):
+    LLM = "llm"
+    EMBEDDING = "embedding"
+    RERANKER = "reranker"
+    VECTOR_STORE = "vector_store"
+    PARSER = "parser"
+    GUARDRAIL = "guardrail"
+
+
+class Hosting(StrEnum):
+    SELF_HOSTED = "self_hosted"
+    EXTERNAL = "external"
+
+
+# ---------------------------------------------------------------- LLM
+
+
+@dataclass(frozen=True, slots=True)
+class ChatMessage:
+    role: Literal["system", "user", "assistant", "tool"]
+    content: str
+    tool_call_id: str | None = None
+    name: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ToolSpec:
+    name: str
+    description: str
+    parameters: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class ToolCall:
+    id: str
+    name: str
+    arguments: str
+
+
+@dataclass(frozen=True, slots=True)
+class Usage:
+    prompt_tokens: int
+    completion_tokens: int
+
+
+@dataclass(frozen=True, slots=True)
+class ChatChunk:
+    delta: str = ""
+    tool_calls: tuple[ToolCall, ...] = ()
+    finish_reason: str | None = None
+    usage: Usage | None = None
+
+
+@runtime_checkable
+class LLMProvider(Protocol):
+    def chat(
+        self,
+        messages: Sequence[ChatMessage],
+        tools: Sequence[ToolSpec] | None = None,
+        **opts: Any,
+    ) -> AsyncIterator[ChatChunk]: ...
+
+
+# ---------------------------------------------------------------- embeddings
+
+
+@dataclass(frozen=True, slots=True)
+class SparseVector:
+    indices: tuple[int, ...]
+    values: tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class EmbedResult:
+    dense: list[list[float]]
+    sparse: list[SparseVector] | None = None
+    dimensions: int = 0
+
+
+@runtime_checkable
+class EmbeddingProvider(Protocol):
+    async def embed(self, texts: list[str]) -> EmbedResult: ...
+
+
+# ---------------------------------------------------------------- reranker
+
+
+@dataclass(frozen=True, slots=True)
+class Doc:
+    id: str
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class Scored:
+    id: str
+    score: float
+
+
+@runtime_checkable
+class RerankerProvider(Protocol):
+    async def rerank(self, query: str, docs: list[Doc], top_n: int) -> list[Scored]: ...
+
+
+# ---------------------------------------------------------------- vector store
+
+
+@dataclass(frozen=True, slots=True)
+class AclFilter:
+    """Identities of the asking user. A chunk matches if any identity is in its ACL.
+
+    Built from the user's identities on every search; an empty filter matches nothing.
+    """
+
+    user_ids: tuple[str, ...]
+    group_ids: tuple[str, ...]
+
+    def is_empty(self) -> bool:
+        return not self.user_ids and not self.group_ids
+
+
+@dataclass(frozen=True, slots=True)
+class Point:
+    id: str
+    dense: list[float]
+    sparse: SparseVector | None
+    payload: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class HybridQuery:
+    dense: list[float] | None
+    sparse: SparseVector | None
+    dense_weight: float = 0.6
+    metadata_filter: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class Hit:
+    id: str
+    score: float
+    payload: Mapping[str, Any]
+
+
+@runtime_checkable
+class VectorStore(Protocol):
+    async def upsert(self, collection: str, points: Sequence[Point]) -> None: ...
+
+    async def hybrid_search(
+        self, collection: str, query: HybridQuery, acl_filter: AclFilter, k: int
+    ) -> list[Hit]: ...
+
+
+# ---------------------------------------------------------------- parser
+
+
+@dataclass(frozen=True, slots=True)
+class FileRef:
+    bucket: str
+    key: str
+    mime_type: str
+    filename: str
+
+
+@dataclass(frozen=True, slots=True)
+class ParsedSection:
+    heading_path: tuple[str, ...]
+    text: str
+    page: int | None = None
+    is_table: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ParsedDoc:
+    title: str
+    language: str | None
+    sections: list[ParsedSection]
+    page_count: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ParseOptions:
+    ocr: bool = True
+    extract_tables: bool = True
+    describe_images: bool = False
+
+
+@runtime_checkable
+class DocumentParser(Protocol):
+    async def parse(self, file: FileRef, opts: ParseOptions) -> ParsedDoc: ...
+
+
+# ---------------------------------------------------------------- guardrail
+
+
+@dataclass(frozen=True, slots=True)
+class Verdict:
+    allowed: bool
+    rule: str
+    score: float | None = None
+    # Text after masking (e.g. PII replaced with placeholders); None if unchanged.
+    transformed: str | None = None
+    details: Mapping[str, Any] = field(default_factory=dict)
+
+
+@runtime_checkable
+class Guardrail(Protocol):
+    async def check(
+        self, stage: Literal["input", "output"], payload: Mapping[str, Any]
+    ) -> Verdict: ...
+
+
+# ---------------------------------------------------------------- health
+
+
+@dataclass(frozen=True, slots=True)
+class HealthResult:
+    ok: bool
+    latency_ms: float
+    detail: str = ""
+
+
+class SupportsHealth(Protocol):
+    async def health(self) -> HealthResult: ...
