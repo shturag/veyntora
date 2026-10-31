@@ -80,7 +80,8 @@ async def test_only_a_linked_person_gets_answers_with_their_own_access(db: Async
     authz = Authz()
     runner = _runner(authz)
     reply = await runner.handle(db, _msg(channel))
-    assert reply.text == LINK_TEXT and reply.link_url and "/link/" in reply.link_url
+    assert reply.text.endswith(LINK_TEXT) and reply.text.startswith("You're chatting")
+    assert reply.link_url and "/link/" in reply.link_url
     code = reply.link_url.rsplit("/", 1)[1]
 
     person = User(keycloak_sub="sub-anna", email="anna@example.com", display_name="Anna")
@@ -121,7 +122,7 @@ async def test_only_a_linked_person_gets_answers_with_their_own_access(db: Async
     authz.allowed = False
     assert "don't have access" in (await runner.handle(db, _msg(channel))).text
     person.suspended = True
-    assert (await runner.handle(db, _msg(channel))).text == LINK_TEXT
+    assert (await runner.handle(db, _msg(channel))).text.endswith(LINK_TEXT)
 
 
 @respx.mock

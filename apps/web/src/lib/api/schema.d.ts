@@ -1231,6 +1231,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/governance/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Data subject requests */
+        get: operations["list_requests_v1_admin_governance_requests_get"];
+        put?: never;
+        /** Record a request */
+        post: operations["create_request_v1_admin_governance_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One request: what is held, checks, history */
+        get: operations["get_request_v1_admin_governance_requests__request_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/requests/{request_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The person's data (ZIP; DPO or the requester) */
+        get: operations["get_export_v1_admin_governance_requests__request_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/requests/{request_id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed confirmation report (JSON) */
+        get: operations["get_report_v1_admin_governance_requests__request_id__report_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/requests/{request_id}/{step}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify identity, approve, carry out */
+        post: operations["request_step_v1_admin_governance_requests__request_id___step__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/governance/roles/{role}": {
         parameters: {
             query?: never;
@@ -4974,6 +5060,17 @@ export interface components {
             /** Path */
             path: string;
         };
+        /** FoundOut */
+        FoundOut: {
+            /** Action */
+            action: string;
+            /** Amount */
+            amount: number;
+            /** Key */
+            key: string;
+            /** Where */
+            where: string;
+        };
         /** FrameConfig */
         FrameConfig: {
             /** Allowed Origins */
@@ -5030,6 +5127,16 @@ export interface components {
             /** Set Ids */
             set_ids: string[];
         };
+        /**
+         * GdprKind
+         * @enum {string}
+         */
+        GdprKind: "access" | "erasure";
+        /**
+         * GdprStatus
+         * @enum {string}
+         */
+        GdprStatus: "received" | "in_progress" | "blocked_legal_hold" | "completed" | "rejected";
         /** GenerateInput */
         GenerateInput: {
             /**
@@ -5170,6 +5277,8 @@ export interface components {
             can_edit: boolean;
             /** Can Grant */
             can_grant: boolean;
+            /** Can Handle Requests */
+            can_handle_requests: boolean;
             /** Can Hold */
             can_hold: boolean;
             /** Chatbots */
@@ -6317,6 +6426,16 @@ export interface components {
             /** Until */
             until?: string | null;
         };
+        /** NewRequest */
+        NewRequest: {
+            /** Due At */
+            due_at?: string | null;
+            /** Email */
+            email: string;
+            kind: components["schemas"]["GdprKind"];
+            /** Received Via */
+            received_via?: string | null;
+        };
         /** NoticeInput */
         NoticeInput: {
             /**
@@ -6979,6 +7098,80 @@ export interface components {
              * Format: uuid
              */
             issue_id: string;
+        };
+        /** RequestDetail */
+        RequestDetail: {
+            /** Approved */
+            approved: boolean;
+            /** Can Approve */
+            can_approve: boolean;
+            /** Can Handle */
+            can_handle: boolean;
+            /** Completed At */
+            completed_at: string | null;
+            /** Days Left */
+            days_left: number;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Found */
+            found: components["schemas"]["FoundOut"][];
+            /** Has Export */
+            has_export: boolean;
+            /** Has Report */
+            has_report: boolean;
+            /** Held */
+            held: boolean;
+            /** History */
+            history: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Identity Verified */
+            identity_verified: boolean;
+            kind: components["schemas"]["GdprKind"];
+            /** Received Via */
+            received_via: string | null;
+            status: components["schemas"]["GdprStatus"];
+            /** Subject */
+            subject: string;
+            /** Summary */
+            summary: {
+                [key: string]: unknown;
+            };
+        };
+        /** RequestRow */
+        RequestRow: {
+            /** Completed At */
+            completed_at: string | null;
+            /** Days Left */
+            days_left: number;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["GdprKind"];
+            /** Received Via */
+            received_via: string | null;
+            status: components["schemas"]["GdprStatus"];
+            /** Subject */
+            subject: string;
+            /** Summary */
+            summary: {
+                [key: string]: unknown;
+            };
         };
         /**
          * RerankFallback
@@ -11548,6 +11741,180 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_requests_v1_admin_governance_requests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestRow"][];
+                };
+            };
+        };
+    };
+    create_request_v1_admin_governance_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestRow"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_request_v1_admin_governance_requests__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_export_v1_admin_governance_requests__request_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_v1_admin_governance_requests__request_id__report_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_step_v1_admin_governance_requests__request_id___step__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+                step: "verify" | "approve" | "carry-out";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestRow"];
+                };
             };
             /** @description Validation Error */
             422: {

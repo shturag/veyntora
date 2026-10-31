@@ -35,6 +35,7 @@ from veyntora_api.db.models.channels import (
 )
 from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus
 from veyntora_api.db.models.identity import User
+from veyntora_api.governance import service as governance
 from veyntora_api.settings import Settings
 
 GRAPH = "assistant"
@@ -115,8 +116,9 @@ class Runner:
                 db, msg.channel_type, msg.tenant, msg.external_user_id, msg.display_name
             )
             await db.commit()
+            first = (await governance.settings_of(db)).ai_notice
             return Reply(
-                text=LINK_TEXT,
+                text=f"{first}\n\n{LINK_TEXT}",
                 link_url=f"{self.settings.public_base_url.rstrip('/')}/link/{code}",
             )
         bot = await db.get(Chatbot, msg.channel.chatbot_id)
@@ -124,7 +126,9 @@ class Runner:
             return Reply(text="This assistant is not available right now.")
         if not await self.authz.check(f"user:{user.id}", "can_chat", f"chatbot:{bot.id}"):
             return Reply(text="You don't have access to this assistant.")
-        thread, _ = await self._thread(db, msg, user)
+        thread, new = await self._thread(db, msg, user)
+        # Governance: the AI notice opens every new conversation in a channel.
+        notice = (await governance.settings_of(db)).ai_notice if new else None
         if msg.reference:
             thread.reference = msg.reference
         if msg.personal:
@@ -156,7 +160,8 @@ class Runner:
                 },
             )
             answer = answer_from(UUID(thread.thread_id), values)
-        return Reply(text=self.format(answer))
+        text = self.format(answer)
+        return Reply(text=f"{text}\n\n{notice}" if notice else text)
 
     async def resume(self, user: User, thread: ChannelThread, approval_id: str) -> ApiAnswer:
         """Go on after a decided approval (the run reads the decision from the database)."""

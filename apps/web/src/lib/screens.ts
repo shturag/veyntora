@@ -556,6 +556,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/governance/gdpr/[id]",
     shell: "admin",
     phase: 7,
+    built: true,
     area: "governance",
   },
   {

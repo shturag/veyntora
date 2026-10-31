@@ -5085,6 +5085,34 @@
         "title": "FolderReaders",
         "type": "object"
       },
+      "FoundOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "where": {
+            "title": "Where",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "where",
+          "amount",
+          "action"
+        ],
+        "title": "FoundOut",
+        "type": "object"
+      },
       "FrameConfig": {
         "properties": {
           "allowed_origins": {
@@ -5201,6 +5229,25 @@
         ],
         "title": "GateSettings",
         "type": "object"
+      },
+      "GdprKind": {
+        "enum": [
+          "access",
+          "erasure"
+        ],
+        "title": "GdprKind",
+        "type": "string"
+      },
+      "GdprStatus": {
+        "enum": [
+          "received",
+          "in_progress",
+          "blocked_legal_hold",
+          "completed",
+          "rejected"
+        ],
+        "title": "GdprStatus",
+        "type": "string"
       },
       "GenerateInput": {
         "additionalProperties": false,
@@ -5460,6 +5507,10 @@
             "title": "Can Grant",
             "type": "boolean"
           },
+          "can_handle_requests": {
+            "title": "Can Handle Requests",
+            "type": "boolean"
+          },
           "can_hold": {
             "title": "Can Hold",
             "type": "boolean"
@@ -5504,7 +5555,8 @@
           "groups",
           "can_edit",
           "can_hold",
-          "can_grant"
+          "can_grant",
+          "can_handle_requests"
         ],
         "title": "GovernancePage",
         "type": "object"
@@ -8343,6 +8395,49 @@
         "title": "MyDelegate",
         "type": "object"
       },
+      "NewRequest": {
+        "properties": {
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "email": {
+            "maxLength": 320,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/GdprKind"
+          },
+          "received_via": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received Via"
+          }
+        },
+        "required": [
+          "kind",
+          "email"
+        ],
+        "title": "NewRequest",
+        "type": "object"
+      },
       "NoticeInput": {
         "properties": {
           "body": {
@@ -10121,6 +10216,196 @@
           "issue_id"
         ],
         "title": "Reported",
+        "type": "object"
+      },
+      "RequestDetail": {
+        "properties": {
+          "approved": {
+            "title": "Approved",
+            "type": "boolean"
+          },
+          "can_approve": {
+            "title": "Can Approve",
+            "type": "boolean"
+          },
+          "can_handle": {
+            "title": "Can Handle",
+            "type": "boolean"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "days_left": {
+            "title": "Days Left",
+            "type": "integer"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "found": {
+            "items": {
+              "$ref": "#/components/schemas/FoundOut"
+            },
+            "title": "Found",
+            "type": "array"
+          },
+          "has_export": {
+            "title": "Has Export",
+            "type": "boolean"
+          },
+          "has_report": {
+            "title": "Has Report",
+            "type": "boolean"
+          },
+          "held": {
+            "title": "Held",
+            "type": "boolean"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "identity_verified": {
+            "title": "Identity Verified",
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/GdprKind"
+          },
+          "received_via": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received Via"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GdprStatus"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "subject",
+          "status",
+          "due_at",
+          "days_left",
+          "received_via",
+          "completed_at",
+          "summary",
+          "found",
+          "history",
+          "identity_verified",
+          "approved",
+          "held",
+          "can_handle",
+          "can_approve",
+          "has_report",
+          "has_export"
+        ],
+        "title": "RequestDetail",
+        "type": "object"
+      },
+      "RequestRow": {
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "days_left": {
+            "title": "Days Left",
+            "type": "integer"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/GdprKind"
+          },
+          "received_via": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received Via"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GdprStatus"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "summary": {
+            "additionalProperties": true,
+            "title": "Summary",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "subject",
+          "status",
+          "due_at",
+          "days_left",
+          "received_via",
+          "completed_at",
+          "summary"
+        ],
+        "title": "RequestRow",
         "type": "object"
       },
       "RerankFallback": {
@@ -19566,6 +19851,242 @@
           }
         },
         "summary": "Lift a legal hold",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/requests": {
+      "get": {
+        "operationId": "list_requests_v1_admin_governance_requests_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RequestRow"
+                  },
+                  "title": "Response List Requests V1 Admin Governance Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Data subject requests",
+        "tags": [
+          "admin: governance"
+        ]
+      },
+      "post": {
+        "operationId": "create_request_v1_admin_governance_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record a request",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/requests/{request_id}": {
+      "get": {
+        "operationId": "get_request_v1_admin_governance_requests__request_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One request: what is held, checks, history",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/requests/{request_id}/export": {
+      "get": {
+        "operationId": "get_export_v1_admin_governance_requests__request_id__export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The person's data (ZIP; DPO or the requester)",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/requests/{request_id}/report": {
+      "get": {
+        "operationId": "get_report_v1_admin_governance_requests__request_id__report_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The signed confirmation report (JSON)",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/requests/{request_id}/{step}": {
+      "post": {
+        "operationId": "request_step_v1_admin_governance_requests__request_id___step__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "step",
+            "required": true,
+            "schema": {
+              "enum": [
+                "verify",
+                "approve",
+                "carry-out"
+              ],
+              "title": "Step",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify identity, approve, carry out",
         "tags": [
           "admin: governance"
         ]

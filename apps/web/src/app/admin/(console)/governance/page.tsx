@@ -9,6 +9,7 @@ import {
   RoleGroups,
   SettingsForm,
 } from "@/components/governance/governance-actions";
+import { NewRequest } from "@/components/governance/request-actions";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
 
@@ -18,7 +19,11 @@ export const generateMetadata = () => screenMetadata("governance");
 export default async function GovernancePage() {
   const t = await getTranslations("governance");
   const format = await getFormatter();
-  const { data, response } = await (await serverApi()).GET("/v1/admin/governance");
+  const client = await serverApi();
+  const [{ data, response }, { data: requests }] = await Promise.all([
+    client.GET("/v1/admin/governance"),
+    client.GET("/v1/admin/governance/requests"),
+  ]);
   if (!data)
     return response.status === 403 ? (
       <Forbidden />
@@ -36,6 +41,38 @@ export default async function GovernancePage() {
       <div className="grid grid-cols-[1fr_360px] gap-5 max-[1000px]:grid-cols-1">
         <div className="flex flex-col gap-5">
           <SettingsForm data={data} />
+          <section aria-labelledby="requests" className={card}>
+            <div className="flex items-center justify-between gap-2">
+              <h2 id="requests" className="m-0 text-sm font-semibold">
+                {t("requests")}
+              </h2>
+              <NewRequest allowed={data.can_handle_requests} />
+            </div>
+            {(requests ?? []).length === 0 ? (
+              <p className="m-0 text-sm text-fg-secondary">{t("noRequests")}</p>
+            ) : (
+              <ul className="m-0 flex list-none flex-col gap-2 p-0">
+                {(requests ?? []).map((r) => (
+                  <li key={r.id}>
+                    <Link
+                      href={`/admin/governance/gdpr/${r.id}`}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-line p-2 text-fg no-underline"
+                    >
+                      <span className="text-sm font-medium">
+                        {t(`kinds.${r.kind}`)} · {r.subject}
+                      </span>
+                      <span className="text-xs text-fg-secondary">
+                        {t(`statuses.${r.status}`)} ·{" "}
+                        {r.completed_at
+                          ? t("doneOn", { date: date(r.completed_at) })
+                          : t("dueOn", { date: date(r.due_at) })}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
           <section aria-labelledby="external" className={card}>
             <h2 id="external" className="m-0 text-sm font-semibold">
               {t("externalTitle")}

@@ -47,4 +47,24 @@ test.describe("governance as a platform admin", () => {
     await expect(page.getByRole("button", { name: `Lift the hold ${name}` })).toHaveCount(0);
     await legalRole(page, false);
   });
+
+  test("a data subject request: record, verify identity; the requester cannot approve", async ({
+    page,
+  }) => {
+    await page.goto("/admin/governance");
+    await page.getByRole("button", { name: "New request" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Kind").selectOption("access");
+    await dialog.getByLabel("The person's e-mail address").fill("employee@veyntora.local");
+    await dialog.getByLabel("Received via").fill("e2e");
+    await dialog.getByRole("button", { name: "Record request" }).click();
+    await page.waitForURL(/\/admin\/governance\/gdpr\//);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Export (access) request");
+    await expect(page.getByRole("cell", { name: "Chat history" })).toBeVisible();
+    await expectNoA11yViolations(page);
+    await page.getByRole("button", { name: "Mark identity verified" }).click();
+    await expect(page.getByRole("button", { name: "Identity verified" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Approve (DPO)" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Build export" })).toBeDisabled();
+  });
 });

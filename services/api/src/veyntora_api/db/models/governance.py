@@ -84,6 +84,27 @@ class GdprRequest(IdMixin, TimestampMixin, Base):
     report_key: Mapped[str | None] = mapped_column(sa.String(1024))
     report_signature: Mapped[str | None] = mapped_column(sa.Text)
     completed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    received_via: Mapped[str | None] = mapped_column(sa.String(255))
+    identity_verified_by: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    identity_verified_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # The data protection officer who approved (never the requester).
+    approved_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    approved_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # [{"at", "event", "by"}] in order.
+    history: Mapped[list[Any]] = mapped_column(server_default="[]", default=list)
+
+
+class AuditActor(Base):
+    """Names of audit actors, outside the hash chain so erasure can replace them."""
+
+    __tablename__ = "audit_actors"
+
+    actor_id: Mapped[str] = mapped_column(sa.String(255), primary_key=True)
+    name: Mapped[str] = mapped_column(sa.String(255))
+    pseudonym: Mapped[str] = mapped_column(sa.String(32))
+    erased_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
 
 class AuditEvent(Base):
