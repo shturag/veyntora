@@ -9,14 +9,14 @@ import { api } from "@/lib/chat";
 
 import { Section } from "./section";
 
-/** Privacy & data. History and export controls arrive with GDPR requests (Phase 6). */
+/** Privacy & data. History and export controls arrive with GDPR requests (Phase 7). */
 export function Privacy() {
   const t = useTranslations("settings");
   const router = useRouter();
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const later = t("later", { phase: 6 });
+  const later = t("later", { phase: 7 });
 
   async function deleteAll() {
     setBusy(true);
@@ -51,7 +51,7 @@ export function Privacy() {
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <PhaseGatedButton phase={6} label={later}>
+        <PhaseGatedButton phase={7} label={later}>
           {t("export")}
         </PhaseGatedButton>
         <Button variant="danger" onClick={() => setConfirm(true)}>

@@ -2,6 +2,7 @@
 
 - Who decides: members of the tool policy's approver group; without a group, platform
   admins (product owner, 2026-10-31). Never the person who asked, platform admin or not.
+- A person someone named as their delegate (until a date) may decide for them.
 - An approval is open for 24 hours, then expires (counts as rejected).
 - The decision is stored here; the agent reads it from the database when it resumes, so a
   client cannot approve anything by sending a resume message.
@@ -21,6 +22,7 @@ from veyntora_api.core import audit
 from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.automations import Approval, ApprovalDecision, Run, RunStatus
 from veyntora_api.db.models.identity import Membership
+from veyntora_api.people import service as people
 
 APPROVAL_TTL = timedelta(hours=24)
 
@@ -82,9 +84,9 @@ def current(row: Approval, now: datetime | None = None) -> ApprovalDecision:
     return row.decision
 
 
-async def may_decide(db: AsyncSession, authz: Authorizer, user_id: UUID, row: Approval) -> bool:
-    if row.requested_by == user_id:
-        return False
+async def _may_decide_directly(
+    db: AsyncSession, authz: Authorizer, user_id: UUID, row: Approval
+) -> bool:
     if row.approver_group_id is not None:
         member = await db.scalar(
             sa.select(Membership.user_id).where(
@@ -93,6 +95,25 @@ async def may_decide(db: AsyncSession, authz: Authorizer, user_id: UUID, row: Ap
         )
         return member is not None
     return await authz.check(f"user:{user_id}", "platform_admin", PLATFORM)
+
+
+async def on_behalf_of(
+    db: AsyncSession, authz: Authorizer, user_id: UUID, row: Approval
+) -> UUID | None:
+    """Who `user_id` may decide this request for: themselves, or a person who named them
+    as delegate (until a date). Never for a request they made. None: may not decide."""
+    if row.requested_by == user_id:
+        return None
+    if await _may_decide_directly(db, authz, user_id, row):
+        return user_id
+    for delegator in await people.delegators(db, user_id):
+        if delegator != row.requested_by and await _may_decide_directly(db, authz, delegator, row):
+            return delegator
+    return None
+
+
+async def may_decide(db: AsyncSession, authz: Authorizer, user_id: UUID, row: Approval) -> bool:
+    return await on_behalf_of(db, authz, user_id, row) is not None
 
 
 async def decide(
@@ -107,10 +128,14 @@ async def decide(
 ) -> Approval:
     if current(row) is not ApprovalDecision.PENDING:
         raise ApprovalError(f"this request is already {current(row).value}")
-    if not await may_decide(db, authz, user_id, row):
+    approver = await on_behalf_of(db, authz, user_id, row)
+    if approver is None:
         raise ApprovalError("you may not decide this request")
     row.decision = ApprovalDecision.APPROVED if approve else ApprovalDecision.REJECTED
-    row.approver_id, row.note, row.decided_at = user_id, note, datetime.now(UTC)
+    # A delegate decides for the approver: the approver of record, and who clicked.
+    row.approver_id = approver
+    row.delegate_id = user_id if approver != user_id else None
+    row.note, row.decided_at = note, datetime.now(UTC)
     await db.flush()
     await audit.record(
         db,
@@ -123,6 +148,7 @@ async def decide(
             "tool_id": str(row.tool_id) if row.tool_id else None,
             "summary": row.action_summary,
             "note": note,
+            "on_behalf_of": str(approver) if approver != user_id else None,
         },
     )
     return row

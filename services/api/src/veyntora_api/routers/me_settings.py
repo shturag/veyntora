@@ -20,6 +20,7 @@ from veyntora_api.db.models.conversations import Conversation
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.providers import ByokKey
+from veyntora_api.people import service as people
 from veyntora_api.providers import byok
 from veyntora_api.providers.service import ProviderError
 
@@ -241,3 +242,39 @@ async def remove_key(
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------- approval delegate
+
+
+class MyDelegate(BaseModel):
+    delegate_id: UUID | None
+    delegate_name: str | None = None
+    until: datetime | None = None
+
+
+@router.get("/delegate", summary="Who decides my approvals while I am away")
+async def get_delegate(principal: CurrentPrincipal, db: DbSession) -> MyDelegate:
+    user = await _user(db, principal)
+    active = user.approval_delegate_until and user.approval_delegate_until > datetime.now(UTC)
+    if not user.approval_delegate_id or not active:
+        return MyDelegate(delegate_id=None)
+    d = await db.get(User, user.approval_delegate_id)
+    return MyDelegate(
+        delegate_id=user.approval_delegate_id,
+        delegate_name=(d.display_name or d.email) if d else None,
+        until=user.approval_delegate_until,
+    )
+
+
+@router.put("/delegate", summary="Name a delegate for my approvals until a date, or none")
+async def put_delegate(
+    data: MyDelegate, principal: CurrentPrincipal, db: DbSession, ctx: Ctx
+) -> MyDelegate:
+    user = await _user(db, principal)
+    try:
+        await people.set_delegate(db, ctx, user, data.delegate_id, data.until)
+    except people.PeopleError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    await db.commit()
+    return await get_delegate(principal, db)

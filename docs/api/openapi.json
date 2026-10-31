@@ -1,6 +1,65 @@
 {
   "components": {
     "schemas": {
+      "Access": {
+        "properties": {
+          "chatbot": {
+            "title": "Chatbot",
+            "type": "string"
+          },
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "via": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Via",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chatbot_id",
+          "chatbot",
+          "roles",
+          "via"
+        ],
+        "title": "Access",
+        "type": "object"
+      },
+      "Activity": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "target_type": {
+            "title": "Target Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "action",
+          "target_type"
+        ],
+        "title": "Activity",
+        "type": "object"
+      },
       "AdapterOut": {
         "properties": {
           "adapter": {
@@ -1052,6 +1111,58 @@
         "title": "ComponentOut",
         "type": "object"
       },
+      "Condition": {
+        "additionalProperties": false,
+        "properties": {
+          "attribute": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Attribute",
+            "type": "string"
+          },
+          "op": {
+            "enum": [
+              "equals",
+              "not_equals",
+              "in",
+              "at_least",
+              "at_most",
+              "exists"
+            ],
+            "title": "Op",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "attribute",
+          "op"
+        ],
+        "title": "Condition",
+        "type": "object"
+      },
       "ConversationOut": {
         "properties": {
           "chatbot_id": {
@@ -1123,6 +1234,71 @@
           "approve"
         ],
         "title": "DecisionIn",
+        "type": "object"
+      },
+      "Delegate": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Until"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "until"
+        ],
+        "title": "Delegate",
+        "type": "object"
+      },
+      "DelegateIn": {
+        "properties": {
+          "delegate_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delegate Id"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Until"
+          }
+        },
+        "required": [
+          "delegate_id"
+        ],
+        "title": "DelegateIn",
         "type": "object"
       },
       "DocumentOut": {
@@ -1736,6 +1912,218 @@
         "title": "GroundednessAction",
         "type": "string"
       },
+      "GroupDetail": {
+        "properties": {
+          "chatbots": {
+            "title": "Chatbots",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "member_list": {
+            "items": {
+              "$ref": "#/components/schemas/GroupMember"
+            },
+            "title": "Member List",
+            "type": "array"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/GroupRole"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule"
+          },
+          "source": {
+            "$ref": "#/components/schemas/GroupSource"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/GroupTool"
+            },
+            "title": "Tools",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "source",
+          "path",
+          "description",
+          "members",
+          "chatbots",
+          "owner",
+          "rule",
+          "member_list",
+          "roles",
+          "tools",
+          "version"
+        ],
+        "title": "GroupDetail",
+        "type": "object"
+      },
+      "GroupInput": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberInput"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "enum": [
+              "manual",
+              "rule"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "source"
+        ],
+        "title": "GroupInput",
+        "type": "object"
+      },
+      "GroupMember": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/GroupSource"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "source",
+          "expires_at"
+        ],
+        "title": "GroupMember",
+        "type": "object"
+      },
       "GroupOption": {
         "properties": {
           "id": {
@@ -1796,6 +2184,196 @@
           "path"
         ],
         "title": "GroupOut",
+        "type": "object"
+      },
+      "GroupRole": {
+        "properties": {
+          "chatbot": {
+            "title": "Chatbot",
+            "type": "string"
+          },
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chatbot_id",
+          "chatbot",
+          "roles"
+        ],
+        "title": "GroupRole",
+        "type": "object"
+      },
+      "GroupRow": {
+        "properties": {
+          "chatbots": {
+            "title": "Chatbots",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "source": {
+            "$ref": "#/components/schemas/GroupSource"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "source",
+          "path",
+          "description",
+          "members",
+          "chatbots",
+          "owner"
+        ],
+        "title": "GroupRow",
+        "type": "object"
+      },
+      "GroupSource": {
+        "enum": [
+          "keycloak",
+          "rule",
+          "manual"
+        ],
+        "title": "GroupSource",
+        "type": "string"
+      },
+      "GroupTool": {
+        "properties": {
+          "access": {
+            "title": "Access",
+            "type": "string"
+          },
+          "may_approve": {
+            "title": "May Approve",
+            "type": "boolean"
+          },
+          "may_use": {
+            "title": "May Use",
+            "type": "boolean"
+          },
+          "server": {
+            "title": "Server",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          },
+          "tool_id": {
+            "format": "uuid",
+            "title": "Tool Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool_id",
+          "tool",
+          "server",
+          "access",
+          "may_use",
+          "may_approve"
+        ],
+        "title": "GroupTool",
+        "type": "object"
+      },
+      "GroupUpdate": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "GroupUpdate",
         "type": "object"
       },
       "GuardrailsSpec": {
@@ -2328,6 +2906,85 @@
         "title": "MeOut",
         "type": "object"
       },
+      "MemberInput": {
+        "additionalProperties": false,
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "MemberInput",
+        "type": "object"
+      },
+      "MembersIn": {
+        "properties": {
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberInput"
+            },
+            "title": "Members",
+            "type": "array"
+          }
+        },
+        "required": [
+          "members"
+        ],
+        "title": "MembersIn",
+        "type": "object"
+      },
+      "MembershipOut": {
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/GroupSource"
+          }
+        },
+        "required": [
+          "group_id",
+          "group",
+          "source",
+          "expires_at"
+        ],
+        "title": "MembershipOut",
+        "type": "object"
+      },
       "Mode": {
         "enum": [
           "auto",
@@ -2336,6 +2993,50 @@
         ],
         "title": "Mode",
         "type": "string"
+      },
+      "MyDelegate": {
+        "properties": {
+          "delegate_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delegate Id"
+          },
+          "delegate_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delegate Name"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Until"
+          }
+        },
+        "required": [
+          "delegate_id"
+        ],
+        "title": "MyDelegate",
+        "type": "object"
       },
       "NoticeKind": {
         "enum": [
@@ -2408,6 +3109,256 @@
         ],
         "title": "ParentChunk",
         "type": "string"
+      },
+      "PeopleSummary": {
+        "properties": {
+          "groups": {
+            "title": "Groups",
+            "type": "integer"
+          },
+          "keycloak_groups": {
+            "title": "Keycloak Groups",
+            "type": "integer"
+          },
+          "manual_groups": {
+            "title": "Manual Groups",
+            "type": "integer"
+          },
+          "people": {
+            "title": "People",
+            "type": "integer"
+          },
+          "rule_groups": {
+            "title": "Rule Groups",
+            "type": "integer"
+          },
+          "without_access": {
+            "title": "Without Access",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "people",
+          "groups",
+          "keycloak_groups",
+          "rule_groups",
+          "manual_groups",
+          "without_access"
+        ],
+        "title": "PeopleSummary",
+        "type": "object"
+      },
+      "PersonDetail": {
+        "properties": {
+          "access": {
+            "items": {
+              "$ref": "#/components/schemas/Access"
+            },
+            "title": "Access",
+            "type": "array"
+          },
+          "agent_runs_today": {
+            "title": "Agent Runs Today",
+            "type": "integer"
+          },
+          "approvals_decided": {
+            "title": "Approvals Decided",
+            "type": "integer"
+          },
+          "attributes": {
+            "additionalProperties": true,
+            "title": "Attributes",
+            "type": "object"
+          },
+          "chats_30d": {
+            "title": "Chats 30D",
+            "type": "integer"
+          },
+          "delegate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Delegate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_active": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "memberships": {
+            "items": {
+              "$ref": "#/components/schemas/MembershipOut"
+            },
+            "title": "Memberships",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "platform_admin": {
+            "title": "Platform Admin",
+            "type": "boolean"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "suspended": {
+            "title": "Suspended",
+            "type": "boolean"
+          },
+          "suspended_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspended Reason"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "suspended",
+          "suspended_reason",
+          "last_active",
+          "last_synced_at",
+          "attributes",
+          "memberships",
+          "access",
+          "platform_admin",
+          "chats_30d",
+          "approvals_decided",
+          "agent_runs_today",
+          "recent",
+          "delegate"
+        ],
+        "title": "PersonDetail",
+        "type": "object"
+      },
+      "PersonRow": {
+        "properties": {
+          "approves_in": {
+            "title": "Approves In",
+            "type": "integer"
+          },
+          "chatbots": {
+            "title": "Chatbots",
+            "type": "integer"
+          },
+          "edits": {
+            "title": "Edits",
+            "type": "integer"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "groups": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_active": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "platform_admin": {
+            "title": "Platform Admin",
+            "type": "boolean"
+          },
+          "suspended": {
+            "title": "Suspended",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "groups",
+          "chatbots",
+          "approves_in",
+          "edits",
+          "platform_admin",
+          "suspended",
+          "last_active"
+        ],
+        "title": "PersonRow",
+        "type": "object"
       },
       "PiiAction": {
         "enum": [
@@ -3343,6 +4294,28 @@
         "title": "Roles",
         "type": "object"
       },
+      "RolesIn": {
+        "properties": {
+          "roles": {
+            "items": {
+              "enum": [
+                "owner",
+                "editor",
+                "approver",
+                "user"
+              ],
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "roles"
+        ],
+        "title": "RolesIn",
+        "type": "object"
+      },
       "RollbackInput": {
         "properties": {
           "number": {
@@ -3417,6 +4390,34 @@
           }
         },
         "title": "RouterSpec",
+        "type": "object"
+      },
+      "Rule": {
+        "additionalProperties": false,
+        "properties": {
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/Condition"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Conditions",
+            "type": "array"
+          },
+          "match": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match",
+            "type": "string"
+          }
+        },
+        "required": [
+          "conditions"
+        ],
+        "title": "Rule",
         "type": "object"
       },
       "RunApproval": {
@@ -4610,6 +5611,24 @@
           "notices"
         ],
         "title": "StatusOut",
+        "type": "object"
+      },
+      "SuspendIn": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "SuspendIn",
         "type": "object"
       },
       "ToolAccess": {
@@ -5870,6 +6889,596 @@
         "summary": "Replace the sources this chatbot answers from",
         "tags": [
           "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/groups": {
+      "get": {
+        "operationId": "list_groups_v1_admin_groups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupRow"
+                  },
+                  "title": "Response List Groups V1 Admin Groups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Groups with members and chatbot access",
+        "tags": [
+          "admin: users & groups"
+        ]
+      },
+      "post": {
+        "operationId": "create_group_v1_admin_groups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "New manual or rule group",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/groups/{group_id}": {
+      "delete": {
+        "operationId": "delete_group_v1_admin_groups__group_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a group",
+        "tags": [
+          "admin: users & groups"
+        ]
+      },
+      "get": {
+        "operationId": "get_group_v1_admin_groups__group_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One group: members, roles per chatbot, tools",
+        "tags": [
+          "admin: users & groups"
+        ]
+      },
+      "patch": {
+        "operationId": "update_group_v1_admin_groups__group_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename, describe, change owner or rule",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/groups/{group_id}/members": {
+      "put": {
+        "operationId": "put_members_v1_admin_groups__group_id__members_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MembersIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the members of a manual group",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/groups/{group_id}/roles/{bot_id}": {
+      "put": {
+        "operationId": "put_group_roles_v1_admin_groups__group_id__roles__bot_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupRole"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The group's roles on one chatbot",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/people": {
+      "get": {
+        "operationId": "list_people_v1_admin_people_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "no_access",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "No Access",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonRow"
+                  },
+                  "title": "Response List People V1 Admin People Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "People with their groups and effective access",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/people/summary": {
+      "get": {
+        "operationId": "people_summary_v1_admin_people_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeopleSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Counts for the Users & groups header",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/people/{user_id}": {
+      "get": {
+        "operationId": "get_person_v1_admin_people__user_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One person: groups, access, activity, delegate",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/people/{user_id}/delegate": {
+      "put": {
+        "operationId": "put_delegate_v1_admin_people__user_id__delegate_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DelegateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Who decides this person's approvals when away",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/people/{user_id}/suspend": {
+      "post": {
+        "operationId": "suspend_v1_admin_people__user_id__suspend_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspendIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Block a person in Veyntora (not Keycloak)",
+        "tags": [
+          "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/people/{user_id}/unsuspend": {
+      "post": {
+        "operationId": "unsuspend_v1_admin_people__user_id__unsuspend_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Give a suspended person access again",
+        "tags": [
+          "admin: users & groups"
         ]
       }
     },
@@ -7952,6 +9561,66 @@
           }
         },
         "summary": "Remove all of the user's conversations from their list",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/delegate": {
+      "get": {
+        "operationId": "get_delegate_v1_me_delegate_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyDelegate"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Who decides my approvals while I am away",
+        "tags": [
+          "me"
+        ]
+      },
+      "put": {
+        "operationId": "put_delegate_v1_me_delegate_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MyDelegate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyDelegate"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Name a delegate for my approvals until a date, or none",
         "tags": [
           "me"
         ]

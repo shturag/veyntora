@@ -29,6 +29,11 @@ class User(IdMixin, TimestampMixin, Base):
     suspended_reason: Mapped[str | None] = mapped_column(sa.Text)
     last_login_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     last_synced_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # While away: this person may decide the approvals the user could decide, until then.
+    approval_delegate_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )
+    approval_delegate_until: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
 
 class Group(IdMixin, TimestampMixin, VersionedMixin, Base):
@@ -57,6 +62,8 @@ class Membership(Base):
     )
     source: Mapped[GroupSource] = mapped_column(str_enum(GroupSource, "membership_source"))
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
+    # Manual memberships may end (pilots, contractors); removed by the hourly job.
+    expires_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 
 
 class AccessReviewStatus(StrEnum):

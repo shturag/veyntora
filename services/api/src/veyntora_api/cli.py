@@ -37,6 +37,7 @@ from veyntora_api.db.models.governance import ActorType
 from veyntora_api.db.models.identity import Group
 from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.people.service import refresh_groups
 from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.settings import Settings, get_settings
 
@@ -75,6 +76,8 @@ async def sync_identities(s: Settings, authz: Authz) -> None:
             http,
         )
         report, delta = await full_sync(db, kc)
+        # Rule groups follow the attributes that just arrived.
+        delta.extend(await refresh_groups(db))
         await db.commit()
         await delta.apply(authz)
         log.info(

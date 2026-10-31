@@ -486,6 +486,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/users",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "users",
   },
   {
@@ -494,6 +495,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/users/[id]",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "users",
   },
   {
@@ -502,6 +504,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/groups/[id]",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "users",
   },
   {
@@ -510,6 +513,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/groups/new",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "users",
   },
   {

@@ -21,6 +21,7 @@ from veyntora_api.cli import sync_identities
 from veyntora_api.core.config_service import relay_outbox
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
 
 from veyntora_workers.ingest import requeue_stuck, run_pending
@@ -47,6 +48,7 @@ app.conf.update(
         "relay-outbox": {"task": "veyntora.relay_outbox", "schedule": timedelta(seconds=10)},
         "provider-tests": {"task": "veyntora.provider_tests", "schedule": timedelta(seconds=5)},
         "mcp-discovery": {"task": "veyntora.mcp_discovery", "schedule": timedelta(seconds=5)},
+        "groups-refresh": {"task": "veyntora.groups_refresh", "schedule": timedelta(hours=1)},
         # Ticks that wait in the broker longer than the interval are dropped, not piled up.
         "ingest": {
             "task": "veyntora.ingest",
@@ -103,6 +105,23 @@ def identity_sync() -> None:
 @app.task(name="veyntora.provider_tests")
 def provider_tests() -> int:
     return _run(run_queued_provider_tests(settings))
+
+
+@app.task(name="veyntora.groups_refresh")
+def groups_refresh() -> None:
+    """Rule groups follow Keycloak attributes; expired manual memberships end."""
+
+    async def go() -> None:
+        authz = await Authz.connect(settings.openfga_url, settings.openfga_store_name)
+        try:
+            async with get_sessionmaker()() as db:
+                delta = await refresh_groups(db)
+                await db.commit()
+            await delta.apply(authz)
+        finally:
+            await authz.close()
+
+    _run(go())
 
 
 @app.task(name="veyntora.mcp_discovery")
