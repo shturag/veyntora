@@ -9,6 +9,8 @@ import { useState, type FormEvent } from "react";
 import { api } from "@/lib/chat";
 import { section as sectionOf, type Field, type SectionKey } from "@/lib/pipeline";
 
+export type ToolOption = { id: string; name: string; server: string; access: string };
+
 export type ProviderOption = {
   id: string;
   name: string;
@@ -40,6 +42,8 @@ function read(field: Field, form: FormData): unknown {
         .filter(Boolean);
     case "multi":
       return form.getAll(field.name).map(String);
+    case "tools":
+      return form.getAll(field.name).map((id) => ({ tool_id: String(id), enabled: true }));
     default:
       return String(raw ?? "");
   }
@@ -52,6 +56,7 @@ export function SpecForm({
   spec,
   sectionKey,
   providers,
+  tools = [],
   canEdit,
 }: {
   botId: string;
@@ -59,6 +64,8 @@ export function SpecForm({
   spec: PipelineSpec;
   sectionKey: SectionKey;
   providers: ProviderOption[];
+  /** Enabled tools of active MCP servers (Agent section). */
+  tools?: ToolOption[];
   canEdit: boolean;
 }) {
   const t = useTranslations("pipeline");
@@ -231,6 +238,48 @@ export function SpecForm({
                 </label>
               );
             })}
+            {help}
+          </fieldset>
+        );
+      }
+      case "tools": {
+        const bound = ((v as { tool_id: string; enabled?: boolean }[] | undefined) ?? [])
+          .filter((b) => b.enabled !== false)
+          .map((b) => b.tool_id);
+        const gone = bound.filter((id) => !tools.some((tool) => tool.id === id));
+        return (
+          <fieldset key={f.name} className="m-0 flex flex-col gap-1.5 border-0 p-0">
+            <legend className="mb-1 text-[13px] font-medium">{title}</legend>
+            {tools.length === 0 && gone.length === 0 ? (
+              <p className="m-0 text-sm text-fg-muted">{t("noTools")}</p>
+            ) : null}
+            {tools.map((tool) => (
+              <label key={tool.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name={f.name}
+                  value={tool.id}
+                  defaultChecked={bound.includes(tool.id)}
+                  disabled={disabled}
+                />
+                <span className="font-mono">{tool.name}</span>
+                <span className="text-xs text-fg-muted">
+                  {tool.server} · {t(`o.${tool.access}`)}
+                </span>
+              </label>
+            ))}
+            {gone.map((id) => (
+              <label key={id} className="flex items-center gap-2 text-sm text-fg-muted">
+                <input
+                  type="checkbox"
+                  name={f.name}
+                  value={id}
+                  defaultChecked
+                  disabled={disabled}
+                />
+                <span className="font-mono">{id.slice(0, 8)}</span> · {t("toolGone")}
+              </label>
+            ))}
             {help}
           </fieldset>
         );

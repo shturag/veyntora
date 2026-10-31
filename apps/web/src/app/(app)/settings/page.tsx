@@ -23,7 +23,13 @@ export default async function SettingsPage() {
       <h1 className="m-0 text-[26px] font-bold">{t("title")}</h1>
       <PreferencesForm
         initial={
-          prefs ?? { answer_language: "auto", answer_length: "balanced", default_chatbot_id: null }
+          prefs ?? {
+            answer_language: "auto",
+            answer_length: "balanced",
+            default_chatbot_id: null,
+            default_mode: "auto",
+            show_agent_steps: true,
+          }
         }
         assistants={(bots ?? []).map((b) => ({ id: b.id, name: b.name }))}
       />

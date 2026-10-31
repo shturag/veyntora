@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Popover } from "radix-ui";
 import { Fragment, useState } from "react";
 
-import { api, parseAnswer, type AnswerMeta, type CitationMeta } from "@/lib/chat";
+import { api, parseAnswer, type AgentStep, type AnswerMeta, type CitationMeta } from "@/lib/chat";
 
 const chip =
   "mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-accent-soft px-1.5 align-baseline text-xs font-semibold text-accent no-underline hover:bg-accent-soft-strong";
@@ -179,6 +179,41 @@ function AskExpert({ messageId }: { messageId: string }) {
 }
 
 /** One assistant turn: badge line, answer with citations or the no-answer state, actions. */
+/** The agent's steps under an answer: what it searched, called and asked approval for. */
+function AgentSteps({ steps, reason }: { steps: AgentStep[]; reason?: string | null }) {
+  const t = useTranslations("chat");
+  const tools = steps.filter((s) => s.kind === "tool" || s.kind === "search").length;
+  return (
+    <details className="rounded-lg border border-line bg-surface px-4 py-2.5 text-sm">
+      <summary className="cursor-pointer text-fg-secondary">
+        {t("agentSteps", { count: tools })}
+        {reason ? ` · ${reason}` : ""}
+      </summary>
+      <ol className="m-0 mt-2 flex list-none flex-col gap-1 p-0">
+        {steps.map((s, i) => (
+          <li key={i} className="flex justify-between gap-3 border-t border-line pt-1">
+            <span className="min-w-0">
+              <span className="font-medium">{stepLabel(t, s)}</span>
+              {s.detail ? <span className="text-fg-muted"> · {s.detail}</span> : null}
+            </span>
+            <span className="shrink-0 text-xs text-fg-muted">
+              {t(`stepStatus.${s.status}` as "stepStatus.done")}
+              {s.ms ? ` · ${(s.ms / 1000).toFixed(1)} s` : ""}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
+function stepLabel(t: ReturnType<typeof useTranslations<"chat">>, s: AgentStep): string {
+  if (s.kind === "think") return s.name === "answer" ? t("stepAnswer") : t("stepPlan");
+  if (s.kind === "approval") return t("stepApproval", { tool: s.name });
+  if (s.kind === "limit") return t("stepLimit", { limit: s.name });
+  return s.name === "search_documents" ? t("stepSearch") : s.name;
+}
+
 export function AnswerBlock({
   text,
   meta,
@@ -206,7 +241,9 @@ export function AnswerBlock({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center gap-2 text-xs text-fg-muted">
-        <Badge tone="info">{t("modes.fast")}</Badge>
+        <Badge tone={meta.mode_used === "agent" ? "accent" : "info"}>
+          {t(`modes.${meta.mode_used ?? "fast"}`)}
+        </Badge>
         <span>
           {answered ? t("answeredFrom", { count: documents }) : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
@@ -219,6 +256,7 @@ export function AnswerBlock({
           </Tooltip>
         ) : null}
       </div>
+      {meta.steps?.length ? <AgentSteps steps={meta.steps} reason={meta.route_reason} /> : null}
       {answered ? (
         <AnswerText text={text} meta={meta} />
       ) : (

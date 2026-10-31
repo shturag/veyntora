@@ -36,7 +36,9 @@ describe("screen manifest", () => {
   it("has an English and German title and summary for every screen", () => {
     for (const s of SCREENS) {
       for (const messages of [en, de]) {
-        const entry = (messages.screens as Record<string, { title?: string; summary?: string }>)[s.key];
+        const entry = (messages.screens as Record<string, { title?: string; summary?: string }>)[
+          s.key
+        ];
         expect(entry?.title, s.key).toBeTruthy();
         expect(entry?.summary, s.key).toBeTruthy();
       }

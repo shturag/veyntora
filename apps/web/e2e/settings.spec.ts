@@ -22,8 +22,12 @@ test.describe("settings as an employee", () => {
     await expect(page.getByRole("form", { name: "Answers" }).getByRole("status")).toHaveText(
       "Saved.",
     );
-    // Modes arrive with the agent.
-    await expect(page.getByLabel("Default mode")).toBeDisabled();
+    // Auto, Fast and Agent can all be the default.
+    await expect(page.getByLabel("Default mode").locator("option")).toHaveText([
+      "Auto",
+      "Fast",
+      "Agent",
+    ]);
 
     // Own keys only where an assistant's data rule allows them.
     const keys = page.getByRole("region", { name: "My API keys" });

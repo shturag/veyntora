@@ -17,7 +17,10 @@ test.describe("as a platform admin", () => {
     test(`${s.file} → ${s.route}`, async ({ page }) => {
       await page.goto(samplePath(s.route));
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[s.key]!.title);
-      await expect(page.getByTestId("phase-placeholder")).toHaveAttribute("data-phase", String(s.phase));
+      await expect(page.getByTestId("phase-placeholder")).toHaveAttribute(
+        "data-phase",
+        String(s.phase),
+      );
     });
   }
 
@@ -27,7 +30,10 @@ test.describe("as a platform admin", () => {
     for (const label of ["Overview", "Chatbots", "Providers & keys", "Tools (MCP)", "Audit log"]) {
       await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
-    await expect(nav.getByRole("link", { name: "Overview", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Overview", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   for (const colorScheme of ["light", "dark"] as const) {
@@ -46,10 +52,14 @@ test.describe("as a platform admin", () => {
     await page.goto("/home");
     await page.getByRole("button", { name: /Account menu/ }).click();
     await page.getByRole("menuitemradio", { name: "Deutsch" }).click();
-    await expect(page.getByRole("navigation", { name: "Hauptmenü" }).getByRole("link", { name: "Start" })).toBeVisible();
+    await expect(
+      page.getByRole("navigation", { name: "Hauptmenü" }).getByRole("link", { name: "Start" }),
+    ).toBeVisible();
     await page.getByRole("button", { name: /Kontomenü/ }).click();
     await page.getByRole("menuitemradio", { name: "English" }).click();
-    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Home" })).toBeVisible();
+    await expect(
+      page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Home" }),
+    ).toBeVisible();
   });
 });
 

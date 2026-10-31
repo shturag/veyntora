@@ -2721,6 +2721,21 @@
               }
             ],
             "title": "Default Chatbot Id"
+          },
+          "default_mode": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "fast",
+              "agent"
+            ],
+            "title": "Default Mode",
+            "type": "string"
+          },
+          "show_agent_steps": {
+            "default": true,
+            "title": "Show Agent Steps",
+            "type": "boolean"
           }
         },
         "title": "Preferences",

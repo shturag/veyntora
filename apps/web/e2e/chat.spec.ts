@@ -44,7 +44,9 @@ test.describe("chat screens as an employee", () => {
   test("home works at phone width", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/home");
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
     expect(overflow).toBeLessThanOrEqual(0);
   });
 });

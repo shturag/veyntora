@@ -79,7 +79,7 @@ export function Playground({ bots, initialBot }: { bots: Bot[]; initialBot: stri
               {MODES.map((m) => (
                 <label
                   key={m}
-                  title={m === "fast" ? undefined : t("modeLater", { phase: 3 })}
+                  title={m === "fast" ? undefined : t("modeLater")}
                   className={`flex h-9 items-center gap-1 rounded px-3 text-sm ${m === "fast" ? "bg-accent-soft font-medium" : "text-fg-muted"}`}
                 >
                   <input
@@ -94,7 +94,7 @@ export function Playground({ bots, initialBot }: { bots: Bot[]; initialBot: stri
                 </label>
               ))}
             </div>
-            <span className="text-xs text-fg-muted">{t("modeLater", { phase: 3 })}</span>
+            <span className="text-xs text-fg-muted">{t("modeLater")}</span>
           </fieldset>
         </div>
         <label className="flex flex-col gap-1 text-sm font-medium">

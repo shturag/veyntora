@@ -641,7 +641,40 @@
     "deleteChat": "Delete chat",
     "attach": "Attach files to My files",
     "attached": "{count, plural, one {Added to My files. You can ask about it once it is indexed.} other {# files added to My files. You can ask about them once they are indexed.}}",
-    "attachFailed": "The files could not be uploaded."
+    "attachFailed": "The files could not be uploaded.",
+    "agentSteps": "{count, plural, =0 {Agent} one {Agent · # tool call} other {Agent · # tool calls}}",
+    "stepStatus": {
+      "done": "done",
+      "failed": "failed",
+      "rejected": "not done",
+      "approved": "approved",
+      "stopped": "stopped",
+      "running": "running",
+      "waiting": "waiting"
+    },
+    "stepAnswer": "Wrote the answer",
+    "stepPlan": "Planned the next step",
+    "stepApproval": "Approval for {tool}",
+    "stepLimit": "Stopped at the {limit}",
+    "stepSearch": "Searched the documents",
+    "toAgent": "Handed to the agent: {reason}",
+    "live": {
+      "think": "Thinking…",
+      "search": "Searching the documents…",
+      "tool": "Calling {name}…",
+      "approval": "Waiting for approval…",
+      "limit": "Stopping…"
+    },
+    "approvalTitle": "Waiting for approval",
+    "approvalText": "The agent wants to use {tool} ({server}). Nothing happens until a person approves it.",
+    "approvalWho": "An approver for this tool decides; you cannot approve your own request. The answer continues here once it is decided.",
+    "stopAgent": "Stop",
+    "decision": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    }
   },
   "source": {
     "updated": "updated {date}",
@@ -1165,6 +1198,10 @@
       "pii_instance_id": {
         "label": "PII provider",
         "hint": "Finds names, addresses and IDs (e.g. Azure AI Language). E-mail, IBAN, phone and card numbers are always found by local rules."
+      },
+      "tools": {
+        "label": "Tools",
+        "hint": "The agent can always search the chatbot's documents. Write tools wait for an approval every time."
       }
     },
     "o": {
@@ -1195,9 +1232,13 @@
       "mask": "Mask",
       "block": "Block",
       "refuse": "Refuse",
-      "handoff": "Offer a person"
+      "handoff": "Offer a person",
+      "read": "read",
+      "write": "write"
     },
-    "testInPlayground": "Test in Playground"
+    "testInPlayground": "Test in Playground",
+    "noTools": "No tools are enabled yet. Register an MCP server under Tools (MCP) and enable its tools.",
+    "toolGone": "not available any more (publishing names it)"
   },
   "playground": {
     "title": "Playground",
@@ -1211,7 +1252,7 @@
       "agent": "Agent",
       "auto": "Auto"
     },
-    "modeLater": "Agent and Auto arrive in Phase {phase}.",
+    "modeLater": "Playground tests Fast mode. Agent and Auto runs are tested in chat and shown in Run trace.",
     "question": "Question",
     "questionPlaceholder": "Ask what your users would ask…",
     "runBoth": "Run both",
@@ -1258,7 +1299,9 @@
     "answers": "Answers",
     "defaultMode": "Default mode",
     "modes": {
-      "fast": "Fast"
+      "auto": "Auto",
+      "fast": "Fast",
+      "agent": "Agent"
     },
     "later": "Arrives in Phase {phase}.",
     "answerLanguage": "Answer language",
@@ -1432,5 +1475,76 @@
     "acknowledge": "I read the flagged description",
     "save": "Save",
     "saved": "Saved."
+  },
+  "approvals": {
+    "title": "Approvals",
+    "subtitle": "Actions agents want to take. Nothing happens until a person approves it.",
+    "tabs": "Approvals",
+    "scopes": {
+      "to_decide": "To decide",
+      "mine": "My requests",
+      "decided": "Decided by me"
+    },
+    "empty": {
+      "to_decide": "Nothing waits for your decision.",
+      "mine": "You have no requests.",
+      "decided": "You have not decided any requests yet."
+    },
+    "asked": "Asked by {name} in {chatbot}",
+    "access": {
+      "read": "Read",
+      "write": "Write",
+      "destructive": "Destructive"
+    },
+    "decision": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "whatHappens": "What will happen",
+    "decidedBy": "Decided by {name}",
+    "expires": "Open until {when}",
+    "note": "Note (optional)",
+    "approve": "Approve",
+    "reject": "Reject",
+    "yours": "Your own request: someone else decides it.",
+    "failed": "Not saved: {reason}"
+  },
+  "runs": {
+    "title": "Run trace",
+    "statuses": {
+      "queued": "Queued",
+      "running": "Running",
+      "waiting_approval": "Waiting for approval",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "cancelled": "Stopped"
+    },
+    "kinds": {
+      "chat_agent": "Agent in chat",
+      "automation": "Automation"
+    },
+    "steps": "Steps",
+    "tokens": "Tokens",
+    "grounded": "Grounded",
+    "stepKinds": {
+      "think": "Model",
+      "tool": "Tool",
+      "search": "Search",
+      "approval": "Approval",
+      "limit": "Limit"
+    },
+    "approvals": "Approvals",
+    "decisions": {
+      "pending": "waiting",
+      "approved": "approved",
+      "rejected": "rejected",
+      "expired": "expired"
+    },
+    "toolCalls": "Tool calls",
+    "noCalls": "No tool calls.",
+    "failed": "failed",
+    "answer": "Answer"
   }
 }

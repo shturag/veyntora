@@ -10,7 +10,7 @@ test.describe("playground as a platform admin", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Playground");
     const form = page.getByRole("form", { name: "Test query" });
     if ((await form.count()) === 0) test.skip(true, "no chatbots in this database");
-    // Agent and Auto arrive with the agent; they are shown but cannot be chosen.
+    // The Playground tests Fast; Agent and Auto runs are tested in chat.
     await expect(form.getByRole("radio", { name: "Agent" })).toBeDisabled();
     const run = form.getByRole("button", { name: /Run (both|draft)/ });
     await expect(run).toBeDisabled();

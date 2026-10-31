@@ -96,7 +96,14 @@ export const SCREENS: readonly Screen[] = [
   },
   { key: "library", file: "Library.html", route: "/library", shell: "user", phase: 1, built: true },
   { key: "savedAnswers", file: "SavedAnswers.html", route: "/saved", shell: "user", phase: 5 },
-  { key: "approvals", file: "Approvals.html", route: "/approvals", shell: "user", phase: 3 },
+  {
+    key: "approvals",
+    file: "Approvals.html",
+    route: "/approvals",
+    shell: "user",
+    phase: 3,
+    built: true,
+  },
   { key: "handoff", file: "Handoff.html", route: "/handoff", shell: "user", phase: 5 },
   {
     key: "settings",
@@ -418,6 +425,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/runs/[id]",
     shell: "admin",
     phase: 3,
+    built: true,
     area: "automations",
   },
 

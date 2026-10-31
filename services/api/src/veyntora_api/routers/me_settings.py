@@ -32,6 +32,10 @@ class Preferences(BaseModel):
     # Applies when the chatbot answers in the language of the question ("auto").
     answer_language: Literal["auto", "de", "en"] = "auto"
     answer_length: Literal["balanced", "short", "detailed"] = "balanced"
+    # The mode a new question starts in (the chatbot's pipeline may allow fewer).
+    default_mode: Literal["auto", "fast", "agent"] = "auto"
+    # Show the agent's steps live while it works (they stay under the answer either way).
+    show_agent_steps: bool = True
     default_chatbot_id: UUID | None = None
 
 

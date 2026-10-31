@@ -7,6 +7,8 @@ import { useState } from "react";
 
 import { newThread } from "@/lib/chat";
 
+import type { Mode } from "@/lib/chat";
+
 import { Composer } from "./composer";
 
 export type Assistant = { id: string; name: string; description: string };
@@ -15,16 +17,19 @@ export type Assistant = { id: string; name: string; description: string };
 export function HomeClient({
   assistants,
   initial,
+  initialMode = "auto",
 }: {
   assistants: Assistant[];
   /** The default assistant chosen in Settings, if the user may still use it. */
   initial?: string | null;
+  initialMode?: Mode;
 }) {
   const t = useTranslations("chat");
   const router = useRouter();
   const [selected, setSelected] = useState(
     assistants.find((a) => a.id === initial)?.id ?? assistants[0]?.id ?? "",
   );
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
 
@@ -33,7 +38,7 @@ export function HomeClient({
     setError(false);
     try {
       const thread = await newThread();
-      const params = new URLSearchParams({ bot: selected, q: question });
+      const params = new URLSearchParams({ bot: selected, q: question, mode });
       router.push(`/chat/${thread}?${params.toString()}`);
     } catch {
       setError(true);
@@ -81,7 +86,7 @@ export function HomeClient({
           ))}
         </div>
       </div>
-      <Composer onSubmit={start} busy={busy} autoFocus />
+      <Composer onSubmit={start} mode={mode} onModeChange={setMode} busy={busy} autoFocus />
       {error ? (
         <p role="alert" className="m-0 text-sm text-red">
           {t("startFailed")}

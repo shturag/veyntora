@@ -2164,6 +2164,17 @@ export interface components {
             answer_length: "balanced" | "short" | "detailed";
             /** Default Chatbot Id */
             default_chatbot_id?: string | null;
+            /**
+             * Default Mode
+             * @default auto
+             * @enum {string}
+             */
+            default_mode: "auto" | "fast" | "agent";
+            /**
+             * Show Agent Steps
+             * @default true
+             */
+            show_agent_steps: boolean;
         };
         /** ProviderInput */
         ProviderInput: {

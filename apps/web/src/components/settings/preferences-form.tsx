@@ -11,7 +11,7 @@ import { control, field, Section } from "./section";
 
 type Preferences = components["schemas"]["Preferences"];
 
-/** Answer preferences. Modes and agent options arrive with the agent (Phase 3). */
+/** Answer preferences. Follow-up suggestions arrive with answer quality features (Phase 5). */
 export function PreferencesForm({
   initial,
   assistants,
@@ -35,6 +35,8 @@ export function PreferencesForm({
           answer_language: form.get("answer_language"),
           answer_length: form.get("answer_length"),
           default_chatbot_id: String(form.get("default_chatbot_id") || "") || null,
+          default_mode: form.get("default_mode"),
+          show_agent_steps: form.get("show_agent_steps") === "on",
         }),
       });
       setMessage({ ok: true, text: t("saved") });
@@ -48,17 +50,20 @@ export function PreferencesForm({
     }
   }
 
-  const later = t("later", { phase: 3 });
+  const later = t("later", { phase: 5 });
   return (
     <Section id="answers" title={t("answers")}>
       <form aria-labelledby="answers" onSubmit={save} className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-4 max-[640px]:grid-cols-1">
-          <label className={field} title={later}>
+          <label className={field}>
             {t("defaultMode")}
-            <select disabled defaultValue="fast" className={control}>
-              <option value="fast">{t("modes.fast")}</option>
+            <select name="default_mode" defaultValue={initial.default_mode} className={control}>
+              {(["auto", "fast", "agent"] as const).map((v) => (
+                <option key={v} value={v}>
+                  {t(`modes.${v}`)}
+                </option>
+              ))}
             </select>
-            <span className="text-xs font-normal text-fg-muted">{later}</span>
           </label>
           <label className={field}>
             {t("answerLanguage")}
@@ -102,12 +107,19 @@ export function PreferencesForm({
           </label>
         </div>
         <div className="flex flex-col gap-2">
-          {(["showAgentSteps", "suggestFollowUps"] as const).map((k) => (
-            <label key={k} title={later} className="flex items-center gap-2 text-sm text-fg-muted">
-              <input type="checkbox" disabled className="size-4" />
-              {t(k)} · {later}
-            </label>
-          ))}
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="show_agent_steps"
+              defaultChecked={initial.show_agent_steps}
+              className="size-4"
+            />
+            {t("showAgentSteps")}
+          </label>
+          <label title={later} className="flex items-center gap-2 text-sm text-fg-muted">
+            <input type="checkbox" disabled className="size-4" />
+            {t("suggestFollowUps")} · {later}
+          </label>
         </div>
         <div className="flex items-center gap-3">
           <Button type="submit" variant="primary" disabled={busy}>

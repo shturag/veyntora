@@ -1,4 +1,8 @@
-/** Chat data shared by the chat components: what the fast_rag graph puts on each answer. */
+/** Chat data shared by the chat components: what the assistant graph puts on each answer. */
+
+/** Answer modes: Auto lets the router choose (the pipeline may allow fewer). */
+export type Mode = "auto" | "fast" | "agent";
+export const MODES: readonly Mode[] = ["auto", "fast", "agent"];
 
 export type Outcome = "answered" | "no_answer" | "blocked" | "refused";
 
@@ -22,6 +26,28 @@ export type AnswerMeta = {
   latency_ms?: number;
   handoff_available?: boolean;
   citations?: CitationMeta[];
+  mode_used?: "fast" | "agent";
+  route_reason?: string | null;
+  run_id?: string;
+  steps?: AgentStep[];
+};
+
+/** One agent step (think, search, a tool call, an approval, a limit). */
+export type AgentStep = {
+  kind: "think" | "tool" | "approval" | "limit" | "search";
+  name: string;
+  status: string;
+  ms: number;
+  detail: string;
+};
+
+/** What the agent waits for (the graph's interrupt value). */
+export type ApprovalWait = {
+  type: "approval";
+  approval_id: string;
+  tool: string;
+  server: string;
+  summary: string;
 };
 
 export type GraphMessage = {
@@ -35,7 +61,15 @@ export type ChatState = { messages: GraphMessage[]; chatbot_id?: string };
 
 export type StatusEvent = { type: "status"; step: "searching" | "writing"; sources?: number };
 export type TokenEvent = { type: "token"; text: string };
-export type ChatEvent = StatusEvent | TokenEvent;
+export type StepEvent = {
+  type: "step";
+  kind: string;
+  status: string;
+  name?: string;
+  approval_id?: string;
+};
+export type RouteEvent = { type: "route"; mode: "fast" | "agent"; reason: string };
+export type ChatEvent = StatusEvent | TokenEvent | StepEvent | RouteEvent;
 
 export const CSRF_HEADERS = { "x-veyntora-csrf": "1" } as const;
 

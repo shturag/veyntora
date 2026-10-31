@@ -10,7 +10,7 @@ import { serverApi } from "@/lib/api/server";
 import { SECTIONS, sectionHref, type SectionKey } from "@/lib/pipeline";
 
 import { PublishButton } from "./publish-button";
-import { SpecForm, type ProviderOption } from "./spec-form";
+import { SpecForm, type ProviderOption, type ToolOption } from "./spec-form";
 
 /** One Pipeline page (prototype: Pipeline*.html): header, steps, the section's form, checks. */
 export async function PipelinePage({
@@ -31,7 +31,10 @@ export async function PipelinePage({
   if (detail.response.status === 403) return <Forbidden />;
   const bot = detail.data;
   if (!bot) notFound();
-  const { data: providers } = await api.GET("/v1/admin/providers");
+  const [{ data: providers }, { data: tools }] = await Promise.all([
+    api.GET("/v1/admin/providers"),
+    sectionKey === "agent" ? api.GET("/v1/admin/tools/available") : Promise.resolve({ data: [] }),
+  ]);
   // Editors of the area or of this chatbot; the API checks can_edit_draft on save.
   const canEdit = access.level !== "viewer";
   const spec = bot.draft.spec as unknown as PipelineSpec;
@@ -93,6 +96,7 @@ export async function PipelinePage({
           spec={spec}
           sectionKey={sectionKey}
           providers={(providers ?? []) as ProviderOption[]}
+          tools={(tools ?? []) as ToolOption[]}
           canEdit={canEdit}
         />
         <aside

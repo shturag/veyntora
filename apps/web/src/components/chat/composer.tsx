@@ -1,18 +1,22 @@
 "use client";
 
-import { Button, Tooltip, cn } from "@veyntora/ui";
+import { Button, cn } from "@veyntora/ui";
 import { Paperclip } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
+import { MODES, type Mode } from "@/lib/chat";
+
 import { ACCEPT, uploadMyFiles } from "./my-files";
 
 /**
- * Question box with the answer-mode switch (prototype: Home.html, ChatFast.html). Fast is the
- * only mode until the router and the agent arrive (Phase 3); the others are shown disabled.
+ * Question box with the answer-mode switch (prototype: Home.html, ChatFast.html). Auto lets
+ * the router choose; the chatbot's pipeline may allow fewer modes (the server falls back).
  */
 export function Composer({
   onSubmit,
+  mode,
+  onModeChange,
   busy = false,
   disabled = false,
   rows = 3,
@@ -20,6 +24,8 @@ export function Composer({
   submitLabel,
 }: {
   onSubmit: (question: string) => void;
+  mode: Mode;
+  onModeChange: (mode: Mode) => void;
   busy?: boolean;
   disabled?: boolean;
   rows?: number;
@@ -108,33 +114,21 @@ export function Composer({
             aria-label={t("mode")}
             className="flex gap-0.5 rounded-md bg-sunken p-[3px]"
           >
-            {(["auto", "fast", "agent"] as const).map((mode) =>
-              mode === "fast" ? (
-                <span
-                  key={mode}
-                  role="radio"
-                  aria-checked="true"
-                  className="rounded-[8px] bg-surface px-3 py-1.5 text-[13px] font-medium text-fg shadow-sm"
-                >
-                  {t(`modes.${mode}`)}
-                </span>
-              ) : (
-                <Tooltip key={mode} content={t("modeLater", { phase: 3 })}>
-                  <span
-                    role="radio"
-                    aria-checked="false"
-                    aria-disabled="true"
-                    tabIndex={0}
-                    className={cn(
-                      "rounded-[8px] px-3 py-1.5 text-[13px] text-fg-muted",
-                      "cursor-not-allowed",
-                    )}
-                  >
-                    {t(`modes.${mode}`)}
-                  </span>
-                </Tooltip>
-              ),
-            )}
+            {MODES.map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => onModeChange(m)}
+                className={cn(
+                  "rounded-[8px] px-3 py-1.5 text-[13px]",
+                  mode === m ? "bg-surface font-medium text-fg shadow-sm" : "text-fg-muted",
+                )}
+              >
+                {t(`modes.${m}`)}
+              </button>
+            ))}
           </div>
         </div>
         <Button type="submit" variant="primary" size="lg" disabled={!ready}>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { ChatHeaderActions } from "@/components/chat/chat-header-menu";
 import { ChatView } from "@/components/chat/chat-view";
+import { MODES } from "@/lib/chat";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
 
@@ -9,17 +10,19 @@ export const generateMetadata = () => screenMetadata("chat");
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ bot?: string; q?: string }>;
+  searchParams: Promise<{ bot?: string; q?: string; mode?: string }>;
 };
 
 export default async function ChatPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { bot, q } = await searchParams;
+  const { bot, q, mode } = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const api = await serverApi();
-  const conv = await api.GET("/v1/chat/threads/{thread_id}", {
-    params: { path: { thread_id: id } },
-  });
+  const [conv, { data: prefs }] = await Promise.all([
+    api.GET("/v1/chat/threads/{thread_id}", { params: { path: { thread_id: id } } }),
+    api.GET("/v1/me/preferences"),
+  ]);
+  const initialMode = MODES.find((m) => m === mode) ?? prefs?.default_mode ?? "auto";
 
   let chatbotId = conv.data?.chatbot_id;
   let chatbotName = conv.data?.chatbot_name;
@@ -42,7 +45,13 @@ export default async function ChatPage({ params, searchParams }: Props) {
         </div>
         <ChatHeaderActions conversationId={conv.data?.id} />
       </header>
-      <ChatView threadId={id} chatbotId={chatbotId} initialQuestion={conv.data ? undefined : q} />
+      <ChatView
+        threadId={id}
+        chatbotId={chatbotId}
+        initialMode={initialMode}
+        showSteps={prefs?.show_agent_steps ?? true}
+        initialQuestion={conv.data ? undefined : q}
+      />
     </div>
   );
 }

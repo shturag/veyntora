@@ -641,7 +641,40 @@
     "deleteChat": "Chat löschen",
     "attach": "Dateien zu „Meine Dateien“ hinzufügen",
     "attached": "{count, plural, one {Zu „Meine Dateien“ hinzugefügt. Du kannst danach fragen, sobald sie indiziert ist.} other {# Dateien zu „Meine Dateien“ hinzugefügt. Du kannst danach fragen, sobald sie indiziert sind.}}",
-    "attachFailed": "Die Dateien konnten nicht hochgeladen werden."
+    "attachFailed": "Die Dateien konnten nicht hochgeladen werden.",
+    "agentSteps": "{count, plural, =0 {Agent} one {Agent · # Tool-Aufruf} other {Agent · # Tool-Aufrufe}}",
+    "stepStatus": {
+      "done": "erledigt",
+      "failed": "fehlgeschlagen",
+      "rejected": "nicht ausgeführt",
+      "approved": "genehmigt",
+      "stopped": "gestoppt",
+      "running": "läuft",
+      "waiting": "wartet"
+    },
+    "stepAnswer": "Antwort geschrieben",
+    "stepPlan": "Nächsten Schritt geplant",
+    "stepApproval": "Genehmigung für {tool}",
+    "stepLimit": "Gestoppt: {limit}",
+    "stepSearch": "Dokumente durchsucht",
+    "toAgent": "An den Agenten übergeben: {reason}",
+    "live": {
+      "think": "Denkt nach…",
+      "search": "Durchsucht die Dokumente…",
+      "tool": "Ruft {name} auf…",
+      "approval": "Wartet auf Genehmigung…",
+      "limit": "Hält an…"
+    },
+    "approvalTitle": "Wartet auf Genehmigung",
+    "approvalText": "Der Agent möchte {tool} ({server}) nutzen. Es passiert nichts, bis eine Person zustimmt.",
+    "approvalWho": "Eine genehmigende Person für dieses Tool entscheidet; eigene Anfragen kannst du nicht genehmigen. Die Antwort geht hier weiter, sobald entschieden ist.",
+    "stopAgent": "Stoppen",
+    "decision": {
+      "pending": "Wartet",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "expired": "Abgelaufen"
+    }
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -1165,6 +1198,10 @@
       "pii_instance_id": {
         "label": "PII-Anbieter",
         "hint": "Findet Namen, Adressen und Kennungen (z. B. Azure AI Language). E-Mail, IBAN, Telefon- und Kartennummern finden lokale Regeln immer."
+      },
+      "tools": {
+        "label": "Tools",
+        "hint": "Der Agent kann immer die Dokumente des Chatbots durchsuchen. Schreibende Tools warten jedes Mal auf eine Genehmigung."
       }
     },
     "o": {
@@ -1195,9 +1232,13 @@
       "mask": "Maskieren",
       "block": "Blockieren",
       "refuse": "Ablehnen",
-      "handoff": "Person anbieten"
+      "handoff": "Person anbieten",
+      "read": "lesen",
+      "write": "schreiben"
     },
-    "testInPlayground": "Im Playground testen"
+    "testInPlayground": "Im Playground testen",
+    "noTools": "Noch keine Tools aktiv. Registriere einen MCP-Server unter Tools (MCP) und aktiviere seine Tools.",
+    "toolGone": "nicht mehr verfügbar (beim Veröffentlichen genannt)"
   },
   "playground": {
     "title": "Playground",
@@ -1211,7 +1252,7 @@
       "agent": "Agent",
       "auto": "Auto"
     },
-    "modeLater": "Agent und Auto kommen in Phase {phase}.",
+    "modeLater": "Der Playground testet den Schnellmodus. Agent- und Auto-Läufe testest du im Chat; sie erscheinen in der Lauf-Ansicht.",
     "question": "Frage",
     "questionPlaceholder": "Frag, was deine Nutzer fragen würden…",
     "runBoth": "Beide ausführen",
@@ -1258,7 +1299,9 @@
     "answers": "Antworten",
     "defaultMode": "Standardmodus",
     "modes": {
-      "fast": "Schnell"
+      "auto": "Auto",
+      "fast": "Schnell",
+      "agent": "Agent"
     },
     "later": "Kommt in Phase {phase}.",
     "answerLanguage": "Antwortsprache",
@@ -1432,5 +1475,76 @@
     "acknowledge": "Ich habe die markierte Beschreibung gelesen",
     "save": "Speichern",
     "saved": "Gespeichert."
+  },
+  "approvals": {
+    "title": "Genehmigungen",
+    "subtitle": "Aktionen, die Agenten ausführen möchten. Es passiert nichts, bis eine Person zustimmt.",
+    "tabs": "Genehmigungen",
+    "scopes": {
+      "to_decide": "Zu entscheiden",
+      "mine": "Meine Anfragen",
+      "decided": "Von mir entschieden"
+    },
+    "empty": {
+      "to_decide": "Nichts wartet auf deine Entscheidung.",
+      "mine": "Du hast keine Anfragen.",
+      "decided": "Du hast noch keine Anfragen entschieden."
+    },
+    "asked": "Angefragt von {name} in {chatbot}",
+    "access": {
+      "read": "Lesen",
+      "write": "Schreiben",
+      "destructive": "Zerstörend"
+    },
+    "decision": {
+      "pending": "Wartet",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "expired": "Abgelaufen"
+    },
+    "whatHappens": "Was passieren wird",
+    "decidedBy": "Entschieden von {name}",
+    "expires": "Offen bis {when}",
+    "note": "Notiz (optional)",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "yours": "Deine eigene Anfrage: jemand anderes entscheidet.",
+    "failed": "Nicht gespeichert: {reason}"
+  },
+  "runs": {
+    "title": "Lauf-Ansicht",
+    "statuses": {
+      "queued": "Eingereiht",
+      "running": "Läuft",
+      "waiting_approval": "Wartet auf Genehmigung",
+      "succeeded": "Erfolgreich",
+      "failed": "Fehlgeschlagen",
+      "cancelled": "Gestoppt"
+    },
+    "kinds": {
+      "chat_agent": "Agent im Chat",
+      "automation": "Automatisierung"
+    },
+    "steps": "Schritte",
+    "tokens": "Tokens",
+    "grounded": "Belegt",
+    "stepKinds": {
+      "think": "Modell",
+      "tool": "Tool",
+      "search": "Suche",
+      "approval": "Genehmigung",
+      "limit": "Grenze"
+    },
+    "approvals": "Genehmigungen",
+    "decisions": {
+      "pending": "wartet",
+      "approved": "genehmigt",
+      "rejected": "abgelehnt",
+      "expired": "abgelaufen"
+    },
+    "toolCalls": "Tool-Aufrufe",
+    "noCalls": "Keine Tool-Aufrufe.",
+    "failed": "fehlgeschlagen",
+    "answer": "Antwort"
   }
 }

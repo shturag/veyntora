@@ -7,7 +7,9 @@ test.describe("public pages", () => {
     test(`landing page renders and is accessible (${colorScheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
       await page.goto("/");
-      await expect(page.getByRole("heading", { level: 1 })).toContainText("Ask your company anything.");
+      await expect(page.getByRole("heading", { level: 1 })).toContainText(
+        "Ask your company anything.",
+      );
       await expect(page.getByText("API keys ever shown in the UI")).toBeVisible();
       // No sample data from the prototype.
       await expect(page.getByText("1,240 users")).toHaveCount(0);
@@ -61,6 +63,9 @@ test("help opens without signing in and only describes what exists", async ({ pa
   await page.goto("/help");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Help");
   await expect(page.getByText(/not available yet/)).toBeVisible();
-  await expect(page.getByRole("link", { name: "System status" })).toHaveAttribute("href", "/status");
+  await expect(page.getByRole("link", { name: "System status" })).toHaveAttribute(
+    "href",
+    "/status",
+  );
   await expectNoA11yViolations(page);
 });

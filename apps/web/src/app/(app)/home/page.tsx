@@ -27,6 +27,7 @@ export default async function HomePage() {
         </div>
         <HomeClient
           initial={prefs?.default_chatbot_id}
+          initialMode={prefs?.default_mode ?? "auto"}
           assistants={(data ?? []).map((b) => ({
             id: b.id,
             name: b.name,

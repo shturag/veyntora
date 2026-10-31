@@ -16,7 +16,9 @@ export type Field =
   | { name: string; kind: "text" }
   | { name: string; kind: "textarea"; rows?: number }
   | { name: string; kind: "list" }
-  | { name: string; kind: "multi"; options: readonly string[]; locked?: readonly string[] };
+  | { name: string; kind: "multi"; options: readonly string[]; locked?: readonly string[] }
+  // MCP tools bound to the agent: [{tool_id, enabled}], chosen from the enabled tools.
+  | { name: string; kind: "tools" };
 
 export type Section = {
   key: SectionKey;
@@ -101,9 +103,9 @@ export const SECTIONS: readonly Section[] = [
     key: "agent",
     spec: "agent",
     path: "agent",
-    runtimePhase: 3,
     fields: [
       { name: "llm_instance_id", kind: "instance", capability: "llm", optional: true },
+      { name: "tools", kind: "tools" },
       { name: "max_steps", kind: "number", min: 1, max: 50 },
       { name: "timeout_seconds", kind: "number", min: 5, max: 3600 },
       { name: "token_budget", kind: "number", min: 1000, max: 2000000, step: 1000 },
@@ -113,7 +115,6 @@ export const SECTIONS: readonly Section[] = [
     key: "router",
     spec: "router",
     path: "router",
-    runtimePhase: 3,
     fields: [
       { name: "allowed_modes", kind: "multi", options: ["auto", "fast", "agent"] },
       { name: "default_mode", kind: "select", options: ["auto", "fast", "agent"] },

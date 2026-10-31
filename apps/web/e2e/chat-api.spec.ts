@@ -24,8 +24,14 @@ test.describe("chat proxy to the graph server", () => {
     expect(thread_id).toMatch(/^[0-9a-f-]{36}$/);
 
     // Graph server endpoints the chat does not need stay hidden.
-    expect((await api.post("/api/v1/chat/lg/assistants/search", { data: {}, headers: CSRF })).status()).toBe(404);
-    expect((await api.post(`/api/v1/chat/lg/threads/${thread_id}/state`, { data: {}, headers: CSRF })).status()).toBe(404);
+    expect(
+      (await api.post("/api/v1/chat/lg/assistants/search", { data: {}, headers: CSRF })).status(),
+    ).toBe(404);
+    expect(
+      (
+        await api.post(`/api/v1/chat/lg/threads/${thread_id}/state`, { data: {}, headers: CSRF })
+      ).status(),
+    ).toBe(404);
 
     const run = await api.post(`/api/v1/chat/lg/threads/${thread_id}/runs/stream`, {
       data: {
