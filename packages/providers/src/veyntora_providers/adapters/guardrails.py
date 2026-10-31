@@ -20,7 +20,7 @@ from typing import Any, Literal
 import httpx
 
 from veyntora_providers.instance import ProviderInstanceConfig
-from veyntora_providers.interfaces import Capability, HealthResult, Verdict
+from veyntora_providers.interfaces import Capability, HealthResult, KeyRejectedError, Verdict
 from veyntora_providers.registry import register
 from veyntora_providers.secrets import SecretReader
 
@@ -49,6 +49,8 @@ async def _post(
         res = await http.post(url, json=body, headers=headers)
     if res.status_code == 429 or res.status_code >= 500:
         raise httpx.TransportError(f"{name} is busy (HTTP {res.status_code})")
+    if res.status_code in (401, 403):
+        raise KeyRejectedError(f"{name} rejected the key (HTTP {res.status_code})")
     if res.status_code != 200:
         raise GuardrailRequestError(f"{name} refused the request (HTTP {res.status_code})")
     data: dict[str, Any] = res.json()
@@ -71,7 +73,7 @@ class _Base:
         start = time.perf_counter()
         try:
             await self._probe()
-        except (httpx.HTTPError, GuardrailRequestError, ValueError) as exc:
+        except (httpx.HTTPError, GuardrailRequestError, KeyRejectedError, ValueError) as exc:
             return HealthResult(False, (time.perf_counter() - start) * 1000, str(exc)[:200])
         return HealthResult(True, (time.perf_counter() - start) * 1000)
 

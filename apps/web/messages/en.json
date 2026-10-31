@@ -738,7 +738,31 @@
     "hostingDepends": "Self-hosted or external, as you declare",
     "apiKey": "API key",
     "create": "Add provider",
-    "createFailed": "The provider could not be added (error {code})."
+    "createFailed": "The provider could not be added (error {code}).",
+    "fallback": "Fallback provider",
+    "noFallback": "None",
+    "fallbackHint": "Used when this provider fails, and instead of it while it is disabled. Data rules cover the fallback too.",
+    "priceIn": "Input price (EUR per 1M tokens)",
+    "priceOut": "Output price (EUR per 1M tokens)",
+    "disable": "Disable",
+    "enable": "Enable",
+    "enabledNow": "Provider enabled.",
+    "disabledNow": "Provider disabled. Its fallback answers instead.",
+    "disabled": "Disabled",
+    "previousKeyUntil": "The replaced key is still tried until {until} if the new one is rejected.",
+    "grace": "Old key keeps working",
+    "graces": {
+      "now": "Stops now",
+      "1h": "1 hour",
+      "24h": "24 hours",
+      "7d": "7 days"
+    },
+    "usage": "Usage, last 30 days",
+    "calls": "Calls",
+    "tokens": "Tokens",
+    "cost": "Cost",
+    "noUsage": "No model calls recorded yet.",
+    "usageHint": "Counted from answers and Playground runs, attributed to the provider that served each call. Cost uses the prices above."
   },
   "sources": {
     "title": "Data sources",

@@ -3,7 +3,8 @@
 Input: {"chatbot_id": "<uuid>", "question": "...", "version": "draft" | "live"}.
 Called by the API (`POST /v1/admin/playground/run`) as a stateless run with the tester's
 token. The tester must be allowed to edit the chatbot's draft; retrieval uses the tester's
-own permissions. Nothing is stored as a conversation. The output `result` holds the answer,
+own permissions. Nothing is stored as a conversation; the model usage is recorded, since
+tests cost money too. The output `result` holds the answer,
 the steps with timings and what each step decided, and the sources used.
 """
 
@@ -25,6 +26,7 @@ from veyntora_api.rag.pipeline import (
     language_of,
     load_test_context,
 )
+from veyntora_api.rag.record import record_usage
 from veyntora_api.rag.tracing import new_trace
 
 from veyntora_graphs.fast_rag import _services, _subject
@@ -130,7 +132,8 @@ async def run_node(state: State, config: RunnableConfig) -> dict[str, Any]:
             finally:
                 await adapters.close()
             trace.set(**{"langfuse.trace.output": result.text})
-        # Nothing is committed: the Playground stores no conversation.
+        await record_usage(db, ctx, result, message_id=None)
+        await db.commit()
     log.info("playground.done", version=which, outcome=result.outcome, ms=result.latency_ms)
     return {"result": result_of(ctx, which, result, trace.steps or [])}
 

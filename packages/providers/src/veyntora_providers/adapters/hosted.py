@@ -18,7 +18,14 @@ from typing import Any
 import httpx
 
 from veyntora_providers.instance import ProviderInstanceConfig
-from veyntora_providers.interfaces import Capability, Doc, EmbedResult, HealthResult, Scored
+from veyntora_providers.interfaces import (
+    Capability,
+    Doc,
+    EmbedResult,
+    HealthResult,
+    KeyRejectedError,
+    Scored,
+)
 from veyntora_providers.registry import register
 from veyntora_providers.secrets import SecretReader
 
@@ -51,6 +58,10 @@ class _Hosted:
             res = await http.post(f"{self._base}{path}", json=body, headers=headers)
         if res.status_code == 429 or res.status_code >= 500:
             raise httpx.TransportError(f"{self._config.adapter} is busy (HTTP {res.status_code})")
+        if res.status_code in (401, 403):
+            raise KeyRejectedError(
+                f"{self._config.adapter} rejected the key (HTTP {res.status_code})"
+            )
         if res.status_code != 200:
             raise ProviderRequestError(
                 f"{self._config.adapter} refused the request (HTTP {res.status_code})"
@@ -62,7 +73,7 @@ class _Hosted:
         start = time.perf_counter()
         try:
             await probe()
-        except (httpx.HTTPError, ProviderRequestError, ValueError) as exc:
+        except (httpx.HTTPError, ProviderRequestError, KeyRejectedError, ValueError) as exc:
             return HealthResult(False, (time.perf_counter() - start) * 1000, str(exc)[:200])
         return HealthResult(True, (time.perf_counter() - start) * 1000)
 

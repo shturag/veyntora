@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
+from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -20,9 +21,12 @@ from veyntora_api.chatbots import service as bots
 from veyntora_api.db.models.chatbots import ChatbotStatus
 from veyntora_api.db.models.conversations import Citation, Conversation, Message, MessageRole
 from veyntora_api.db.models.identity import GroupSource, Membership, User
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.quality import UsageRecord
 from veyntora_api.knowledge import service as knowledge
 from veyntora_api.rag import pipeline
 from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
+from veyntora_api.rag.record import PRICE_IN, PRICE_OUT
 from veyntora_api.routers.admin_playground import PlaygroundResult
 from veyntora_graphs import fast_rag, playground
 from veyntora_providers.interfaces import (
@@ -251,6 +255,9 @@ async def test_graph_answers_and_stores_the_exchange(
     rag: Rag, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     db: AsyncSession = rag.w.db
+    llm_row = await db.get(ProviderInstance, rag.w.llm)
+    assert llm_row is not None
+    llm_row.options = {PRICE_IN: 3, PRICE_OUT: 15}
 
     @asynccontextmanager
     async def session() -> AsyncIterator[AsyncSession]:
@@ -306,6 +313,10 @@ async def test_graph_answers_and_stores_the_exchange(
     assert assistant.trace_id == "run-1" and assistant.tokens_in == 120
     citation = await db.scalar(sa.select(Citation).where(Citation.message_id == assistant.id))
     assert citation is not None and citation.document_id == rag.doc.id and citation.ordinal == 1
+    usage = await db.scalar(sa.select(UsageRecord).where(UsageRecord.message_id == assistant.id))
+    assert usage is not None and usage.provider_instance_id == rag.w.llm and usage.external
+    assert (usage.tokens_in, usage.tokens_out) == (120, 30)
+    assert usage.cost == Decimal("0.000810"), "120 x 3 + 30 x 15 EUR per million tokens"
 
     other, _ = await bots_with_source(rag)
     out = await fast_rag.graph.ainvoke(
@@ -542,3 +553,24 @@ async def test_playground_runs_draft_and_live_step_by_step(
     refused = await run("draft")
     assert refused["outcome"] == "refused" and "may not test" in refused["text"]
     assert PlaygroundResult.model_validate(refused).steps == []
+
+
+async def test_data_rules_cover_fallback_providers(rag: Rag) -> None:
+    db = rag.w.db
+    outside = ProviderInstance(
+        capability=Capability.EMBEDDING,
+        adapter="voyage",
+        name="Outside embedder",
+        model="voyage-3",
+        hosting=Hosting.EXTERNAL,
+    )
+    db.add(outside)
+    await db.flush()
+    embed = await db.get(ProviderInstance, rag.w.embed)
+    assert embed is not None
+    embed.fallback_instance_id = outside.id
+    await db.flush()
+    with pytest.raises(RunRefusedError, match="external model"):
+        await rag.ask("refund?")
+    problems = await bots.publish_problems(db, rag.bot)
+    assert any("Outside embedder" in p for p in problems)

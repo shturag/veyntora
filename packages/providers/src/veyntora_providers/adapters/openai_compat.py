@@ -19,6 +19,7 @@ from veyntora_providers.interfaces import (
     ChatChunk,
     ChatMessage,
     HealthResult,
+    KeyRejectedError,
     ToolCall,
     ToolSpec,
     Usage,
@@ -78,6 +79,8 @@ class OpenAICompatLLM:
                 "POST", f"{self._base}/chat/completions", json=body, headers=await self._headers()
             ) as res,
         ):
+            if res.status_code in (401, 403):
+                raise KeyRejectedError(f"LLM endpoint rejected the key (HTTP {res.status_code})")
             if res.status_code != 200:
                 await res.aread()
                 raise RuntimeError(f"LLM endpoint returned HTTP {res.status_code}")

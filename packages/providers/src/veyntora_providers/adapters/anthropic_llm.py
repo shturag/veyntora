@@ -19,6 +19,7 @@ from veyntora_providers.interfaces import (
     ChatChunk,
     ChatMessage,
     HealthResult,
+    KeyRejectedError,
     ToolCall,
     ToolSpec,
     Usage,
@@ -115,11 +116,16 @@ class AnthropicLLM:
             extra: dict[str, Any] = (
                 {"betas": [_FALLBACK_BETA], "fallbacks": "default"} if self._fallbacks else {}
             )
-            async with client.beta.messages.stream(**params, **extra) as stream:
-                async for event in stream:
-                    if event.type == "content_block_delta" and event.delta.type == "text_delta":
-                        yield ChatChunk(delta=event.delta.text)
-                final = await stream.get_final_message()
+            try:
+                async with client.beta.messages.stream(**params, **extra) as stream:
+                    async for event in stream:
+                        if event.type == "content_block_delta" and event.delta.type == "text_delta":
+                            yield ChatChunk(delta=event.delta.text)
+                    final = await stream.get_final_message()
+            except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
+                raise KeyRejectedError(
+                    f"Anthropic rejected the key (HTTP {exc.status_code})"
+                ) from None
         calls = tuple(
             ToolCall(id=b.id, name=b.name, arguments=_json(b.input))
             for b in final.content

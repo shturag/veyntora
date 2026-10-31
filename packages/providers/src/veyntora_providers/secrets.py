@@ -19,6 +19,20 @@ class SecretUnavailableError(RuntimeError):
     pass
 
 
+def parse_ref(secret_ref: str) -> tuple[str, str, int | None]:
+    """ "kv/providers/x" or "kv/providers/x?version=3" -> (mount, path, version or None).
+
+    A reference with a version names one earlier key, kept during a rotation grace period.
+    """
+    ref, _, query = secret_ref.partition("?version=")
+    mount, _, path = ref.partition("/")
+    if not mount or not path or ".." in path or "?" in path:
+        raise SecretUnavailableError("malformed secret reference")
+    if query and not query.isdigit():
+        raise SecretUnavailableError("malformed secret reference")
+    return mount, path, int(query) if query else None
+
+
 class SecretReader(Protocol):
     async def read(self, secret_ref: str) -> str: ...
 
@@ -33,13 +47,13 @@ class OpenBaoReader:
         cached = self._cache.get(secret_ref)
         if cached and time.monotonic() - cached[0] < _TTL_SECONDS:
             return cached[1]
-        mount, _, path = secret_ref.partition("/")
-        if not mount or not path or ".." in path:
-            raise SecretUnavailableError("malformed secret reference")
+        mount, path, version = parse_ref(secret_ref)
         token = self._token_file.read_text().strip()
         async with httpx.AsyncClient(timeout=5.0) as http:
             res = await http.get(
-                f"{self._base}/{mount}/data/{path}", headers={"X-Vault-Token": token}
+                f"{self._base}/{mount}/data/{path}",
+                params={"version": version} if version else None,
+                headers={"X-Vault-Token": token},
             )
         if res.status_code != 200:
             raise SecretUnavailableError(f"secret not readable (HTTP {res.status_code})")

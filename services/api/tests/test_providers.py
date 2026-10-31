@@ -1,12 +1,28 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 import sqlalchemy as sa
 from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_api.core.context import Actor, RequestContext
+from veyntora_api.db.models.chatbots import (
+    Chatbot,
+    ChatbotStatus,
+    PipelineStatus,
+    PipelineVersion,
+)
 from veyntora_api.db.models.governance import ActorType, AuditEvent
-from veyntora_api.providers.service import ProviderError, ProviderInput, create_provider, set_secret
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.providers.service import (
+    ProviderError,
+    ProviderInput,
+    ProviderUpdate,
+    create_provider,
+    pipelines_using,
+    purge_replaced_keys,
+    set_secret,
+    update_provider,
+)
 from veyntora_api.routers.admin_providers import ProviderOut
 from veyntora_api.secrets.openbao import SecretRef, last4
 from veyntora_providers.interfaces import Capability, Hosting
@@ -18,10 +34,21 @@ KEY = "sk-ant-api03-0123456789abcdefWXYZ"
 class FakeWriter:
     def __init__(self) -> None:
         self.stored: dict[str, str] = {}
+        self.versions: dict[str, int] = {}
+        self.destroyed: list[str] = []
 
     async def put(self, path: str, value: str, expires_at: datetime | None = None) -> SecretRef:
         self.stored[path] = value
-        return SecretRef(ref=f"kv/{path}", last4=last4(value), expires_at=expires_at)
+        self.versions[path] = self.versions.get(path, 0) + 1
+        return SecretRef(
+            ref=f"kv/{path}",
+            last4=last4(value),
+            expires_at=expires_at,
+            version=self.versions[path],
+        )
+
+    async def destroy_version(self, ref: str) -> None:
+        self.destroyed.append(ref)
 
 
 def _input(**kw: object) -> ProviderInput:
@@ -85,7 +112,101 @@ async def test_replacing_the_key_is_audited_as_rotation(db: AsyncSession) -> Non
         )
     ).scalar_one()
     assert rotation.before == {"secret_last4": "WXYZ", "secret_expires_at": None}
-    assert rotation.after == {"secret_last4": "QRST", "secret_expires_at": None}
+    assert rotation.after == {"secret_last4": "QRST", "secret_expires_at": None, "grace": "24h"}
+
+
+async def test_replaced_key_keeps_working_for_the_grace_period(db: AsyncSession) -> None:
+    writer = FakeWriter()
+    row = await create_provider(db, CTX, writer, _input(name="Claude G", secret=SecretStr(KEY)))
+    assert row.previous_secret_ref is None, "a first key replaces nothing"
+    await set_secret(db, CTX, writer, row, value=SecretStr(KEY + "2"), expires_at=None)
+    assert row.previous_secret_ref == f"kv/providers/{row.id}?version=1"
+    assert row.previous_secret_valid_until is not None
+    left = row.previous_secret_valid_until - datetime.now(UTC)
+    assert timedelta(hours=23) < left <= timedelta(hours=24)
+    out = ProviderOut.of(row)
+    assert out.previous_key_valid_until == row.previous_secret_valid_until
+    assert "version=" not in out.model_dump_json()
+
+    # Replacing again: only one earlier key is kept.
+    await set_secret(db, CTX, writer, row, value=SecretStr(KEY + "3"), expires_at=None, grace="1h")
+    assert writer.destroyed == [f"kv/providers/{row.id}?version=1"]
+    assert row.previous_secret_ref == f"kv/providers/{row.id}?version=2"
+
+    # "now" destroys the replaced key at once.
+    await set_secret(db, CTX, writer, row, value=SecretStr(KEY + "4"), expires_at=None, grace="now")
+    assert writer.destroyed[-2:] == [
+        f"kv/providers/{row.id}?version=2",
+        f"kv/providers/{row.id}?version=3",
+    ]
+    assert row.previous_secret_ref is None and row.previous_secret_valid_until is None
+    with pytest.raises(ProviderError, match="grace period"):
+        await set_secret(
+            db, CTX, writer, row, value=SecretStr(KEY), expires_at=None, grace="forever"
+        )
+
+
+async def test_expired_grace_periods_are_purged(db: AsyncSession) -> None:
+    writer = FakeWriter()
+    row = await create_provider(db, CTX, writer, _input(name="Claude P", secret=SecretStr(KEY)))
+    await set_secret(db, CTX, writer, row, value=SecretStr(KEY + "2"), expires_at=None)
+    assert await purge_replaced_keys(db, writer) == 0  # type: ignore[arg-type]
+    row.previous_secret_valid_until = datetime.now(UTC) - timedelta(minutes=1)
+    assert await purge_replaced_keys(db, writer) == 1  # type: ignore[arg-type]
+    assert writer.destroyed == [f"kv/providers/{row.id}?version=1"]
+    assert row.previous_secret_ref is None
+
+
+async def test_fallbacks_must_match_and_not_loop(db: AsyncSession) -> None:
+    a = await create_provider(db, CTX, None, _input(name="LLM A"))
+    b = await create_provider(db, CTX, None, _input(name="LLM B"))
+    embed = await create_provider(
+        db,
+        CTX,
+        None,
+        _input(name="Embed", capability=Capability.EMBEDDING, adapter="voyage", model="v"),
+    )
+    with pytest.raises(ProviderError, match="same capability"):
+        await update_provider(db, CTX, a, ProviderUpdate(fallback_instance_id=embed.id), None)
+    await update_provider(db, CTX, a, ProviderUpdate(fallback_instance_id=b.id), None)
+    with pytest.raises(ProviderError, match="loop"):
+        await update_provider(db, CTX, b, ProviderUpdate(fallback_instance_id=a.id), None)
+    with pytest.raises(ProviderError, match="loop"):
+        await update_provider(db, CTX, a, ProviderUpdate(fallback_instance_id=a.id), None)
+
+
+async def test_a_provider_in_use_is_disabled_only_with_a_replacement(db: AsyncSession) -> None:
+    from tests.test_ingestion import World  # noqa: PLC0415
+
+    w = await World(db).setup()
+    llm = await db.get(ProviderInstance, w.llm)
+    assert llm is not None
+    bot = Chatbot(slug=f"b-{llm.id.hex[:6]}", name="Support", status=ChatbotStatus.DRAFT)
+    db.add(bot)
+    await db.flush()
+    db.add(
+        PipelineVersion(
+            chatbot_id=bot.id,
+            number=1,
+            status=PipelineStatus.DRAFT,
+            spec=w.spec().model_dump(mode="json"),
+        )
+    )
+    await db.flush()
+    assert await pipelines_using(db, llm.id) == ["Support"]
+    with pytest.raises(ProviderError, match="in use by Support"):
+        await update_provider(db, CTX, llm, ProviderUpdate(enabled=False), None)
+
+    spare = await create_provider(db, CTX, None, _input(name="Spare LLM"))
+    await update_provider(
+        db, CTX, llm, ProviderUpdate(enabled=False, fallback_instance_id=spare.id), None
+    )
+    assert llm.enabled is False
+    # The stand-in cannot be disabled or removed while it stands in.
+    with pytest.raises(ProviderError, match="via"):
+        await update_provider(db, CTX, spare, ProviderUpdate(enabled=False), None)
+    with pytest.raises(ProviderError, match="in use"):
+        await update_provider(db, CTX, llm, ProviderUpdate(fallback_instance_id=None), None)
 
 
 async def test_duplicate_names_are_rejected(db: AsyncSession) -> None:

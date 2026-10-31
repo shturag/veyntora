@@ -62,6 +62,7 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge.service import principals_of
+from veyntora_api.providers.service import with_fallbacks
 from veyntora_api.rag import grounding
 from veyntora_api.rag.guard import (
     Masker,
@@ -125,8 +126,20 @@ class RunContext:
     mask_external: bool = True
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
+        """External if the instance or a fallback it may use is external (reported on the
+        safe side: the answer is marked external even when the fallback was not needed)."""
         row = self.providers.get(instance_id) if instance_id else None
-        return row.hosting if row else None
+        if row is None:
+            return None
+        seen = set()
+        current: ProviderInstance | None = row
+        while current is not None and current.id not in seen:
+            if current.hosting is Hosting.EXTERNAL:
+                return Hosting.EXTERNAL
+            seen.add(current.id)
+            fid = current.fallback_instance_id
+            current = self.providers.get(fid) if fid else None
+        return row.hosting
 
 
 @dataclass(slots=True)
@@ -160,6 +173,8 @@ class Answer:
     latency_ms: int = 0
     steps: dict[str, int] = field(default_factory=dict)
     rerank_skipped: bool = False
+    # Model calls as (instance that served it, usage), for usage and cost per provider.
+    calls: list[tuple[UUID, Usage]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- context
@@ -274,6 +289,7 @@ async def _context(
             await db.execute(sa.select(ProviderInstance).where(ProviderInstance.id.in_(used)))
         ).scalars()
     }
+    providers = await with_fallbacks(db, providers)
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     for p in providers.values():
         if p.hosting is not Hosting.EXTERNAL:
@@ -576,9 +592,18 @@ class _Run:
     egress: bool = False
     warning: str | None = None
     skipped: bool = False
+    calls: list[tuple[UUID, Usage]] = field(default_factory=list)
+
+    def call(self, adapters: AdapterSource, instance_id: UUID | None, usage: Usage) -> None:
+        if instance_id is None:
+            return
+        self.usage = _add(self.usage, usage)
+        served_by = getattr(adapters, "served_by", None)
+        self.calls.append((served_by(instance_id) if served_by else instance_id, usage))
 
     def finish(self, result: Answer) -> Answer:
         result.usage = self.usage
+        result.calls = self.calls
         result.external_egress = self.egress
         result.steps = self.steps
         result.rerank_skipped = self.skipped
@@ -668,7 +693,7 @@ async def answer(
             query, u = await rewrite_query(adapters, ctx, guarded, history)
             query = masker.unmask(query)
             step.set(**_usage_attrs(ctx, gen.llm_instance_id, u))
-        run.usage = _add(run.usage, u)
+        run.call(adapters, gen.llm_instance_id, u)
         run.egress |= llm_external
         run.steps["rewrite"] = round((time.perf_counter() - t0) * 1000)
 
@@ -771,7 +796,7 @@ async def _generate(
             streamed=emit is not None,
             masked=masker.count if masker else 0,
         )
-    run.usage = _add(run.usage, u)
+    run.call(adapters, gen.llm_instance_id, u)
     run.egress |= ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
     run.steps["generate"] = round((time.perf_counter() - t0) * 1000)
     return masker.unmask(text) if masker is not None else text

@@ -38,6 +38,12 @@ class SecretRef:
     ref: str
     last4: str | None
     expires_at: datetime | None
+    # The KV version just written; earlier versions stay readable until destroyed.
+    version: int = 1
+
+    def previous(self) -> str | None:
+        """Reference to the key this write replaced, or None for a first write."""
+        return f"{self.ref}?version={self.version - 1}" if self.version > 1 else None
 
 
 def last4(value: str) -> str | None:
@@ -73,6 +79,7 @@ class SecretWriter:
         res = await self._http.post(f"/{self._mount}/data/{path}", json={"data": {"value": value}})
         if res.status_code not in (200, 204):
             raise SecretStoreError(f"OpenBao write failed with HTTP {res.status_code}")
+        version = int(((res.json() if res.content else {}).get("data") or {}).get("version") or 1)
         # OpenBao rejects empty metadata values, so "no expiry" is stored explicitly.
         meta = {"expires_at": expires_at.isoformat() if expires_at else "never"}
         res = await self._http.post(
@@ -80,7 +87,9 @@ class SecretWriter:
         )
         if res.status_code not in (200, 204):
             raise SecretStoreError(f"OpenBao metadata write failed with HTTP {res.status_code}")
-        return SecretRef(ref=f"{self._mount}/{path}", last4=last4(value), expires_at=expires_at)
+        return SecretRef(
+            ref=f"{self._mount}/{path}", last4=last4(value), expires_at=expires_at, version=version
+        )
 
     async def delete(self, path: str) -> None:
         """Delete every version of the secret at `path`."""
@@ -88,6 +97,17 @@ class SecretWriter:
         res = await self._http.delete(f"/{self._mount}/metadata/{path}")
         if res.status_code not in (200, 204, 404):
             raise SecretStoreError(f"OpenBao delete failed with HTTP {res.status_code}")
+
+    async def destroy_version(self, ref: str) -> None:
+        """Destroy one earlier version ("kv/<path>?version=N"), e.g. after a grace period."""
+        base, _, version = ref.partition("?version=")
+        mount, _, path = base.partition("/")
+        if mount != self._mount or not version.isdigit():
+            raise SecretPathError("not a versioned secret reference")
+        self._check(path)
+        res = await self._http.post(f"/{mount}/destroy/{path}", json={"versions": [int(version)]})
+        if res.status_code not in (200, 204, 404):
+            raise SecretStoreError(f"OpenBao destroy failed with HTTP {res.status_code}")
 
     async def renew_self(self) -> None:
         res = await self._http.post("/auth/token/renew-self", json={})

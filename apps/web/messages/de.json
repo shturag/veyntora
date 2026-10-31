@@ -738,7 +738,31 @@
     "hostingDepends": "Selbst gehostet oder extern, wie du es angibst",
     "apiKey": "API-Schlüssel",
     "create": "Anbieter hinzufügen",
-    "createFailed": "Der Anbieter konnte nicht hinzugefügt werden (Fehler {code})."
+    "createFailed": "Der Anbieter konnte nicht hinzugefügt werden (Fehler {code}).",
+    "fallback": "Ersatzanbieter",
+    "noFallback": "Keiner",
+    "fallbackHint": "Springt ein, wenn dieser Anbieter ausfällt, und ersetzt ihn, solange er deaktiviert ist. Die Datenregeln gelten auch für den Ersatz.",
+    "priceIn": "Eingabepreis (EUR je 1 Mio. Tokens)",
+    "priceOut": "Ausgabepreis (EUR je 1 Mio. Tokens)",
+    "disable": "Deaktivieren",
+    "enable": "Aktivieren",
+    "enabledNow": "Anbieter aktiviert.",
+    "disabledNow": "Anbieter deaktiviert. Sein Ersatz antwortet stattdessen.",
+    "disabled": "Deaktiviert",
+    "previousKeyUntil": "Der ersetzte Schlüssel wird bis {until} noch versucht, falls der neue abgelehnt wird.",
+    "grace": "Alter Schlüssel gilt noch",
+    "graces": {
+      "now": "Sofort ungültig",
+      "1h": "1 Stunde",
+      "24h": "24 Stunden",
+      "7d": "7 Tage"
+    },
+    "usage": "Nutzung, letzte 30 Tage",
+    "calls": "Aufrufe",
+    "tokens": "Tokens",
+    "cost": "Kosten",
+    "noUsage": "Noch keine Modellaufrufe erfasst.",
+    "usageHint": "Gezählt aus Antworten und Playground-Läufen, dem Anbieter zugeordnet, der den Aufruf bedient hat. Die Kosten nutzen die Preise oben."
   },
   "sources": {
     "title": "Datenquellen",

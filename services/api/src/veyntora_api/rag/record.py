@@ -1,11 +1,14 @@
-"""Store the exchange: conversation, the question, the answer and its citations."""
+"""Store the exchange: conversation, the question, the answer and its citations; and the
+usage of each model call, with its cost from the provider's prices."""
 
 from __future__ import annotations
 
+from decimal import Decimal
 from uuid import UUID
 
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
+from veyntora_providers.interfaces import Hosting, Usage
 
 from veyntora_api.db.models.conversations import (
     Citation,
@@ -15,7 +18,41 @@ from veyntora_api.db.models.conversations import (
     RequestedMode,
     UsedMode,
 )
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.quality import UsageRecord
 from veyntora_api.rag.pipeline import Answer, RunContext, RunRefusedError
+
+# Prices are set per provider instance (options), in EUR per million tokens.
+PRICE_IN = "price_in_per_mtok_eur"
+PRICE_OUT = "price_out_per_mtok_eur"
+
+
+def cost_of(row: ProviderInstance | None, usage: Usage) -> Decimal:
+    if row is None:
+        return Decimal(0)
+    p_in = Decimal(str(row.options.get(PRICE_IN) or 0))
+    p_out = Decimal(str(row.options.get(PRICE_OUT) or 0))
+    return (p_in * usage.prompt_tokens + p_out * usage.completion_tokens) / 1_000_000
+
+
+async def record_usage(
+    db: AsyncSession, ctx: RunContext, result: Answer, *, message_id: UUID | None
+) -> None:
+    for instance_id, usage in result.calls:
+        row = ctx.providers.get(instance_id) or await db.get(ProviderInstance, instance_id)
+        db.add(
+            UsageRecord(
+                user_id=ctx.user_id,
+                chatbot_id=ctx.chatbot_id,
+                provider_instance_id=instance_id,
+                message_id=message_id,
+                tokens_in=usage.prompt_tokens,
+                tokens_out=usage.completion_tokens,
+                cost=cost_of(row, usage),
+                external=bool(row and row.hosting is Hosting.EXTERNAL),
+            )
+        )
+    await db.flush()
 
 
 async def conversation_for(
@@ -84,4 +121,5 @@ async def record(
             )
         )
     await db.flush()
+    await record_usage(db, ctx, result, message_id=msg.id)
     return msg.id

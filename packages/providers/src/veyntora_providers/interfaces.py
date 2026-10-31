@@ -12,6 +12,12 @@ from enum import StrEnum
 from typing import Any, Literal, Protocol, runtime_checkable
 
 
+class KeyRejectedError(RuntimeError):
+    """The provider rejected the key (HTTP 401/403). The runtime may retry with another key:
+    the previous one during a rotation grace period, or the company key instead of a user's
+    own. The message carries the status only."""
+
+
 class Capability(StrEnum):
     LLM = "llm"
     EMBEDDING = "embedding"

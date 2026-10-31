@@ -27,7 +27,11 @@ export default async function ProvidersPage({ searchParams }: Props) {
   if (!access) return <Forbidden />;
   const { cap, id } = await searchParams;
   const t = await getTranslations("providers");
-  const { data } = await (await serverApi()).GET("/v1/admin/providers");
+  const api = await serverApi();
+  const [{ data }, { data: usage }] = await Promise.all([
+    api.GET("/v1/admin/providers"),
+    api.GET("/v1/admin/providers/usage", { params: { query: { days: 30 } } }),
+  ]);
   const all = (data ?? []) as ProviderRow[];
   const rows = cap ? all.filter((p) => p.capability === cap) : all;
   const selected = rows.find((p) => p.id === id) ?? rows[0];
@@ -103,6 +107,11 @@ export default async function ProvidersPage({ searchParams }: Props) {
                       <Badge tone={p.hosting === "external" ? "amber" : "green"}>
                         {t(`hostings.${p.hosting}`)}
                       </Badge>
+                      {p.enabled ? null : (
+                        <Badge tone="neutral" className="ml-1">
+                          {t("disabled")}
+                        </Badge>
+                      )}
                     </td>
                     <td className="px-4 py-2.5 font-mono text-xs">
                       {p.has_secret ? `••••${p.secret_last4 ?? ""}` : t("none")}
@@ -118,6 +127,10 @@ export default async function ProvidersPage({ searchParams }: Props) {
               key={`${selected.id}-${selected.version}`}
               provider={selected}
               canEdit={canEdit}
+              fallbacks={all
+                .filter((p) => p.capability === selected.capability && p.id !== selected.id)
+                .map((p) => ({ id: p.id, name: p.name }))}
+              usage={usage?.find((u) => u.provider_id === selected.id) ?? null}
             />
           ) : null}
         </div>

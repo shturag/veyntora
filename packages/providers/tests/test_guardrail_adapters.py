@@ -16,7 +16,7 @@ from veyntora_providers.adapters.guardrails import (
     parse_llama_guard,
 )
 from veyntora_providers.instance import ProviderInstanceConfig
-from veyntora_providers.interfaces import Capability, Hosting
+from veyntora_providers.interfaces import Capability, Hosting, KeyRejectedError
 
 KEY = "guard-key-0123456789"
 AZURE = "https://contoso-lang.cognitiveservices.azure.com"
@@ -108,6 +108,11 @@ async def test_llama_guard_check_uses_raw_completions() -> None:
 async def test_errors_never_echo_text_or_key() -> None:
     respx.post(url__startswith=AZURE).respond(401, json={"error": {"message": KEY}})
     pii = registry.create(_cfg("azure_pii", AZURE), Secret())
-    with pytest.raises(GuardrailRequestError) as err:
+    # A rejected key is its own error, so a replaced key or a fallback can be tried.
+    with pytest.raises(KeyRejectedError) as err:
         await pii.detect(["Anna Schmidt, IBAN DE89..."])
     assert KEY not in str(err.value) and "Anna" not in str(err.value)
+    respx.post(url__startswith=AZURE).respond(400, json={"error": {"message": KEY}})
+    with pytest.raises(GuardrailRequestError) as err2:
+        await pii.detect(["Anna Schmidt, IBAN DE89..."])
+    assert KEY not in str(err2.value) and "Anna" not in str(err2.value)

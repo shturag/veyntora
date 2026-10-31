@@ -9,10 +9,10 @@ import httpx
 import pytest
 import respx
 from veyntora_providers import adapters, registry  # noqa: F401 - registers adapters
-from veyntora_providers.adapters.hosted import VOYAGE, ProviderRequestError
+from veyntora_providers.adapters.hosted import VOYAGE
 from veyntora_providers.contract import run_contract
 from veyntora_providers.instance import ProviderInstanceConfig
-from veyntora_providers.interfaces import Capability, Doc, Hosting
+from veyntora_providers.interfaces import Capability, Doc, Hosting, KeyRejectedError
 
 KEY = "pa-voyage-key-0123456789"
 
@@ -101,7 +101,7 @@ async def test_rerankers_order_by_relevance(
 async def test_errors_carry_status_not_content() -> None:
     respx.post(f"{VOYAGE}/embeddings").respond(401, json={"detail": f"bad key {KEY}"})
     emb = registry.create(_cfg(Capability.EMBEDDING, "voyage"), Secret())
-    with pytest.raises(ProviderRequestError) as err:
+    with pytest.raises(KeyRejectedError) as err:
         await emb.embed(["secret document text"])
     assert "401" in str(err.value) and KEY not in str(err.value)
     assert "secret document text" not in str(err.value)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
@@ -19,7 +20,9 @@ from veyntora_api.chatbots.service import ChatbotError
 from veyntora_api.core.config_service import VersionConflictError
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.core.state import AppState
+from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge.service import KnowledgeError
+from veyntora_api.providers.service import purge_replaced_keys
 from veyntora_api.routers import (
     admin_chatbots,
     admin_playground,
@@ -46,6 +49,24 @@ async def _connect_optional[T](name: str, factory: Callable[[], Awaitable[T]]) -
     except Exception as exc:
         log.error("startup.dependency_unavailable", dependency=name, error=str(exc))
         return None
+
+
+_PURGE_EVERY_SECONDS = 3600
+
+
+async def _purge_replaced_keys(secrets: SecretWriter) -> None:
+    """Hourly: destroy replaced keys whose grace period is over (only the API may write to
+    OpenBao). Runs on every API replica; destroying a version twice is harmless."""
+    while True:
+        await asyncio.sleep(_PURGE_EVERY_SECONDS)
+        try:
+            async with get_sessionmaker()() as db:
+                purged = await purge_replaced_keys(db, secrets)
+                await db.commit()
+            if purged:
+                log.info("secrets.purged_replaced_keys", count=purged)
+        except Exception as exc:
+            log.error("secrets.purge_failed", error=type(exc).__name__)
 
 
 def build_lifespan(settings: Settings) -> Callable[[FastAPI], AsyncIterator[None]]:
@@ -77,9 +98,12 @@ def build_lifespan(settings: Settings) -> Callable[[FastAPI], AsyncIterator[None
             secrets=await _connect_optional("openbao", writer),
         )
         app.state.vey = state
+        purger = asyncio.create_task(_purge_replaced_keys(state.secrets)) if state.secrets else None
         try:
             yield
         finally:
+            if purger:
+                purger.cancel()
             if state.authz:
                 await state.authz.close()
             if state.secrets:

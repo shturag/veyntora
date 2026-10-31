@@ -2239,6 +2239,18 @@
             ],
             "title": "Endpoint"
           },
+          "fallback_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Instance Id"
+          },
           "has_secret": {
             "title": "Has Secret",
             "type": "boolean"
@@ -2297,6 +2309,18 @@
             "title": "Options",
             "type": "object"
           },
+          "previous_key_valid_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Key Valid Until"
+          },
           "region": {
             "anyOf": [
               {
@@ -2350,6 +2374,8 @@
           "has_secret",
           "secret_last4",
           "secret_expires_at",
+          "previous_key_valid_until",
+          "fallback_instance_id",
           "health_status",
           "health_detail",
           "health_checked_at",
@@ -2776,33 +2802,6 @@
         ],
         "title": "SearchType",
         "type": "string"
-      },
-      "SecretInput": {
-        "properties": {
-          "expires_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Expires At"
-          },
-          "secret": {
-            "format": "password",
-            "title": "Secret",
-            "type": "string",
-            "writeOnly": true
-          }
-        },
-        "required": [
-          "secret"
-        ],
-        "title": "SecretInput",
-        "type": "object"
       },
       "SessionInfo": {
         "properties": {
@@ -3291,6 +3290,40 @@
         "title": "UploadSourceInput",
         "type": "object"
       },
+      "UsageOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "title": "Cost",
+            "type": "number"
+          },
+          "provider_id": {
+            "format": "uuid",
+            "title": "Provider Id",
+            "type": "string"
+          },
+          "tokens_in": {
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "title": "Tokens Out",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "provider_id",
+          "calls",
+          "tokens_in",
+          "tokens_out",
+          "cost"
+        ],
+        "title": "UsageOut",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -3377,6 +3410,71 @@
           "spec"
         ],
         "title": "VersionOut",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_providers__SecretInput": {
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "grace": {
+            "default": "24h",
+            "enum": [
+              "now",
+              "1h",
+              "24h",
+              "7d"
+            ],
+            "title": "Grace",
+            "type": "string"
+          },
+          "secret": {
+            "format": "password",
+            "title": "Secret",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "secret"
+        ],
+        "title": "SecretInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_sources__SecretInput": {
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "secret": {
+            "format": "password",
+            "title": "Secret",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "secret"
+        ],
+        "title": "SecretInput",
         "type": "object"
       }
     }
@@ -4344,6 +4442,55 @@
         ]
       }
     },
+    "/v1/admin/providers/usage": {
+      "get": {
+        "operationId": "provider_usage_v1_admin_providers_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 366,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UsageOut"
+                  },
+                  "title": "Response Provider Usage V1 Admin Providers Usage Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Model calls, tokens and cost per provider instance",
+        "tags": [
+          "admin: providers"
+        ]
+      }
+    },
     "/v1/admin/providers/{provider_id}": {
       "patch": {
         "operationId": "change_provider_v1_admin_providers__provider_id__patch",
@@ -4432,7 +4579,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SecretInput"
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_providers__SecretInput"
               }
             }
           },
@@ -5054,7 +5201,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SecretInput"
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_sources__SecretInput"
               }
             }
           },

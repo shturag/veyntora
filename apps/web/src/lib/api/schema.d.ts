@@ -280,6 +280,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/providers/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Model calls, tokens and cost per provider instance */
+        get: operations["provider_usage_v1_admin_providers_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/providers/{provider_id}": {
         parameters: {
             query?: never;
@@ -1670,6 +1687,8 @@ export interface components {
             enabled: boolean;
             /** Endpoint */
             endpoint: string | null;
+            /** Fallback Instance Id */
+            fallback_instance_id: string | null;
             /** Has Secret */
             has_secret: boolean;
             /** Health Checked At */
@@ -1691,6 +1710,8 @@ export interface components {
             options: {
                 [key: string]: unknown;
             };
+            /** Previous Key Valid Until */
+            previous_key_valid_until: string | null;
             /** Region */
             region: string | null;
             /** Secret Expires At */
@@ -1880,16 +1901,6 @@ export interface components {
          * @enum {string}
          */
         SearchType: "dense" | "sparse" | "hybrid";
-        /** SecretInput */
-        SecretInput: {
-            /** Expires At */
-            expires_at?: string | null;
-            /**
-             * Secret
-             * Format: password
-             */
-            secret: string;
-        };
         /** SessionInfo */
         SessionInfo: {
             /** Signed In */
@@ -2051,6 +2062,22 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** UsageOut */
+        UsageOut: {
+            /** Calls */
+            calls: number;
+            /** Cost */
+            cost: number;
+            /**
+             * Provider Id
+             * Format: uuid
+             */
+            provider_id: string;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -2083,6 +2110,32 @@ export interface components {
             };
             /** Status */
             status: string;
+        };
+        /** SecretInput */
+        veyntora_api__routers__admin_providers__SecretInput: {
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Grace
+             * @default 24h
+             * @enum {string}
+             */
+            grace: "now" | "1h" | "24h" | "7d";
+            /**
+             * Secret
+             * Format: password
+             */
+            secret: string;
+        };
+        /** SecretInput */
+        veyntora_api__routers__admin_sources__SecretInput: {
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Secret
+             * Format: password
+             */
+            secret: string;
         };
     };
     responses: never;
@@ -2706,6 +2759,37 @@ export interface operations {
             };
         };
     };
+    provider_usage_v1_admin_providers_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     change_provider_v1_admin_providers__provider_id__patch: {
         parameters: {
             query?: never;
@@ -2754,7 +2838,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SecretInput"];
+                "application/json": components["schemas"]["veyntora_api__routers__admin_providers__SecretInput"];
             };
         };
         responses: {
@@ -3160,7 +3244,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SecretInput"];
+                "application/json": components["schemas"]["veyntora_api__routers__admin_sources__SecretInput"];
             };
         };
         responses: {

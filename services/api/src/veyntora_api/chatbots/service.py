@@ -29,6 +29,7 @@ from veyntora_api.db.models.identity import Group, User
 from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAttachment
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge.service import enqueue
+from veyntora_api.providers.service import with_fallbacks
 
 Role = Literal["owner", "editor", "approver", "user"]
 ROLES: tuple[Role, ...] = ("owner", "editor", "approver", "user")
@@ -207,9 +208,11 @@ async def external_problems(
 ) -> list[str]:
     """Data stays in-house unless a data rule allows this external provider for this bot.
 
-    When the rule asks for masking, external models are allowed once the pipeline has a PII
-    provider; that provider is the masker and is exempt from masking itself.
+    Fallback providers count too. When the rule asks for masking, external models are
+    allowed once the pipeline has a PII provider; that provider is the masker and is exempt
+    from masking itself.
     """
+    rows = await with_fallbacks(db, rows)
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     allowed = set(rule.allowed_external_instance_ids) if rule else set()
     masker = spec.guardrails.pii_instance_id

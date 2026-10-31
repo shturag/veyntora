@@ -13,6 +13,7 @@ from veyntora_api.main import create_app
 from veyntora_api.routers.auth import safe_return_to
 from veyntora_api.secrets.openbao import SecretPathError, SecretWriter, last4
 from veyntora_api.settings import Settings
+from veyntora_providers.secrets import SecretUnavailableError, parse_ref
 
 BAO = "http://bao.test:8200"
 
@@ -21,7 +22,7 @@ def test_secret_writer_has_no_read_method() -> None:
     public = {
         n for n, _ in inspect.getmembers(SecretWriter, inspect.isfunction) if not n.startswith("_")
     }
-    assert public == {"put", "delete", "renew_self", "close"}
+    assert public == {"put", "delete", "destroy_version", "renew_self", "close"}
     assert not any("read" in n or n == "get" for n in dir(SecretWriter))
 
 
@@ -41,6 +42,32 @@ async def test_put_writes_value_and_returns_metadata_only() -> None:
     assert ref.last4 == "9f2a"
     assert ref.expires_at == expires
     assert "sk-test" not in repr(ref)
+    assert ref.version == 1 and ref.previous() is None
+
+
+async def test_replacing_names_the_previous_version_and_destroys_it_on_request() -> None:
+    pid = uuid4()
+    with respx.mock() as mock:
+        mock.post(f"{BAO}/v1/kv/data/providers/{pid}").respond(200, json={"data": {"version": 4}})
+        mock.post(f"{BAO}/v1/kv/metadata/providers/{pid}").respond(204)
+        destroy = mock.post(f"{BAO}/v1/kv/destroy/providers/{pid}").respond(204)
+        writer = SecretWriter(BAO, "t")
+        ref = await writer.put(f"providers/{pid}", "sk-new-0123456789abcdef")
+        assert ref.previous() == f"kv/providers/{pid}?version=3"
+        await writer.destroy_version(f"kv/providers/{pid}?version=3")
+        with pytest.raises(SecretPathError):
+            await writer.destroy_version("kv/sys/policy?version=1")
+        await writer.close()
+    assert destroy.calls.last.request.content == b'{"versions":[3]}'
+
+
+def test_secret_refs_with_a_version_are_parsed_strictly() -> None:
+    pid = uuid4()
+    assert parse_ref(f"kv/providers/{pid}") == ("kv", f"providers/{pid}", None)
+    assert parse_ref(f"kv/providers/{pid}?version=2") == ("kv", f"providers/{pid}", 2)
+    for bad in ["kv/providers/x?version=a", "kv/../sys?version=1", "kv", "kv/a?b"]:
+        with pytest.raises(SecretUnavailableError):
+            parse_ref(bad)
 
 
 @pytest.mark.parametrize(
