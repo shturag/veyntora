@@ -888,7 +888,10 @@
       "upload": "Dateien, die du hier hochlädst; du wählst, wer sie lesen darf",
       "sharepoint": "Websites und Bibliotheken, mit ihren Berechtigungen",
       "s3": "Buckets bei AWS oder im eigenen S3-Speicher; Sie wählen, wer lesen darf",
-      "website": "Intranet- oder öffentliche Website crawlen; Sie wählen, wer lesen darf"
+      "website": "Intranet- oder öffentliche Website crawlen; Sie wählen, wer lesen darf",
+      "confluence": "Bereiche und Seiten, mit ihren Berechtigungen",
+      "database": "Zeilen einer Leseabfrage; Sie wählen, wer lesen darf",
+      "smb": "Windows- oder Samba-Freigaben, mit NTFS-Berechtigungen"
     },
     "laterConnector": "Dieser Connector kommt in Phase {phase}.",
     "step2": "2. Einstellungen",
@@ -986,7 +989,49 @@
     "foldersHint": "Optional. Eine Ordnerregel ersetzt die Lesenden oben für alles unterhalb dieses Ordners (S3-Präfix oder Website-Pfad); der längste Treffer gilt.",
     "folderPath": "Ordner",
     "addFolder": "Ordnerregel hinzufügen",
-    "websiteNote": "Seiten werden ohne Anmeldung gelesen. Wählen Sie in Veyntora, wer sie lesen darf; Ordnerregeln können das einschränken."
+    "websiteNote": "Seiten werden ohne Anmeldung gelesen. Wählen Sie in Veyntora, wer sie lesen darf; Ordnerregeln können das einschränken.",
+    "flavour": "Ausgabe",
+    "flavours": {
+      "cloud": "Cloud (atlassian.net)",
+      "datacenter": "Data Center / Server"
+    },
+    "baseUrl": "Adresse",
+    "accountEmail": "Konto-E-Mail (Inhaber des API-Tokens)",
+    "spaces": "Bereichsschlüssel (einer pro Zeile)",
+    "confluenceMap": "Confluence-Gruppen → Veyntora-Gruppen",
+    "confluenceMapHint": "Bereichsberechtigungen und Seiteneinschränkungen nennen Confluence-Gruppen; nur zugeordnete Gruppen dürfen hier lesen. Personen werden per E-Mail zugeordnet.",
+    "engine": "Datenbank",
+    "engines": {
+      "postgresql": "PostgreSQL",
+      "sqlserver": "SQL Server",
+      "mysql": "MySQL / MariaDB",
+      "oracle": "Oracle"
+    },
+    "host": "Host",
+    "port": "Port",
+    "databaseName": "Datenbank",
+    "serviceName": "Dienstname",
+    "dbUser": "Benutzer (nur lesend)",
+    "query": "Abfrage",
+    "queryHint": "Ein SELECT; jede Zeile wird ein Dokument. Läuft nur lesend und wird zurückgerollt; nutzen Sie ein Konto, das nur lesen darf.",
+    "idColumn": "ID-Spalte",
+    "titleColumn": "Titelspalte",
+    "textColumns": "Textspalten (durch Komma; leer: alle)",
+    "groupColumn": "Gruppenspalte (optional: nennt die Gruppe, die die Zeile lesen darf)",
+    "maxRows": "Höchstens Zeilen",
+    "server": "Server",
+    "share": "Freigabe",
+    "smbUser": "Konto (DOMÄNE\\benutzer)",
+    "smbPaths": "Ordner (einer pro Zeile; leer: die ganze Freigabe)",
+    "sidMap": "Windows-SIDs → Veyntora-Gruppen",
+    "sidMapHint": "Aus den NTFS-Berechtigungen jeder Datei; Verweigern gewinnt. Ordnen Sie Gruppen-SIDs (oder S-1-1-0 Jeder) zu. Nicht Zugeordnetes darf hier nicht lesen.",
+    "secretLabel": {
+      "s3": "Secret Access Key",
+      "confluence": "API-Token / persönliches Zugriffstoken",
+      "database": "Passwort",
+      "smb": "Passwort",
+      "sharepoint": "Client-Secret"
+    }
   },
   "myFiles": {
     "title": "Meine Dateien",

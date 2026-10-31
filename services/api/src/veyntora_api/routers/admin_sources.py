@@ -52,11 +52,16 @@ class SharePointOut(svc.SharePointSettings):
 
 
 class ConnectionOut(BaseModel):
-    """S3 or website settings without the secret; folder readers and the last test."""
+    """Connection settings without the secret; folder readers, the last test and what the
+    last sync could not map."""
 
     s3: connectors.S3Settings | None
     website: connectors.WebsiteSettings | None
+    confluence: connectors.ConfluenceSettings | None
+    database: connectors.DatabaseSettings | None
+    smb: connectors.SmbSettings | None
     folders: list[connectors.FolderReaders]
+    unmapped: list[str]
     has_secret: bool
     secret_last4: str | None
     secret_expires_at: datetime | None
@@ -130,7 +135,10 @@ async def _source_out(db: DbSession, s: DataSource) -> SourceOut:
         type=s.type,
         name=s.name,
         status=s.status,
-        acl=svc.source_acl(s) if s.type in {SourceType.UPLOAD, *connectors.CONNECTED} else None,
+        acl=svc.source_acl(s)
+        if s.type in {SourceType.UPLOAD, *connectors.CONNECTED}
+        and s.type not in connectors.OWN_PERMISSIONS
+        else None,
         sharepoint=_sharepoint(s),
         connection=_connection(s),
         schedule=s.schedule,
@@ -147,6 +155,10 @@ def _connection(s: DataSource) -> ConnectionOut | None:
     return ConnectionOut(
         s3=settings if isinstance(settings, connectors.S3Settings) else None,
         website=settings if isinstance(settings, connectors.WebsiteSettings) else None,
+        confluence=settings if isinstance(settings, connectors.ConfluenceSettings) else None,
+        database=settings if isinstance(settings, connectors.DatabaseSettings) else None,
+        smb=settings if isinstance(settings, connectors.SmbSettings) else None,
+        unmapped=list(s.config.get("unmapped") or []),
         folders=[connectors.FolderReaders.model_validate(f) for f in s.config.get("folders") or []],
         has_secret=s.secret_ref is not None,
         secret_last4=s.secret_last4,
@@ -270,7 +282,7 @@ async def create_sharepoint(
 @router.post(
     "/connected",
     status_code=status.HTTP_201_CREATED,
-    summary="Connect an S3 bucket or a website",
+    summary="Connect S3, a website, Confluence, a database or a file share",
 )
 async def create_connected(
     data: connectors.ConnectedSourceInput,

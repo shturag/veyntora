@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, PhaseGatedButton, cn } from "@veyntora/ui";
+import { Button, cn } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
@@ -30,6 +30,35 @@ export type WebsiteSettings = {
   max_depth: number;
 };
 export type FolderReaders = { path: string; groups: string[] };
+export type ConfluenceSettings = {
+  flavour: "cloud" | "datacenter";
+  base_url: string;
+  email: string | null;
+  spaces: string[];
+  group_map: Record<string, string>;
+};
+export type DatabaseSettings = {
+  engine: "postgresql" | "sqlserver" | "mysql" | "oracle";
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  query: string;
+  id_column: string;
+  title_column: string;
+  text_columns: string[];
+  group_column: string | null;
+  max_rows: number;
+};
+export type SmbSettings = {
+  server: string;
+  port: number;
+  share: string;
+  include_paths: string[];
+  username: string;
+  sid_map: Record<string, string>;
+};
+const PORTS = { postgresql: 5432, sqlserver: 1433, mysql: 3306, oracle: 1521 } as const;
 
 const lines = (v: FormDataEntryValue | null) =>
   String(v || "")
@@ -111,23 +140,35 @@ function ScheduleSelect({ value }: { value: string | null }) {
   );
 }
 
-/** Rows of "entra:<id>" / "site:<name>" -> Veyntora group. */
-function GroupMap({ groups, value }: { groups: GroupOption[]; value: Record<string, string> }) {
+/** Rows of "entra:<id>" / "site:<name>" (or a Confluence group, a SID) -> Veyntora group. */
+function GroupMap({
+  groups,
+  value,
+  legend,
+  hint,
+  placeholder = "entra:… / site:…",
+}: {
+  groups: GroupOption[];
+  value: Record<string, string>;
+  legend?: string;
+  hint?: string;
+  placeholder?: string;
+}) {
   const t = useTranslations("sources");
   const [rows, setRows] = useState(
     Object.entries(value).length ? Object.entries(value) : [["", ""]],
   );
   return (
     <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-      <legend className="mb-1 text-[13px] font-medium">{t("groupMap")}</legend>
-      <p className="m-0 text-xs text-fg-muted">{t("groupMapHint")}</p>
+      <legend className="mb-1 text-[13px] font-medium">{legend ?? t("groupMap")}</legend>
+      <p className="m-0 text-xs text-fg-muted">{hint ?? t("groupMapHint")}</p>
       {rows.map(([key, group], i) => (
         <div key={i} className="grid grid-cols-[1fr_1fr] gap-2 max-[640px]:grid-cols-1">
           <input
             name="map_key"
             aria-label={t("mapKey")}
             defaultValue={key}
-            placeholder="entra:… / site:…"
+            placeholder={placeholder}
             className={`${input} font-mono`}
           />
           <select
@@ -154,13 +195,18 @@ function GroupMap({ groups, value }: { groups: GroupOption[]; value: Record<stri
   );
 }
 
-export function sharePointFrom(form: FormData): SharePointSettings {
+function mapFrom(form: FormData): Record<string, string> {
   const keys = form.getAll("map_key").map(String);
   const groups = form.getAll("map_group").map(String);
-  const group_map: Record<string, string> = {};
+  const out: Record<string, string> = {};
   keys.forEach((k, i) => {
-    if (k.trim() && groups[i]) group_map[k.trim()] = groups[i]!;
+    if (k.trim() && groups[i]) out[k.trim()] = groups[i]!;
   });
+  return out;
+}
+
+export function sharePointFrom(form: FormData): SharePointSettings {
+  const group_map = mapFrom(form);
   return {
     tenant_id: String(form.get("tenant_id")).trim(),
     client_id: String(form.get("client_id")).trim(),
@@ -378,6 +424,292 @@ export function WebsiteFields({ value }: { value?: WebsiteSettings }) {
   );
 }
 
+export function confluenceFrom(form: FormData): ConfluenceSettings {
+  const flavour = String(form.get("flavour")) as ConfluenceSettings["flavour"];
+  return {
+    flavour,
+    base_url: String(form.get("base_url")).trim(),
+    email: flavour === "cloud" ? String(form.get("email") || "").trim() || null : null,
+    spaces: lines(form.get("spaces")),
+    group_map: mapFrom(form),
+  };
+}
+
+export function databaseFrom(form: FormData): DatabaseSettings {
+  return {
+    engine: String(form.get("engine")) as DatabaseSettings["engine"],
+    host: String(form.get("host")).trim(),
+    port: Number(form.get("port")),
+    database: String(form.get("database")).trim(),
+    username: String(form.get("db_user")).trim(),
+    query: String(form.get("query")).trim(),
+    id_column: String(form.get("id_column")).trim(),
+    title_column: String(form.get("title_column")).trim(),
+    text_columns: String(form.get("text_columns") || "")
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean),
+    group_column: String(form.get("group_column") || "").trim() || null,
+    max_rows: Number(form.get("max_rows")),
+  };
+}
+
+export function smbFrom(form: FormData): SmbSettings {
+  return {
+    server: String(form.get("server")).trim(),
+    port: Number(form.get("smb_port")) || 445,
+    share: String(form.get("share")).trim(),
+    include_paths: lines(form.get("smb_paths")),
+    username: String(form.get("smb_user")).trim(),
+    sid_map: mapFrom(form),
+  };
+}
+
+export function ConfluenceFields({
+  groups,
+  value,
+}: {
+  groups: GroupOption[];
+  value?: ConfluenceSettings;
+}) {
+  const t = useTranslations("sources");
+  const [flavour, setFlavour] = useState(value?.flavour ?? "cloud");
+  return (
+    <>
+      <label className={label}>
+        {t("flavour")}
+        <select
+          name="flavour"
+          value={flavour}
+          onChange={(e) => setFlavour(e.target.value as ConfluenceSettings["flavour"])}
+          className={input}
+        >
+          <option value="cloud">{t("flavours.cloud")}</option>
+          <option value="datacenter">{t("flavours.datacenter")}</option>
+        </select>
+      </label>
+      <label className={label}>
+        {t("baseUrl")}
+        <input
+          name="base_url"
+          type="url"
+          required
+          defaultValue={value?.base_url}
+          placeholder={
+            flavour === "cloud" ? "https://example.atlassian.net/wiki" : "https://wiki.example.com"
+          }
+          className={`${input} font-mono`}
+        />
+      </label>
+      {flavour === "cloud" ? (
+        <label className={label}>
+          {t("accountEmail")}
+          <input
+            name="email"
+            type="email"
+            required
+            defaultValue={value?.email ?? ""}
+            className={input}
+          />
+        </label>
+      ) : null}
+      <label className={label}>
+        {t("spaces")}
+        <textarea
+          name="spaces"
+          rows={2}
+          required
+          defaultValue={value?.spaces.join("\n")}
+          placeholder="HR"
+          className={area}
+        />
+      </label>
+      <GroupMap
+        groups={groups}
+        value={value?.group_map ?? {}}
+        legend={t("confluenceMap")}
+        hint={t("confluenceMapHint")}
+        placeholder="confluence-users"
+      />
+    </>
+  );
+}
+
+export function DatabaseFields({ value }: { value?: DatabaseSettings }) {
+  const t = useTranslations("sources");
+  const [engine, setEngine] = useState<DatabaseSettings["engine"]>(value?.engine ?? "postgresql");
+  return (
+    <>
+      <div className="grid grid-cols-[1fr_2fr_1fr] gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {t("engine")}
+          <select
+            name="engine"
+            value={engine}
+            onChange={(e) => setEngine(e.target.value as DatabaseSettings["engine"])}
+            className={input}
+          >
+            {(Object.keys(PORTS) as DatabaseSettings["engine"][]).map((k) => (
+              <option key={k} value={k}>
+                {t(`engines.${k}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={label}>
+          {t("host")}
+          <input name="host" required defaultValue={value?.host} className={`${input} font-mono`} />
+        </label>
+        <label className={label}>
+          {t("port")}
+          <input
+            key={engine}
+            name="port"
+            type="number"
+            required
+            defaultValue={value?.engine === engine ? value.port : PORTS[engine]}
+            className={input}
+          />
+        </label>
+      </div>
+      <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {engine === "oracle" ? t("serviceName") : t("databaseName")}
+          <input name="database" required defaultValue={value?.database} className={input} />
+        </label>
+        <label className={label}>
+          {t("dbUser")}
+          <input name="db_user" required defaultValue={value?.username} className={input} />
+        </label>
+      </div>
+      <label className={label}>
+        {t("query")}
+        <textarea
+          name="query"
+          rows={4}
+          required
+          defaultValue={value?.query}
+          placeholder="SELECT id, question, answer FROM faq"
+          className={area}
+        />
+        <span className="text-xs font-normal text-fg-muted">{t("queryHint")}</span>
+      </label>
+      <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {t("idColumn")}
+          <input
+            name="id_column"
+            required
+            defaultValue={value?.id_column ?? "id"}
+            className={`${input} font-mono`}
+          />
+        </label>
+        <label className={label}>
+          {t("titleColumn")}
+          <input
+            name="title_column"
+            required
+            defaultValue={value?.title_column}
+            className={`${input} font-mono`}
+          />
+        </label>
+        <label className={label}>
+          {t("textColumns")}
+          <input
+            name="text_columns"
+            defaultValue={value?.text_columns.join(", ")}
+            className={`${input} font-mono`}
+          />
+        </label>
+        <label className={label}>
+          {t("groupColumn")}
+          <input
+            name="group_column"
+            defaultValue={value?.group_column ?? ""}
+            className={`${input} font-mono`}
+          />
+        </label>
+      </div>
+      <label className={label}>
+        {t("maxRows")}
+        <input
+          name="max_rows"
+          type="number"
+          min={1}
+          max={100000}
+          defaultValue={value?.max_rows ?? 10000}
+          className={input}
+        />
+      </label>
+    </>
+  );
+}
+
+export function SmbFields({ groups, value }: { groups: GroupOption[]; value?: SmbSettings }) {
+  const t = useTranslations("sources");
+  return (
+    <>
+      <div className="grid grid-cols-[2fr_1fr_1fr] gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {t("server")}
+          <input
+            name="server"
+            required
+            defaultValue={value?.server}
+            placeholder="files.corp.example"
+            className={`${input} font-mono`}
+          />
+        </label>
+        <label className={label}>
+          {t("share")}
+          <input
+            name="share"
+            required
+            defaultValue={value?.share}
+            className={`${input} font-mono`}
+          />
+        </label>
+        <label className={label}>
+          {t("port")}
+          <input
+            name="smb_port"
+            type="number"
+            defaultValue={value?.port ?? 445}
+            className={input}
+          />
+        </label>
+      </div>
+      <label className={label}>
+        {t("smbUser")}
+        <input
+          name="smb_user"
+          required
+          defaultValue={value?.username}
+          placeholder={"CORP\\svc-veyntora"}
+          className={`${input} font-mono`}
+        />
+      </label>
+      <label className={label}>
+        {t("smbPaths")}
+        <textarea
+          name="smb_paths"
+          rows={2}
+          defaultValue={value?.include_paths.join("\n")}
+          placeholder="Policies/HR"
+          className={area}
+        />
+      </label>
+      <GroupMap
+        groups={groups}
+        value={value?.sid_map ?? {}}
+        legend={t("sidMap")}
+        hint={t("sidMapHint")}
+        placeholder="S-1-5-21-…"
+      />
+    </>
+  );
+}
+
 /** Readers per folder: the rule replaces the source's readers below that folder. */
 export function FolderRules({ groups, value }: { groups: GroupOption[]; value: FolderReaders[] }) {
   const t = useTranslations("sources");
@@ -429,13 +761,11 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-// Not built yet, with the phase they are planned for.
-const LATER = [
-  ["smb", 6],
-  ["confluence", 7],
-  ["database", 7],
-] as const;
-type Kind = "upload" | "sharepoint" | "s3" | "website";
+const KINDS = ["upload", "sharepoint", "s3", "website", "confluence", "database", "smb"] as const;
+type Kind = (typeof KINDS)[number];
+const CONNECTED: Kind[] = ["s3", "website", "confluence", "database", "smb"];
+// Their permissions come from the system itself (mapped); the others use Veyntora readers.
+const OWN_PERMISSIONS: Kind[] = ["confluence", "smb"];
 
 /** Connect data source (prototype: ConnectSource.html). */
 export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
@@ -458,18 +788,24 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
             acl: { groups: form.getAll("readers").map(String), users: [] },
           }),
         });
-      } else if (type === "s3" || type === "website") {
+      } else if (CONNECTED.includes(type)) {
         const expires = String(form.get("expires") || "");
+        const settings = {
+          s3: type === "s3" ? s3From(form) : null,
+          website: type === "website" ? websiteFrom(form) : null,
+          confluence: type === "confluence" ? confluenceFrom(form) : null,
+          database: type === "database" ? databaseFrom(form) : null,
+          smb: type === "smb" ? smbFrom(form) : null,
+        };
         created = await api("/v1/admin/sources/connected", {
           method: "POST",
           body: JSON.stringify({
             name,
             type,
-            s3: type === "s3" ? s3From(form) : null,
-            website: type === "website" ? websiteFrom(form) : null,
+            ...settings,
             acl: { groups: form.getAll("readers").map(String), users: [] },
             folders: foldersFrom(form),
-            secret: type === "s3" ? String(form.get("client_secret")) : null,
+            secret: type === "website" ? null : String(form.get("client_secret")),
             secret_expires_at: expires ? new Date(`${expires}T00:00:00Z`).toISOString() : null,
             schedule: String(form.get("schedule") || "") || null,
           }),
@@ -505,7 +841,7 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
           aria-label={t("type")}
           className="grid grid-cols-3 gap-2.5 max-[760px]:grid-cols-1"
         >
-          {(["upload", "sharepoint", "s3", "website"] as const).map((k) => (
+          {KINDS.map((k) => (
             <button
               key={k}
               type="button"
@@ -518,16 +854,6 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
               <span className="text-xs text-fg-muted">{t(`typeHints.${k}`)}</span>
             </button>
           ))}
-          {LATER.map(([k, phase]) => (
-            <PhaseGatedButton
-              key={k}
-              phase={phase}
-              label={t("laterConnector", { phase })}
-              className="h-auto w-full justify-start p-3"
-            >
-              {t(`types.${k}`)}
-            </PhaseGatedButton>
-          ))}
         </div>
       </Section>
       <Section title={t("step2")}>
@@ -537,17 +863,25 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
         </label>
         {type === "upload" ? (
           <GroupPicker groups={groups} selected={[]} name="readers" />
-        ) : type === "s3" || type === "website" ? (
+        ) : CONNECTED.includes(type) ? (
           <>
-            {type === "s3" ? <S3Fields /> : <WebsiteFields />}
+            {type === "s3" ? <S3Fields /> : null}
+            {type === "website" ? <WebsiteFields /> : null}
+            {type === "confluence" ? <ConfluenceFields groups={groups} /> : null}
+            {type === "database" ? <DatabaseFields /> : null}
+            {type === "smb" ? <SmbFields groups={groups} /> : null}
             <ScheduleSelect value={null} />
-            <GroupPicker groups={groups} selected={[]} name="readers" />
-            <FolderRules groups={groups} value={[]} />
-            {type === "s3" ? (
+            {OWN_PERMISSIONS.includes(type) ? null : (
+              <GroupPicker groups={groups} selected={[]} name="readers" />
+            )}
+            {type === "s3" || type === "website" ? (
+              <FolderRules groups={groups} value={[]} />
+            ) : null}
+            {type !== "website" ? (
               <>
                 <div className="grid grid-cols-[1fr_auto] gap-3 max-[760px]:grid-cols-1">
                   <label className={label}>
-                    {t("secretAccessKey")}
+                    {t(`secretLabel.${type as "s3"}`)}
                     <input
                       name="client_secret"
                       type="password"

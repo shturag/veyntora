@@ -193,7 +193,12 @@ async def update_source(
         changes["config"] = config
     if data.acl is not None:
         # SharePoint permissions come from SharePoint; the others are set here.
-        if row.type not in {SourceType.UPLOAD, SourceType.S3, SourceType.WEBSITE}:
+        if row.type not in {
+            SourceType.UPLOAD,
+            SourceType.S3,
+            SourceType.WEBSITE,
+            SourceType.DATABASE,
+        }:
             raise KnowledgeError("permissions of this source come from the source system")
         await _check_acl(db, data.acl)
         new_acl = data.acl.model_dump(mode="json")

@@ -41,16 +41,12 @@ test.describe("providers and data sources as a platform admin", () => {
     await expect(page.getByLabel("API key")).toHaveAttribute("type", "password");
   });
 
-  test("connect source shows SharePoint settings and keeps other connectors disabled", async ({
-    page,
-  }) => {
+  test("connect source shows the settings of every connector", async ({ page }) => {
     await page.goto("/admin/sources/new");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Connect data source");
     await page.getByRole("radio", { name: /SharePoint Online/ }).click();
     await expect(page.getByLabel("Site address")).toBeVisible();
     await expect(page.getByLabel("Client secret")).toHaveAttribute("type", "password");
-    await expect(page.getByRole("button", { name: "Confluence" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "File share (SMB)" })).toBeDisabled();
 
     await page.getByRole("radio", { name: /S3 bucket/ }).click();
     await expect(page.getByLabel("Bucket", { exact: true })).toBeVisible();
@@ -62,6 +58,20 @@ test.describe("providers and data sources as a platform admin", () => {
     await page.getByRole("radio", { name: /Website/ }).click();
     await expect(page.getByLabel("Start pages (one per line)")).toBeVisible();
     await expect(page.getByLabel("Secret access key")).toHaveCount(0);
+
+    await page.getByRole("radio", { name: /Confluence/ }).click();
+    await expect(page.getByLabel("Account e-mail (the API token's owner)")).toBeVisible();
+    await page.getByLabel("Edition").selectOption("datacenter");
+    await expect(page.getByLabel("Account e-mail (the API token's owner)")).toHaveCount(0);
+
+    await page.getByRole("radio", { name: /Database/ }).click();
+    await page.getByRole("combobox", { name: "Database", exact: true }).selectOption("sqlserver");
+    await expect(page.getByLabel("Port")).toHaveValue("1433");
+    await expect(page.getByLabel("Password")).toHaveAttribute("type", "password");
+
+    await page.getByRole("radio", { name: /File share/ }).click();
+    await expect(page.getByLabel("Account (DOMAIN\\user)")).toBeVisible();
+    await expectNoA11yViolations(page);
   });
 
   test("data sources list opens a source with its documents", async ({ page }) => {

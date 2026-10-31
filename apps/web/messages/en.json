@@ -888,7 +888,10 @@
       "upload": "Files you upload here; you choose who may read them",
       "sharepoint": "Sites and libraries, with their permissions",
       "s3": "Buckets on AWS or your own S3 store; you choose who may read",
-      "website": "Crawl an intranet or public site; you choose who may read"
+      "website": "Crawl an intranet or public site; you choose who may read",
+      "confluence": "Spaces and pages, with their permissions",
+      "database": "Rows of a read-only query; you choose who may read",
+      "smb": "Windows or Samba shares, with NTFS permissions"
     },
     "laterConnector": "This connector arrives in Phase {phase}.",
     "step2": "2. Settings",
@@ -986,7 +989,49 @@
     "foldersHint": "Optional. A folder rule replaces the readers above for everything below that folder (S3 prefix or website path); the longest match wins.",
     "folderPath": "Folder",
     "addFolder": "Add folder rule",
-    "websiteNote": "Pages are read without signing in. Choose who may read them in Veyntora; per-folder rules can narrow that."
+    "websiteNote": "Pages are read without signing in. Choose who may read them in Veyntora; per-folder rules can narrow that.",
+    "flavour": "Edition",
+    "flavours": {
+      "cloud": "Cloud (atlassian.net)",
+      "datacenter": "Data Center / Server"
+    },
+    "baseUrl": "Address",
+    "accountEmail": "Account e-mail (the API token's owner)",
+    "spaces": "Space keys (one per line)",
+    "confluenceMap": "Confluence groups → Veyntora groups",
+    "confluenceMapHint": "Space permissions and page restrictions name Confluence groups; only mapped groups may read here. Users map by e-mail.",
+    "engine": "Database",
+    "engines": {
+      "postgresql": "PostgreSQL",
+      "sqlserver": "SQL Server",
+      "mysql": "MySQL / MariaDB",
+      "oracle": "Oracle"
+    },
+    "host": "Host",
+    "port": "Port",
+    "databaseName": "Database",
+    "serviceName": "Service name",
+    "dbUser": "User (read-only)",
+    "query": "Query",
+    "queryHint": "One SELECT; each row becomes a document. It runs read-only and is rolled back; use an account that can only read.",
+    "idColumn": "ID column",
+    "titleColumn": "Title column",
+    "textColumns": "Text columns (comma-separated; empty: all)",
+    "groupColumn": "Group column (optional: names the group that may read the row)",
+    "maxRows": "Rows at most",
+    "server": "Server",
+    "share": "Share",
+    "smbUser": "Account (DOMAIN\\user)",
+    "smbPaths": "Folders (one per line; empty: the whole share)",
+    "sidMap": "Windows SIDs → Veyntora groups",
+    "sidMapHint": "From each file's NTFS permissions; deny entries win. Map group SIDs (or S-1-1-0 Everyone). Anything unmapped cannot read here.",
+    "secretLabel": {
+      "s3": "Secret access key",
+      "confluence": "API token / personal access token",
+      "database": "Password",
+      "smb": "Password",
+      "sharepoint": "Client secret"
+    }
   },
   "myFiles": {
     "title": "My files",

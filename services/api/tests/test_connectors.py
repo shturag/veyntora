@@ -91,7 +91,7 @@ def test_links_and_readers() -> None:
 
 
 def test_inputs_are_checked() -> None:
-    with pytest.raises(ValidationError, match="secret access key"):
+    with pytest.raises(ValidationError, match="needs its secret"):
         connectors.ConnectedSourceInput(
             name="b",
             type="s3",

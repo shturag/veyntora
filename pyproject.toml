@@ -86,7 +86,7 @@ module = "veyntora_workers.*"
 disallow_untyped_decorators = false
 
 [[tool.mypy.overrides]]
-module = ["openfga_sdk.*", "celery.*", "aioboto3.*", "botocore.*", "aegra_api.*"]
+module = ["openfga_sdk.*", "celery.*", "aioboto3.*", "botocore.*", "aegra_api.*", "smbclient.*", "smbprotocol.*", "pytds.*", "aiomysql.*", "asyncpg.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

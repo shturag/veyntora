@@ -1,10 +1,11 @@
-"""Sources read as a full listing each sync (S3 buckets, websites).
+"""Sources read as a full listing each sync (S3, websites, Confluence, databases, shares).
 
 Each entry that is new or changed is downloaded, stored in object storage, scanned and
-indexed like an upload. Permissions come from the source's readers and folder rules
-(veyntora_api.knowledge.connectors.readers_for). Documents no longer listed are removed,
-but only after a complete listing: a crawl cut short by its page limit or by errors
-removes nothing.
+indexed like an upload. Permissions come with the entry when the system has its own
+(Confluence, NTFS; mapped, fail closed), else from the source's readers and folder rules
+(veyntora_api.knowledge.connectors.readers_for). A permission change on an unchanged
+document queues a permission sync. Documents no longer listed are removed, but only
+after a complete listing: a listing cut short by a limit or by errors removes nothing.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ from veyntora_api.db.models.knowledge import (
     IngestJobKind,
     ScanStatus,
 )
-from veyntora_api.knowledge.connectors import readers_for
+from veyntora_api.knowledge.connectors import OWN_PERMISSIONS, readers_for
 from veyntora_api.knowledge.service import KnowledgeError, enqueue, upload_type
 from veyntora_api.storage import object_key
 
@@ -47,8 +48,10 @@ class Entry:
     version: str | None
     size: int | None
     modified: datetime | None
-    # Already downloaded (crawled pages); None: fetched when needed.
+    # Already downloaded (crawled pages, rows); None: fetched when needed.
     content: bytes | None = None
+    # Mapped permissions from the source system; None: the source's readers.
+    acl: dict[str, list[str]] | None = None
 
 
 @dataclass
@@ -57,6 +60,16 @@ class Listing:
     download: Callable[[Entry], Awaitable[bytes]]
     # Read after the entries are exhausted: whether everything was listed.
     complete: Callable[[], bool]
+    # Principals the source system named that could not be mapped (shown on the source).
+    unmapped: Callable[[], set[str]] | None = None
+
+
+def _same(doc: Document, acl: dict[str, list[str]]) -> str:
+    """An unchanged document; its permissions may still have changed."""
+    if doc.acl != acl:
+        doc.acl = acl
+        return "permissions"
+    return "unchanged"
 
 
 async def _apply(ing: Ingestor, source: DataSource, listing: Listing, entry: Entry) -> str:
@@ -66,8 +79,9 @@ async def _apply(ing: Ingestor, source: DataSource, listing: Listing, entry: Ent
         )
     )
     live = doc is not None and doc.status is not DocumentStatus.DELETED
+    acl = entry.acl if entry.acl is not None else readers_for(source, entry.path)
     if live and doc and entry.version and doc.external_version == entry.version:
-        return "unchanged"
+        return _same(doc, acl)
     if entry.size and entry.size > ing.settings.upload_max_bytes:
         return "too_large"
     content = entry.content if entry.content is not None else await listing.download(entry)
@@ -76,7 +90,7 @@ async def _apply(ing: Ingestor, source: DataSource, listing: Listing, entry: Ent
     digest = hashlib.sha256(content).hexdigest()
     if live and doc and doc.hash == digest:
         doc.external_version = entry.version
-        return "unchanged"
+        return _same(doc, acl)
     try:
         mime = upload_type(entry.name, content)
     except KnowledgeError:
@@ -98,7 +112,7 @@ async def _apply(ing: Ingestor, source: DataSource, listing: Listing, entry: Ent
             ing.delete_after_commit(doc.object_key)
     doc.path, doc.url, doc.title = entry.path[:2048], entry.url, entry.name[:1024]
     doc.mime_type, doc.size_bytes, doc.hash, doc.object_key = mime, len(content), digest, key
-    doc.acl = readers_for(source, entry.path)
+    doc.acl = acl
     doc.external_version = entry.version
     # Files from buckets and websites are scanned like uploads.
     doc.scan_status, doc.scan_detail = ScanStatus.PENDING, None
@@ -139,6 +153,10 @@ async def sync_listing(ing: Ingestor, source: DataSource, listing: Listing) -> d
             counts["deleted"] = counts.get("deleted", 0) + 1
     else:
         counts["incomplete"] = 1
+    if listing.unmapped is not None:
+        source.config = {**source.config, "unmapped": sorted(listing.unmapped())[:50]}
+    if counts.get("permissions"):
+        await enqueue(ing.db, source.id, IngestJobKind.ACL_SYNC)
     await ing.commit()
     indexed = await ing.sync_source(source.id)
     log.info("listing.synced", source_id=str(source.id), **counts)
@@ -146,7 +164,9 @@ async def sync_listing(ing: Ingestor, source: DataSource, listing: Listing) -> d
 
 
 async def resync_readers(ing: Ingestor, source: DataSource) -> list[Document]:
-    """Apply the source's readers and folder rules to every document again."""
+    """Apply the source's readers and folder rules to every document again. Permissions
+    from the source system (Confluence, shares, a database's group column) were set by
+    the last sync and are pushed to the indexes as they are."""
     docs = list(
         (
             await ing.db.execute(
@@ -156,6 +176,8 @@ async def resync_readers(ing: Ingestor, source: DataSource) -> list[Document]:
             )
         ).scalars()
     )
+    if source.type in OWN_PERMISSIONS or source.config.get("group_column"):
+        return docs
     for doc in docs:
         doc.acl = readers_for(source, doc.path)
     return docs

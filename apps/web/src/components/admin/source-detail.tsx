@@ -9,7 +9,13 @@ import type { components } from "@/lib/api/schema";
 import { api, CSRF_HEADERS } from "@/lib/chat";
 
 import {
+  ConfluenceFields,
+  DatabaseFields,
   FolderRules,
+  SmbFields,
+  confluenceFrom,
+  databaseFrom,
+  smbFrom,
   GroupPicker,
   S3Fields,
   ScheduleSelect,
@@ -289,7 +295,10 @@ export function ConnectionSettingsForm({
         body: JSON.stringify({
           s3: source.type === "s3" ? s3From(form) : null,
           website: source.type === "website" ? websiteFrom(form) : null,
-          folders: foldersFrom(form),
+          confluence: source.type === "confluence" ? confluenceFrom(form) : null,
+          database: source.type === "database" ? databaseFrom(form) : null,
+          smb: source.type === "smb" ? smbFrom(form) : null,
+          folders: source.type === "s3" || source.type === "website" ? foldersFrom(form) : [],
         }),
       });
       setDone(t("settingsSaved"));
@@ -311,8 +320,40 @@ export function ConnectionSettingsForm({
         {c.website ? (
           <WebsiteFields value={{ ...c.website, include_paths: c.website.include_paths ?? [] }} />
         ) : null}
+        {c.confluence ? (
+          <ConfluenceFields
+            groups={groups}
+            value={{
+              ...c.confluence,
+              flavour: c.confluence.flavour ?? "cloud",
+              email: c.confluence.email ?? null,
+              group_map: c.confluence.group_map ?? {},
+            }}
+          />
+        ) : null}
+        {c.database ? (
+          <DatabaseFields
+            value={{
+              ...c.database,
+              text_columns: c.database.text_columns ?? [],
+              group_column: c.database.group_column ?? null,
+              max_rows: c.database.max_rows ?? 10000,
+            }}
+          />
+        ) : null}
+        {c.smb ? (
+          <SmbFields
+            groups={groups}
+            value={{
+              ...c.smb,
+              port: c.smb.port ?? 445,
+              include_paths: c.smb.include_paths ?? [],
+              sid_map: c.smb.sid_map ?? {},
+            }}
+          />
+        ) : null}
         <ScheduleSelect value={source.schedule} />
-        <FolderRules groups={groups} value={c.folders} />
+        {c.s3 || c.website ? <FolderRules groups={groups} value={c.folders} /> : null}
         <div>
           <Button type="submit" disabled={busy}>
             {t("saveSettings")}
@@ -320,8 +361,18 @@ export function ConnectionSettingsForm({
         </div>
         <Feedback error={error} done={done} />
       </form>
-      {source.type === "s3" ? (
-        <SecretForm sourceId={source.id} meta={c} label={t("secretAccessKey")} />
+      {source.type !== "website" ? (
+        <SecretForm sourceId={source.id} meta={c} label={t(`secretLabel.${source.type as "s3"}`)} />
+      ) : null}
+      {c.unmapped.length ? (
+        <div className="flex flex-col gap-1 border-t border-divider pt-4">
+          <p className="m-0 text-sm text-fg-muted">{t("unmappedHint")}</p>
+          <ul className="m-0 pl-5 font-mono text-xs">
+            {c.unmapped.map((u) => (
+              <li key={u}>{u}</li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </div>
   );

@@ -3682,11 +3682,86 @@
         "title": "ConditionTestInput",
         "type": "object"
       },
+      "ConfluenceSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "base_url": {
+            "maxLength": 1024,
+            "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+            "title": "Base Url",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "flavour": {
+            "default": "cloud",
+            "enum": [
+              "cloud",
+              "datacenter"
+            ],
+            "title": "Flavour",
+            "type": "string"
+          },
+          "group_map": {
+            "additionalProperties": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Group Map",
+            "type": "object"
+          },
+          "spaces": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Spaces",
+            "type": "array"
+          }
+        },
+        "required": [
+          "base_url",
+          "spaces"
+        ],
+        "title": "ConfluenceSettings",
+        "type": "object"
+      },
       "ConnectedSourceInput": {
         "additionalProperties": false,
         "properties": {
           "acl": {
             "$ref": "#/components/schemas/SourceAcl"
+          },
+          "confluence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfluenceSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "database": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "folders": {
             "items": {
@@ -3748,10 +3823,23 @@
             ],
             "title": "Secret Expires At"
           },
+          "smb": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SmbSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "type": {
             "enum": [
               "s3",
-              "website"
+              "website",
+              "confluence",
+              "database",
+              "smb"
             ],
             "title": "Type",
             "type": "string"
@@ -3769,8 +3857,7 @@
         },
         "required": [
           "name",
-          "type",
-          "acl"
+          "type"
         ],
         "title": "ConnectedSourceInput",
         "type": "object"
@@ -3778,6 +3865,26 @@
       "ConnectedUpdate": {
         "additionalProperties": false,
         "properties": {
+          "confluence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfluenceSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "database": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "folders": {
             "anyOf": [
               {
@@ -3803,6 +3910,16 @@
               }
             ]
           },
+          "smb": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SmbSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "website": {
             "anyOf": [
               {
@@ -3818,8 +3935,28 @@
         "type": "object"
       },
       "ConnectionOut": {
-        "description": "S3 or website settings without the secret; folder readers and the last test.",
+        "description": "Connection settings without the secret; folder readers, the last test and what the\nlast sync could not map.",
         "properties": {
+          "confluence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfluenceSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "database": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "folders": {
             "items": {
               "$ref": "#/components/schemas/FolderReaders"
@@ -3876,6 +4013,23 @@
             ],
             "title": "Secret Last4"
           },
+          "smb": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SmbSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unmapped": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmapped",
+            "type": "array"
+          },
           "website": {
             "anyOf": [
               {
@@ -3890,7 +4044,11 @@
         "required": [
           "s3",
           "website",
+          "confluence",
+          "database",
+          "smb",
           "folders",
+          "unmapped",
           "has_secret",
           "secret_last4",
           "secret_expires_at",
@@ -4074,6 +4232,102 @@
           "key"
         ],
         "title": "CreatedKey",
+        "type": "object"
+      },
+      "DatabaseSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "database": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Database",
+            "type": "string"
+          },
+          "engine": {
+            "enum": [
+              "postgresql",
+              "sqlserver",
+              "mysql",
+              "oracle"
+            ],
+            "title": "Engine",
+            "type": "string"
+          },
+          "group_column": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Column"
+          },
+          "host": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Host",
+            "type": "string"
+          },
+          "id_column": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Id Column",
+            "type": "string"
+          },
+          "max_rows": {
+            "default": 10000,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "type": "integer"
+          },
+          "port": {
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 8000,
+            "minLength": 8,
+            "title": "Query",
+            "type": "string"
+          },
+          "text_columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Text Columns",
+            "type": "array"
+          },
+          "title_column": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Title Column",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "engine",
+          "host",
+          "port",
+          "database",
+          "username",
+          "query",
+          "id_column",
+          "title_column"
+        ],
+        "title": "DatabaseSettings",
         "type": "object"
       },
       "DecisionIn": {
@@ -14020,6 +14274,60 @@
         "title": "SlackInput",
         "type": "object"
       },
+      "SmbSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "port": {
+            "default": 445,
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "type": "integer"
+          },
+          "server": {
+            "maxLength": 255,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9.-]+$",
+            "title": "Server",
+            "type": "string"
+          },
+          "share": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Share",
+            "type": "string"
+          },
+          "sid_map": {
+            "additionalProperties": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Sid Map",
+            "type": "object"
+          },
+          "username": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "server",
+          "share",
+          "username"
+        ],
+        "title": "SmbSettings",
+        "type": "object"
+      },
       "SourceAcl": {
         "additionalProperties": false,
         "description": "Who may read documents of an upload source. Veyntora group and user ids.",
@@ -22883,7 +23191,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Connect an S3 bucket or a website",
+        "summary": "Connect S3, a website, Confluence, a database or a file share",
         "tags": [
           "admin: sources"
         ]

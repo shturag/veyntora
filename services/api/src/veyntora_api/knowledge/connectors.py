@@ -1,13 +1,18 @@
-"""S3 buckets and websites as connected sources (Phase 6).
+"""Connected sources read as a listing: S3 buckets and websites (Phase 6), Confluence,
+databases and file shares (Phase 7).
 
-Neither system has permissions Veyntora can map person by person, so who may read is set
-here: the source's readers, and optionally readers per folder (S3 prefix or website
-path). A folder rule replaces the source's readers below that folder; the longest
-matching folder wins. Changing either re-applies permissions to every document.
+- S3 and websites have no permissions Veyntora can map person by person, so who may read
+  is set here: the source's readers, and optionally readers per folder (S3 prefix or
+  website path). A folder rule replaces the source's readers below that folder; the
+  longest matching folder wins.
+- Confluence and file shares bring their own permissions (space permissions and page
+  restrictions; NTFS ACLs). They are mapped to Veyntora through the source's group map;
+  anything that cannot be mapped is dropped (fail closed) and listed on the source.
+- Databases: a read-only query; each row becomes a document. Readers are the source's,
+  or per row from a column naming a Veyntora group.
 
-The S3 secret access key goes to OpenBao (write-only, like every secret); the access key
-id is not secret. Websites are read without credentials; only hosts of the start pages
-are followed and robots.txt is respected.
+Every secret (S3 key, Confluence token, database and share passwords) goes to OpenBao,
+write-only. Changing readers or maps re-applies permissions to every document.
 """
 
 from __future__ import annotations
@@ -35,7 +40,15 @@ from veyntora_api.knowledge.service import (
 )
 from veyntora_api.secrets.openbao import SecretWriter
 
-CONNECTED = (SourceType.S3, SourceType.WEBSITE)
+CONNECTED = (
+    SourceType.S3,
+    SourceType.WEBSITE,
+    SourceType.CONFLUENCE,
+    SourceType.DATABASE,
+    SourceType.SMB,
+)
+# Their permissions come from the source system (mapped), not from Veyntora's readers.
+OWN_PERMISSIONS = (SourceType.CONFLUENCE, SourceType.SMB)
 _URL = r"^https?://[^/\s]+(/\S*)?$"
 
 
@@ -68,6 +81,78 @@ class WebsiteSettings(BaseModel):
         return self
 
 
+class ConfluenceSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    flavour: Literal["cloud", "datacenter"] = "cloud"
+    # Cloud: https://example.atlassian.net/wiki · Data Center: https://confluence.example.com
+    base_url: str = Field(max_length=1024, pattern=_URL)
+    # Cloud: the account's e-mail (with an API token); Data Center: empty (personal token).
+    email: str | None = Field(None, max_length=320)
+    spaces: list[str] = Field(min_length=1, max_length=50)
+    # Confluence group name -> Veyntora group.
+    group_map: dict[str, UUID] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _cloud_email(self) -> ConfluenceSettings:
+        if self.flavour == "cloud" and not self.email:
+            raise ValueError(
+                "Confluence Cloud needs the e-mail of the account the token belongs to"
+            )
+        return self
+
+
+Engine = Literal["postgresql", "sqlserver", "mysql", "oracle"]
+_SELECT = re.compile(r"^\s*(select|with)\b", re.IGNORECASE)
+_WRITE = re.compile(
+    r"\b(insert|update|delete|merge|drop|alter|create|truncate|grant|revoke|exec|execute|call)\b",
+    re.IGNORECASE,
+)
+
+
+class DatabaseSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    engine: Engine
+    host: str = Field(min_length=1, max_length=255)
+    port: int = Field(ge=1, le=65535)
+    database: str = Field(min_length=1, max_length=255)
+    username: str = Field(min_length=1, max_length=255)
+    # One SELECT; each row becomes a document.
+    query: str = Field(min_length=8, max_length=8000)
+    id_column: str = Field(min_length=1, max_length=128)
+    title_column: str = Field(min_length=1, max_length=128)
+    # Columns written into the document (empty: all except the id).
+    text_columns: list[str] = Field(default_factory=list, max_length=100)
+    # Optional: a column whose value names the Veyntora group that may read the row.
+    group_column: str | None = Field(None, max_length=128)
+    max_rows: int = Field(10_000, ge=1, le=100_000)
+
+    @model_validator(mode="after")
+    def _read_only(self) -> DatabaseSettings:
+        if (
+            not _SELECT.match(self.query)
+            or _WRITE.search(self.query)
+            or ";" in self.query.strip("; \n")
+        ):
+            raise ValueError("the query must be one SELECT (or WITH … SELECT) that changes nothing")
+        return self
+
+
+class SmbSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    server: str = Field(min_length=1, max_length=255, pattern=r"^[A-Za-z0-9.-]+$")
+    port: int = Field(445, ge=1, le=65535)
+    share: str = Field(min_length=1, max_length=255)
+    # Folders inside the share ("Policies/HR"); empty means the whole share.
+    include_paths: list[str] = Field(default_factory=list, max_length=50)
+    # DOMAIN\\user or user@domain.
+    username: str = Field(min_length=1, max_length=255)
+    # Windows SID (groups, or well-known ones such as S-1-1-0 Everyone) -> Veyntora group.
+    sid_map: dict[str, UUID] = Field(default_factory=dict)
+
+
 class FolderReaders(BaseModel):
     """Readers for one folder (S3 prefix or website path)."""
 
@@ -81,10 +166,14 @@ class ConnectedSourceInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1, max_length=255)
-    type: Literal["s3", "website"]
+    type: Literal["s3", "website", "confluence", "database", "smb"]
     s3: S3Settings | None = None
     website: WebsiteSettings | None = None
-    acl: SourceAcl
+    confluence: ConfluenceSettings | None = None
+    database: DatabaseSettings | None = None
+    smb: SmbSettings | None = None
+    # Readers for S3, websites and databases; Confluence and shares bring their own.
+    acl: SourceAcl = Field(default_factory=SourceAcl)
     folders: list[FolderReaders] = Field(default_factory=list, max_length=100)
     # S3 only: the secret access key.
     secret: SecretStr | None = None
@@ -93,13 +182,18 @@ class ConnectedSourceInput(BaseModel):
 
     @model_validator(mode="after")
     def _matches(self) -> ConnectedSourceInput:
-        if self.type == "s3" and (self.s3 is None or self.website is not None):
-            raise ValueError("an S3 source needs s3 settings")
-        if self.type == "website" and (self.website is None or self.s3 is not None):
-            raise ValueError("a website source needs website settings")
-        if self.type == "s3" and self.secret is None:
-            raise ValueError("an S3 source needs the secret access key")
+        given = [k for k in ("s3", "website", "confluence", "database", "smb") if getattr(self, k)]
+        if given != [self.type]:
+            raise ValueError(f"a {self.type} source needs {self.type} settings (only those)")
+        if self.type != "website" and self.secret is None:
+            raise ValueError("this source needs its secret (key, token or password)")
         return self
+
+    def settings(self) -> BaseModel:
+        value: BaseModel | None = getattr(self, self.type)
+        if value is None:
+            raise ValueError(f"{self.type} settings are missing")
+        return value
 
 
 def _norm(path: str) -> str:
@@ -134,10 +228,18 @@ async def _check_folders(db: AsyncSession, folders: list[FolderReaders]) -> None
             raise KnowledgeError(f"unknown groups: {', '.join(missing)}")
 
 
-def settings_of(source: DataSource) -> S3Settings | WebsiteSettings:
-    model: type[S3Settings | WebsiteSettings] = (
-        S3Settings if source.type is SourceType.S3 else WebsiteSettings
-    )
+Connection = S3Settings | WebsiteSettings | ConfluenceSettings | DatabaseSettings | SmbSettings
+MODELS: dict[SourceType, type[Connection]] = {
+    SourceType.S3: S3Settings,
+    SourceType.WEBSITE: WebsiteSettings,
+    SourceType.CONFLUENCE: ConfluenceSettings,
+    SourceType.DATABASE: DatabaseSettings,
+    SourceType.SMB: SmbSettings,
+}
+
+
+def settings_of(source: DataSource) -> Connection:
+    model = MODELS[source.type]
     return model.model_validate({k: source.config.get(k) for k in model.model_fields})
 
 
@@ -150,13 +252,13 @@ async def create_connected_source(
 ) -> DataSource:
     if data.schedule not in (None, *SCHEDULES):
         raise KnowledgeError("choose one of the offered sync schedules")
-    await _check_acl(db, data.acl)
+    if SourceType(data.type) not in OWN_PERMISSIONS:
+        await _check_acl(db, data.acl)
     await _check_folders(db, data.folders)
+    await _check_maps(db, data.settings())
     if await db.scalar(sa.select(DataSource.id).where(DataSource.name == data.name)):
         raise KnowledgeError(f"a source named {data.name!r} already exists")
-    settings = data.s3 if data.type == "s3" else data.website
-    if settings is None:  # the input model checks this too
-        raise KnowledgeError(f"{data.type} settings are missing")
+    settings = data.settings()
     row = DataSource(
         type=SourceType(data.type),
         name=data.name,
@@ -179,11 +281,25 @@ async def create_connected_source(
     return row
 
 
+async def _check_maps(db: AsyncSession, settings: BaseModel) -> None:
+    mapping: dict[str, UUID] = dict(
+        getattr(settings, "group_map", None) or getattr(settings, "sid_map", None) or {}
+    )
+    ids = set(mapping.values())
+    if ids:
+        found = set((await db.execute(sa.select(Group.id).where(Group.id.in_(ids)))).scalars())
+        if missing := [str(g) for g in ids if g not in found]:
+            raise KnowledgeError(f"unknown groups: {', '.join(missing)}")
+
+
 class ConnectedUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     s3: S3Settings | None = None
     website: WebsiteSettings | None = None
+    confluence: ConfluenceSettings | None = None
+    database: DatabaseSettings | None = None
+    smb: SmbSettings | None = None
     folders: list[FolderReaders] | None = Field(None, max_length=100)
 
 
@@ -197,20 +313,25 @@ async def update_connected(
     triggered_by: UUID | None,
 ) -> DataSource:
     if row.type not in CONNECTED:
-        raise KnowledgeError("these settings only apply to S3 and website sources")
-    settings = data.s3 if row.type is SourceType.S3 else data.website
-    if (data.s3 if row.type is SourceType.WEBSITE else data.website) is not None:
+        raise KnowledgeError("these settings only apply to connected sources")
+    given = {k for k in ("s3", "website", "confluence", "database", "smb") if getattr(data, k)}
+    if given - {row.type.value}:
         raise KnowledgeError("these settings are for another kind of source")
+    settings: BaseModel | None = getattr(data, row.type.value)
     config = dict(row.config)
     resync = acl_changed = False
     if settings is not None:
-        config.update(settings.model_dump(mode="json"))
+        await _check_maps(db, settings)
+        new = settings.model_dump(mode="json")
+        maps = ("group_map", "sid_map", "group_column")
+        acl_changed = any(config.get(k) != new.get(k) for k in maps if k in new)
+        config.update(new)
         resync = True
     if data.folders is not None:
         await _check_folders(db, data.folders)
-        new = [f.model_dump(mode="json") for f in data.folders]
-        acl_changed = new != (row.config.get("folders") or [])
-        config["folders"] = new
+        folders = [f.model_dump(mode="json") for f in data.folders]
+        acl_changed = acl_changed or folders != (row.config.get("folders") or [])
+        config["folders"] = folders
     await ConfigService(db, ctx).update(
         row, {"config": config}, expected_version=expected_version, action="source.update"
     )

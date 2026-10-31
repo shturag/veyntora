@@ -25,6 +25,9 @@ test.describe("governance as a platform admin", () => {
     await page.goto("/admin/governance");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Governance");
     await expectNoA11yViolations(page);
+    // Start from a known state: the admin's group does not hold the Legal role.
+    await legalRole(page, false);
+    await page.reload();
     await expect(page.getByRole("button", { name: "Place hold" })).toBeDisabled();
 
     const form = page.getByRole("form", { name: "Governance settings" });

@@ -14,7 +14,7 @@ test.describe("access reviews as a platform admin", () => {
       await expect(page.getByRole("button", { name: "Start a review round" })).toBeVisible();
     }
     await page.getByRole("button", { name: "Start a review round" }).click();
-    await expect(page.getByText(/of \d+ decided/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Close round" })).toBeVisible();
     await expectNoA11yViolations(page);
     const keep = page.getByRole("button", { name: /^Keep / }).first();
     if (await keep.count()) {

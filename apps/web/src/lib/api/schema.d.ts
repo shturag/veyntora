@@ -2036,7 +2036,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Connect an S3 bucket or a website */
+        /** Connect S3, a website, Confluence, a database or a file share */
         post: operations["create_connected_v1_admin_sources_connected_post"];
         delete?: never;
         options?: never;
@@ -4655,9 +4655,30 @@ export interface components {
             /** Rules */
             rules: components["schemas"]["AutomationRule-Input"][];
         };
+        /** ConfluenceSettings */
+        ConfluenceSettings: {
+            /** Base Url */
+            base_url: string;
+            /** Email */
+            email?: string | null;
+            /**
+             * Flavour
+             * @default cloud
+             * @enum {string}
+             */
+            flavour: "cloud" | "datacenter";
+            /** Group Map */
+            group_map?: {
+                [key: string]: string;
+            };
+            /** Spaces */
+            spaces: string[];
+        };
         /** ConnectedSourceInput */
         ConnectedSourceInput: {
-            acl: components["schemas"]["SourceAcl"];
+            acl?: components["schemas"]["SourceAcl"];
+            confluence?: components["schemas"]["ConfluenceSettings"] | null;
+            database?: components["schemas"]["DatabaseSettings"] | null;
             /** Folders */
             folders?: components["schemas"]["FolderReaders"][];
             /** Name */
@@ -4669,25 +4690,32 @@ export interface components {
             secret?: string | null;
             /** Secret Expires At */
             secret_expires_at?: string | null;
+            smb?: components["schemas"]["SmbSettings"] | null;
             /**
              * Type
              * @enum {string}
              */
-            type: "s3" | "website";
+            type: "s3" | "website" | "confluence" | "database" | "smb";
             website?: components["schemas"]["WebsiteSettings"] | null;
         };
         /** ConnectedUpdate */
         ConnectedUpdate: {
+            confluence?: components["schemas"]["ConfluenceSettings"] | null;
+            database?: components["schemas"]["DatabaseSettings"] | null;
             /** Folders */
             folders?: components["schemas"]["FolderReaders"][] | null;
             s3?: components["schemas"]["S3Settings"] | null;
+            smb?: components["schemas"]["SmbSettings"] | null;
             website?: components["schemas"]["WebsiteSettings"] | null;
         };
         /**
          * ConnectionOut
-         * @description S3 or website settings without the secret; folder readers and the last test.
+         * @description Connection settings without the secret; folder readers, the last test and what the
+         *     last sync could not map.
          */
         ConnectionOut: {
+            confluence: components["schemas"]["ConfluenceSettings"] | null;
+            database: components["schemas"]["DatabaseSettings"] | null;
             /** Folders */
             folders: components["schemas"]["FolderReaders"][];
             /** Has Secret */
@@ -4701,6 +4729,9 @@ export interface components {
             secret_expires_at: string | null;
             /** Secret Last4 */
             secret_last4: string | null;
+            smb: components["schemas"]["SmbSettings"] | null;
+            /** Unmapped */
+            unmapped: string[];
             website: components["schemas"]["WebsiteSettings"] | null;
         };
         /** ConversationOut */
@@ -4764,6 +4795,37 @@ export interface components {
             revoked: boolean;
             /** Service User Id */
             service_user_id: string | null;
+        };
+        /** DatabaseSettings */
+        DatabaseSettings: {
+            /** Database */
+            database: string;
+            /**
+             * Engine
+             * @enum {string}
+             */
+            engine: "postgresql" | "sqlserver" | "mysql" | "oracle";
+            /** Group Column */
+            group_column?: string | null;
+            /** Host */
+            host: string;
+            /** Id Column */
+            id_column: string;
+            /**
+             * Max Rows
+             * @default 10000
+             */
+            max_rows: number;
+            /** Port */
+            port: number;
+            /** Query */
+            query: string;
+            /** Text Columns */
+            text_columns?: string[];
+            /** Title Column */
+            title_column: string;
+            /** Username */
+            username: string;
         };
         /** DecisionIn */
         DecisionIn: {
@@ -8538,6 +8600,26 @@ export interface components {
             signing_secret?: string | null;
             /** Team Id */
             team_id: string;
+        };
+        /** SmbSettings */
+        SmbSettings: {
+            /** Include Paths */
+            include_paths?: string[];
+            /**
+             * Port
+             * @default 445
+             */
+            port: number;
+            /** Server */
+            server: string;
+            /** Share */
+            share: string;
+            /** Sid Map */
+            sid_map?: {
+                [key: string]: string;
+            };
+            /** Username */
+            username: string;
         };
         /**
          * SourceAcl
