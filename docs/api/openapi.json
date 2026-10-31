@@ -1873,6 +1873,238 @@
         "title": "PipelineSpec",
         "type": "object"
       },
+      "PlaygroundResult": {
+        "properties": {
+          "external_egress": {
+            "default": false,
+            "title": "External Egress",
+            "type": "boolean"
+          },
+          "groundedness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groundedness"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "rerank_skipped": {
+            "default": false,
+            "title": "Rerank Skipped",
+            "type": "boolean"
+          },
+          "search_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Type"
+          },
+          "sources": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PlaygroundSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "steps": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/PlaygroundStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tokens_in": {
+            "default": 0,
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "default": 0,
+            "title": "Tokens Out",
+            "type": "integer"
+          },
+          "top_k": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top K"
+          },
+          "version": {
+            "enum": [
+              "draft",
+              "live"
+            ],
+            "title": "Version",
+            "type": "string"
+          },
+          "version_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Number"
+          },
+          "warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning"
+          }
+        },
+        "required": [
+          "version",
+          "outcome",
+          "text"
+        ],
+        "title": "PlaygroundResult",
+        "type": "object"
+      },
+      "PlaygroundRun": {
+        "properties": {
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "versions": {
+            "items": {
+              "enum": [
+                "draft",
+                "live"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chatbot_id",
+          "question"
+        ],
+        "title": "PlaygroundRun",
+        "type": "object"
+      },
+      "PlaygroundSource": {
+        "properties": {
+          "cited": {
+            "title": "Cited",
+            "type": "boolean"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "title",
+          "section",
+          "page",
+          "score",
+          "cited"
+        ],
+        "title": "PlaygroundSource",
+        "type": "object"
+      },
+      "PlaygroundStep": {
+        "properties": {
+          "attrs": {
+            "additionalProperties": true,
+            "title": "Attrs",
+            "type": "object"
+          },
+          "ms": {
+            "title": "Ms",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "ms",
+          "attrs"
+        ],
+        "title": "PlaygroundStep",
+        "type": "object"
+      },
       "ProviderInput": {
         "additionalProperties": false,
         "properties": {
@@ -3947,6 +4179,51 @@
         "summary": "Replace the sources this chatbot answers from",
         "tags": [
           "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/playground/run": {
+      "post": {
+        "operationId": "run_v1_admin_playground_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaygroundRun"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlaygroundResult"
+                  },
+                  "title": "Response Run V1 Admin Playground Run Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run one question against the draft and/or live pipeline",
+        "tags": [
+          "admin: playground"
         ]
       }
     },

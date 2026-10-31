@@ -11,6 +11,10 @@
     "router": {
       "path": "./src/veyntora_graphs/router.py:graph",
       "description": "Router: choose Fast or Agent per question"
+    },
+    "playground": {
+      "path": "./src/veyntora_graphs/playground.py:graph",
+      "description": "Playground: one question against a draft or live pipeline, with every step"
     }
   },
   "auth": {

@@ -1172,6 +1172,61 @@
       "block": "Block",
       "refuse": "Refuse",
       "handoff": "Offer a person"
+    },
+    "testInPlayground": "Test in Playground"
+  },
+  "playground": {
+    "title": "Playground",
+    "subtitle": "Run one question against the draft and the live version side by side, step by step. Nothing is saved as a conversation.",
+    "noChatbots": "No chatbots you may test yet.",
+    "form": "Test query",
+    "chatbot": "Chatbot",
+    "mode": "Mode",
+    "modes": {
+      "fast": "Fast",
+      "agent": "Agent",
+      "auto": "Auto"
+    },
+    "modeLater": "Agent and Auto arrive in Phase {phase}.",
+    "question": "Question",
+    "questionPlaceholder": "Ask what your users would ask…",
+    "runBoth": "Run both",
+    "runDraft": "Run draft",
+    "running": "Running…",
+    "noLive": "Not live yet: only the draft runs.",
+    "asYou": "Runs with your own permissions.",
+    "failed": "Not run: {reason}",
+    "results": "Results",
+    "version": {
+      "draft": "Draft",
+      "live": "Live"
+    },
+    "outcome": {
+      "answered": "Answered",
+      "no_answer": "No answer",
+      "blocked": "Blocked",
+      "refused": "Not run",
+      "error": "Failed"
+    },
+    "latency": "Latency",
+    "tokens": "Tokens",
+    "grounded": "Grounded",
+    "steps": "Steps",
+    "sources": "Top chunks",
+    "cited": "cited",
+    "answer": "Answer",
+    "notRun": "Why it did not run",
+    "external": "An external provider was used.",
+    "rerankSkipped": "The reranker failed; retrieval order was kept.",
+    "skipped": "skipped",
+    "step": {
+      "pii": "Personal data",
+      "input_check": "Input check",
+      "rewrite": "Rewrite",
+      "retrieve": "Retrieve",
+      "rerank": "Rerank",
+      "generate": "Generate",
+      "output_check": "Output check"
     }
   }
 }

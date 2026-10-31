@@ -45,7 +45,12 @@ from veyntora_spec.pipeline import (
 )
 from veyntora_spec.profile import IndexProfile, index_profile
 
-from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineVersion
+from veyntora_api.db.models.chatbots import (
+    Chatbot,
+    ChatbotStatus,
+    PipelineStatus,
+    PipelineVersion,
+)
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import Group, Membership, User
 from veyntora_api.db.models.knowledge import (
@@ -167,14 +172,19 @@ def _canary(user_id: UUID, bot: Chatbot) -> bool:
     return bucket < bot.canary_percent
 
 
-async def load_context(
-    db: AsyncSession, authz: Authorizer, subject: str, chatbot_id: UUID
-) -> RunContext:
+async def _asker(db: AsyncSession, subject: str) -> User:
     user = await db.scalar(sa.select(User).where(User.keycloak_sub == subject))
     if user is None:
         raise RunRefusedError("Sign in to the Veyntora web app once before using assistants.")
     if user.suspended:
         raise RunRefusedError("Your account is suspended.")
+    return user
+
+
+async def load_context(
+    db: AsyncSession, authz: Authorizer, subject: str, chatbot_id: UUID
+) -> RunContext:
+    user = await _asker(db, subject)
     if not await authz.check(f"user:{user.id}", "can_chat", f"chatbot:{chatbot_id}"):
         raise RunRefusedError("You don't have access to this assistant.")
     bot = await db.get(Chatbot, chatbot_id)
@@ -184,6 +194,48 @@ async def load_context(
     version = await db.get(PipelineVersion, version_id)
     if version is None:
         raise RunRefusedError("This assistant is not available right now.")
+    return await _context(db, user, bot, version)
+
+
+async def load_test_context(
+    db: AsyncSession,
+    authz: Authorizer,
+    subject: str,
+    chatbot_id: UUID,
+    which: Literal["draft", "live"],
+) -> RunContext:
+    """The Playground: the draft or live pipeline, run with the tester's own permissions.
+
+    Only people who may edit the chatbot's draft may test it; the chatbot need not be
+    live. Data rules apply as in chat.
+    """
+    user = await _asker(db, subject)
+    if not await authz.check(f"user:{user.id}", "can_edit_draft", f"chatbot:{chatbot_id}"):
+        raise RunRefusedError("You may not test this assistant.")
+    bot = await db.get(Chatbot, chatbot_id)
+    if bot is None:
+        raise RunRefusedError("This assistant does not exist.")
+    if which == "live":
+        version = None
+        if bot.live_version_id is not None:
+            version = await db.get(PipelineVersion, bot.live_version_id)
+        if version is None:
+            raise RunRefusedError("This assistant has no live version yet.")
+    else:
+        version = await db.scalar(
+            sa.select(PipelineVersion).where(
+                PipelineVersion.chatbot_id == bot.id,
+                PipelineVersion.status == PipelineStatus.DRAFT,
+            )
+        )
+        if version is None:
+            raise RunRefusedError("This assistant has no draft.")
+    return await _context(db, user, bot, version)
+
+
+async def _context(
+    db: AsyncSession, user: User, bot: Chatbot, version: PipelineVersion
+) -> RunContext:
     spec = PipelineSpec.model_validate(version.spec)
     profile = index_profile(spec)
     if profile is None or spec.generation.llm_instance_id is None:

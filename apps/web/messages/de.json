@@ -1172,6 +1172,61 @@
       "block": "Blockieren",
       "refuse": "Ablehnen",
       "handoff": "Person anbieten"
+    },
+    "testInPlayground": "Im Playground testen"
+  },
+  "playground": {
+    "title": "Playground",
+    "subtitle": "Eine Frage gegen Entwurf und Live-Version nebeneinander testen, Schritt für Schritt. Es wird keine Unterhaltung gespeichert.",
+    "noChatbots": "Noch keine Chatbots, die du testen darfst.",
+    "form": "Testanfrage",
+    "chatbot": "Chatbot",
+    "mode": "Modus",
+    "modes": {
+      "fast": "Schnell",
+      "agent": "Agent",
+      "auto": "Auto"
+    },
+    "modeLater": "Agent und Auto kommen in Phase {phase}.",
+    "question": "Frage",
+    "questionPlaceholder": "Frag, was deine Nutzer fragen würden…",
+    "runBoth": "Beide ausführen",
+    "runDraft": "Entwurf ausführen",
+    "running": "Läuft…",
+    "noLive": "Noch nicht live: nur der Entwurf läuft.",
+    "asYou": "Läuft mit deinen eigenen Berechtigungen.",
+    "failed": "Nicht ausgeführt: {reason}",
+    "results": "Ergebnisse",
+    "version": {
+      "draft": "Entwurf",
+      "live": "Live"
+    },
+    "outcome": {
+      "answered": "Beantwortet",
+      "no_answer": "Keine Antwort",
+      "blocked": "Blockiert",
+      "refused": "Nicht ausgeführt",
+      "error": "Fehlgeschlagen"
+    },
+    "latency": "Latenz",
+    "tokens": "Tokens",
+    "grounded": "Belegt",
+    "steps": "Schritte",
+    "sources": "Beste Abschnitte",
+    "cited": "zitiert",
+    "answer": "Antwort",
+    "notRun": "Warum es nicht lief",
+    "external": "Ein externer Anbieter wurde verwendet.",
+    "rerankSkipped": "Der Reranker ist ausgefallen; die Suchreihenfolge wurde beibehalten.",
+    "skipped": "übersprungen",
+    "step": {
+      "pii": "Personenbezogene Daten",
+      "input_check": "Eingabeprüfung",
+      "rewrite": "Umformulieren",
+      "retrieve": "Suchen",
+      "rerank": "Neu ordnen",
+      "generate": "Antworten",
+      "output_check": "Ausgabeprüfung"
     }
   }
 }

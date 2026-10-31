@@ -228,6 +228,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/playground/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run one question against the draft and/or live pipeline */
+        post: operations["run_v1_admin_playground_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/providers": {
         parameters: {
             query?: never;
@@ -1524,6 +1541,98 @@ export interface components {
              */
             schema_version: 1;
         };
+        /** PlaygroundResult */
+        PlaygroundResult: {
+            /**
+             * External Egress
+             * @default false
+             */
+            external_egress: boolean;
+            /** Groundedness */
+            groundedness?: number | null;
+            /** Latency Ms */
+            latency_ms?: number | null;
+            /** Outcome */
+            outcome: string;
+            /**
+             * Rerank Skipped
+             * @default false
+             */
+            rerank_skipped: boolean;
+            /** Search Type */
+            search_type?: string | null;
+            /**
+             * Sources
+             * @default []
+             */
+            sources: components["schemas"]["PlaygroundSource"][];
+            /**
+             * Steps
+             * @default []
+             */
+            steps: components["schemas"]["PlaygroundStep"][];
+            /** Text */
+            text: string;
+            /**
+             * Tokens In
+             * @default 0
+             */
+            tokens_in: number;
+            /**
+             * Tokens Out
+             * @default 0
+             */
+            tokens_out: number;
+            /** Top K */
+            top_k?: number | null;
+            /**
+             * Version
+             * @enum {string}
+             */
+            version: "draft" | "live";
+            /** Version Number */
+            version_number?: number | null;
+            /** Warning */
+            warning?: string | null;
+        };
+        /** PlaygroundRun */
+        PlaygroundRun: {
+            /**
+             * Chatbot Id
+             * Format: uuid
+             */
+            chatbot_id: string;
+            /** Question */
+            question: string;
+            /** Versions */
+            versions?: ("draft" | "live")[];
+        };
+        /** PlaygroundSource */
+        PlaygroundSource: {
+            /** Cited */
+            cited: boolean;
+            /** N */
+            n: number;
+            /** Page */
+            page: number | null;
+            /** Score */
+            score: number;
+            /** Section */
+            section: string;
+            /** Title */
+            title: string;
+        };
+        /** PlaygroundStep */
+        PlaygroundStep: {
+            /** Attrs */
+            attrs: {
+                [key: string]: unknown;
+            };
+            /** Ms */
+            ms: number;
+            /** Name */
+            name: string;
+        };
         /** ProviderInput */
         ProviderInput: {
             /** Adapter */
@@ -2467,6 +2576,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttachmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_v1_admin_playground_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaygroundRun"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaygroundResult"][];
                 };
             };
             /** @description Validation Error */

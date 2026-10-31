@@ -5,13 +5,15 @@ usage, and which sources were used (titles and scores). Chunk text and prompts a
 copied into traces. Tracing is off unless Langfuse keys are configured.
 
 A dedicated TracerProvider is used so the graph server's own OpenTelemetry setup is not
-affected.
+affected. A trace can also keep its steps in memory (`collect=True`) for the Playground,
+which shows them step by step.
 """
 
 from __future__ import annotations
 
 import base64
 import json
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import lru_cache
@@ -33,22 +35,28 @@ def _value(value: Any) -> Any:
 
 
 class StepSpan:
-    def __init__(self, span: Span | None) -> None:
+    def __init__(self, span: Span | None, record: dict[str, Any] | None = None) -> None:
         self._span = span
+        self._record = record
 
     def set(self, **attrs: Any) -> None:
-        if self._span is not None:
-            for key, value in attrs.items():
-                if value is not None:
-                    self._span.set_attribute(key, _value(value))
+        for key, value in attrs.items():
+            if value is None:
+                continue
+            if self._span is not None:
+                self._span.set_attribute(key, _value(value))
+            if self._record is not None:
+                self._record["attrs"][key] = value
 
 
 class Trace:
     """Spans of one run. With no tracer configured every call is a no-op."""
 
-    def __init__(self, tracer: Tracer | None) -> None:
+    def __init__(self, tracer: Tracer | None, *, collect: bool = False) -> None:
         self._tracer = tracer
         self.root: Span | None = None
+        # Steps in the order they ran: {"name", "ms", "attrs"} (only with collect=True).
+        self.steps: list[dict[str, Any]] | None = [] if collect else None
 
     @property
     def id(self) -> str | None:
@@ -68,12 +76,22 @@ class Trace:
 
     @contextmanager
     def step(self, name: str, *, generation: bool = False) -> Iterator[StepSpan]:
-        if self._tracer is None:
-            yield StepSpan(None)
-            return
-        with self._tracer.start_as_current_span(name) as span:
-            span.set_attribute("langfuse.observation.type", "generation" if generation else "span")
-            yield StepSpan(span)
+        record: dict[str, Any] | None = None
+        if self.steps is not None:
+            record = {"name": name, "ms": 0, "attrs": {}}
+            self.steps.append(record)
+        t0 = time.perf_counter()
+        try:
+            if self._tracer is None:
+                yield StepSpan(None, record)
+                return
+            with self._tracer.start_as_current_span(name) as span:
+                kind = "generation" if generation else "span"
+                span.set_attribute("langfuse.observation.type", kind)
+                yield StepSpan(span, record)
+        finally:
+            if record is not None:
+                record["ms"] = round((time.perf_counter() - t0) * 1000)
 
     def set(self, **attrs: Any) -> None:
         if self.root is not None:
@@ -102,5 +120,5 @@ def _tracer() -> Tracer | None:
     return provider.get_tracer("veyntora.fast_rag")
 
 
-def new_trace() -> Trace:
-    return Trace(_tracer())
+def new_trace(*, collect: bool = False) -> Trace:
+    return Trace(_tracer(), collect=collect)

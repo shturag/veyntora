@@ -23,7 +23,8 @@ from veyntora_api.db.models.identity import GroupSource, Membership, User
 from veyntora_api.knowledge import service as knowledge
 from veyntora_api.rag import pipeline
 from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
-from veyntora_graphs import fast_rag
+from veyntora_api.routers.admin_playground import PlaygroundResult
+from veyntora_graphs import fast_rag, playground
 from veyntora_providers.interfaces import (
     AclFilter,
     Capability,
@@ -486,3 +487,58 @@ async def test_masking_rule_needs_a_pii_provider(rag: Rag) -> None:
     with pytest.raises(RunRefusedError, match="no PII provider"):
         await rag.ask("refund?")
     assert any("PII" in p for p in await bots.publish_problems(rag.w.db, rag.bot))
+
+
+async def test_playground_runs_draft_and_live_step_by_step(
+    rag: Rag, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db: AsyncSession = rag.w.db
+
+    @asynccontextmanager
+    async def session() -> AsyncIterator[AsyncSession]:
+        yield db
+
+    async def services() -> tuple[Any, Any]:
+        return rag.authz, None
+
+    monkeypatch.setattr(playground, "get_sessionmaker", lambda: session)
+    monkeypatch.setattr(playground, "_services", services)
+    monkeypatch.setattr(playground, "Adapters", lambda _db, _reader: rag.adapters())
+
+    class AuthUser:
+        identity = rag.w.user.keycloak_sub
+
+    config: Any = {"configurable": {"langgraph_auth_user": AuthUser()}}
+    question = "Can digital products be refunded?"
+
+    async def run(version: str) -> dict[str, Any]:
+        out = await playground.graph.ainvoke(
+            {"chatbot_id": str(rag.bot.id), "question": question, "version": version}, config
+        )
+        result: dict[str, Any] = out["result"]
+        return result
+
+    spec = rag.w.spec()
+    spec.retrieval.top_k = 7
+    await bots.save_draft(db, CTX, rag.bot, spec, expected_version=None)
+    draft, live = await run("draft"), await run("live")
+    assert draft["outcome"] == live["outcome"] == "answered"
+    assert draft["top_k"] == 7 and live["top_k"] != 7
+    assert draft["version_number"] == live["version_number"] + 1
+    names = [s["name"] for s in draft["steps"]]
+    assert names[-4:] == ["retrieve", "rerank", "generate", "output_check"]
+    retrieve = next(s for s in draft["steps"] if s["name"] == "retrieve")
+    assert retrieve["attrs"]["top_k"] == 7 and retrieve["ms"] >= 0
+    assert draft["sources"][0]["cited"] and draft["tokens_in"] == 120
+    # The API's response model takes the graph's output as is.
+    assert PlaygroundResult.model_validate(draft).steps[0].name == names[0]
+    # Testing stores no conversation.
+    assert await db.scalar(sa.select(sa.func.count()).select_from(Conversation)) == 0
+
+    # Testing needs the right to edit the draft; the chatbot need not be live.
+    rag.bot.status = ChatbotStatus.PAUSED
+    assert (await run("live"))["outcome"] == "answered"
+    rag.authz.denied.add(f"user:{rag.w.user.id}")
+    refused = await run("draft")
+    assert refused["outcome"] == "refused" and "may not test" in refused["text"]
+    assert PlaygroundResult.model_validate(refused).steps == []

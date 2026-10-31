@@ -1,5 +1,5 @@
 import type { PipelineSpec } from "@veyntora/spec";
-import { Badge } from "@veyntora/ui";
+import { Badge, buttonVariants } from "@veyntora/ui";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -55,11 +55,19 @@ export async function PipelinePage({
           </div>
         </div>
         {canEdit ? (
-          <PublishButton
-            botId={bot.id}
-            draft={bot.draft.number}
-            blocked={bot.publish_problems.length > 0}
-          />
+          <div className="flex items-start gap-2">
+            <Link
+              href={`/admin/playground?bot=${bot.id}`}
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              {t("testInPlayground")}
+            </Link>
+            <PublishButton
+              botId={bot.id}
+              draft={bot.draft.number}
+              blocked={bot.publish_problems.length > 0}
+            />
+          </div>
         ) : null}
       </div>
       <div className="grid grid-cols-[220px_minmax(0,1fr)_280px] items-start gap-5 max-[1200px]:grid-cols-[200px_minmax(0,1fr)] max-[760px]:grid-cols-1">

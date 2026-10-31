@@ -22,6 +22,7 @@ from veyntora_api.core.state import AppState
 from veyntora_api.knowledge.service import KnowledgeError
 from veyntora_api.routers import (
     admin_chatbots,
+    admin_playground,
     admin_providers,
     admin_sources,
     auth,
@@ -149,5 +150,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(chat.router)
     app.include_router(admin_providers.router)
     app.include_router(admin_chatbots.router)
+    app.include_router(admin_playground.router)
     app.include_router(admin_sources.router)
     return app
