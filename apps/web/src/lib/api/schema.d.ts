@@ -72,6 +72,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/access-reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current round: my items, or all for Users viewers */
+        get: operations["overview_v1_admin_access_reviews_get"];
+        put?: never;
+        /** Start a review round */
+        post: operations["start_v1_admin_access_reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/access-reviews/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Keep or revoke one grant */
+        post: operations["decide_v1_admin_access_reviews_items__item_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/access-reviews/{review_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close the round (undecided access stays) */
+        post: operations["close_v1_admin_access_reviews__review_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/app-keys": {
         parameters: {
             query?: never;
@@ -4724,6 +4776,16 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /** DecisionInput */
+        DecisionInput: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "keep" | "revoke";
+            /** Note */
+            note?: string | null;
+        };
         /** Delegate */
         Delegate: {
             /**
@@ -5445,6 +5507,11 @@ export interface components {
         /** GovernanceSettings */
         "GovernanceSettings-Input": {
             /**
+             * Access Review Every Days
+             * @default 90
+             */
+            access_review_every_days: number | null;
+            /**
              * Ai Notice
              * @default You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.
              */
@@ -5487,6 +5554,11 @@ export interface components {
         };
         /** GovernanceSettings */
         "GovernanceSettings-Output": {
+            /**
+             * Access Review Every Days
+             * @default 90
+             */
+            access_review_every_days: number | null;
             /**
              * Ai Notice
              * @default You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.
@@ -7531,6 +7603,62 @@ export interface components {
             /** Reviewed */
             reviewed: boolean;
         };
+        /** ReviewItemOut */
+        ReviewItemOut: {
+            /** Decided At */
+            decided_at: string | null;
+            /** Decision */
+            decision: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Mine */
+            mine: boolean;
+            /** Note */
+            note: string | null;
+            /** Object Id */
+            object_id: string;
+            /** Object Name */
+            object_name: string;
+            /** Principal */
+            principal: string;
+            /** Principal Name */
+            principal_name: string;
+            /** Relation */
+            relation: string;
+        };
+        /** ReviewOut */
+        ReviewOut: {
+            /** Closed At */
+            closed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided */
+            decided: number;
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Overdue */
+            overdue: boolean;
+            /** Total */
+            total: number;
+        };
         /** ReviewQueue */
         ReviewQueue: {
             /** Chatbot Id */
@@ -7570,6 +7698,18 @@ export interface components {
             title: string;
             /** Updated At */
             updated_at: string | null;
+        };
+        /** ReviewsPage */
+        ReviewsPage: {
+            /** Can Manage */
+            can_manage: boolean;
+            current: components["schemas"]["ReviewOut"] | null;
+            /** Items */
+            items: components["schemas"]["ReviewItemOut"][];
+            /** Past */
+            past: components["schemas"]["ReviewOut"][];
+            /** See All */
+            see_all: boolean;
         };
         /** RoleInput */
         RoleInput: {
@@ -8469,6 +8609,11 @@ export interface components {
             schedule?: string | null;
             sharepoint?: components["schemas"]["SharePointSettings"] | null;
             status?: components["schemas"]["SourceStatus"] | null;
+        };
+        /** StartInput */
+        StartInput: {
+            /** Name */
+            name?: string | null;
         };
         /** Stats */
         Stats: {
@@ -9427,6 +9572,127 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionInfo"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_access_reviews_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewsPage"];
+                };
+            };
+        };
+    };
+    start_v1_admin_access_reviews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_v1_admin_access_reviews_items__item_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_v1_admin_access_reviews__review_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

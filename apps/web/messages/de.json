@@ -3385,7 +3385,9 @@
       "started": "Ausgeführt",
       "blocked_legal_hold": "Durch Legal Hold blockiert",
       "completed": "Erledigt, Bericht signiert"
-    }
+    },
+    "accessReviews": "Zugriffsprüfungen",
+    "reviewEvery": "Zugriffsprüfung alle (Tage; leer: nur von Hand)"
   },
   "audit": {
     "title": "Audit-Log",
@@ -3446,5 +3448,44 @@
     "cancel": "Abbrechen",
     "close": "Schließen",
     "failed": "Hat nicht funktioniert: {reason}"
+  },
+  "accessReviews": {
+    "title": "Zugriffsprüfungen",
+    "subtitle": "Verantwortliche bestätigen, wer eine Chatbot-Rolle oder Gruppenmitgliedschaft noch braucht.",
+    "unavailable": "Zugriffsprüfungen konnten nicht geladen werden.",
+    "governance": "Governance",
+    "start": "Prüfrunde starten",
+    "started": "Prüfung gestartet; Verantwortliche wurden informiert.",
+    "close": "Runde schließen",
+    "closed": "Runde geschlossen.",
+    "progress": "{decided} von {total} entschieden · fällig {due}",
+    "overdue": "Überfällig",
+    "noRound": "Keine Prüfrunde offen. Runden starten alle 90 Tage (Governance-Einstellungen) oder von Hand.",
+    "allOpen": "{count, plural, =0 {Nichts offen} one {# Zugriff zu prüfen} other {# Zugriffe zu prüfen}}",
+    "mine": "{count, plural, =0 {Nichts für Sie zu prüfen} one {# Zugriff für Sie zu prüfen} other {# Zugriffe für Sie zu prüfen}}",
+    "nothingOpen": "Alles ist entschieden.",
+    "kinds": {
+      "chatbot_role": "{relation} von {object}",
+      "group_member": "{relation} der Gruppe {object}"
+    },
+    "relations": {
+      "owner": "Verantwortlich",
+      "editor": "Bearbeitend",
+      "approver": "Freigebend",
+      "user": "Nutzend",
+      "member": "Mitglied"
+    },
+    "keep": "Behalten",
+    "revoke": "Entziehen",
+    "keepLabel": "{label} behalten",
+    "revokeLabel": "{label} entziehen",
+    "kept": "Behalten.",
+    "revoked": "Entzogen.",
+    "ownersDecide": "Die verantwortliche Person entscheidet",
+    "decidedSummary": "{kept} behalten, {revoked} entzogen.",
+    "past": "Frühere Runden",
+    "policy": "Ungeprüfte Zugriffe bleiben; nach dem Fälligkeitsdatum werden Plattform-Admins informiert. Keycloak- und regelbasierte Mitgliedschaften kommen aus ihrer Quelle und werden hier nicht geprüft.",
+    "failed": "Hat nicht funktioniert: {reason}",
+    "cancel": "Abbrechen"
   }
 }

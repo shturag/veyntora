@@ -58,6 +58,8 @@ class GovernanceSettings(BaseModel):
     require_mask_before_external: bool = False
     eu_only_external: bool = False
     ai_notice: str = Field(DEFAULT_NOTICE, min_length=1, max_length=1000)
+    # Start an access review round this often (None: only by hand).
+    access_review_every_days: int | None = Field(90, ge=30, le=730)
 
 
 async def _row(db: AsyncSession) -> PlatformSettings:

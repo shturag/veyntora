@@ -27,6 +27,7 @@ from veyntora_api.core.config_service import relay_outbox
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.governance import reviews
 from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
 from veyntora_api.usage import budgets
@@ -85,6 +86,10 @@ app.conf.update(
         "budget-alerts": {"task": "veyntora.budget_alerts", "schedule": timedelta(minutes=5)},
         # Nightly, UTC: chats, uploads and traces past their retention.
         "retention": {"task": "veyntora.retention", "schedule": crontab(hour=2, minute=30)},
+        "access-reviews": {
+            "task": "veyntora.access_reviews",
+            "schedule": crontab(hour=6, minute=0),
+        },
         "gdpr": {
             "task": "veyntora.gdpr",
             "schedule": timedelta(minutes=1),
@@ -255,6 +260,21 @@ def eval_runs() -> list[str | None]:
 @app.task(name="veyntora.gdpr")
 def gdpr_tick() -> int:
     return _run(gdpr.tick(settings))
+
+
+@app.task(name="veyntora.access_reviews")
+def access_reviews() -> str | None:
+    async def go() -> str | None:
+        authz = await Authz.connect(settings.openfga_url, settings.openfga_store_name)
+        try:
+            async with get_sessionmaker()() as db:
+                result = await reviews.tick(db, authz)
+                await db.commit()
+        finally:
+            await authz.close()
+        return result
+
+    return _run(go())
 
 
 @app.task(name="veyntora.retention")

@@ -128,6 +128,9 @@ export default async function GovernancePage() {
               <p className="m-0 text-xs text-fg-muted">{t("lifted", { count: lifted.length })}</p>
             ) : null}
           </section>
+          <Link href="/admin/access-reviews" className={`${card} text-sm font-medium no-underline`}>
+            {t("accessReviews")} →
+          </Link>
           <section aria-labelledby="roles" className={card}>
             <h2 id="roles" className="m-0 text-sm font-semibold">
               {t("roles")}

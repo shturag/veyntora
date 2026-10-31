@@ -4115,6 +4115,35 @@
         "title": "DecisionIn",
         "type": "object"
       },
+      "DecisionInput": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "keep",
+              "revoke"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "DecisionInput",
+        "type": "object"
+      },
       "Delegate": {
         "properties": {
           "id": {
@@ -5856,6 +5885,20 @@
       "GovernanceSettings-Input": {
         "additionalProperties": false,
         "properties": {
+          "access_review_every_days": {
+            "anyOf": [
+              {
+                "maximum": 730.0,
+                "minimum": 30.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 90,
+            "title": "Access Review Every Days"
+          },
           "ai_notice": {
             "default": "You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.",
             "maxLength": 1000,
@@ -5920,6 +5963,20 @@
       "GovernanceSettings-Output": {
         "additionalProperties": false,
         "properties": {
+          "access_review_every_days": {
+            "anyOf": [
+              {
+                "maximum": 730.0,
+                "minimum": 30.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 90,
+            "title": "Access Review Every Days"
+          },
           "ai_notice": {
             "default": "You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.",
             "maxLength": 1000,
@@ -5986,7 +6043,8 @@
           "mask_reviews_and_traces",
           "require_mask_before_external",
           "eu_only_external",
-          "ai_notice"
+          "ai_notice",
+          "access_review_every_days"
         ],
         "title": "GovernanceSettings",
         "type": "object"
@@ -11269,6 +11327,151 @@
         "title": "ReviewItem",
         "type": "object"
       },
+      "ReviewItemOut": {
+        "properties": {
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "object_id": {
+            "title": "Object Id",
+            "type": "string"
+          },
+          "object_name": {
+            "title": "Object Name",
+            "type": "string"
+          },
+          "principal": {
+            "title": "Principal",
+            "type": "string"
+          },
+          "principal_name": {
+            "title": "Principal Name",
+            "type": "string"
+          },
+          "relation": {
+            "title": "Relation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "object_id",
+          "object_name",
+          "relation",
+          "principal",
+          "principal_name",
+          "mine",
+          "decision",
+          "decided_at",
+          "note"
+        ],
+        "title": "ReviewItemOut",
+        "type": "object"
+      },
+      "ReviewOut": {
+        "properties": {
+          "closed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided": {
+            "title": "Decided",
+            "type": "integer"
+          },
+          "due_at": {
+            "format": "date-time",
+            "title": "Due At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "boolean"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "due_at",
+          "created_at",
+          "closed_at",
+          "total",
+          "decided",
+          "overdue"
+        ],
+        "title": "ReviewOut",
+        "type": "object"
+      },
       "ReviewQueue": {
         "properties": {
           "chatbot_id": {
@@ -11418,6 +11621,51 @@
           "quote"
         ],
         "title": "ReviewSource",
+        "type": "object"
+      },
+      "ReviewsPage": {
+        "properties": {
+          "can_manage": {
+            "title": "Can Manage",
+            "type": "boolean"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "past": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewOut"
+            },
+            "title": "Past",
+            "type": "array"
+          },
+          "see_all": {
+            "title": "See All",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "current",
+          "past",
+          "items",
+          "see_all",
+          "can_manage"
+        ],
+        "title": "ReviewsPage",
         "type": "object"
       },
       "RoleInput": {
@@ -14025,6 +14273,24 @@
         "title": "SourceUpdate",
         "type": "object"
       },
+      "StartInput": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "StartInput",
+        "type": "object"
+      },
       "Stats": {
         "properties": {
           "answers": {
@@ -16529,6 +16795,166 @@
         "summary": "Whether the caller has a valid session",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/admin/access-reviews": {
+      "get": {
+        "operationId": "overview_v1_admin_access_reviews_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewsPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The current round: my items, or all for Users viewers",
+        "tags": [
+          "admin: access reviews"
+        ]
+      },
+      "post": {
+        "operationId": "start_v1_admin_access_reviews_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start a review round",
+        "tags": [
+          "admin: access reviews"
+        ]
+      }
+    },
+    "/v1/admin/access-reviews/items/{item_id}": {
+      "post": {
+        "operationId": "decide_v1_admin_access_reviews_items__item_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Decide V1 Admin Access Reviews Items  Item Id  Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Keep or revoke one grant",
+        "tags": [
+          "admin: access reviews"
+        ]
+      }
+    },
+    "/v1/admin/access-reviews/{review_id}/close": {
+      "post": {
+        "operationId": "close_v1_admin_access_reviews__review_id__close_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close the round (undecided access stays)",
+        "tags": [
+          "admin: access reviews"
         ]
       }
     },

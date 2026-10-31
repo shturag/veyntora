@@ -26,6 +26,11 @@ from veyntora_api.db.models.conversations import (
     SavedAnswerShare,
 )
 from veyntora_api.db.models.governance import (
+    AccessReview,
+    AccessReviewItem,
+    AuditActor,
+    AuditAnchor,
+    AuditArchive,
     AuditEvent,
     GdprRequest,
     GovernanceRule,
@@ -33,8 +38,6 @@ from veyntora_api.db.models.governance import (
     OutboxEvent,
 )
 from veyntora_api.db.models.identity import (
-    AccessReview,
-    AccessReviewItem,
     Group,
     Membership,
     User,
@@ -67,6 +70,9 @@ __all__ = [
     "AccessReviewItem",
     "AppKey",
     "Approval",
+    "AuditActor",
+    "AuditAnchor",
+    "AuditArchive",
     "AuditEvent",
     "Automation",
     "AutomationSeen",

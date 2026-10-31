@@ -3385,7 +3385,9 @@
       "started": "Carried out",
       "blocked_legal_hold": "Blocked by a legal hold",
       "completed": "Completed, report signed"
-    }
+    },
+    "accessReviews": "Access reviews",
+    "reviewEvery": "Access review every (days; empty: by hand only)"
   },
   "audit": {
     "title": "Audit log",
@@ -3446,5 +3448,44 @@
     "cancel": "Cancel",
     "close": "Close",
     "failed": "Did not work: {reason}"
+  },
+  "accessReviews": {
+    "title": "Access reviews",
+    "subtitle": "Owners confirm who still needs a chatbot role or a group membership.",
+    "unavailable": "Access reviews could not be loaded.",
+    "governance": "Governance",
+    "start": "Start a review round",
+    "started": "Review started; owners were told.",
+    "close": "Close round",
+    "closed": "Round closed.",
+    "progress": "{decided} of {total} decided · due {due}",
+    "overdue": "Overdue",
+    "noRound": "No review round is open. Rounds start every 90 days (Governance settings) or by hand.",
+    "allOpen": "{count, plural, =0 {Nothing open} one {# grant to review} other {# grants to review}}",
+    "mine": "{count, plural, =0 {Nothing for you to review} one {# grant for you to review} other {# grants for you to review}}",
+    "nothingOpen": "Everything is decided.",
+    "kinds": {
+      "chatbot_role": "{relation} of {object}",
+      "group_member": "{relation} of the group {object}"
+    },
+    "relations": {
+      "owner": "Owner",
+      "editor": "Editor",
+      "approver": "Approver",
+      "user": "User",
+      "member": "Member"
+    },
+    "keep": "Keep",
+    "revoke": "Revoke",
+    "keepLabel": "Keep {label}",
+    "revokeLabel": "Revoke {label}",
+    "kept": "Kept.",
+    "revoked": "Revoked.",
+    "ownersDecide": "The owner decides",
+    "decidedSummary": "{kept} kept, {revoked} revoked.",
+    "past": "Earlier rounds",
+    "policy": "Access nobody reviews stays; after the due date platform admins are told. Keycloak and rule-based memberships come from their source and are not reviewed here.",
+    "failed": "Did not work: {reason}",
+    "cancel": "Cancel"
   }
 }

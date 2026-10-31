@@ -39,6 +39,7 @@ from veyntora_api.routers import (
     admin_people,
     admin_playground,
     admin_providers,
+    admin_reviews,
     admin_rollout,
     admin_runs,
     admin_sources,
@@ -232,6 +233,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         admin_usage,
         admin_governance,
         admin_audit,
+        admin_reviews,
         approvals,
     ):
         app.include_router(module.router)

@@ -38,6 +38,7 @@ export function SettingsForm({ data }: { data: Gov }) {
                 mask_reviews_and_traces: f.get("mask_reviews") === "on",
                 require_mask_before_external: f.get("require_mask") === "on",
                 eu_only_external: f.get("eu_only") === "on",
+                access_review_every_days: Number(f.get("review_every")) || null,
                 ai_notice: f.get("ai_notice"),
               }),
             }),
@@ -93,6 +94,17 @@ export function SettingsForm({ data }: { data: Gov }) {
             </div>
           </div>
           <p className="m-0 text-xs text-fg-muted">{t("retentionHint")}</p>
+          <label className={field}>
+            {t("reviewEvery")}
+            <input
+              name="review_every"
+              type="number"
+              min={30}
+              max={730}
+              defaultValue={s.access_review_every_days ?? ""}
+              className={control}
+            />
+          </label>
         </section>
         <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
           <h2 className="m-0 text-sm font-semibold">{t("personalData")}</h2>

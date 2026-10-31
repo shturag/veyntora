@@ -172,3 +172,46 @@ class AuditAnchor(Base):
     chain_seq: Mapped[int] = mapped_column(sa.BigInteger)
     hash: Mapped[bytes] = mapped_column(sa.LargeBinary(32))
     at: Mapped[datetime] = utcnow_col(nullable=False)
+
+
+class AccessReview(IdMixin, Base):
+    """A round of access reviews (quarterly by default)."""
+
+    __tablename__ = "access_reviews"
+
+    name: Mapped[str] = mapped_column(sa.String(255))
+    due_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True))
+    created_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # Platform admins were told about undecided items after the due date.
+    escalated_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+
+
+class AccessReviewItem(IdMixin, Base):
+    """One grant to confirm: a chatbot role or a manual group membership."""
+
+    __tablename__ = "access_review_items"
+    __table_args__ = (
+        sa.CheckConstraint("kind IN ('chatbot_role', 'group_member')", name="kind"),
+        sa.CheckConstraint("decision IS NULL OR decision IN ('keep', 'revoke')", name="decision"),
+    )
+
+    review_id: Mapped[UUID] = mapped_column(
+        sa.ForeignKey("access_reviews.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(sa.String(32))
+    object_id: Mapped[str] = mapped_column(sa.String(64))
+    object_name: Mapped[str] = mapped_column(sa.String(255))
+    # Chatbot role (owner, editor, approver, user) or "member".
+    relation: Mapped[str] = mapped_column(sa.String(32))
+    # "user:<id>" or "group:<id>".
+    principal: Mapped[str] = mapped_column(sa.String(128))
+    principal_name: Mapped[str] = mapped_column(sa.String(320))
+    reviewer_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    decision: Mapped[str | None] = mapped_column(sa.String(16))
+    decided_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    decided_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    note: Mapped[str | None] = mapped_column(sa.Text)
