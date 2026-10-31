@@ -1,7 +1,19 @@
 """Import every model so Base.metadata is complete for Alembic and tests."""
 
-from veyntora_api.db.models.automations import Approval, Automation, Run
-from veyntora_api.db.models.channels import AppKey, Channel, ChannelIdentity, ChannelThread
+from veyntora_api.db.models.automations import (
+    Approval,
+    Automation,
+    AutomationSeen,
+    AutomationVersion,
+    Run,
+)
+from veyntora_api.db.models.channels import (
+    AppKey,
+    Channel,
+    ChannelDestination,
+    ChannelIdentity,
+    ChannelThread,
+)
 from veyntora_api.db.models.chatbots import Chatbot, PipelineVersion
 from veyntora_api.db.models.conversations import (
     Citation,
@@ -34,6 +46,7 @@ from veyntora_api.db.models.knowledge import (
     KnowledgeIssue,
     SourceAttachment,
 )
+from veyntora_api.db.models.notifications import Delivery, Notification
 from veyntora_api.db.models.platform import PlatformSettings, StatusNotice
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance, ProviderInstanceChatbot
 from veyntora_api.db.models.quality import Budget, EvalCase, EvalRun, EvalSet, UsageRecord
@@ -46,15 +59,19 @@ __all__ = [
     "Approval",
     "AuditEvent",
     "Automation",
+    "AutomationSeen",
+    "AutomationVersion",
     "Budget",
     "ByokKey",
     "Channel",
+    "ChannelDestination",
     "ChannelIdentity",
     "ChannelThread",
     "Chatbot",
     "Citation",
     "Conversation",
     "DataSource",
+    "Delivery",
     "Document",
     "DocumentIndex",
     "EvalCase",
@@ -71,6 +88,7 @@ __all__ = [
     "McpServer",
     "Membership",
     "Message",
+    "Notification",
     "OutboxEvent",
     "PipelineVersion",
     "PlatformSettings",

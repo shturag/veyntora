@@ -31,6 +31,8 @@ export default async function SettingsPage() {
             default_chatbot_id: null,
             default_mode: "auto",
             show_agent_steps: true,
+            notify_teams: true,
+            notify_email: true,
           }
         }
         assistants={(bots ?? []).map((b) => ({ id: b.id, name: b.name }))}

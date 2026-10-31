@@ -38,6 +38,9 @@ class Preferences(BaseModel):
     # Show the agent's steps live while it works (they stay under the answer either way).
     show_agent_steps: bool = True
     default_chatbot_id: UUID | None = None
+    # Where notifications go besides Veyntora itself (approvals, hand-offs, reports).
+    notify_teams: bool = True
+    notify_email: bool = True
 
 
 async def _user(db: DbSession, principal: CurrentPrincipal) -> User:

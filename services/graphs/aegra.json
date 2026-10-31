@@ -11,6 +11,10 @@
     "assistant": {
       "path": "./src/veyntora_graphs/assistant.py:graph",
       "description": "Assistant: Auto routes each question to Fast or the Agent; the Agent calls tools and waits for approval before writes"
+    },
+    "automation": {
+      "path": "./src/veyntora_graphs/automation.py:graph",
+      "description": "Automation: one run of an automation's steps as its service identity, waiting for approvals"
     }
   },
   "auth": {

@@ -107,6 +107,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/automations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Automations with this week's numbers */
+        get: operations["list_automations_v1_admin_automations_get"];
+        put?: never;
+        /** Create a draft automation */
+        post: operations["create_automation_v1_admin_automations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/condition-test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Whether a sample input matches the rules */
+        post: operations["condition_test_v1_admin_automations_condition_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/pause-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause every active automation (incidents) */
+        post: operations["pause_all_v1_admin_automations_pause_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a run; a waiting approval is withdrawn */
+        post: operations["cancel_run_v1_admin_automations_runs__run_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/schedule-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The next three runs of a schedule */
+        post: operations["schedule_preview_v1_admin_automations_schedule_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Templates for a new automation */
+        get: operations["templates_v1_admin_automations_templates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One automation with its steps, problems and runs */
+        get: operations["get_automation_v1_admin_automations__automation_id__get"];
+        /** Save the steps as a new version */
+        put: operations["save_automation_v1_admin_automations__automation_id__put"];
+        post?: never;
+        /** Delete a draft or paused automation */
+        delete: operations["delete_automation_v1_admin_automations__automation_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate (refused while there are problems) */
+        post: operations["activate_v1_admin_automations__automation_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}/hook-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A new token for the sending app (shown once) */
+        post: operations["hook_token_v1_admin_automations__automation_id__hook_token_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause: scheduled runs and triggers stop */
+        post: operations["pause_v1_admin_automations__automation_id__pause_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an older version (as a new version) */
+        post: operations["restore_version_v1_admin_automations__automation_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume a paused automation */
+        post: operations["resume_v1_admin_automations__automation_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/{automation_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run now, or a dry run that takes no actions */
+        post: operations["run_now_v1_admin_automations__automation_id__run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/bots/{bot_id}/slack": {
         parameters: {
             query?: never;
@@ -439,6 +663,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/destinations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Teams and Slack channels the bots can post in */
+        get: operations["destinations_v1_admin_destinations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/groups": {
         parameters: {
             query?: never;
@@ -503,6 +744,24 @@ export interface paths {
         get?: never;
         /** The group's roles on one chatbot */
         put: operations["put_group_roles_v1_admin_groups__group_id__roles__bot_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/mail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The email relay */
+        get: operations["get_mail_v1_admin_mail_get"];
+        /** Set the email relay (the password is write-only) */
+        put: operations["put_mail_v1_admin_mail_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1357,6 +1616,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hooks/automations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an automation from another app's event */
+        post: operations["automation_event_v1_hooks_automations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me": {
         parameters: {
             query?: never;
@@ -1548,6 +1824,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My latest notifications */
+        get: operations["list_notifications_v1_me_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark all read */
+        post: operations["mark_all_read_v1_me_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark read */
+        post: operations["mark_read_v1_me_notifications__notification_id__read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/preferences": {
         parameters: {
             query?: never;
@@ -1658,6 +1985,11 @@ export interface components {
             /** Via */
             via: string[];
         };
+        /**
+         * ActiveHours
+         * @enum {string}
+         */
+        ActiveHours: "always" | "working";
         /** Activity */
         Activity: {
             /** Action */
@@ -1699,6 +2031,37 @@ export interface components {
             token_budget: number;
             /** Tools */
             tools?: components["schemas"]["AgentToolBinding"][];
+        };
+        /**
+         * AgentStep
+         * @description The agent with a chatbot's live pipeline, a task and the tools it may use.
+         */
+        AgentStep: {
+            /** Chatbot Id */
+            chatbot_id?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Max Steps
+             * @default 6
+             */
+            max_steps: number;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** Outputs */
+            outputs?: string[];
+            /** Task */
+            task: string;
+            /** Tool Ids */
+            tool_ids?: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "agent";
         };
         /** AgentToolBinding */
         AgentToolBinding: {
@@ -1839,6 +2202,46 @@ export interface components {
             /** Tool */
             tool: string | null;
         };
+        /** ApprovalStep */
+        ApprovalStep: {
+            /** Approver Group Id */
+            approver_group_id?: string | null;
+            /** Editable */
+            editable?: string | null;
+            /** Escalate Group Id */
+            escalate_group_id?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** @default cancel */
+            on_timeout: components["schemas"]["OnTimeout"];
+            /**
+             * Required
+             * @default 1
+             */
+            required: number;
+            /** Shows */
+            shows?: components["schemas"]["ApproverSees"][];
+            /**
+             * Timeout Hours
+             * @default 24
+             */
+            timeout_hours: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "approval";
+        };
+        /**
+         * ApproverSees
+         * @enum {string}
+         */
+        ApproverSees: "reasoning" | "draft" | "tool_call";
         /** AskIn */
         AskIn: {
             /** Conversation Id */
@@ -1889,6 +2292,136 @@ export interface components {
             /** Weight */
             weight: number;
         };
+        /** AutomationCard */
+        AutomationCard: {
+            autonomy: components["schemas"]["Autonomy"];
+            /** Chatbot */
+            chatbot: string | null;
+            /** Description */
+            description: string;
+            /** Failed Recent */
+            failed_recent: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            last_run: components["schemas"]["LastRun"] | null;
+            /** Name */
+            name: string;
+            /** Next Run At */
+            next_run_at: string | null;
+            /** Paused Reason */
+            paused_reason: string | null;
+            status: components["schemas"]["AutomationStatus"];
+            /** Trigger */
+            trigger: string;
+            /** Trigger Summary */
+            trigger_summary: string;
+        };
+        /** AutomationInput */
+        AutomationInput: {
+            /** Chatbot Id */
+            chatbot_id?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Name */
+            name: string;
+            /**
+             * Template
+             * @default blank
+             */
+            template: string;
+        };
+        /** AutomationList */
+        AutomationList: {
+            /** Active */
+            active: number;
+            /** Automations */
+            automations: components["schemas"]["AutomationCard"][];
+            /** Failed Runs */
+            failed_runs: number;
+            /** Runs This Week */
+            runs_this_week: number;
+            /** Waiting For Approval */
+            waiting_for_approval: number;
+        };
+        /** AutomationOut */
+        AutomationOut: {
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /** Description */
+            description: string;
+            /** Hook Prefix */
+            hook_prefix: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Next Runs */
+            next_runs: string[];
+            /** Owner */
+            owner: string | null;
+            /** Paused Reason */
+            paused_reason: string | null;
+            /** Problems */
+            problems: string[];
+            /** Recent Runs */
+            recent_runs: components["schemas"]["RunRow"][];
+            runs_as: components["schemas"]["Identity"] | null;
+            spec: components["schemas"]["AutomationSpec-Output"];
+            status: components["schemas"]["AutomationStatus"];
+            /** Template */
+            template: string | null;
+            /** Version */
+            version: number;
+            /** Versions */
+            versions: components["schemas"]["veyntora_api__routers__admin_automations__VersionOut"][];
+        };
+        /** AutomationSpec */
+        "AutomationSpec-Input": {
+            safety?: components["schemas"]["Safety-Input"];
+            /**
+             * Schema Version
+             * @default 1
+             * @constant
+             */
+            schema_version: 1;
+            /** Steps */
+            steps?: (components["schemas"]["AgentStep"] | components["schemas"]["ConditionStep-Input"] | components["schemas"]["ApprovalStep"] | components["schemas"]["ToolStep"] | components["schemas"]["NotifyStep"])[];
+            /** Trigger */
+            trigger?: components["schemas"]["ScheduleTrigger"] | components["schemas"]["EventTrigger-Input"] | components["schemas"]["FileTrigger"] | components["schemas"]["WatcherTrigger-Input"];
+        };
+        /** AutomationSpec */
+        "AutomationSpec-Output": {
+            safety?: components["schemas"]["Safety-Output"];
+            /**
+             * Schema Version
+             * @default 1
+             * @constant
+             */
+            schema_version: 1;
+            /** Steps */
+            steps?: (components["schemas"]["AgentStep"] | components["schemas"]["ConditionStep-Output"] | components["schemas"]["ApprovalStep"] | components["schemas"]["ToolStep"] | components["schemas"]["NotifyStep"])[];
+            /** Trigger */
+            trigger?: components["schemas"]["ScheduleTrigger"] | components["schemas"]["EventTrigger-Output"] | components["schemas"]["FileTrigger"] | components["schemas"]["WatcherTrigger-Output"];
+        };
+        /**
+         * AutomationStatus
+         * @enum {string}
+         */
+        AutomationStatus: "draft" | "active" | "paused";
+        /**
+         * Autonomy
+         * @enum {string}
+         */
+        Autonomy: "suggest" | "approve" | "report";
         /** AvailableTool */
         AvailableTool: {
             access: components["schemas"]["ToolAccess"];
@@ -2061,7 +2594,7 @@ export interface components {
             answer_language: string;
             /** Description */
             description: string;
-            draft: components["schemas"]["VersionOut"];
+            draft: components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"];
             /** Draft Version */
             draft_version: number | null;
             governance: components["schemas"]["GovernanceOut"];
@@ -2224,6 +2757,80 @@ export interface components {
             /** Value */
             value?: string | number | string[] | null;
         };
+        /** ConditionStep */
+        "ConditionStep-Input": {
+            /** Id */
+            id: string;
+            /** @default and */
+            join: components["schemas"]["Join"];
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /**
+             * No
+             * @default end
+             */
+            no: string | null;
+            /** Rules */
+            rules: components["schemas"]["veyntora_spec__automation__Rule"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "condition";
+            /** Yes */
+            yes?: string | null;
+        };
+        /** ConditionStep */
+        "ConditionStep-Output": {
+            /** Id */
+            id: string;
+            /** @default and */
+            join: components["schemas"]["Join"];
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /**
+             * No
+             * @default end
+             */
+            no: string | null;
+            /** Rules */
+            rules: components["schemas"]["Rule-Output"][];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "condition";
+            /** Yes */
+            yes?: string | null;
+        };
+        /** ConditionTest */
+        ConditionTest: {
+            /** Each */
+            each: boolean[];
+            /** Matches */
+            matches: boolean;
+        };
+        /** ConditionTestInput */
+        ConditionTestInput: {
+            /** Event */
+            event?: {
+                [key: string]: unknown;
+            };
+            /** @default and */
+            join: components["schemas"]["Join"];
+            /** Outputs */
+            outputs?: {
+                [key: string]: unknown;
+            };
+            /** Rules */
+            rules: components["schemas"]["veyntora_spec__automation__Rule"][];
+        };
         /** ConversationOut */
         ConversationOut: {
             /**
@@ -2247,6 +2854,11 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** Count */
+        Count: {
+            /** Count */
+            count: number;
         };
         /** CreatedKey */
         CreatedKey: {
@@ -2306,6 +2918,29 @@ export interface components {
             delegate_id: string | null;
             /** Until */
             until?: string | null;
+        };
+        /**
+         * DestinationKind
+         * @enum {string}
+         */
+        DestinationKind: "teams_channel" | "teams_chat" | "slack_channel";
+        /** DestinationOut */
+        DestinationOut: {
+            /** Chatbot */
+            chatbot: string;
+            /**
+             * Chatbot Id
+             * Format: uuid
+             */
+            chatbot_id: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["DestinationKind"];
+            /** Name */
+            name: string;
         };
         /** DocumentOut */
         DocumentOut: {
@@ -2395,6 +3030,74 @@ export interface components {
             /** Slug */
             slug: string;
         };
+        /**
+         * EventTrigger
+         * @description A signed webhook from another app (Jira, a calendar, any system).
+         */
+        "EventTrigger-Input": {
+            /** @default always */
+            active_hours: components["schemas"]["ActiveHours"];
+            /**
+             * App
+             * @default Custom webhook
+             */
+            app: string;
+            /** Conditions */
+            conditions?: components["schemas"]["veyntora_spec__automation__Rule"][];
+            /** Dedupe Field */
+            dedupe_field?: string | null;
+            /**
+             * Dedupe Minutes
+             * @default 0
+             */
+            dedupe_minutes: number;
+            /** Event */
+            event: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "event";
+        };
+        /**
+         * EventTrigger
+         * @description A signed webhook from another app (Jira, a calendar, any system).
+         */
+        "EventTrigger-Output": {
+            /** @default always */
+            active_hours: components["schemas"]["ActiveHours"];
+            /**
+             * App
+             * @default Custom webhook
+             */
+            app: string;
+            /** Conditions */
+            conditions?: components["schemas"]["Rule-Output"][];
+            /** Dedupe Field */
+            dedupe_field?: string | null;
+            /**
+             * Dedupe Minutes
+             * @default 0
+             */
+            dedupe_minutes: number;
+            /** Event */
+            event: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "event";
+        };
         /** FeedbackInput */
         FeedbackInput: {
             /** Comment */
@@ -2424,6 +3127,38 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * FileTrigger
+         * @description A file in a connected data source.
+         */
+        FileTrigger: {
+            /** File Types */
+            file_types?: string[];
+            /**
+             * Folder
+             * @default
+             */
+            folder: string;
+            /** Source Id */
+            source_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "file";
+            /**
+             * Wait For Index
+             * @default true
+             */
+            wait_for_index: boolean;
+            /** @default added */
+            when: components["schemas"]["FileWhen"];
+        };
+        /**
+         * FileWhen
+         * @enum {string}
+         */
+        FileWhen: "added" | "added_or_changed";
         /** FlowEdge */
         FlowEdge: {
             /**
@@ -2647,7 +3382,7 @@ export interface components {
             name: string;
             /** Owner Id */
             owner_id?: string | null;
-            rule?: components["schemas"]["Rule"] | null;
+            rule?: components["schemas"]["veyntora_api__people__service__Rule"] | null;
             /**
              * Source
              * @enum {string}
@@ -2757,7 +3492,7 @@ export interface components {
             name?: string | null;
             /** Owner Id */
             owner_id?: string | null;
-            rule?: components["schemas"]["Rule"] | null;
+            rule?: components["schemas"]["veyntora_api__people__service__Rule"] | null;
         };
         /** GuardrailsSpec */
         GuardrailsSpec: {
@@ -2823,10 +3558,48 @@ export interface components {
          */
         HealthStatus: "unknown" | "healthy" | "degraded" | "down";
         /**
+         * Holidays
+         * @description Skip public holidays of this country (ISO code) and, optionally, state.
+         */
+        Holidays: {
+            /** Country */
+            country: string;
+            /** Subdivision */
+            subdivision?: string | null;
+        };
+        /** HookResult */
+        HookResult: {
+            /** Reason */
+            reason?: string | null;
+            /** Result */
+            result: string;
+            /** Run Id */
+            run_id?: string | null;
+        };
+        /** HookToken */
+        HookToken: {
+            /** Token */
+            token: string;
+            /** Url */
+            url: string;
+        };
+        /**
          * Hosting
          * @enum {string}
          */
         Hosting: "self_hosted" | "external";
+        /** Identity */
+        Identity: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Suspended */
+            suspended: boolean;
+        };
         /**
          * IngestJobKind
          * @enum {string}
@@ -2912,6 +3685,11 @@ export interface components {
          * @enum {string}
          */
         JobStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        /**
+         * Join
+         * @enum {string}
+         */
+        Join: "and" | "or";
         /** KeySecretIn */
         KeySecretIn: {
             /** Expires At */
@@ -2937,6 +3715,22 @@ export interface components {
             /** Keys */
             keys: components["schemas"]["ByokOut"][];
         };
+        /** LastRun */
+        LastRun: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Seconds */
+            seconds: number | null;
+            status: components["schemas"]["RunStatus"];
+        };
         /**
          * Level
          * @enum {string}
@@ -2960,6 +3754,73 @@ export interface components {
         LogoutResult: {
             /** Redirect To */
             redirect_to: string;
+        };
+        /** MailInput */
+        MailInput: {
+            /**
+             * From Address
+             * Format: email
+             */
+            from_address: string;
+            /**
+             * From Name
+             * @default Veyntora
+             */
+            from_name: string;
+            /** Host */
+            host: string;
+            /** Password */
+            password?: string | null;
+            /**
+             * Port
+             * @default 587
+             */
+            port: number;
+            /**
+             * Security
+             * @default starttls
+             */
+            security: string;
+            /** Username */
+            username?: string | null;
+        };
+        /** MailOut */
+        MailOut: {
+            /** Configured */
+            configured: boolean;
+            /** Password Last4 */
+            password_last4: string | null;
+            settings: components["schemas"]["MailSettings"] | null;
+        };
+        /**
+         * MailSettings
+         * @description The SMTP relay emails are sent through. The password is set separately.
+         */
+        MailSettings: {
+            /**
+             * From Address
+             * Format: email
+             */
+            from_address: string;
+            /**
+             * From Name
+             * @default Veyntora
+             */
+            from_name: string;
+            /** Host */
+            host: string;
+            /**
+             * Port
+             * @default 587
+             */
+            port: number;
+            /**
+             * Security
+             * @default starttls
+             */
+            security: string;
+            /** Username */
+            username?: string | null;
         };
         /**
          * McpAuth
@@ -3068,6 +3929,78 @@ export interface components {
              */
             updated_at: string;
         };
+        /** NotificationList */
+        NotificationList: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread */
+            unread: number;
+        };
+        /** NotificationOut */
+        NotificationOut: {
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Link */
+            link: string | null;
+            /** Read */
+            read: boolean;
+            /** Sent */
+            sent: {
+                [key: string]: unknown;
+            }[];
+            /** Title */
+            title: string;
+        };
+        /**
+         * NotifyChannel
+         * @enum {string}
+         */
+        NotifyChannel: "teams_channel" | "teams_chat" | "slack_channel" | "email";
+        /** NotifyStep */
+        NotifyStep: {
+            /** @default teams_channel */
+            channel: components["schemas"]["NotifyChannel"];
+            /** Destination Id */
+            destination_id?: string | null;
+            /** Id */
+            id: string;
+            /** Message */
+            message: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** To */
+            to?: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "notify";
+        };
+        /**
+         * OnTimeout
+         * @enum {string}
+         */
+        OnTimeout: "escalate" | "cancel";
+        /**
+         * Operator
+         * @enum {string}
+         */
+        Operator: "equals" | "not_equals" | "contains" | "gt" | "lt" | "is_one_of" | "within_days";
         /** Overview */
         Overview: {
             /** Canary Percent */
@@ -3113,6 +4046,16 @@ export interface components {
          * @enum {string}
          */
         ParentChunk: "section" | "off";
+        /** PauseAllInput */
+        PauseAllInput: {
+            /** Reason */
+            reason: string;
+        };
+        /** PauseInput */
+        PauseInput: {
+            /** Reason */
+            reason?: string | null;
+        };
         /** PendingLink */
         PendingLink: {
             /** Account */
@@ -3346,6 +4289,16 @@ export interface components {
              */
             default_mode: "auto" | "fast" | "agent";
             /**
+             * Notify Email
+             * @default true
+             */
+            notify_email: boolean;
+            /**
+             * Notify Teams
+             * @default true
+             */
+            notify_teams: boolean;
+            /**
              * Show Agent Steps
              * @default true
              */
@@ -3483,6 +4436,11 @@ export interface components {
          */
         Rating: "up" | "down";
         /**
+         * Repeat
+         * @enum {string}
+         */
+        Repeat: "daily" | "weekly" | "monthly" | "hours" | "cron";
+        /**
          * RerankFallback
          * @enum {string}
          */
@@ -3520,6 +4478,11 @@ export interface components {
              * @default 5
              */
             top_n: number;
+        };
+        /** RestoreInput */
+        RestoreInput: {
+            /** Number */
+            number: number;
         };
         /** ResumeIn */
         ResumeIn: {
@@ -3631,15 +4594,16 @@ export interface components {
             router_instance_id?: string | null;
         };
         /** Rule */
-        Rule: {
-            /** Conditions */
-            conditions: components["schemas"]["Condition"][];
+        "Rule-Output": {
+            /** Field */
+            field: string;
+            /** @default equals */
+            op: components["schemas"]["Operator"];
             /**
-             * Match
-             * @default all
-             * @enum {string}
+             * Value
+             * @default
              */
-            match: "all" | "any";
+            value: string;
         };
         /** RunApproval */
         RunApproval: {
@@ -3668,6 +4632,18 @@ export interface components {
          * @enum {string}
          */
         RunKind: "chat_agent" | "automation";
+        /** RunNowInput */
+        RunNowInput: {
+            /**
+             * Dry Run
+             * @default false
+             */
+            dry_run: boolean;
+            /** Event */
+            event?: {
+                [key: string]: unknown;
+            };
+        };
         /** RunOut */
         RunOut: {
             /** Answer */
@@ -3707,6 +4683,30 @@ export interface components {
             /** Tool Calls */
             tool_calls: components["schemas"]["RunToolCall"][];
         };
+        /** RunRow */
+        RunRow: {
+            /** Cost */
+            cost: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Dry Run */
+            dry_run: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Seconds */
+            seconds: number | null;
+            status: components["schemas"]["RunStatus"];
+            /** Summary */
+            summary: string;
+            /** Trigger */
+            trigger: string | null;
+        };
         /**
          * RunStatus
          * @enum {string}
@@ -3730,11 +4730,123 @@ export interface components {
             /** Tool */
             tool: string | null;
         };
+        /** Safety */
+        "Safety-Input": {
+            /**
+             * Alert Owner On Failure
+             * @default true
+             */
+            alert_owner_on_failure: boolean;
+            /** @default approve */
+            autonomy: components["schemas"]["Autonomy"];
+            /**
+             * Max Cost Per Run
+             * @default 1.00
+             */
+            max_cost_per_run: number | string | null;
+            /**
+             * Max Runs Per Hour
+             * @default 20
+             */
+            max_runs_per_hour: number;
+            /**
+             * Retries
+             * @default 2
+             */
+            retries: number;
+        };
+        /** Safety */
+        "Safety-Output": {
+            /**
+             * Alert Owner On Failure
+             * @default true
+             */
+            alert_owner_on_failure: boolean;
+            /** @default approve */
+            autonomy: components["schemas"]["Autonomy"];
+            /**
+             * Max Cost Per Run
+             * @default 1.00
+             */
+            max_cost_per_run: string | null;
+            /**
+             * Max Runs Per Hour
+             * @default 20
+             */
+            max_runs_per_hour: number;
+            /**
+             * Retries
+             * @default 2
+             */
+            retries: number;
+        };
+        /** SaveInput */
+        SaveInput: {
+            /**
+             * Change Note
+             * @default
+             */
+            change_note: string;
+            /** Chatbot Id */
+            chatbot_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Expected Version */
+            expected_version: number;
+            /** Name */
+            name?: string | null;
+            spec: components["schemas"]["AutomationSpec-Input"];
+        };
         /**
          * ScanStatus
          * @enum {string}
          */
         ScanStatus: "pending" | "clean" | "infected" | "skipped" | "not_required";
+        /** SchedulePreview */
+        SchedulePreview: {
+            /** Next Runs */
+            next_runs: string[];
+        };
+        /** SchedulePreviewInput */
+        SchedulePreviewInput: {
+            /** Trigger */
+            trigger: components["schemas"]["ScheduleTrigger"] | components["schemas"]["WatcherTrigger-Input"];
+        };
+        /** ScheduleTrigger */
+        ScheduleTrigger: {
+            /** Cron */
+            cron?: string | null;
+            /**
+             * Day Of Month
+             * @default 1
+             */
+            day_of_month: number;
+            /** Days */
+            days?: ("mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun")[];
+            /**
+             * Every Hours
+             * @default 4
+             */
+            every_hours: number;
+            /** @default weekly */
+            repeat: components["schemas"]["Repeat"];
+            skip_holidays?: components["schemas"]["Holidays"] | null;
+            /**
+             * Time
+             * @default 07:45
+             */
+            time: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "schedule";
+        };
         /**
          * SearchType
          * @enum {string}
@@ -4032,6 +5144,14 @@ export interface components {
             sharepoint?: components["schemas"]["SharePointSettings"] | null;
             status?: components["schemas"]["SourceStatus"] | null;
         };
+        /** Started */
+        Started: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+        };
         /** StatusOut */
         StatusOut: {
             /**
@@ -4063,6 +5183,17 @@ export interface components {
             enabled: boolean;
             /** Tenant Id */
             tenant_id: string;
+        };
+        /** TemplateOut */
+        TemplateOut: {
+            /** Description */
+            description: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Trigger */
+            trigger: string;
         };
         /**
          * ToolAccess
@@ -4115,6 +5246,30 @@ export interface components {
             requires_approval: boolean;
             /** Version */
             version: number;
+        };
+        /**
+         * ToolStep
+         * @description One call of one MCP tool; a writing tool needs an approval step before it.
+         */
+        ToolStep: {
+            /** Arguments */
+            arguments?: {
+                [key: string]: string;
+            };
+            /** Id */
+            id: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** Tool Id */
+            tool_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "tool";
         };
         /** ToolUpdate */
         ToolUpdate: {
@@ -4186,25 +5341,76 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** VersionOut */
-        VersionOut: {
-            /** Change Note */
-            change_note: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Number */
-            number: number;
-            /** Published At */
-            published_at: string | null;
-            /** Spec */
-            spec: {
-                [key: string]: unknown;
+        /**
+         * WatchEvery
+         * @enum {string}
+         */
+        WatchEvery: "hour" | "day";
+        /**
+         * WatcherTrigger
+         * @description Check data with a read tool regularly; fire for each matching item.
+         */
+        "WatcherTrigger-Input": {
+            /** Arguments */
+            arguments?: {
+                [key: string]: string;
             };
-            /** Status */
-            status: string;
+            /** @default day */
+            every: components["schemas"]["WatchEvery"];
+            /** Fire When */
+            fire_when: components["schemas"]["veyntora_spec__automation__Rule"][];
+            /** Once Per */
+            once_per?: string | null;
+            /**
+             * Time
+             * @default 06:00
+             */
+            time: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+            /** Tool Id */
+            tool_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "watcher";
+        };
+        /**
+         * WatcherTrigger
+         * @description Check data with a read tool regularly; fire for each matching item.
+         */
+        "WatcherTrigger-Output": {
+            /** Arguments */
+            arguments?: {
+                [key: string]: string;
+            };
+            /** @default day */
+            every: components["schemas"]["WatchEvery"];
+            /** Fire When */
+            fire_when: components["schemas"]["Rule-Output"][];
+            /** Once Per */
+            once_per?: string | null;
+            /**
+             * Time
+             * @default 06:00
+             */
+            time: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+            /** Tool Id */
+            tool_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "watcher";
         };
         /** WidgetConfig */
         WidgetConfig: {
@@ -4233,6 +5439,51 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** Rule */
+        veyntora_api__people__service__Rule: {
+            /** Conditions */
+            conditions: components["schemas"]["Condition"][];
+            /**
+             * Match
+             * @default all
+             * @enum {string}
+             */
+            match: "all" | "any";
+        };
+        /** VersionOut */
+        veyntora_api__routers__admin_automations__VersionOut: {
+            /** Change Note */
+            change_note: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Number */
+            number: number;
+        };
+        /** VersionOut */
+        veyntora_api__routers__admin_chatbots__VersionOut: {
+            /** Change Note */
+            change_note: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Published At */
+            published_at: string | null;
+            /** Spec */
+            spec: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
+        };
         /** SecretInput */
         veyntora_api__routers__admin_providers__SecretInput: {
             /** Expires At */
@@ -4258,6 +5509,18 @@ export interface components {
              * Format: password
              */
             secret: string;
+        };
+        /** Rule */
+        veyntora_spec__automation__Rule: {
+            /** Field */
+            field: string;
+            /** @default equals */
+            op: components["schemas"]["Operator"];
+            /**
+             * Value
+             * @default
+             */
+            value: string;
         };
     };
     responses: never;
@@ -4443,6 +5706,502 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_automations_v1_admin_automations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationList"];
+                };
+            };
+        };
+    };
+    create_automation_v1_admin_automations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutomationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    condition_test_v1_admin_automations_condition_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConditionTestInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConditionTest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pause_all_v1_admin_automations_pause_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseAllInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Count"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_run_v1_admin_automations_runs__run_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Started"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    schedule_preview_v1_admin_automations_schedule_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SchedulePreviewInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchedulePreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    templates_v1_admin_automations_templates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateOut"][];
+                };
+            };
+        };
+    };
+    get_automation_v1_admin_automations__automation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_automation_v1_admin_automations__automation_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_automation_v1_admin_automations__automation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_v1_admin_automations__automation_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hook_token_v1_admin_automations__automation_id__hook_token_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HookToken"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pause_v1_admin_automations__automation_id__pause_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_version_v1_admin_automations__automation_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_v1_admin_automations__automation_id__resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_now_v1_admin_automations__automation_id__run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunNowInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Started"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -5051,7 +6810,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VersionOut"][];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"][];
                 };
             };
             /** @description Validation Error */
@@ -5153,6 +6912,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttachmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    destinations_v1_admin_destinations_get: {
+        parameters: {
+            query?: {
+                chatbot_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DestinationOut"][];
                 };
             };
             /** @description Validation Error */
@@ -5372,6 +7162,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GroupRole"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_mail_v1_admin_mail_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailOut"];
+                };
+            };
+        };
+    };
+    put_mail_v1_admin_mail_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MailInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailOut"];
                 };
             };
             /** @description Validation Error */
@@ -7131,6 +8974,38 @@ export interface operations {
             };
         };
     };
+    automation_event_v1_hooks_automations_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+                "x-veyntora-event"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HookResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     me_v1_me_get: {
         parameters: {
             query?: never;
@@ -7513,6 +9388,73 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ByokOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notifications_v1_me_notifications_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationList"];
+                };
+            };
+        };
+    };
+    mark_all_read_v1_me_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    mark_read_v1_me_notifications__notification_id__read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

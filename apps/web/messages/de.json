@@ -1320,6 +1320,9 @@
       "detailed": "Ausführlich"
     },
     "showAgentSteps": "Agentenschritte während der Arbeit zeigen",
+    "notifyTeams": "Benachrichtigungen (Freigaben, Übergaben, Berichte) in meinen Teams-Chat mit dem Assistenten senden",
+    "notifyEmail": "Benachrichtigungen per E-Mail senden",
+    "notifyHint": "Benachrichtigungen erscheinen immer auch in Veyntora.",
     "suggestFollowUps": "Folgefragen vorschlagen",
     "save": "Speichern",
     "saved": "Gespeichert.",

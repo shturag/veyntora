@@ -56,8 +56,8 @@ ignore = [
 "print".msg = "Use structlog; print bypasses the secret scrubber."
 
 [[tool.mypy.overrides]]
-# PyYAML ships no type stubs.
-module = ["yaml"]
+# PyYAML and croniter ship no type stubs.
+module = ["yaml", "croniter"]
 ignore_missing_imports = true
 
 [tool.mypy]

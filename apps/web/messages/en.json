@@ -1320,6 +1320,9 @@
       "detailed": "Detailed"
     },
     "showAgentSteps": "Show agent steps while working",
+    "notifyTeams": "Send my notifications (approvals, hand-offs, reports) to my Teams chat with the assistant",
+    "notifyEmail": "Send my notifications by email",
+    "notifyHint": "Notifications always appear in Veyntora too.",
     "suggestFollowUps": "Suggest follow-up questions",
     "save": "Save",
     "saved": "Saved.",

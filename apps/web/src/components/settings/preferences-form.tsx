@@ -37,6 +37,8 @@ export function PreferencesForm({
           default_chatbot_id: String(form.get("default_chatbot_id") || "") || null,
           default_mode: form.get("default_mode"),
           show_agent_steps: form.get("show_agent_steps") === "on",
+          notify_teams: form.get("notify_teams") === "on",
+          notify_email: form.get("notify_email") === "on",
         }),
       });
       setMessage({ ok: true, text: t("saved") });
@@ -121,6 +123,27 @@ export function PreferencesForm({
             {t("suggestFollowUps")} · {later}
           </label>
         </div>
+        <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+          <legend className="mb-1 text-xs text-fg-muted">{t("notifyHint")}</legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="notify_teams"
+              defaultChecked={initial.notify_teams ?? true}
+              className="size-4"
+            />
+            {t("notifyTeams")}
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="notify_email"
+              defaultChecked={initial.notify_email ?? true}
+              className="size-4"
+            />
+            {t("notifyEmail")}
+          </label>
+        </fieldset>
         <div className="flex items-center gap-3">
           <Button type="submit" variant="primary" disabled={busy}>
             {t("save")}

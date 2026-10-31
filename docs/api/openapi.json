@@ -36,6 +36,14 @@
         "title": "Access",
         "type": "object"
       },
+      "ActiveHours": {
+        "enum": [
+          "always",
+          "working"
+        ],
+        "title": "ActiveHours",
+        "type": "string"
+      },
       "Activity": {
         "properties": {
           "action": {
@@ -127,6 +135,77 @@
           }
         },
         "title": "AgentSpec",
+        "type": "object"
+      },
+      "AgentStep": {
+        "additionalProperties": false,
+        "description": "The agent with a chatbot's live pipeline, a task and the tools it may use.",
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "max_steps": {
+            "default": 6,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "outputs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Outputs",
+            "type": "array"
+          },
+          "task": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Task",
+            "type": "string"
+          },
+          "tool_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Tool Ids",
+            "type": "array"
+          },
+          "type": {
+            "const": "agent",
+            "default": "agent",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "task"
+        ],
+        "title": "AgentStep",
         "type": "object"
       },
       "AgentToolBinding": {
@@ -559,6 +638,103 @@
         "title": "ApprovalOut",
         "type": "object"
       },
+      "ApprovalStep": {
+        "additionalProperties": false,
+        "properties": {
+          "approver_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Group Id"
+          },
+          "editable": {
+            "anyOf": [
+              {
+                "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editable"
+          },
+          "escalate_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalate Group Id"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "on_timeout": {
+            "$ref": "#/components/schemas/OnTimeout",
+            "default": "cancel"
+          },
+          "required": {
+            "default": 1,
+            "maximum": 2.0,
+            "minimum": 1.0,
+            "title": "Required",
+            "type": "integer"
+          },
+          "shows": {
+            "items": {
+              "$ref": "#/components/schemas/ApproverSees"
+            },
+            "title": "Shows",
+            "type": "array"
+          },
+          "timeout_hours": {
+            "default": 24,
+            "maximum": 168.0,
+            "minimum": 1.0,
+            "title": "Timeout Hours",
+            "type": "integer"
+          },
+          "type": {
+            "const": "approval",
+            "default": "approval",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "ApprovalStep",
+        "type": "object"
+      },
+      "ApproverSees": {
+        "enum": [
+          "reasoning",
+          "draft",
+          "tool_call"
+        ],
+        "title": "ApproverSees",
+        "type": "string"
+      },
       "AskIn": {
         "properties": {
           "conversation_id": {
@@ -662,6 +838,488 @@
         ],
         "title": "AttachmentOut",
         "type": "object"
+      },
+      "AutomationCard": {
+        "properties": {
+          "autonomy": {
+            "$ref": "#/components/schemas/Autonomy"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "failed_recent": {
+            "title": "Failed Recent",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LastRun"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "next_run_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Run At"
+          },
+          "paused_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused Reason"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AutomationStatus"
+          },
+          "trigger": {
+            "title": "Trigger",
+            "type": "string"
+          },
+          "trigger_summary": {
+            "title": "Trigger Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "chatbot",
+          "trigger",
+          "trigger_summary",
+          "autonomy",
+          "status",
+          "paused_reason",
+          "next_run_at",
+          "last_run",
+          "failed_recent"
+        ],
+        "title": "AutomationCard",
+        "type": "object"
+      },
+      "AutomationInput": {
+        "additionalProperties": false,
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "template": {
+            "default": "blank",
+            "title": "Template",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "AutomationInput",
+        "type": "object"
+      },
+      "AutomationList": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "integer"
+          },
+          "automations": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationCard"
+            },
+            "title": "Automations",
+            "type": "array"
+          },
+          "failed_runs": {
+            "title": "Failed Runs",
+            "type": "integer"
+          },
+          "runs_this_week": {
+            "title": "Runs This Week",
+            "type": "integer"
+          },
+          "waiting_for_approval": {
+            "title": "Waiting For Approval",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active",
+          "runs_this_week",
+          "waiting_for_approval",
+          "failed_runs",
+          "automations"
+        ],
+        "title": "AutomationList",
+        "type": "object"
+      },
+      "AutomationOut": {
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "hook_prefix": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hook Prefix"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "next_runs": {
+            "items": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "title": "Next Runs",
+            "type": "array"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "paused_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused Reason"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          },
+          "recent_runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunRow"
+            },
+            "title": "Recent Runs",
+            "type": "array"
+          },
+          "runs_as": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Identity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationSpec-Output"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AutomationStatus"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_api__routers__admin_automations__VersionOut"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "chatbot_id",
+          "template",
+          "status",
+          "paused_reason",
+          "version",
+          "spec",
+          "problems",
+          "runs_as",
+          "next_runs",
+          "hook_prefix",
+          "owner",
+          "recent_runs",
+          "versions"
+        ],
+        "title": "AutomationOut",
+        "type": "object"
+      },
+      "AutomationSpec-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "safety": {
+            "$ref": "#/components/schemas/Safety-Input"
+          },
+          "schema_version": {
+            "const": 1,
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "steps": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "agent": "#/components/schemas/AgentStep",
+                  "approval": "#/components/schemas/ApprovalStep",
+                  "condition": "#/components/schemas/ConditionStep-Input",
+                  "notify": "#/components/schemas/NotifyStep",
+                  "tool": "#/components/schemas/ToolStep"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AgentStep"
+                },
+                {
+                  "$ref": "#/components/schemas/ConditionStep-Input"
+                },
+                {
+                  "$ref": "#/components/schemas/ApprovalStep"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolStep"
+                },
+                {
+                  "$ref": "#/components/schemas/NotifyStep"
+                }
+              ]
+            },
+            "maxItems": 30,
+            "title": "Steps",
+            "type": "array"
+          },
+          "trigger": {
+            "discriminator": {
+              "mapping": {
+                "event": "#/components/schemas/EventTrigger-Input",
+                "file": "#/components/schemas/FileTrigger",
+                "schedule": "#/components/schemas/ScheduleTrigger",
+                "watcher": "#/components/schemas/WatcherTrigger-Input"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleTrigger"
+              },
+              {
+                "$ref": "#/components/schemas/EventTrigger-Input"
+              },
+              {
+                "$ref": "#/components/schemas/FileTrigger"
+              },
+              {
+                "$ref": "#/components/schemas/WatcherTrigger-Input"
+              }
+            ],
+            "title": "Trigger"
+          }
+        },
+        "title": "AutomationSpec",
+        "type": "object"
+      },
+      "AutomationSpec-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "safety": {
+            "$ref": "#/components/schemas/Safety-Output"
+          },
+          "schema_version": {
+            "const": 1,
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "steps": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "agent": "#/components/schemas/AgentStep",
+                  "approval": "#/components/schemas/ApprovalStep",
+                  "condition": "#/components/schemas/ConditionStep-Output",
+                  "notify": "#/components/schemas/NotifyStep",
+                  "tool": "#/components/schemas/ToolStep"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AgentStep"
+                },
+                {
+                  "$ref": "#/components/schemas/ConditionStep-Output"
+                },
+                {
+                  "$ref": "#/components/schemas/ApprovalStep"
+                },
+                {
+                  "$ref": "#/components/schemas/ToolStep"
+                },
+                {
+                  "$ref": "#/components/schemas/NotifyStep"
+                }
+              ]
+            },
+            "maxItems": 30,
+            "title": "Steps",
+            "type": "array"
+          },
+          "trigger": {
+            "discriminator": {
+              "mapping": {
+                "event": "#/components/schemas/EventTrigger-Output",
+                "file": "#/components/schemas/FileTrigger",
+                "schedule": "#/components/schemas/ScheduleTrigger",
+                "watcher": "#/components/schemas/WatcherTrigger-Output"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleTrigger"
+              },
+              {
+                "$ref": "#/components/schemas/EventTrigger-Output"
+              },
+              {
+                "$ref": "#/components/schemas/FileTrigger"
+              },
+              {
+                "$ref": "#/components/schemas/WatcherTrigger-Output"
+              }
+            ],
+            "title": "Trigger"
+          }
+        },
+        "title": "AutomationSpec",
+        "type": "object"
+      },
+      "AutomationStatus": {
+        "enum": [
+          "draft",
+          "active",
+          "paused"
+        ],
+        "title": "AutomationStatus",
+        "type": "string"
+      },
+      "Autonomy": {
+        "enum": [
+          "suggest",
+          "approve",
+          "report"
+        ],
+        "title": "Autonomy",
+        "type": "string"
       },
       "AvailableTool": {
         "properties": {
@@ -1150,7 +1808,7 @@
             "type": "string"
           },
           "draft": {
-            "$ref": "#/components/schemas/VersionOut"
+            "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
           },
           "draft_version": {
             "anyOf": [
@@ -1661,6 +2319,187 @@
         "title": "Condition",
         "type": "object"
       },
+      "ConditionStep-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "join": {
+            "$ref": "#/components/schemas/Join",
+            "default": "and"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "end",
+            "title": "No"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Rules",
+            "type": "array"
+          },
+          "type": {
+            "const": "condition",
+            "default": "condition",
+            "title": "Type",
+            "type": "string"
+          },
+          "yes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yes"
+          }
+        },
+        "required": [
+          "id",
+          "rules"
+        ],
+        "title": "ConditionStep",
+        "type": "object"
+      },
+      "ConditionStep-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "join": {
+            "$ref": "#/components/schemas/Join",
+            "default": "and"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "end",
+            "title": "No"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/Rule-Output"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Rules",
+            "type": "array"
+          },
+          "type": {
+            "const": "condition",
+            "default": "condition",
+            "title": "Type",
+            "type": "string"
+          },
+          "yes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yes"
+          }
+        },
+        "required": [
+          "id",
+          "rules"
+        ],
+        "title": "ConditionStep",
+        "type": "object"
+      },
+      "ConditionTest": {
+        "properties": {
+          "each": {
+            "items": {
+              "type": "boolean"
+            },
+            "title": "Each",
+            "type": "array"
+          },
+          "matches": {
+            "title": "Matches",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "matches",
+          "each"
+        ],
+        "title": "ConditionTest",
+        "type": "object"
+      },
+      "ConditionTestInput": {
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "additionalProperties": true,
+            "title": "Event",
+            "type": "object"
+          },
+          "join": {
+            "$ref": "#/components/schemas/Join",
+            "default": "and"
+          },
+          "outputs": {
+            "additionalProperties": true,
+            "title": "Outputs",
+            "type": "object"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+            },
+            "maxItems": 20,
+            "title": "Rules",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rules"
+        ],
+        "title": "ConditionTestInput",
+        "type": "object"
+      },
       "ConversationOut": {
         "properties": {
           "chatbot_id": {
@@ -1707,6 +2546,19 @@
           "updated_at"
         ],
         "title": "ConversationOut",
+        "type": "object"
+      },
+      "Count": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "Count",
         "type": "object"
       },
       "CreatedKey": {
@@ -1913,6 +2765,49 @@
           "delegate_id"
         ],
         "title": "DelegateIn",
+        "type": "object"
+      },
+      "DestinationKind": {
+        "enum": [
+          "teams_channel",
+          "teams_chat",
+          "slack_channel"
+        ],
+        "title": "DestinationKind",
+        "type": "string"
+      },
+      "DestinationOut": {
+        "properties": {
+          "chatbot": {
+            "title": "Chatbot",
+            "type": "string"
+          },
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DestinationKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "chatbot_id",
+          "chatbot"
+        ],
+        "title": "DestinationOut",
         "type": "object"
       },
       "DocumentOut": {
@@ -2157,6 +3052,140 @@
         "title": "DuplicateIn",
         "type": "object"
       },
+      "EventTrigger-Input": {
+        "additionalProperties": false,
+        "description": "A signed webhook from another app (Jira, a calendar, any system).",
+        "properties": {
+          "active_hours": {
+            "$ref": "#/components/schemas/ActiveHours",
+            "default": "always"
+          },
+          "app": {
+            "default": "Custom webhook",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "App",
+            "type": "string"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+            },
+            "maxItems": 20,
+            "title": "Conditions",
+            "type": "array"
+          },
+          "dedupe_field": {
+            "anyOf": [
+              {
+                "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dedupe Field"
+          },
+          "dedupe_minutes": {
+            "default": 0,
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Dedupe Minutes",
+            "type": "integer"
+          },
+          "event": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:-]+$",
+            "title": "Event",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          },
+          "type": {
+            "const": "event",
+            "default": "event",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event"
+        ],
+        "title": "EventTrigger",
+        "type": "object"
+      },
+      "EventTrigger-Output": {
+        "additionalProperties": false,
+        "description": "A signed webhook from another app (Jira, a calendar, any system).",
+        "properties": {
+          "active_hours": {
+            "$ref": "#/components/schemas/ActiveHours",
+            "default": "always"
+          },
+          "app": {
+            "default": "Custom webhook",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "App",
+            "type": "string"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/Rule-Output"
+            },
+            "maxItems": 20,
+            "title": "Conditions",
+            "type": "array"
+          },
+          "dedupe_field": {
+            "anyOf": [
+              {
+                "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dedupe Field"
+          },
+          "dedupe_minutes": {
+            "default": 0,
+            "maximum": 10080.0,
+            "minimum": 0.0,
+            "title": "Dedupe Minutes",
+            "type": "integer"
+          },
+          "event": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_.:-]+$",
+            "title": "Event",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          },
+          "type": {
+            "const": "event",
+            "default": "event",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event"
+        ],
+        "title": "EventTrigger",
+        "type": "object"
+      },
       "FeedbackInput": {
         "properties": {
           "comment": {
@@ -2255,6 +3284,63 @@
         ],
         "title": "FileOut",
         "type": "object"
+      },
+      "FileTrigger": {
+        "additionalProperties": false,
+        "description": "A file in a connected data source.",
+        "properties": {
+          "file_types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "File Types",
+            "type": "array"
+          },
+          "folder": {
+            "default": "",
+            "maxLength": 1024,
+            "title": "Folder",
+            "type": "string"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "type": {
+            "const": "file",
+            "default": "file",
+            "title": "Type",
+            "type": "string"
+          },
+          "wait_for_index": {
+            "default": true,
+            "title": "Wait For Index",
+            "type": "boolean"
+          },
+          "when": {
+            "$ref": "#/components/schemas/FileWhen",
+            "default": "added"
+          }
+        },
+        "title": "FileTrigger",
+        "type": "object"
+      },
+      "FileWhen": {
+        "enum": [
+          "added",
+          "added_or_changed"
+        ],
+        "title": "FileWhen",
+        "type": "string"
       },
       "FlowEdge": {
         "additionalProperties": false,
@@ -2745,7 +3831,7 @@
           "rule": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Rule"
+                "$ref": "#/components/schemas/veyntora_api__people__service__Rule"
               },
               {
                 "type": "null"
@@ -3057,7 +4143,7 @@
           "rule": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Rule"
+                "$ref": "#/components/schemas/veyntora_api__people__service__Rule"
               },
               {
                 "type": "null"
@@ -3209,6 +4295,88 @@
         "title": "HealthStatus",
         "type": "string"
       },
+      "Holidays": {
+        "additionalProperties": false,
+        "description": "Skip public holidays of this country (ISO code) and, optionally, state.",
+        "properties": {
+          "country": {
+            "pattern": "^[A-Z]{2}$",
+            "title": "Country",
+            "type": "string"
+          },
+          "subdivision": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z0-9]{1,3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision"
+          }
+        },
+        "required": [
+          "country"
+        ],
+        "title": "Holidays",
+        "type": "object"
+      },
+      "HookResult": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "title": "HookResult",
+        "type": "object"
+      },
+      "HookToken": {
+        "properties": {
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "url"
+        ],
+        "title": "HookToken",
+        "type": "object"
+      },
       "Hosting": {
         "enum": [
           "self_hosted",
@@ -3216,6 +4384,30 @@
         ],
         "title": "Hosting",
         "type": "string"
+      },
+      "Identity": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "suspended": {
+            "title": "Suspended",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "suspended"
+        ],
+        "title": "Identity",
+        "type": "object"
       },
       "IngestJobKind": {
         "enum": [
@@ -3407,6 +4599,14 @@
         "title": "JobStatus",
         "type": "string"
       },
+      "Join": {
+        "enum": [
+          "and",
+          "or"
+        ],
+        "title": "Join",
+        "type": "string"
+      },
       "KeySecretIn": {
         "properties": {
           "expires_at": {
@@ -3474,6 +4674,42 @@
         "title": "KeysOut",
         "type": "object"
       },
+      "LastRun": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "seconds"
+        ],
+        "title": "LastRun",
+        "type": "object"
+      },
       "Level": {
         "enum": [
           "operational",
@@ -3532,6 +4768,164 @@
           "redirect_to"
         ],
         "title": "LogoutResult",
+        "type": "object"
+      },
+      "MailInput": {
+        "additionalProperties": false,
+        "properties": {
+          "from_address": {
+            "format": "email",
+            "title": "From Address",
+            "type": "string"
+          },
+          "from_name": {
+            "default": "Veyntora",
+            "maxLength": 255,
+            "title": "From Name",
+            "type": "string"
+          },
+          "host": {
+            "maxLength": 255,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9.-]+$",
+            "title": "Host",
+            "type": "string"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "port": {
+            "default": 587,
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "type": "integer"
+          },
+          "security": {
+            "default": "starttls",
+            "pattern": "^(starttls|tls|none)$",
+            "title": "Security",
+            "type": "string"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          }
+        },
+        "required": [
+          "host",
+          "from_address"
+        ],
+        "title": "MailInput",
+        "type": "object"
+      },
+      "MailOut": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "password_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password Last4"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MailSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "configured",
+          "settings",
+          "password_last4"
+        ],
+        "title": "MailOut",
+        "type": "object"
+      },
+      "MailSettings": {
+        "additionalProperties": false,
+        "description": "The SMTP relay emails are sent through. The password is set separately.",
+        "properties": {
+          "from_address": {
+            "format": "email",
+            "title": "From Address",
+            "type": "string"
+          },
+          "from_name": {
+            "default": "Veyntora",
+            "maxLength": 255,
+            "title": "From Name",
+            "type": "string"
+          },
+          "host": {
+            "maxLength": 255,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9.-]+$",
+            "title": "Host",
+            "type": "string"
+          },
+          "port": {
+            "default": 587,
+            "maximum": 65535.0,
+            "minimum": 1.0,
+            "title": "Port",
+            "type": "integer"
+          },
+          "security": {
+            "default": "starttls",
+            "pattern": "^(starttls|tls|none)$",
+            "title": "Security",
+            "type": "string"
+          },
+          "username": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Username"
+          }
+        },
+        "required": [
+          "host",
+          "from_address"
+        ],
+        "title": "MailSettings",
         "type": "object"
       },
       "McpAuth": {
@@ -3831,6 +5225,177 @@
         "title": "NoticeOut",
         "type": "object"
       },
+      "NotificationList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "unread": {
+            "title": "Unread",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unread",
+          "items"
+        ],
+        "title": "NotificationList",
+        "type": "object"
+      },
+      "NotificationOut": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          },
+          "read": {
+            "title": "Read",
+            "type": "boolean"
+          },
+          "sent": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sent",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "link",
+          "created_at",
+          "read",
+          "sent"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
+      "NotifyChannel": {
+        "enum": [
+          "teams_channel",
+          "teams_chat",
+          "slack_channel",
+          "email"
+        ],
+        "title": "NotifyChannel",
+        "type": "string"
+      },
+      "NotifyStep": {
+        "additionalProperties": false,
+        "properties": {
+          "channel": {
+            "$ref": "#/components/schemas/NotifyChannel",
+            "default": "teams_channel"
+          },
+          "destination_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Id"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "to": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "To",
+            "type": "array"
+          },
+          "type": {
+            "const": "notify",
+            "default": "notify",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "message"
+        ],
+        "title": "NotifyStep",
+        "type": "object"
+      },
+      "OnTimeout": {
+        "enum": [
+          "escalate",
+          "cancel"
+        ],
+        "title": "OnTimeout",
+        "type": "string"
+      },
+      "Operator": {
+        "enum": [
+          "equals",
+          "not_equals",
+          "contains",
+          "gt",
+          "lt",
+          "is_one_of",
+          "within_days"
+        ],
+        "title": "Operator",
+        "type": "string"
+      },
       "Overview": {
         "properties": {
           "canary_percent": {
@@ -3977,6 +5542,41 @@
         ],
         "title": "ParentChunk",
         "type": "string"
+      },
+      "PauseAllInput": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "PauseAllInput",
+        "type": "object"
+      },
+      "PauseInput": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "PauseInput",
+        "type": "object"
       },
       "PendingLink": {
         "properties": {
@@ -4585,6 +6185,16 @@
             "title": "Default Mode",
             "type": "string"
           },
+          "notify_email": {
+            "default": true,
+            "title": "Notify Email",
+            "type": "boolean"
+          },
+          "notify_teams": {
+            "default": true,
+            "title": "Notify Teams",
+            "type": "boolean"
+          },
           "show_agent_steps": {
             "default": true,
             "title": "Show Agent Steps",
@@ -5071,6 +6681,17 @@
         "title": "Rating",
         "type": "string"
       },
+      "Repeat": {
+        "enum": [
+          "daily",
+          "weekly",
+          "monthly",
+          "hours",
+          "cron"
+        ],
+        "title": "Repeat",
+        "type": "string"
+      },
       "RerankFallback": {
         "enum": [
           "instance",
@@ -5150,6 +6771,20 @@
           }
         },
         "title": "RerankSpec",
+        "type": "object"
+      },
+      "RestoreInput": {
+        "additionalProperties": false,
+        "properties": {
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number"
+        ],
+        "title": "RestoreInput",
         "type": "object"
       },
       "ResumeIn": {
@@ -5372,30 +7007,28 @@
         "title": "RouterSpec",
         "type": "object"
       },
-      "Rule": {
+      "Rule-Output": {
         "additionalProperties": false,
         "properties": {
-          "conditions": {
-            "items": {
-              "$ref": "#/components/schemas/Condition"
-            },
-            "maxItems": 20,
-            "minItems": 1,
-            "title": "Conditions",
-            "type": "array"
+          "field": {
+            "maxLength": 128,
+            "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+            "title": "Field",
+            "type": "string"
           },
-          "match": {
-            "default": "all",
-            "enum": [
-              "all",
-              "any"
-            ],
-            "title": "Match",
+          "op": {
+            "$ref": "#/components/schemas/Operator",
+            "default": "equals"
+          },
+          "value": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Value",
             "type": "string"
           }
         },
         "required": [
-          "conditions"
+          "field"
         ],
         "title": "Rule",
         "type": "object"
@@ -5473,6 +7106,23 @@
         ],
         "title": "RunKind",
         "type": "string"
+      },
+      "RunNowInput": {
+        "additionalProperties": false,
+        "properties": {
+          "dry_run": {
+            "default": false,
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "event": {
+            "additionalProperties": true,
+            "title": "Event",
+            "type": "object"
+          }
+        },
+        "title": "RunNowInput",
+        "type": "object"
       },
       "RunOut": {
         "properties": {
@@ -5610,6 +7260,69 @@
         "title": "RunOut",
         "type": "object"
       },
+      "RunRow": {
+        "properties": {
+          "cost": {
+            "title": "Cost",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seconds"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "trigger",
+          "dry_run",
+          "summary",
+          "created_at",
+          "seconds",
+          "cost"
+        ],
+        "title": "RunRow",
+        "type": "object"
+      },
       "RunStatus": {
         "enum": [
           "queued",
@@ -5675,6 +7388,156 @@
         "title": "RunToolCall",
         "type": "object"
       },
+      "Safety-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "alert_owner_on_failure": {
+            "default": true,
+            "title": "Alert Owner On Failure",
+            "type": "boolean"
+          },
+          "autonomy": {
+            "$ref": "#/components/schemas/Autonomy",
+            "default": "approve"
+          },
+          "max_cost_per_run": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "1.00",
+            "title": "Max Cost Per Run"
+          },
+          "max_runs_per_hour": {
+            "default": 20,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Max Runs Per Hour",
+            "type": "integer"
+          },
+          "retries": {
+            "default": 2,
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Retries",
+            "type": "integer"
+          }
+        },
+        "title": "Safety",
+        "type": "object"
+      },
+      "Safety-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "alert_owner_on_failure": {
+            "default": true,
+            "title": "Alert Owner On Failure",
+            "type": "boolean"
+          },
+          "autonomy": {
+            "$ref": "#/components/schemas/Autonomy",
+            "default": "approve"
+          },
+          "max_cost_per_run": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "1.00",
+            "title": "Max Cost Per Run"
+          },
+          "max_runs_per_hour": {
+            "default": 20,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Max Runs Per Hour",
+            "type": "integer"
+          },
+          "retries": {
+            "default": 2,
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Retries",
+            "type": "integer"
+          }
+        },
+        "title": "Safety",
+        "type": "object"
+      },
+      "SaveInput": {
+        "additionalProperties": false,
+        "properties": {
+          "change_note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Change Note",
+            "type": "string"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "expected_version": {
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationSpec-Input"
+          }
+        },
+        "required": [
+          "spec",
+          "expected_version"
+        ],
+        "title": "SaveInput",
+        "type": "object"
+      },
       "ScanStatus": {
         "enum": [
           "pending",
@@ -5685,6 +7548,132 @@
         ],
         "title": "ScanStatus",
         "type": "string"
+      },
+      "SchedulePreview": {
+        "properties": {
+          "next_runs": {
+            "items": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "title": "Next Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "next_runs"
+        ],
+        "title": "SchedulePreview",
+        "type": "object"
+      },
+      "SchedulePreviewInput": {
+        "additionalProperties": false,
+        "properties": {
+          "trigger": {
+            "discriminator": {
+              "mapping": {
+                "schedule": "#/components/schemas/ScheduleTrigger",
+                "watcher": "#/components/schemas/WatcherTrigger-Input"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleTrigger"
+              },
+              {
+                "$ref": "#/components/schemas/WatcherTrigger-Input"
+              }
+            ],
+            "title": "Trigger"
+          }
+        },
+        "required": [
+          "trigger"
+        ],
+        "title": "SchedulePreviewInput",
+        "type": "object"
+      },
+      "ScheduleTrigger": {
+        "additionalProperties": false,
+        "properties": {
+          "cron": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cron"
+          },
+          "day_of_month": {
+            "default": 1,
+            "maximum": 28.0,
+            "minimum": 1.0,
+            "title": "Day Of Month",
+            "type": "integer"
+          },
+          "days": {
+            "items": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ],
+              "type": "string"
+            },
+            "maxItems": 7,
+            "title": "Days",
+            "type": "array"
+          },
+          "every_hours": {
+            "default": 4,
+            "maximum": 24.0,
+            "minimum": 1.0,
+            "title": "Every Hours",
+            "type": "integer"
+          },
+          "repeat": {
+            "$ref": "#/components/schemas/Repeat",
+            "default": "weekly"
+          },
+          "skip_holidays": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Holidays"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "time": {
+            "default": "07:45",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Time",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          },
+          "type": {
+            "const": "schedule",
+            "default": "schedule",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "ScheduleTrigger",
+        "type": "object"
       },
       "SearchType": {
         "enum": [
@@ -6663,6 +8652,20 @@
         "title": "SourceUpdate",
         "type": "object"
       },
+      "Started": {
+        "properties": {
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "title": "Started",
+        "type": "object"
+      },
       "StatusOut": {
         "properties": {
           "checked_at": {
@@ -6754,6 +8757,34 @@
           "tenant_id"
         ],
         "title": "TeamsInput",
+        "type": "object"
+      },
+      "TemplateOut": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "trigger": {
+            "title": "Trigger",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trigger",
+          "name",
+          "description"
+        ],
+        "title": "TemplateOut",
         "type": "object"
       },
       "ToolAccess": {
@@ -6888,6 +8919,54 @@
           "version"
         ],
         "title": "ToolOut",
+        "type": "object"
+      },
+      "ToolStep": {
+        "additionalProperties": false,
+        "description": "One call of one MCP tool; a writing tool needs an approval step before it.",
+        "properties": {
+          "arguments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 30,
+            "title": "Arguments",
+            "type": "object"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "tool_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Id"
+          },
+          "type": {
+            "const": "tool",
+            "default": "tool",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "ToolStep",
         "type": "object"
       },
       "ToolUpdate": {
@@ -7101,52 +9180,158 @@
         "title": "ValidationError",
         "type": "object"
       },
-      "VersionOut": {
+      "WatchEvery": {
+        "enum": [
+          "hour",
+          "day"
+        ],
+        "title": "WatchEvery",
+        "type": "string"
+      },
+      "WatcherTrigger-Input": {
+        "additionalProperties": false,
+        "description": "Check data with a read tool regularly; fire for each matching item.",
         "properties": {
-          "change_note": {
-            "title": "Change Note",
-            "type": "string"
+          "arguments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 20,
+            "title": "Arguments",
+            "type": "object"
           },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
+          "every": {
+            "$ref": "#/components/schemas/WatchEvery",
+            "default": "day"
           },
-          "number": {
-            "title": "Number",
-            "type": "integer"
+          "fire_when": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Fire When",
+            "type": "array"
           },
-          "published_at": {
+          "once_per": {
             "anyOf": [
               {
-                "format": "date-time",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Published At"
+            "title": "Once Per"
           },
-          "spec": {
-            "additionalProperties": true,
-            "title": "Spec",
-            "type": "object"
+          "time": {
+            "default": "06:00",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Time",
+            "type": "string"
           },
-          "status": {
-            "title": "Status",
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          },
+          "tool_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Id"
+          },
+          "type": {
+            "const": "watcher",
+            "default": "watcher",
+            "title": "Type",
             "type": "string"
           }
         },
         "required": [
-          "id",
-          "number",
-          "status",
-          "change_note",
-          "published_at",
-          "spec"
+          "fire_when"
         ],
-        "title": "VersionOut",
+        "title": "WatcherTrigger",
+        "type": "object"
+      },
+      "WatcherTrigger-Output": {
+        "additionalProperties": false,
+        "description": "Check data with a read tool regularly; fire for each matching item.",
+        "properties": {
+          "arguments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 20,
+            "title": "Arguments",
+            "type": "object"
+          },
+          "every": {
+            "$ref": "#/components/schemas/WatchEvery",
+            "default": "day"
+          },
+          "fire_when": {
+            "items": {
+              "$ref": "#/components/schemas/Rule-Output"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Fire When",
+            "type": "array"
+          },
+          "once_per": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Once Per"
+          },
+          "time": {
+            "default": "06:00",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Time",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          },
+          "tool_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Id"
+          },
+          "type": {
+            "const": "watcher",
+            "default": "watcher",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fire_when"
+        ],
+        "title": "WatcherTrigger",
         "type": "object"
       },
       "WidgetConfig": {
@@ -7197,6 +9382,118 @@
           "expires_in"
         ],
         "title": "WidgetToken",
+        "type": "object"
+      },
+      "veyntora_api__people__service__Rule": {
+        "additionalProperties": false,
+        "properties": {
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/Condition"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Conditions",
+            "type": "array"
+          },
+          "match": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match",
+            "type": "string"
+          }
+        },
+        "required": [
+          "conditions"
+        ],
+        "title": "Rule",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_automations__VersionOut": {
+        "properties": {
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number",
+          "change_note",
+          "created_by",
+          "created_at"
+        ],
+        "title": "VersionOut",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_chatbots__VersionOut": {
+        "properties": {
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "spec": {
+            "additionalProperties": true,
+            "title": "Spec",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "change_note",
+          "published_at",
+          "spec"
+        ],
+        "title": "VersionOut",
         "type": "object"
       },
       "veyntora_api__routers__admin_providers__SecretInput": {
@@ -7262,6 +9559,32 @@
           "secret"
         ],
         "title": "SecretInput",
+        "type": "object"
+      },
+      "veyntora_spec__automation__Rule": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "maxLength": 128,
+            "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+            "title": "Field",
+            "type": "string"
+          },
+          "op": {
+            "$ref": "#/components/schemas/Operator",
+            "default": "equals"
+          },
+          "value": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field"
+        ],
+        "title": "Rule",
         "type": "object"
       }
     }
@@ -7558,6 +9881,673 @@
         "summary": "Revoke an app key",
         "tags": [
           "admin: channels"
+        ]
+      }
+    },
+    "/v1/admin/automations": {
+      "get": {
+        "operationId": "list_automations_v1_admin_automations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Automations with this week's numbers",
+        "tags": [
+          "admin: automations"
+        ]
+      },
+      "post": {
+        "operationId": "create_automation_v1_admin_automations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a draft automation",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/condition-test": {
+      "post": {
+        "operationId": "condition_test_v1_admin_automations_condition_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConditionTestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConditionTest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Whether a sample input matches the rules",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/pause-all": {
+      "post": {
+        "operationId": "pause_all_v1_admin_automations_pause_all_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseAllInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Count"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pause every active automation (incidents)",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/runs/{run_id}/cancel": {
+      "post": {
+        "operationId": "cancel_run_v1_admin_automations_runs__run_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Started"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel a run; a waiting approval is withdrawn",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/schedule-preview": {
+      "post": {
+        "operationId": "schedule_preview_v1_admin_automations_schedule_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulePreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulePreview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The next three runs of a schedule",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/templates": {
+      "get": {
+        "operationId": "templates_v1_admin_automations_templates_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TemplateOut"
+                  },
+                  "title": "Response Templates V1 Admin Automations Templates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Templates for a new automation",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}": {
+      "delete": {
+        "operationId": "delete_automation_v1_admin_automations__automation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a draft or paused automation",
+        "tags": [
+          "admin: automations"
+        ]
+      },
+      "get": {
+        "operationId": "get_automation_v1_admin_automations__automation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One automation with its steps, problems and runs",
+        "tags": [
+          "admin: automations"
+        ]
+      },
+      "put": {
+        "operationId": "save_automation_v1_admin_automations__automation_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save the steps as a new version",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}/activate": {
+      "post": {
+        "operationId": "activate_v1_admin_automations__automation_id__activate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activate (refused while there are problems)",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}/hook-token": {
+      "post": {
+        "operationId": "hook_token_v1_admin_automations__automation_id__hook_token_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookToken"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A new token for the sending app (shown once)",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}/pause": {
+      "post": {
+        "operationId": "pause_v1_admin_automations__automation_id__pause_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pause: scheduled runs and triggers stop",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}/restore": {
+      "post": {
+        "operationId": "restore_version_v1_admin_automations__automation_id__restore_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Restore an older version (as a new version)",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}/resume": {
+      "post": {
+        "operationId": "resume_v1_admin_automations__automation_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume a paused automation",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/{automation_id}/run": {
+      "post": {
+        "operationId": "run_now_v1_admin_automations__automation_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "automation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Automation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunNowInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Started"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run now, or a dry run that takes no actions",
+        "tags": [
+          "admin: automations"
         ]
       }
     },
@@ -8463,7 +11453,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/VersionOut"
+                    "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
                   },
                   "title": "Response List Versions V1 Admin Chatbots  Bot Id  Pipeline Versions Get",
                   "type": "array"
@@ -8662,6 +11652,60 @@
         "summary": "Replace the sources this chatbot answers from",
         "tags": [
           "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/destinations": {
+      "get": {
+        "operationId": "destinations_v1_admin_destinations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "chatbot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chatbot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DestinationOut"
+                  },
+                  "title": "Response Destinations V1 Admin Destinations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Teams and Slack channels the bots can post in",
+        "tags": [
+          "admin: channels"
         ]
       }
     },
@@ -8966,6 +12010,66 @@
         "summary": "The group's roles on one chatbot",
         "tags": [
           "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/mail": {
+      "get": {
+        "operationId": "get_mail_v1_admin_mail_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The email relay",
+        "tags": [
+          "admin: channels"
+        ]
+      },
+      "put": {
+        "operationId": "put_mail_v1_admin_mail_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MailInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set the email relay (the password is write-only)",
+        "tags": [
+          "admin: channels"
         ]
       }
     },
@@ -11563,6 +14667,71 @@
         ]
       }
     },
+    "/v1/hooks/automations": {
+      "post": {
+        "operationId": "automation_event_v1_hooks_automations_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-veyntora-event",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Veyntora-Event"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start an automation from another app's event",
+        "tags": [
+          "hooks"
+        ]
+      }
+    },
     "/v1/me": {
       "get": {
         "operationId": "me_v1_me_get",
@@ -12043,6 +15212,77 @@
           }
         },
         "summary": "Replace the key of an own model (tested)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/notifications": {
+      "get": {
+        "operationId": "list_notifications_v1_me_notifications_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My latest notifications",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/notifications/read-all": {
+      "post": {
+        "operationId": "mark_all_read_v1_me_notifications_read_all_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Mark all read",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "mark_read_v1_me_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark read",
         "tags": [
           "me"
         ]

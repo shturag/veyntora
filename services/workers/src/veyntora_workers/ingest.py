@@ -23,6 +23,7 @@ import httpx
 import sqlalchemy as sa
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
+from veyntora_api.automations import triggers
 from veyntora_api.core import audit
 from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.knowledge import (
@@ -262,6 +263,11 @@ class Ingestor:
                 )
             ).scalars()
         }
+        # New content (a new file, or a change) starts automations with a file trigger.
+        new_content = all(i.content_hash != doc.hash for i in existing.values())
+        changed = bool(existing)
+        if new_content:
+            await triggers.on_file(self.db, doc, changed=changed, indexed=False)
         indexed = 0
         for profile in profiles:
             current = existing.get(profile.key)
@@ -299,6 +305,8 @@ class Ingestor:
         doc.error = failed[0].error if failed else None
         doc.chunk_count = max((r.chunk_count for r in needed), default=0)
         doc.last_synced_at = datetime.now(UTC)
+        if new_content and not failed:
+            await triggers.on_file(self.db, doc, changed=changed, indexed=True)
         return {"profiles": len(profiles), "indexed": indexed, "failed": len(failed)}
 
     async def _parse(self, doc: Document, profile: IndexProfile, work: _Work) -> ParsedDoc:

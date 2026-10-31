@@ -792,6 +792,18 @@ wheels = [
 ]
 
 [[package]]
+name = "holidays"
+version = "0.106"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a4/85/30fadb3b2014177299eea883bfd74d7e893d495fb4b37adc3f4968004d87/holidays-0.106.tar.gz", hash = "sha256:2e635a59102acb47e79a751c37fb04eff5ac77069a3b33d58cbfad66d243ffb3", size = 1048446, upload-time = "2026-10-05T19:23:13.417Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/f6/59f817df052a81e39bbc23cb10795cf721d14b36a4cf0d897bfe11648a22/holidays-0.106-py3-none-any.whl", hash = "sha256:4be3fb5be6a88a232e92f96825e4fab9b80710caabde90b7c476e57ba0ed9f5d", size = 1656690, upload-time = "2026-10-05T19:23:11.32Z" },
+]
+
+[[package]]
 name = "hpack"
 version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2449,8 +2461,10 @@ dependencies = [
     { name = "alembic" },
     { name = "asgi-correlation-id" },
     { name = "asyncpg" },
+    { name = "croniter" },
     { name = "email-validator" },
     { name = "fastapi" },
+    { name = "holidays" },
     { name = "httpx" },
     { name = "openfga-sdk" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
@@ -2474,8 +2488,10 @@ requires-dist = [
     { name = "alembic", specifier = "==1.20.1" },
     { name = "asgi-correlation-id", specifier = "==5.0.1" },
     { name = "asyncpg", specifier = "==0.32.0" },
+    { name = "croniter", specifier = "==6.2.4" },
     { name = "email-validator", specifier = "==2.3.0" },
     { name = "fastapi", specifier = "==0.162.0" },
+    { name = "holidays", specifier = "==0.106" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "openfga-sdk", specifier = "==0.10.5" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.45.2" },

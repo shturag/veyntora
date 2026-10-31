@@ -24,10 +24,12 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge.service import KnowledgeError
 from veyntora_api.providers.service import purge_replaced_keys
 from veyntora_api.routers import (
+    admin_automations,
     admin_bot_insights,
     admin_bots_channels,
     admin_channels,
     admin_chatbots,
+    admin_notify,
     admin_people,
     admin_playground,
     admin_providers,
@@ -38,8 +40,10 @@ from veyntora_api.routers import (
     auth,
     channel_links,
     chat,
+    hooks,
     me,
     me_files,
+    me_notifications,
     me_settings,
     public_api,
     status,
@@ -186,6 +190,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(chat.router)
     app.include_router(admin_providers.router)
     app.include_router(admin_runs.router)
+    app.include_router(admin_automations.router)
+    app.include_router(hooks.router)
+    app.include_router(admin_notify.router)
+    app.include_router(me_notifications.router)
     # Before admin_chatbots: its /{bot_id} would otherwise catch /cards.
     app.include_router(admin_bot_insights.router)
     app.include_router(admin_chatbots.router)

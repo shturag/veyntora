@@ -1,8 +1,9 @@
 """Celery app for background jobs. The `scheduler` service runs `celery beat` with this app.
 
 Jobs: worker heartbeat (read by the status page), outbox relay (config events), the scheduled
-Keycloak identity sync, provider tests, MCP tool discovery and ingestion (claimed from
-`ingest_jobs`). Eval and retention jobs are added in their phases.
+Keycloak identity sync, provider tests, MCP tool discovery, ingestion (claimed from
+`ingest_jobs`), automations (schedules, watchers, starting and resuming runs) and email.
+Eval and retention jobs are added in their phases.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from collections.abc import Coroutine
 from datetime import timedelta
 from typing import Any
 
+import httpx
 import structlog
 from celery import Celery
 from redis import Redis
@@ -24,6 +26,7 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
 
+from veyntora_workers import automations
 from veyntora_workers.ingest import requeue_stuck, run_pending
 from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
@@ -60,6 +63,22 @@ app.conf.update(
         "ingest-requeue-stuck": {
             "task": "veyntora.ingest_requeue_stuck",
             "schedule": timedelta(minutes=5),
+        },
+        "automation-tick": {"task": "veyntora.automation_tick", "schedule": timedelta(minutes=1)},
+        "automation-start": {
+            "task": "veyntora.automation_start",
+            "schedule": timedelta(seconds=3),
+            "options": {"expires": 3},
+        },
+        "automation-resume": {
+            "task": "veyntora.automation_resume",
+            "schedule": timedelta(seconds=10),
+            "options": {"expires": 10},
+        },
+        "email": {
+            "task": "veyntora.email",
+            "schedule": timedelta(seconds=10),
+            "options": {"expires": 10},
         },
         "identity-sync": {
             "task": "veyntora.identity_sync",
@@ -151,3 +170,29 @@ def source_tests() -> int:
 @app.task(name="veyntora.source_schedules")
 def source_schedules() -> int:
     return _run(run_due_schedules())
+
+
+@app.task(name="veyntora.automation_tick")
+def automation_tick() -> int:
+    return _run(automations.tick(settings))
+
+
+async def _with_http[T](job: Any) -> T:
+    async with httpx.AsyncClient() as http:
+        result: T = await job(settings, http)
+        return result
+
+
+@app.task(name="veyntora.automation_start")
+def automation_start() -> int:
+    return _run(_with_http(automations.start_queued))
+
+
+@app.task(name="veyntora.automation_resume")
+def automation_resume() -> int:
+    return _run(_with_http(automations.resume_decided))
+
+
+@app.task(name="veyntora.email")
+def email() -> int:
+    return _run(automations.send_email(settings))

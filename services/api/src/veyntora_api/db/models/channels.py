@@ -102,3 +102,33 @@ class ChannelThread(IdMixin, Base):
     user_id: Mapped[UUID] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"))
     thread_id: Mapped[str] = mapped_column(sa.String(64))
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
+
+
+class DestinationKind(StrEnum):
+    TEAMS_CHANNEL = "teams_channel"
+    TEAMS_CHAT = "teams_chat"
+    SLACK_CHANNEL = "slack_channel"
+
+
+class ChannelDestination(IdMixin, TimestampMixin, Base):
+    """Where a chatbot's bot may post on its own (automations, notifications).
+
+    Teams: remembered when the bot is added to a team channel, or when a linked person
+    chats with it (their personal chat). Slack: a channel the app was invited to.
+    `reference` is what the platform needs to post there (no secrets).
+    """
+
+    __tablename__ = "channel_destinations"
+    __table_args__ = (sa.UniqueConstraint("channel_id", "kind", "external_id"),)
+
+    channel_id: Mapped[UUID] = mapped_column(sa.ForeignKey("channels.id", ondelete="CASCADE"))
+    kind: Mapped[DestinationKind] = mapped_column(str_enum(DestinationKind, "destination_kind"))
+    # Teams conversation id, or Slack channel id.
+    external_id: Mapped[str] = mapped_column(sa.String(255))
+    name: Mapped[str] = mapped_column(sa.String(255), default="", server_default="")
+    # Teams personal chats: the linked person.
+    user_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    reference: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
+    removed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
