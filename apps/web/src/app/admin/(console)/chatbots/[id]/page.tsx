@@ -89,7 +89,9 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
             {t("feedback")}
           </h2>
           <p className="m-0 text-sm">{t("toReview", { count: o.feedback_to_review })}</p>
-          <p className="m-0 text-xs text-fg-muted">{t("reviewLater", { phase: 6 })}</p>
+          <Link href={`/admin/conversations?bot=${o.id}`} className="text-xs">
+            {t("reviewLater")}
+          </Link>
         </section>
       </div>
     </div>

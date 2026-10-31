@@ -871,6 +871,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rated answers to review */
+        get: operations["list_review_v1_admin_conversations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/conversations/{feedback_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One rated answer (masked; audited) */
+        get: operations["get_review_v1_admin_conversations__feedback_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/conversations/{feedback_id}/ask-owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask a cited document's owner to update it */
+        post: operations["ask_owner_v1_admin_conversations__feedback_id__ask_owner_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/conversations/{feedback_id}/eval-case": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add to an eval set (as a case to review) */
+        post: operations["add_to_eval_set_v1_admin_conversations__feedback_id__eval_case_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/conversations/{feedback_id}/reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark reviewed (leaves the queue) */
+        post: operations["mark_reviewed_v1_admin_conversations__feedback_id__reviewed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/destinations": {
         parameters: {
             query?: never;
@@ -1314,6 +1399,75 @@ export interface paths {
         get: operations["get_mail_v1_admin_mail_get"];
         /** Set the email relay (the password is write-only) */
         put: operations["put_mail_v1_admin_mail_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/monitoring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requests, latency, quality and providers */
+        get: operations["monitoring_v1_admin_monitoring_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status messages that are showing */
+        get: operations["list_notices_v1_admin_notices_get"];
+        put?: never;
+        /** Post a status message */
+        post: operations["post_notice_v1_admin_notices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/notices/{notice_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop showing a status message */
+        post: operations["end_notice_v1_admin_notices__notice_id__end_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Needs attention, today's numbers and chatbots */
+        get: operations["overview_v1_admin_overview_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -3296,6 +3450,16 @@ export interface components {
              */
             due_weeks: number;
         };
+        /** AskOwner */
+        AskOwner: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Message */
+            message: string;
+        };
         /** Attachment */
         Attachment: {
             /**
@@ -3332,6 +3496,20 @@ export interface components {
             source_id: string;
             /** Weight */
             weight: number;
+        };
+        /** Attention */
+        Attention: {
+            /** Detail */
+            detail: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "blocked" | "review" | "fix" | "soon" | "budget" | "canary" | "status";
+            /** Link */
+            link: string;
+            /** Title */
+            title: string;
         };
         /** AutomationCard */
         AutomationCard: {
@@ -3591,6 +3769,33 @@ export interface components {
             interactions?: string | null;
             /** Secret Last4 */
             secret_last4: string | null;
+        };
+        /** BotToday */
+        BotToday: {
+            /** Helpful Rate */
+            helpful_rate: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Requests */
+            requests: number;
+            status: components["schemas"]["ChatbotStatus"];
+        };
+        /** BucketOut */
+        BucketOut: {
+            /** Agent */
+            agent: number;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Fast */
+            fast: number;
         };
         /**
          * BudgetAction
@@ -5695,6 +5900,67 @@ export interface components {
          * @enum {string}
          */
         Mode: "auto" | "fast" | "agent";
+        /** MonitorAlert */
+        MonitorAlert: {
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "warning" | "info";
+            /** Text */
+            text: string;
+        };
+        /** MonitoringOut */
+        MonitoringOut: {
+            /** Agent */
+            agent: number;
+            /** Alerts */
+            alerts: components["schemas"]["MonitorAlert"][];
+            /** Blocked */
+            blocked: number;
+            /**
+             * Bucket
+             * @enum {string}
+             */
+            bucket: "hour" | "day";
+            /** Buckets */
+            buckets: components["schemas"]["BucketOut"][];
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /** Chatbots */
+            chatbots: {
+                [key: string]: string;
+            }[];
+            /** External Calls */
+            external_calls: number;
+            /** Failed Runs */
+            failed_runs: number;
+            /** Fast */
+            fast: number;
+            /** Grafana Url */
+            grafana_url: string | null;
+            /** Helpful Rate */
+            helpful_rate: number | null;
+            /** Langfuse Url */
+            langfuse_url: string | null;
+            /** No Answer */
+            no_answer: number;
+            /** P95 Agent Ms */
+            p95_agent_ms: number | null;
+            /** P95 Fast Ms */
+            p95_fast_ms: number | null;
+            /** Providers */
+            providers: components["schemas"]["veyntora_api__routers__admin_overview__ProviderOut"][];
+            /**
+             * Range
+             * @enum {string}
+             */
+            range: "today" | "7d" | "30d";
+            /** Ratings */
+            ratings: number;
+            /** Requests */
+            requests: number;
+        };
         /** MyDelegate */
         MyDelegate: {
             /** Delegate Id */
@@ -5703,6 +5969,22 @@ export interface components {
             delegate_name?: string | null;
             /** Until */
             until?: string | null;
+        };
+        /** NoticeInput */
+        NoticeInput: {
+            /**
+             * Body
+             * @default
+             */
+            body: string;
+            /** Components */
+            components?: ("chat" | "agent" | "documents" | "teams" | "signin")[];
+            /** Hours */
+            hours?: number | null;
+            /** @default info */
+            kind: components["schemas"]["NoticeKind"];
+            /** Title */
+            title: string;
         };
         /**
          * NoticeKind
@@ -5730,6 +6012,24 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** NoticeRow */
+        NoticeRow: {
+            /** Ends At */
+            ends_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["NoticeKind"];
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Title */
+            title: string;
         };
         /** NotificationList */
         NotificationList: {
@@ -5891,6 +6191,37 @@ export interface components {
             tools: number;
             /** Users */
             users: number;
+        };
+        /** OverviewOut */
+        OverviewOut: {
+            /** Active Users */
+            active_users: number;
+            /** Active Users Last Week */
+            active_users_last_week: number;
+            /** Attention */
+            attention: components["schemas"]["Attention"][];
+            /** Bots */
+            bots: components["schemas"]["BotToday"][];
+            /** Budget Total */
+            budget_total: string;
+            /** Can Post Notice */
+            can_post_notice: boolean;
+            /** Chatbots Live */
+            chatbots_live: number;
+            /** Conversations */
+            conversations: number;
+            /** Currency */
+            currency: string;
+            /** Helpful Rate */
+            helpful_rate: number | null;
+            /** Negative To Review */
+            negative_to_review: number;
+            /** People */
+            people: number;
+            /** Requests */
+            requests: number;
+            /** Spend */
+            spend: string;
         };
         /**
          * ParentChunk
@@ -6225,52 +6556,6 @@ export interface components {
             /** Secret Expires At */
             secret_expires_at?: string | null;
         };
-        /**
-         * ProviderOut
-         * @description Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.
-         */
-        ProviderOut: {
-            /** Adapter */
-            adapter: string;
-            capability: components["schemas"]["Capability"];
-            /** Enabled */
-            enabled: boolean;
-            /** Endpoint */
-            endpoint: string | null;
-            /** Fallback Instance Id */
-            fallback_instance_id: string | null;
-            /** Has Secret */
-            has_secret: boolean;
-            /** Health Checked At */
-            health_checked_at: string | null;
-            /** Health Detail */
-            health_detail: string | null;
-            health_status: components["schemas"]["HealthStatus"];
-            hosting: components["schemas"]["Hosting"];
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Model */
-            model: string | null;
-            /** Name */
-            name: string;
-            /** Options */
-            options: {
-                [key: string]: unknown;
-            };
-            /** Previous Key Valid Until */
-            previous_key_valid_until: string | null;
-            /** Region */
-            region: string | null;
-            /** Secret Expires At */
-            secret_expires_at: string | null;
-            /** Secret Last4 */
-            secret_last4: string | null;
-            /** Version */
-            version: number;
-        };
         /** ProviderUpdate */
         ProviderUpdate: {
             /** Enabled */
@@ -6462,10 +6747,136 @@ export interface components {
             /** Vector Store Instance Id */
             vector_store_instance_id?: string | null;
         };
+        /** ReviewDetail */
+        ReviewDetail: {
+            /** Answer */
+            answer: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Can Edit */
+            can_edit: boolean;
+            /** Causes */
+            causes: string[];
+            chatbot: components["schemas"]["ReviewRef"];
+            /** Comment */
+            comment: string;
+            /** Eval Sets */
+            eval_sets: components["schemas"]["ReviewRef"][];
+            /**
+             * Feedback Id
+             * Format: uuid
+             */
+            feedback_id: string;
+            /** Groundedness */
+            groundedness: number | null;
+            /** Latency Ms */
+            latency_ms: number | null;
+            mode: components["schemas"]["UsedMode"] | null;
+            /** Outcome */
+            outcome: string | null;
+            /** Question */
+            question: string;
+            rating: components["schemas"]["Rating"];
+            /** Reason */
+            reason: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Route Reason */
+            route_reason: string | null;
+            /** Run Id */
+            run_id: string | null;
+            /** Sources */
+            sources: components["schemas"]["ReviewSource"][];
+            /** Team */
+            team: string | null;
+            /** Tools */
+            tools: string[];
+            /** Trace Url */
+            trace_url: string | null;
+            /** Version */
+            version: number | null;
+        };
         /** ReviewInput */
         ReviewInput: {
             /** Accept */
             accept: boolean;
+        };
+        /** ReviewItem */
+        ReviewItem: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Chatbot */
+            chatbot: string;
+            /**
+             * Chatbot Id
+             * Format: uuid
+             */
+            chatbot_id: string;
+            /** Comment */
+            comment: string;
+            /**
+             * Feedback Id
+             * Format: uuid
+             */
+            feedback_id: string;
+            /** Groundedness */
+            groundedness: number | null;
+            mode: components["schemas"]["UsedMode"] | null;
+            /** Outcome */
+            outcome: string | null;
+            /** Question */
+            question: string;
+            rating: components["schemas"]["Rating"];
+            /** Reason */
+            reason: string | null;
+            /** Reviewed */
+            reviewed: boolean;
+        };
+        /** ReviewQueue */
+        ReviewQueue: {
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /** Chatbots */
+            chatbots: components["schemas"]["ReviewRef"][];
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Filter */
+            filter: string | null;
+            /** Items */
+            items: components["schemas"]["ReviewItem"][];
+        };
+        /** ReviewRef */
+        ReviewRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** ReviewSource */
+        ReviewSource: {
+            /** Document Id */
+            document_id: string | null;
+            /** Page */
+            page: number | null;
+            /** Quote */
+            quote: string | null;
+            /** Score */
+            score: number | null;
+            /** Title */
+            title: string;
+            /** Updated At */
+            updated_at: string | null;
         };
         /** Roles */
         Roles: {
@@ -7407,6 +7818,14 @@ export interface components {
             /** Team */
             team: string | null;
         };
+        /** ToEvalSet */
+        ToEvalSet: {
+            /**
+             * Eval Set Id
+             * Format: uuid
+             */
+            eval_set_id: string;
+        };
         /**
          * ToolAccess
          * @enum {string}
@@ -7662,6 +8081,11 @@ export interface components {
             /** Tokens */
             tokens: number;
         };
+        /**
+         * UsedMode
+         * @enum {string}
+         */
+        UsedMode: "fast" | "agent";
         /** UserLimits */
         "UserLimits-Input": {
             /**
@@ -7946,6 +8370,72 @@ export interface components {
              * Format: uuid
              */
             scan_id: string;
+        };
+        /** ProviderOut */
+        veyntora_api__routers__admin_overview__ProviderOut: {
+            /** Calls */
+            calls: number;
+            /** Cost */
+            cost: string;
+            /** External Calls */
+            external_calls: number;
+            /** Hosting */
+            hosting: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Tokens */
+            tokens: number;
+        };
+        /**
+         * ProviderOut
+         * @description Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.
+         */
+        veyntora_api__routers__admin_providers__ProviderOut: {
+            /** Adapter */
+            adapter: string;
+            capability: components["schemas"]["Capability"];
+            /** Enabled */
+            enabled: boolean;
+            /** Endpoint */
+            endpoint: string | null;
+            /** Fallback Instance Id */
+            fallback_instance_id: string | null;
+            /** Has Secret */
+            has_secret: boolean;
+            /** Health Checked At */
+            health_checked_at: string | null;
+            /** Health Detail */
+            health_detail: string | null;
+            health_status: components["schemas"]["HealthStatus"];
+            hosting: components["schemas"]["Hosting"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Model */
+            model: string | null;
+            /** Name */
+            name: string;
+            /** Options */
+            options: {
+                [key: string]: unknown;
+            };
+            /** Previous Key Valid Until */
+            previous_key_valid_until: string | null;
+            /** Region */
+            region: string | null;
+            /** Secret Expires At */
+            secret_expires_at: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Version */
+            version: number;
         };
         /** SecretInput */
         veyntora_api__routers__admin_providers__SecretInput: {
@@ -9904,6 +10394,177 @@ export interface operations {
             };
         };
     };
+    list_review_v1_admin_conversations_get: {
+        parameters: {
+            query?: {
+                chatbot_id?: string | null;
+                filter?: ("not_helpful" | "low_groundedness" | "no_answer" | "guardrail") | null;
+                reviewed?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewQueue"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_review_v1_admin_conversations__feedback_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feedback_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_owner_v1_admin_conversations__feedback_id__ask_owner_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feedback_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskOwner"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: true;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_to_eval_set_v1_admin_conversations__feedback_id__eval_case_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feedback_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToEvalSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_reviewed_v1_admin_conversations__feedback_id__reviewed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                feedback_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     destinations_v1_admin_destinations_get: {
         parameters: {
             query?: {
@@ -10952,6 +11613,140 @@ export interface operations {
             };
         };
     };
+    monitoring_v1_admin_monitoring_get: {
+        parameters: {
+            query?: {
+                range?: "today" | "7d" | "30d";
+                chatbot_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitoringOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notices_v1_admin_notices_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoticeRow"][];
+                };
+            };
+        };
+    };
+    post_notice_v1_admin_notices_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NoticeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NoticeRow"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    end_notice_v1_admin_notices__notice_id__end_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewOut"];
+                };
+            };
+        };
+    };
     list_people_v1_admin_people_get: {
         parameters: {
             query?: {
@@ -11188,7 +11983,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProviderOut"][];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_providers__ProviderOut"][];
                 };
             };
             /** @description Validation Error */
@@ -11221,7 +12016,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProviderOut"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_providers__ProviderOut"];
                 };
             };
             /** @description Validation Error */
@@ -11309,7 +12104,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProviderOut"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_providers__ProviderOut"];
                 };
             };
             /** @description Validation Error */
@@ -11344,7 +12139,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProviderOut"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_providers__ProviderOut"];
                 };
             };
             /** @description Validation Error */
@@ -11375,7 +12170,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProviderOut"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_providers__ProviderOut"];
                 };
             };
             /** @description Validation Error */

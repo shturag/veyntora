@@ -10,6 +10,8 @@
   --color-ground: var(--vey-ground);
   --color-surface: var(--vey-surface);
   --color-sunken: var(--vey-sunken);
+  --color-series-1: var(--vey-series-1);
+  --color-series-2: var(--vey-series-2);
   --color-line: var(--vey-border);
   --color-line-strong: var(--vey-border-strong);
   --color-divider: var(--vey-divider);

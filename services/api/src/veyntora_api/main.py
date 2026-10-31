@@ -29,9 +29,11 @@ from veyntora_api.routers import (
     admin_bots_channels,
     admin_channels,
     admin_chatbots,
+    admin_conversations,
     admin_evaluation,
     admin_knowledge_health,
     admin_notify,
+    admin_overview,
     admin_people,
     admin_playground,
     admin_providers,
@@ -211,17 +213,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(admin_evaluation.router)
     app.include_router(admin_rollout.router)
     # Before admin_chatbots: its /{bot_id} would otherwise catch /cards.
-    app.include_router(admin_bot_insights.router)
-    app.include_router(admin_chatbots.router)
-    app.include_router(admin_channels.router)
-    app.include_router(admin_bots_channels.router)
-    app.include_router(public_api.router)
-    app.include_router(widget.router)
-    app.include_router(channel_links.router)
-    app.include_router(admin_people.router)
-    app.include_router(admin_playground.router)
-    app.include_router(admin_sources.router)
-    app.include_router(admin_tools.router)
-    app.include_router(admin_usage.router)
-    app.include_router(approvals.router)
+    for module in (
+        admin_bot_insights,
+        admin_chatbots,
+        admin_conversations,
+        admin_overview,
+        admin_channels,
+        admin_bots_channels,
+        public_api,
+        widget,
+        channel_links,
+        admin_people,
+        admin_playground,
+        admin_sources,
+        admin_tools,
+        admin_usage,
+        approvals,
+    ):
+        app.include_router(module.router)
     return app

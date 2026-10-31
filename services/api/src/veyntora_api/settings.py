@@ -66,6 +66,10 @@ class Settings(BaseSettings):
     tei_embed_url: str = ""
     tei_rerank_url: str = ""
     langfuse_url: str = "http://localhost:3001"
+    # Where people's browsers reach Langfuse, for "Open trace" links (empty: no links).
+    langfuse_browser_url: str = ""
+    # Where people's browsers reach Grafana, for Monitoring's "Open in Grafana".
+    grafana_browser_url: str = ""
     # Project keys for traces (graphs). Empty keys switch tracing off.
     langfuse_public_key: str = ""
     langfuse_secret_key: SecretStr = SecretStr("")

@@ -40,6 +40,8 @@ x-app-env: &app-env
   VEY_TEI_EMBED_URL: ${VEY_TEI_EMBED_URL:-}
   VEY_TEI_RERANK_URL: ${VEY_TEI_RERANK_URL:-}
   VEY_LANGFUSE_URL: http://langfuse:3000
+  VEY_LANGFUSE_BROWSER_URL: http://localhost:3001
+  VEY_GRAFANA_BROWSER_URL: http://localhost:3003
   VEY_ALEMBIC_INI: /app/services/api/alembic.ini
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
 

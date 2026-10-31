@@ -1068,6 +1068,27 @@
         "title": "AskInput",
         "type": "object"
       },
+      "AskOwner": {
+        "properties": {
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id",
+          "message"
+        ],
+        "title": "AskOwner",
+        "type": "object"
+      },
       "Attachment": {
         "additionalProperties": false,
         "properties": {
@@ -1133,6 +1154,43 @@
           "enabled"
         ],
         "title": "AttachmentOut",
+        "type": "object"
+      },
+      "Attention": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "blocked",
+              "review",
+              "fix",
+              "soon",
+              "budget",
+              "canary",
+              "status"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "title",
+          "detail",
+          "link"
+        ],
+        "title": "Attention",
         "type": "object"
       },
       "AutomationCard": {
@@ -1972,6 +2030,70 @@
           "endpoint"
         ],
         "title": "BotChannelOut",
+        "type": "object"
+      },
+      "BotToday": {
+        "properties": {
+          "helpful_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Helpful Rate"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "requests": {
+            "title": "Requests",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ChatbotStatus"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "requests",
+          "helpful_rate"
+        ],
+        "title": "BotToday",
+        "type": "object"
+      },
+      "BucketOut": {
+        "properties": {
+          "agent": {
+            "title": "Agent",
+            "type": "integer"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "fast": {
+            "title": "Fast",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "fast",
+          "agent"
+        ],
+        "title": "BucketOut",
         "type": "object"
       },
       "BudgetAction": {
@@ -7356,6 +7478,203 @@
         "title": "Mode",
         "type": "string"
       },
+      "MonitorAlert": {
+        "properties": {
+          "level": {
+            "enum": [
+              "warning",
+              "info"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "level",
+          "text"
+        ],
+        "title": "MonitorAlert",
+        "type": "object"
+      },
+      "MonitoringOut": {
+        "properties": {
+          "agent": {
+            "title": "Agent",
+            "type": "integer"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/MonitorAlert"
+            },
+            "title": "Alerts",
+            "type": "array"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "integer"
+          },
+          "bucket": {
+            "enum": [
+              "hour",
+              "day"
+            ],
+            "title": "Bucket",
+            "type": "string"
+          },
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/BucketOut"
+            },
+            "title": "Buckets",
+            "type": "array"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "chatbots": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "external_calls": {
+            "title": "External Calls",
+            "type": "integer"
+          },
+          "failed_runs": {
+            "title": "Failed Runs",
+            "type": "integer"
+          },
+          "fast": {
+            "title": "Fast",
+            "type": "integer"
+          },
+          "grafana_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grafana Url"
+          },
+          "helpful_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Helpful Rate"
+          },
+          "langfuse_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Langfuse Url"
+          },
+          "no_answer": {
+            "title": "No Answer",
+            "type": "integer"
+          },
+          "p95_agent_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Agent Ms"
+          },
+          "p95_fast_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Fast Ms"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_api__routers__admin_overview__ProviderOut"
+            },
+            "title": "Providers",
+            "type": "array"
+          },
+          "range": {
+            "enum": [
+              "today",
+              "7d",
+              "30d"
+            ],
+            "title": "Range",
+            "type": "string"
+          },
+          "ratings": {
+            "title": "Ratings",
+            "type": "integer"
+          },
+          "requests": {
+            "title": "Requests",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "range",
+          "chatbot_id",
+          "chatbots",
+          "requests",
+          "fast",
+          "agent",
+          "p95_fast_ms",
+          "p95_agent_ms",
+          "helpful_rate",
+          "ratings",
+          "blocked",
+          "no_answer",
+          "failed_runs",
+          "external_calls",
+          "buckets",
+          "bucket",
+          "providers",
+          "alerts",
+          "grafana_url",
+          "langfuse_url"
+        ],
+        "title": "MonitoringOut",
+        "type": "object"
+      },
       "MyDelegate": {
         "properties": {
           "delegate_id": {
@@ -7398,6 +7717,58 @@
           "delegate_id"
         ],
         "title": "MyDelegate",
+        "type": "object"
+      },
+      "NoticeInput": {
+        "properties": {
+          "body": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Body",
+            "type": "string"
+          },
+          "components": {
+            "items": {
+              "enum": [
+                "chat",
+                "agent",
+                "documents",
+                "teams",
+                "signin"
+              ],
+              "type": "string"
+            },
+            "title": "Components",
+            "type": "array"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "maximum": 720.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/NoticeKind",
+            "default": "info"
+          },
+          "title": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "NoticeInput",
         "type": "object"
       },
       "NoticeKind": {
@@ -7462,6 +7833,48 @@
           "updated_at"
         ],
         "title": "NoticeOut",
+        "type": "object"
+      },
+      "NoticeRow": {
+        "properties": {
+          "ends_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/NoticeKind"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "NoticeRow",
         "type": "object"
       },
       "NotificationList": {
@@ -7874,6 +8287,97 @@
           "tools"
         ],
         "title": "Overview",
+        "type": "object"
+      },
+      "OverviewOut": {
+        "properties": {
+          "active_users": {
+            "title": "Active Users",
+            "type": "integer"
+          },
+          "active_users_last_week": {
+            "title": "Active Users Last Week",
+            "type": "integer"
+          },
+          "attention": {
+            "items": {
+              "$ref": "#/components/schemas/Attention"
+            },
+            "title": "Attention",
+            "type": "array"
+          },
+          "bots": {
+            "items": {
+              "$ref": "#/components/schemas/BotToday"
+            },
+            "title": "Bots",
+            "type": "array"
+          },
+          "budget_total": {
+            "title": "Budget Total",
+            "type": "string"
+          },
+          "can_post_notice": {
+            "title": "Can Post Notice",
+            "type": "boolean"
+          },
+          "chatbots_live": {
+            "title": "Chatbots Live",
+            "type": "integer"
+          },
+          "conversations": {
+            "title": "Conversations",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "helpful_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Helpful Rate"
+          },
+          "negative_to_review": {
+            "title": "Negative To Review",
+            "type": "integer"
+          },
+          "people": {
+            "title": "People",
+            "type": "integer"
+          },
+          "requests": {
+            "title": "Requests",
+            "type": "integer"
+          },
+          "spend": {
+            "title": "Spend",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chatbots_live",
+          "people",
+          "active_users",
+          "active_users_last_week",
+          "conversations",
+          "requests",
+          "helpful_rate",
+          "negative_to_review",
+          "spend",
+          "budget_total",
+          "currency",
+          "attention",
+          "bots",
+          "can_post_notice"
+        ],
+        "title": "OverviewOut",
         "type": "object"
       },
       "ParentChunk": {
@@ -8755,176 +9259,6 @@
         "title": "ProviderInput",
         "type": "object"
       },
-      "ProviderOut": {
-        "description": "Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.",
-        "properties": {
-          "adapter": {
-            "title": "Adapter",
-            "type": "string"
-          },
-          "capability": {
-            "$ref": "#/components/schemas/Capability"
-          },
-          "enabled": {
-            "title": "Enabled",
-            "type": "boolean"
-          },
-          "endpoint": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Endpoint"
-          },
-          "fallback_instance_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Fallback Instance Id"
-          },
-          "has_secret": {
-            "title": "Has Secret",
-            "type": "boolean"
-          },
-          "health_checked_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Health Checked At"
-          },
-          "health_detail": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Health Detail"
-          },
-          "health_status": {
-            "$ref": "#/components/schemas/HealthStatus"
-          },
-          "hosting": {
-            "$ref": "#/components/schemas/Hosting"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "model": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Model"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "options": {
-            "additionalProperties": true,
-            "title": "Options",
-            "type": "object"
-          },
-          "previous_key_valid_until": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Previous Key Valid Until"
-          },
-          "region": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Region"
-          },
-          "secret_expires_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Secret Expires At"
-          },
-          "secret_last4": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Secret Last4"
-          },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "capability",
-          "adapter",
-          "name",
-          "endpoint",
-          "model",
-          "options",
-          "hosting",
-          "region",
-          "enabled",
-          "has_secret",
-          "secret_last4",
-          "secret_expires_at",
-          "previous_key_valid_until",
-          "fallback_instance_id",
-          "health_status",
-          "health_detail",
-          "health_checked_at",
-          "version"
-        ],
-        "title": "ProviderOut",
-        "type": "object"
-      },
       "ProviderUpdate": {
         "additionalProperties": false,
         "properties": {
@@ -9405,6 +9739,219 @@
         "title": "RetrievalSpec",
         "type": "object"
       },
+      "ReviewDetail": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
+          "causes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Causes",
+            "type": "array"
+          },
+          "chatbot": {
+            "$ref": "#/components/schemas/ReviewRef"
+          },
+          "comment": {
+            "title": "Comment",
+            "type": "string"
+          },
+          "eval_sets": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewRef"
+            },
+            "title": "Eval Sets",
+            "type": "array"
+          },
+          "feedback_id": {
+            "format": "uuid",
+            "title": "Feedback Id",
+            "type": "string"
+          },
+          "groundedness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groundedness"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UsedMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/Rating"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "route_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Reason"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tools",
+            "type": "array"
+          },
+          "trace_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Url"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "chatbot",
+          "team",
+          "version",
+          "mode",
+          "latency_ms",
+          "at",
+          "question",
+          "answer",
+          "rating",
+          "reason",
+          "comment",
+          "groundedness",
+          "outcome",
+          "route_reason",
+          "sources",
+          "tools",
+          "causes",
+          "reviewed_at",
+          "run_id",
+          "trace_url",
+          "can_edit",
+          "eval_sets"
+        ],
+        "title": "ReviewDetail",
+        "type": "object"
+      },
       "ReviewInput": {
         "additionalProperties": false,
         "properties": {
@@ -9417,6 +9964,254 @@
           "accept"
         ],
         "title": "ReviewInput",
+        "type": "object"
+      },
+      "ReviewItem": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "chatbot": {
+            "title": "Chatbot",
+            "type": "string"
+          },
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "comment": {
+            "title": "Comment",
+            "type": "string"
+          },
+          "feedback_id": {
+            "format": "uuid",
+            "title": "Feedback Id",
+            "type": "string"
+          },
+          "groundedness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groundedness"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UsedMode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/Rating"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "reviewed": {
+            "title": "Reviewed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "chatbot_id",
+          "chatbot",
+          "mode",
+          "at",
+          "question",
+          "rating",
+          "reason",
+          "comment",
+          "outcome",
+          "groundedness",
+          "reviewed"
+        ],
+        "title": "ReviewItem",
+        "type": "object"
+      },
+      "ReviewQueue": {
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "chatbots": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewRef"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "filter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filter"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chatbot_id",
+          "chatbots",
+          "counts",
+          "filter",
+          "items"
+        ],
+        "title": "ReviewQueue",
+        "type": "object"
+      },
+      "ReviewRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ReviewRef",
+        "type": "object"
+      },
+      "ReviewSource": {
+        "properties": {
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "document_id",
+          "title",
+          "page",
+          "score",
+          "updated_at",
+          "quote"
+        ],
+        "title": "ReviewSource",
         "type": "object"
       },
       "Roles": {
@@ -12164,6 +12959,20 @@
         "title": "ThreadReply",
         "type": "object"
       },
+      "ToEvalSet": {
+        "properties": {
+          "eval_set_id": {
+            "format": "uuid",
+            "title": "Eval Set Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "eval_set_id"
+        ],
+        "title": "ToEvalSet",
+        "type": "object"
+      },
       "ToolAccess": {
         "enum": [
           "read",
@@ -12840,6 +13649,14 @@
         ],
         "title": "UsageRow",
         "type": "object"
+      },
+      "UsedMode": {
+        "enum": [
+          "fast",
+          "agent"
+        ],
+        "title": "UsedMode",
+        "type": "string"
       },
       "UserLimits-Input": {
         "additionalProperties": false,
@@ -13526,6 +14343,220 @@
           "scan_id"
         ],
         "title": "Started",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_overview__ProviderOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "title": "Cost",
+            "type": "string"
+          },
+          "external_calls": {
+            "title": "External Calls",
+            "type": "integer"
+          },
+          "hosting": {
+            "title": "Hosting",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hosting",
+          "calls",
+          "tokens",
+          "cost",
+          "external_calls"
+        ],
+        "title": "ProviderOut",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_providers__ProviderOut": {
+        "description": "Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.",
+        "properties": {
+          "adapter": {
+            "title": "Adapter",
+            "type": "string"
+          },
+          "capability": {
+            "$ref": "#/components/schemas/Capability"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "fallback_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Instance Id"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "health_checked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Checked At"
+          },
+          "health_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Detail"
+          },
+          "health_status": {
+            "$ref": "#/components/schemas/HealthStatus"
+          },
+          "hosting": {
+            "$ref": "#/components/schemas/Hosting"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "options": {
+            "additionalProperties": true,
+            "title": "Options",
+            "type": "object"
+          },
+          "previous_key_valid_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Key Valid Until"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "capability",
+          "adapter",
+          "name",
+          "endpoint",
+          "model",
+          "options",
+          "hosting",
+          "region",
+          "enabled",
+          "has_secret",
+          "secret_last4",
+          "secret_expires_at",
+          "previous_key_valid_until",
+          "fallback_instance_id",
+          "health_status",
+          "health_detail",
+          "health_checked_at",
+          "version"
+        ],
+        "title": "ProviderOut",
         "type": "object"
       },
       "veyntora_api__routers__admin_providers__SecretInput": {
@@ -16623,6 +17654,294 @@
         ]
       }
     },
+    "/v1/admin/conversations": {
+      "get": {
+        "operationId": "list_review_v1_admin_conversations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "chatbot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chatbot Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "not_helpful",
+                    "low_groundedness",
+                    "no_answer",
+                    "guardrail"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Filter"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reviewed",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Reviewed",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueue"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rated answers to review",
+        "tags": [
+          "admin: conversations"
+        ]
+      }
+    },
+    "/v1/admin/conversations/{feedback_id}": {
+      "get": {
+        "operationId": "get_review_v1_admin_conversations__feedback_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Feedback Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One rated answer (masked; audited)",
+        "tags": [
+          "admin: conversations"
+        ]
+      }
+    },
+    "/v1/admin/conversations/{feedback_id}/ask-owner": {
+      "post": {
+        "operationId": "ask_owner_v1_admin_conversations__feedback_id__ask_owner_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Feedback Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskOwner"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "const": true,
+                    "type": "boolean"
+                  },
+                  "title": "Response Ask Owner V1 Admin Conversations  Feedback Id  Ask Owner Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask a cited document's owner to update it",
+        "tags": [
+          "admin: conversations"
+        ]
+      }
+    },
+    "/v1/admin/conversations/{feedback_id}/eval-case": {
+      "post": {
+        "operationId": "add_to_eval_set_v1_admin_conversations__feedback_id__eval_case_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Feedback Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToEvalSet"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "title": "Response Add To Eval Set V1 Admin Conversations  Feedback Id  Eval Case Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add to an eval set (as a case to review)",
+        "tags": [
+          "admin: conversations"
+        ]
+      }
+    },
+    "/v1/admin/conversations/{feedback_id}/reviewed": {
+      "post": {
+        "operationId": "mark_reviewed_v1_admin_conversations__feedback_id__reviewed_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feedback_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Feedback Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Mark Reviewed V1 Admin Conversations  Feedback Id  Reviewed Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark reviewed (leaves the queue)",
+        "tags": [
+          "admin: conversations"
+        ]
+      }
+    },
     "/v1/admin/destinations": {
       "get": {
         "operationId": "destinations_v1_admin_destinations_get",
@@ -18081,6 +19400,192 @@
         ]
       }
     },
+    "/v1/admin/monitoring": {
+      "get": {
+        "operationId": "monitoring_v1_admin_monitoring_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "today",
+              "enum": [
+                "today",
+                "7d",
+                "30d"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chatbot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chatbot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitoringOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Requests, latency, quality and providers",
+        "tags": [
+          "admin: overview"
+        ]
+      }
+    },
+    "/v1/admin/notices": {
+      "get": {
+        "operationId": "list_notices_v1_admin_notices_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NoticeRow"
+                  },
+                  "title": "Response List Notices V1 Admin Notices Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Status messages that are showing",
+        "tags": [
+          "admin: overview"
+        ]
+      },
+      "post": {
+        "operationId": "post_notice_v1_admin_notices_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post a status message",
+        "tags": [
+          "admin: overview"
+        ]
+      }
+    },
+    "/v1/admin/notices/{notice_id}/end": {
+      "post": {
+        "operationId": "end_notice_v1_admin_notices__notice_id__end_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notice_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Notice Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop showing a status message",
+        "tags": [
+          "admin: overview"
+        ]
+      }
+    },
+    "/v1/admin/overview": {
+      "get": {
+        "operationId": "overview_v1_admin_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Needs attention, today's numbers and chatbots",
+        "tags": [
+          "admin: overview"
+        ]
+      }
+    },
     "/v1/admin/people": {
       "get": {
         "operationId": "list_people_v1_admin_people_get",
@@ -18439,7 +19944,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/ProviderOut"
+                    "$ref": "#/components/schemas/veyntora_api__routers__admin_providers__ProviderOut"
                   },
                   "title": "Response List Providers V1 Admin Providers Get",
                   "type": "array"
@@ -18481,7 +19986,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProviderOut"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_providers__ProviderOut"
                 }
               }
             },
@@ -18624,7 +20129,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProviderOut"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_providers__ProviderOut"
                 }
               }
             },
@@ -18677,7 +20182,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProviderOut"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_providers__ProviderOut"
                 }
               }
             },
@@ -18721,7 +20226,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProviderOut"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_providers__ProviderOut"
                 }
               }
             },

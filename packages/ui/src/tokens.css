@@ -22,6 +22,10 @@
   --vey-border-strong: #d6d5cf;
   --vey-divider: #ecebe6;
 
+  /* chart series (categorical, fixed order; validated for colour-vision deficiency) */
+  --vey-series-1: #2a78d6;
+  --vey-series-2: #eb6834;
+
   /* text */
   --vey-text: var(--vey-ink);
   --vey-text-secondary: #45443f;
@@ -87,6 +91,9 @@
   --vey-border: #2f3140;
   --vey-border-strong: #43465a;
   --vey-divider: #2a2c38;
+
+  --vey-series-1: #3987e5;
+  --vey-series-2: #d95926;
 
   --vey-text: #ecebe6;
   --vey-text-secondary: #cfcec8;
