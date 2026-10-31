@@ -24,6 +24,7 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge.service import KnowledgeError
 from veyntora_api.providers.service import purge_replaced_keys
 from veyntora_api.routers import (
+    admin_audit,
     admin_automations,
     admin_bot_insights,
     admin_bots_channels,
@@ -230,6 +231,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         admin_tools,
         admin_usage,
         admin_governance,
+        admin_audit,
         approvals,
     ):
         app.include_router(module.router)

@@ -7,9 +7,11 @@ throwaway container is started with testcontainers.
 from __future__ import annotations
 
 import os
+import time
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
+import httpx
 import pytest
 from alembic import command
 from alembic.config import Config
@@ -65,3 +67,26 @@ async def db(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
         finally:
             await session.close()
             await trans.rollback()
+
+
+@pytest.fixture(scope="session")
+def s3_endpoint() -> Iterator[str]:
+    """An S3-compatible store (SeaweedFS, as in compose; it enforces Object Lock)."""
+    from testcontainers.core.container import DockerContainer  # noqa: PLC0415
+
+    container = (
+        DockerContainer("chrislusf/seaweedfs:4.51")
+        .with_command("server -s3 -dir=/data")
+        .with_exposed_ports(8333)
+    )
+    with container:
+        url = f"http://{container.get_container_host_ip()}:{container.get_exposed_port(8333)}"
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            try:
+                if httpx.get(url, timeout=2).status_code < 500:
+                    break
+            except httpx.HTTPError:
+                pass
+            time.sleep(1)
+        yield url

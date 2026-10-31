@@ -28,6 +28,7 @@ x-app-env: &app-env
   VEY_S3_ACCESS_KEY: ${VEY_S3_ACCESS_KEY:-dev-veyntora-s3}
   VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY:-dev-veyntora-s3-secret}
   VEY_S3_BUCKET: veyntora
+  VEY_AUDIT_ARCHIVE_BUCKET: veyntora-audit
   VEY_QDRANT_URL: http://qdrant:6333
   VEY_LITELLM_URL: http://litellm:4000
   VEY_GRAPHS_URL: http://graphs:2026
@@ -100,7 +101,9 @@ services:
         cat > /tmp/s3.json <<EOF
         {"identities": [
           {"name": "veyntora", "credentials": [{"accessKey": "$${VEY_S3_ACCESS_KEY}", "secretKey": "$${VEY_S3_SECRET_KEY}"}],
-           "actions": ["Read:veyntora", "Write:veyntora", "List:veyntora", "Tagging:veyntora"]},
+           "actions": ["Read:veyntora", "Write:veyntora", "List:veyntora", "Tagging:veyntora",
+                       "Read:veyntora-audit", "Write:veyntora-audit", "List:veyntora-audit",
+                       "PutObjectRetention:veyntora-audit"]},
           {"name": "langfuse", "credentials": [{"accessKey": "$${LANGFUSE_S3_ACCESS_KEY}", "secretKey": "$${LANGFUSE_S3_SECRET_KEY}"}],
            "actions": ["Read:langfuse", "Write:langfuse", "List:langfuse"]}
         ]}
@@ -131,6 +134,9 @@ services:
           echo "s3.bucket.create -name $$b" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
           echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 | grep -q "$$b"
         done
+        # The write-once audit archive: Object Lock is only possible when created.
+        echo "s3.bucket.create -name veyntora-audit -withLock" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
+        echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 | grep -q "veyntora-audit"
         echo "buckets ready"
     restart: "no"
 

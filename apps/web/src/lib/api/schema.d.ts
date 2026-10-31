@@ -107,6 +107,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search the audit log (newest first) */
+        get: operations["search_v1_admin_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export (CSV or JSON lines; audited) */
+        get: operations["export_v1_admin_audit_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chain check and the write-once archive */
+        get: operations["chain_status_v1_admin_audit_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One entry: who, what changed */
+        get: operations["entry_v1_admin_audit__entry_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/automations": {
         parameters: {
             query?: never;
@@ -3716,6 +3784,41 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** AuditChange */
+        AuditChange: {
+            /** After */
+            after?: unknown;
+            /** Before */
+            before?: unknown;
+            /** Path */
+            path: string;
+        };
+        /** AuditPage */
+        AuditPage: {
+            /** Entries */
+            entries: components["schemas"]["EntryRow"][];
+            /** Next Before */
+            next_before: number | null;
+        };
+        /** AuditStatus */
+        AuditStatus: {
+            /** Anchored At Seq */
+            anchored_at_seq: number | null;
+            /** Archive Configured */
+            archive_configured: boolean;
+            /** Archived At */
+            archived_at: string | null;
+            /** Archived To Seq */
+            archived_to_seq: number | null;
+            /** Entries */
+            entries: number;
+            /** First Broken Id */
+            first_broken_id: number | null;
+            /** Intact */
+            intact: boolean;
+            /** Retain Until */
+            retain_until: string | null;
+        };
         /** AutomationCard */
         AutomationCard: {
             autonomy: components["schemas"]["Autonomy"];
@@ -4768,6 +4871,54 @@ export interface components {
             name: string;
             /** Slug */
             slug: string;
+        };
+        /** EntryDetail */
+        EntryDetail: {
+            /** Action */
+            action: string;
+            /** Actor */
+            actor: string | null;
+            /** Actor Type */
+            actor_type: string;
+            /** Changes */
+            changes: components["schemas"]["AuditChange"][];
+            /** Id */
+            id: number;
+            /** Ip */
+            ip: string | null;
+            /** Link */
+            link: string | null;
+            /** Request Id */
+            request_id: string | null;
+            /** Target Id */
+            target_id: string | null;
+            /** Target Type */
+            target_type: string;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
+        };
+        /** EntryRow */
+        EntryRow: {
+            /** Action */
+            action: string;
+            /** Actor */
+            actor: string | null;
+            /** Actor Type */
+            actor_type: string;
+            /** Id */
+            id: number;
+            /** Target Id */
+            target_id: string | null;
+            /** Target Type */
+            target_type: string;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
         };
         /**
          * EvalCaseOrigin
@@ -9350,6 +9501,124 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_v1_admin_audit_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                category?: ("providers" | "pipelines" | "roles" | "agent" | "knowledge" | "governance" | "other") | null;
+                range?: "7d" | "30d" | "90d" | "all";
+                before?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_v1_admin_audit_export_get: {
+        parameters: {
+            query?: {
+                range?: "7d" | "30d" | "90d" | "all";
+                category?: ("providers" | "pipelines" | "roles" | "agent" | "knowledge" | "governance" | "other") | null;
+                format?: "csv" | "jsonl";
+                mask?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chain_status_v1_admin_audit_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditStatus"];
+                };
+            };
+        };
+    };
+    entry_v1_admin_audit__entry_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryDetail"];
+                };
             };
             /** @description Validation Error */
             422: {

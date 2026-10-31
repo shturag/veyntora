@@ -3386,5 +3386,65 @@
       "blocked_legal_hold": "Durch Legal Hold blockiert",
       "completed": "Erledigt, Bericht signiert"
     }
+  },
+  "audit": {
+    "title": "Audit-Log",
+    "subtitle": "Jede Änderung an Anbietern, Schlüsseln, Pipelines, Rollen und Daten und jede freigegebene Agent-Aktion. Nur lesend.",
+    "unavailable": "Das Audit-Log konnte nicht geladen werden.",
+    "intact": "Kette intakt",
+    "broken": "Kette bei Eintrag {id} gebrochen",
+    "entries": "{count, plural, one {# Eintrag} other {# Einträge}}",
+    "noArchive": "kein unveränderbares Archiv eingerichtet; Einträge werden nie entfernt",
+    "archived": "archiviert bis {date}, gesperrt bis {until}",
+    "notArchivedYet": "noch nicht archiviert (nächtlich)",
+    "search": "Im Log suchen",
+    "category": "Kategorie",
+    "allCategories": "Alle Kategorien",
+    "categories": {
+      "providers": "Anbieter & Schlüssel",
+      "pipelines": "Chatbots & Pipelines",
+      "roles": "Rollen & Gruppen",
+      "agent": "Agent-Aktionen & Automationen",
+      "knowledge": "Wissen",
+      "governance": "Governance & Nutzung",
+      "other": "Sonstiges"
+    },
+    "range": "Zeitraum",
+    "ranges": {
+      "7d": "Letzte 7 Tage",
+      "30d": "Letzte 30 Tage",
+      "90d": "Letzte 90 Tage",
+      "all": "Alles"
+    },
+    "apply": "Anwenden",
+    "entriesLabel": "Einträge",
+    "none": "Keine passenden Einträge.",
+    "time": "Zeit",
+    "who": "Wer",
+    "action": "Aktion",
+    "object": "Objekt",
+    "older": "Ältere Einträge",
+    "actorTypes": {
+      "user": "Eine Person",
+      "service": "Ein Dienst",
+      "system": "System",
+      "app_key": "Ein App-Schlüssel"
+    },
+    "detail": "Änderung im Detail",
+    "from": "von {ip}",
+    "noChanges": "Keine gespeicherten Werte.",
+    "open": "Öffnen",
+    "noSecrets": "Schlüsselwerte werden nie gespeichert, nur dass ein Schlüssel geändert wurde.",
+    "export": "Exportieren",
+    "exportTitle": "Audit-Log exportieren",
+    "exportStart": "Exportieren",
+    "exportReady": "Die Datei wird heruntergeladen.",
+    "format": "Format",
+    "jsonl": "JSON Lines (mit Hashes)",
+    "maskExport": "Personenbezogene Daten maskieren (Pseudonyme, keine IP-Adressen)",
+    "exportNote": "Exporte stehen im Audit-Log.",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "failed": "Hat nicht funktioniert: {reason}"
   }
 }

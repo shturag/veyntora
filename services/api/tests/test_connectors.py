@@ -4,8 +4,6 @@ reader against a real S3-compatible store (SeaweedFS in a container)."""
 
 from __future__ import annotations
 
-import time
-from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
@@ -195,28 +193,6 @@ async def world(db: Any) -> World:
 
 
 # ---------------------------------------------------------------- real S3
-
-
-@pytest.fixture(scope="module")
-def s3_endpoint() -> Iterator[str]:
-    from testcontainers.core.container import DockerContainer  # noqa: PLC0415
-
-    container = (
-        DockerContainer("chrislusf/seaweedfs:4.51")
-        .with_command("server -s3 -dir=/data")
-        .with_exposed_ports(8333)
-    )
-    with container:
-        url = f"http://{container.get_container_host_ip()}:{container.get_exposed_port(8333)}"
-        deadline = time.monotonic() + 60
-        while time.monotonic() < deadline:
-            try:
-                if httpx.get(url, timeout=2).status_code < 500:
-                    break
-            except httpx.HTTPError:
-                pass
-            time.sleep(1)
-        yield url
 
 
 async def test_s3_reader_against_a_real_store(s3_endpoint: str) -> None:

@@ -65,6 +65,23 @@ async def _ensure_bucket(s: Settings) -> None:
         except client.exceptions.ClientError:
             await client.create_bucket(Bucket=s.s3_bucket)
             log.info("bootstrap.bucket_created", bucket=s.s3_bucket)
+        if s.audit_archive_bucket:
+            try:
+                await client.head_bucket(Bucket=s.audit_archive_bucket)
+            except client.exceptions.ClientError:
+                # Object Lock can only be switched on when a bucket is created. Stores
+                # often keep bucket creation to their admins; then it is theirs to do.
+                try:
+                    await client.create_bucket(
+                        Bucket=s.audit_archive_bucket, ObjectLockEnabledForBucket=True
+                    )
+                    log.info("bootstrap.audit_bucket_created", bucket=s.audit_archive_bucket)
+                except client.exceptions.ClientError as exc:
+                    log.warning(
+                        "bootstrap.audit_bucket_missing",
+                        bucket=s.audit_archive_bucket,
+                        error=str(exc)[:200],
+                    )
 
 
 async def sync_identities(s: Settings, authz: Authz) -> None:

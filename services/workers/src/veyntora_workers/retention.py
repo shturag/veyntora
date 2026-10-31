@@ -1,6 +1,7 @@
-"""The nightly retention purge: chats and uploads (veyntora_api.governance.retention) and
+"""The nightly retention purge: chats and uploads (veyntora_api.governance.retention),
 traces in Langfuse (public API: list traces older than the cut-off, delete them in
-batches). Traces of people under a legal hold are kept."""
+batches; traces of people under a legal hold are kept), and the write-once audit archive
+with audit retention (veyntora_api.governance.audit_archive)."""
 
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ from typing import Any
 import httpx
 import structlog
 from veyntora_api.db.session import get_sessionmaker
-from veyntora_api.governance import retention
+from veyntora_api.governance import audit_archive, retention
 from veyntora_api.governance import service as governance
 from veyntora_api.settings import Settings
 
@@ -56,10 +57,19 @@ def langfuse_client(settings: Settings) -> httpx.AsyncClient | None:
 
 async def run(settings: Settings, now: datetime | None = None) -> dict[str, int]:
     now = now or datetime.now(UTC)
-    out = {"chats": 0, "uploads": 0, "traces": 0}
+    out = {"chats": 0, "uploads": 0, "traces": 0, "audit_archived": 0, "audit_removed": 0}
     async with get_sessionmaker()() as db:
         out["chats"] = await retention.purge_chats(db, now)
         out["uploads"] = await retention.purge_uploads(db, now)
+        if settings.audit_archive_bucket:
+            bucket = audit_archive.LockedBucket(settings)
+            for _ in range(100):  # at most 500,000 entries a night
+                n = await audit_archive.archive(db, bucket, now)
+                await db.commit()
+                out["audit_archived"] += n
+                if not n:
+                    break
+            out["audit_removed"] = await audit_archive.trim(db, now)
         policy = await governance.settings_of(db)
         held_users, _ = await governance.held(db)
         await db.commit()

@@ -1193,6 +1193,138 @@
         "title": "Attention",
         "type": "object"
       },
+      "AuditChange": {
+        "properties": {
+          "after": {
+            "title": "After"
+          },
+          "before": {
+            "title": "Before"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "title": "AuditChange",
+        "type": "object"
+      },
+      "AuditPage": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/EntryRow"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "next_before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Before"
+          }
+        },
+        "required": [
+          "entries",
+          "next_before"
+        ],
+        "title": "AuditPage",
+        "type": "object"
+      },
+      "AuditStatus": {
+        "properties": {
+          "anchored_at_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchored At Seq"
+          },
+          "archive_configured": {
+            "title": "Archive Configured",
+            "type": "boolean"
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "archived_to_seq": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived To Seq"
+          },
+          "entries": {
+            "title": "Entries",
+            "type": "integer"
+          },
+          "first_broken_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Broken Id"
+          },
+          "intact": {
+            "title": "Intact",
+            "type": "boolean"
+          },
+          "retain_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retain Until"
+          }
+        },
+        "required": [
+          "intact",
+          "first_broken_id",
+          "entries",
+          "archived_to_seq",
+          "archived_at",
+          "retain_until",
+          "anchored_at_seq",
+          "archive_configured"
+        ],
+        "title": "AuditStatus",
+        "type": "object"
+      },
       "AutomationCard": {
         "properties": {
           "autonomy": {
@@ -4369,6 +4501,166 @@
           "slug"
         ],
         "title": "DuplicateIn",
+        "type": "object"
+      },
+      "EntryDetail": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "actor_type": {
+            "title": "Actor Type",
+            "type": "string"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/AuditChange"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "title": "Target Type",
+            "type": "string"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ts",
+          "actor_type",
+          "actor",
+          "action",
+          "target_type",
+          "target_id",
+          "ip",
+          "request_id",
+          "changes",
+          "link"
+        ],
+        "title": "EntryDetail",
+        "type": "object"
+      },
+      "EntryRow": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor"
+          },
+          "actor_type": {
+            "title": "Actor Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "title": "Target Type",
+            "type": "string"
+          },
+          "ts": {
+            "format": "date-time",
+            "title": "Ts",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ts",
+          "actor_type",
+          "actor",
+          "action",
+          "target_type",
+          "target_id"
+        ],
+        "title": "EntryRow",
         "type": "object"
       },
       "EvalCaseOrigin": {
@@ -16337,6 +16629,279 @@
         "summary": "Revoke an app key",
         "tags": [
           "admin: channels"
+        ]
+      }
+    },
+    "/v1/admin/audit": {
+      "get": {
+        "operationId": "search_v1_admin_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "providers",
+                    "pipelines",
+                    "roles",
+                    "agent",
+                    "knowledge",
+                    "governance",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "7d",
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "all"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search the audit log (newest first)",
+        "tags": [
+          "admin: audit"
+        ]
+      }
+    },
+    "/v1/admin/audit/export": {
+      "get": {
+        "operationId": "export_v1_admin_audit_export_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "30d",
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "all"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "providers",
+                    "pipelines",
+                    "roles",
+                    "agent",
+                    "knowledge",
+                    "governance",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "csv",
+              "enum": [
+                "csv",
+                "jsonl"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mask",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Mask",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export (CSV or JSON lines; audited)",
+        "tags": [
+          "admin: audit"
+        ]
+      }
+    },
+    "/v1/admin/audit/status": {
+      "get": {
+        "operationId": "chain_status_v1_admin_audit_status_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Chain check and the write-once archive",
+        "tags": [
+          "admin: audit"
+        ]
+      }
+    },
+    "/v1/admin/audit/{entry_id}": {
+      "get": {
+        "operationId": "entry_v1_admin_audit__entry_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "title": "Entry Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One entry: who, what changed",
+        "tags": [
+          "admin: audit"
         ]
       }
     },

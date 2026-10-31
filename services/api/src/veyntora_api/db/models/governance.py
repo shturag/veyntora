@@ -142,3 +142,33 @@ class OutboxEvent(Base):
     topic: Mapped[str] = mapped_column(sa.String(128), index=True)
     payload: Mapped[dict[str, Any]] = mapped_column()
     published_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True), index=True)
+
+
+class AuditArchive(Base):
+    """One write-once batch of audit entries in the archive bucket."""
+
+    __tablename__ = "audit_archives"
+
+    id: Mapped[int] = mapped_column(sa.BigInteger, sa.Identity(always=True), primary_key=True)
+    from_seq: Mapped[int] = mapped_column(sa.BigInteger)
+    to_seq: Mapped[int] = mapped_column(sa.BigInteger, unique=True)
+    entries: Mapped[int] = mapped_column(sa.Integer)
+    object_key: Mapped[str] = mapped_column(sa.String(1024))
+    sha256: Mapped[str] = mapped_column(sa.String(64))
+    head_hash: Mapped[str] = mapped_column(sa.String(64))
+    retain_until: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True))
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)
+
+
+class AuditAnchor(Base):
+    """Where verification starts after archived entries were removed."""
+
+    __tablename__ = "audit_anchor"
+    __table_args__ = (sa.CheckConstraint("id = 1", name="single_row"),)
+
+    id: Mapped[int] = mapped_column(
+        sa.SmallInteger, primary_key=True, default=1, autoincrement=False
+    )
+    chain_seq: Mapped[int] = mapped_column(sa.BigInteger)
+    hash: Mapped[bytes] = mapped_column(sa.LargeBinary(32))
+    at: Mapped[datetime] = utcnow_col(nullable=False)

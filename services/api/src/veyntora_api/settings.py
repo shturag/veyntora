@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     s3_access_key: SecretStr = SecretStr("")
     s3_secret_key: SecretStr = SecretStr("")
     s3_bucket: str = "veyntora"
+    # Write-once audit archive: a bucket with S3 Object Lock on the same store. Empty: no
+    # archive, and audit entries are never removed.
+    audit_archive_bucket: str = ""
 
     # Uploads: virus scan with clamd (host:port). Scanning is required unless switched off
     # explicitly; documents then show "not scanned" in the admin console.

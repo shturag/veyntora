@@ -3386,5 +3386,65 @@
       "blocked_legal_hold": "Blocked by a legal hold",
       "completed": "Completed, report signed"
     }
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "Every change to providers, keys, pipelines, roles and data, and every approved agent action. Read-only.",
+    "unavailable": "The audit log could not be loaded.",
+    "intact": "Chain intact",
+    "broken": "Chain broken at entry {id}",
+    "entries": "{count, plural, one {# entry} other {# entries}}",
+    "noArchive": "no write-once archive configured; entries are never removed",
+    "archived": "archived up to {date}, locked until {until}",
+    "notArchivedYet": "not archived yet (nightly)",
+    "search": "Search the log",
+    "category": "Category",
+    "allCategories": "All categories",
+    "categories": {
+      "providers": "Providers & keys",
+      "pipelines": "Chatbots & pipelines",
+      "roles": "Roles & groups",
+      "agent": "Agent actions & automations",
+      "knowledge": "Knowledge",
+      "governance": "Governance & usage",
+      "other": "Other"
+    },
+    "range": "Date range",
+    "ranges": {
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "all": "Everything"
+    },
+    "apply": "Apply",
+    "entriesLabel": "Entries",
+    "none": "No entries match.",
+    "time": "Time",
+    "who": "Who",
+    "action": "Action",
+    "object": "Object",
+    "older": "Older entries",
+    "actorTypes": {
+      "user": "A person",
+      "service": "A service",
+      "system": "System",
+      "app_key": "An app key"
+    },
+    "detail": "Change detail",
+    "from": "from {ip}",
+    "noChanges": "No recorded values.",
+    "open": "Open",
+    "noSecrets": "Key values are never recorded, only that a key changed.",
+    "export": "Export",
+    "exportTitle": "Export audit log",
+    "exportStart": "Export",
+    "exportReady": "The file is downloading.",
+    "format": "Format",
+    "jsonl": "JSON lines (with hashes)",
+    "maskExport": "Mask personal data (pseudonyms, no IP addresses)",
+    "exportNote": "Exports are recorded in the audit log.",
+    "cancel": "Cancel",
+    "close": "Close",
+    "failed": "Did not work: {reason}"
   }
 }
