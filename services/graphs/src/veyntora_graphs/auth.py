@@ -66,6 +66,8 @@ async def authenticate(headers: dict[bytes | str, bytes | str]) -> dict[str, Any
         "display_name": claims.get("name") or claims.get("preferred_username") or claims["sub"],
         "groups": claims.get("groups", []),
         "is_authenticated": True,
+        # API-signed app-key tokens name the key, for usage per key.
+        "app_key_id": claims.get("app_key"),
     }
 
 

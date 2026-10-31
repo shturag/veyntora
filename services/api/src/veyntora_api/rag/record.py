@@ -49,6 +49,8 @@ async def record_usage(
             UsageRecord(
                 user_id=ctx.user_id,
                 chatbot_id=ctx.chatbot_id,
+                cost_centre=ctx.cost_centre,
+                app_key_id=ctx.app_key_id,
                 provider_instance_id=instance_id,
                 message_id=message_id,
                 tokens_in=usage.prompt_tokens,
@@ -107,6 +109,7 @@ async def record(
         mode_requested=requested,
         mode_used=used,
         route_reason=route_reason
+        or (f"limited: {ctx.limited}" if ctx.limited else None)
         or result.warning
         or (result.outcome if result.outcome != "answered" else None),
         pipeline_version_id=ctx.version_id,

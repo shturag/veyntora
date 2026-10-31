@@ -26,8 +26,13 @@ class InternalTokenError(RuntimeError):
 
 
 def mint(
-    secret: str, sub: str, kind: Literal["app_key", "widget", "channel", "automation", "refresh"]
+    secret: str,
+    sub: str,
+    kind: Literal["app_key", "widget", "channel", "automation", "refresh"],
+    *,
+    app_key: str | None = None,
 ) -> str:
+    """`app_key`: the key's id, so usage is booked to it (never the key itself)."""
     if len(secret) < _MIN_SECRET:
         raise InternalTokenError("VEY_INTERNAL_TOKEN_SECRET must be at least 32 characters")
     now = int(time.time())
@@ -39,6 +44,8 @@ def mint(
         "exp": now + TTL_SECONDS,
         "kind": kind,
     }
+    if app_key:
+        claims["app_key"] = app_key
     return jwt.encode(claims, secret, algorithm="HS256")
 
 

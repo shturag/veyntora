@@ -69,6 +69,15 @@ def _subject(config: RunnableConfig) -> str:
     return str(identity)
 
 
+def _app_key(config: RunnableConfig) -> UUID | None:
+    user = (config.get("configurable") or {}).get("langgraph_auth_user")
+    raw = user.get("app_key_id") if isinstance(user, dict) else getattr(user, "app_key_id", None)
+    try:
+        return UUID(str(raw)) if raw else None
+    except ValueError:
+        return None
+
+
 def _history(messages: list[AnyMessage]) -> list[ChatMessage]:
     out = []
     for m in messages:
@@ -125,7 +134,7 @@ async def answer_node(state: State, config: RunnableConfig) -> dict[str, Any]:
     authz, reader = await _services()
     async with get_sessionmaker()() as db:
         try:
-            ctx = await load_context(db, authz, subject, chatbot_id)
+            ctx = await load_context(db, authz, subject, chatbot_id, app_key_id=_app_key(config))
             conv = await conversation_for(db, thread_id, ctx, question)
         except RunRefusedError as exc:
             return {"messages": [_refusal(str(exc))]}

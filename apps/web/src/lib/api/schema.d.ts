@@ -1892,6 +1892,92 @@ export interface paths {
         patch: operations["update_tool_v1_admin_tools__tool_id__patch"];
         trace?: never;
     };
+    "/v1/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Spend, tokens and budgets for a month */
+        get: operations["overview_v1_admin_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/budgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a budget */
+        post: operations["create_budget_v1_admin_usage_budgets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/budgets/{budget_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change a budget */
+        put: operations["update_budget_v1_admin_usage_budgets__budget_id__put"];
+        post?: never;
+        /** Delete a budget */
+        delete: operations["delete_budget_v1_admin_usage_budgets__budget_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage for finance (CSV) */
+        get: operations["export_v1_admin_usage_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the limits per user */
+        put: operations["set_limits_v1_admin_usage_limits_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/widget/{bot_id}": {
         parameters: {
             query?: never;
@@ -3506,6 +3592,80 @@ export interface components {
             /** Secret Last4 */
             secret_last4: string | null;
         };
+        /**
+         * BudgetAction
+         * @enum {string}
+         */
+        BudgetAction: "notify" | "fallback_model" | "fast_only" | "block";
+        /** BudgetInput */
+        BudgetInput: {
+            /** @default notify */
+            action_at_limit: components["schemas"]["BudgetAction"];
+            /**
+             * Currency
+             * @default EUR
+             */
+            currency: string;
+            /** Fallback Instance Id */
+            fallback_instance_id?: string | null;
+            /** Limit Amount */
+            limit_amount: number | string;
+            /**
+             * Notify At Percent
+             * @default 80
+             */
+            notify_at_percent: number;
+            /** Owner Id */
+            owner_id?: string | null;
+            /**
+             * Period
+             * @default month
+             * @enum {string}
+             */
+            period: "month" | "quarter" | "year";
+            /** Scope Id */
+            scope_id: string;
+            scope_type: components["schemas"]["BudgetScope"];
+        };
+        /** BudgetOut */
+        BudgetOut: {
+            action_at_limit: components["schemas"]["BudgetAction"];
+            /** Currency */
+            currency: string;
+            /** Fallback Instance Id */
+            fallback_instance_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Limit Amount */
+            limit_amount: string;
+            /** Notify At Percent */
+            notify_at_percent: number;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Owner Name */
+            owner_name: string | null;
+            /** Percent */
+            percent: number;
+            /** Period */
+            period: string;
+            /** Scope Id */
+            scope_id: string;
+            /** Scope Name */
+            scope_name: string;
+            scope_type: components["schemas"]["BudgetScope"];
+            /** Spent */
+            spent: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * BudgetScope
+         * @enum {string}
+         */
+        BudgetScope: "chatbot" | "group" | "cost_centre";
         /** BuilderOptions */
         BuilderOptions: {
             /** Chatbots */
@@ -4643,6 +4803,32 @@ export interface components {
             tools: components["schemas"]["GroupTool"][];
             /** Version */
             version: number;
+        };
+        /** GroupException */
+        "GroupException-Input": {
+            /**
+             * Factor
+             * @default 2
+             */
+            factor: number;
+            /**
+             * Group Id
+             * Format: uuid
+             */
+            group_id: string;
+        };
+        /** GroupException */
+        "GroupException-Output": {
+            /**
+             * Factor
+             * @default 2
+             */
+            factor: number;
+            /**
+             * Group Id
+             * Format: uuid
+             */
+            group_id: string;
         };
         /** GroupInput */
         GroupInput: {
@@ -7378,6 +7564,17 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** UsageModelRef */
+        UsageModelRef: {
+            hosting: components["schemas"]["Hosting"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** UsageOut */
         UsageOut: {
             /** Calls */
@@ -7393,6 +7590,117 @@ export interface components {
             tokens_in: number;
             /** Tokens Out */
             tokens_out: number;
+        };
+        /** UsageRef */
+        UsageRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** UsageReport */
+        UsageReport: {
+            /** Agent Share */
+            agent_share: number | null;
+            /** Budget Total */
+            budget_total: string;
+            /** Budgets */
+            budgets: components["schemas"]["BudgetOut"][];
+            /** By App Key */
+            by_app_key: components["schemas"]["UsageRow"][];
+            /** By Chatbot */
+            by_chatbot: components["schemas"]["UsageRow"][];
+            /** By Cost Centre */
+            by_cost_centre: components["schemas"]["UsageRow"][];
+            /** By Group */
+            by_group: components["schemas"]["UsageRow"][];
+            /** By Provider */
+            by_provider: components["schemas"]["UsageRow"][];
+            /** Byok Users */
+            byok_users: number;
+            /** Can Edit */
+            can_edit: boolean;
+            /** Chatbots */
+            chatbots: components["schemas"]["UsageRef"][];
+            /** Currency */
+            currency: string;
+            /** External */
+            external: string;
+            /** External Providers */
+            external_providers: string[];
+            /** Forecast */
+            forecast: string | null;
+            /** Groups */
+            groups: components["schemas"]["UsageRef"][];
+            limits: components["schemas"]["UserLimits-Output"];
+            /** Models */
+            models: components["schemas"]["UsageModelRef"][];
+            /** Month */
+            month: string;
+            /** Months */
+            months: string[];
+            /** Self Hosted */
+            self_hosted: string;
+            /** Tokens */
+            tokens: number;
+            /** Total */
+            total: string;
+        };
+        /** UsageRow */
+        UsageRow: {
+            /** Cost */
+            cost: string;
+            /** External Cost */
+            external_cost: string;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Tokens */
+            tokens: number;
+        };
+        /** UserLimits */
+        "UserLimits-Input": {
+            /**
+             * Agent Runs Per Day
+             * @default 0
+             */
+            agent_runs_per_day: number;
+            /** Exceptions */
+            exceptions?: components["schemas"]["GroupException-Input"][];
+            /**
+             * Messages Per Hour
+             * @default 0
+             */
+            messages_per_hour: number;
+            /**
+             * Upload Mb
+             * @default 0
+             */
+            upload_mb: number;
+        };
+        /** UserLimits */
+        "UserLimits-Output": {
+            /**
+             * Agent Runs Per Day
+             * @default 0
+             */
+            agent_runs_per_day: number;
+            /** Exceptions */
+            exceptions: components["schemas"]["GroupException-Output"][];
+            /**
+             * Messages Per Hour
+             * @default 0
+             */
+            messages_per_hour: number;
+            /**
+             * Upload Mb
+             * @default 0
+             */
+            upload_mb: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -11829,6 +12137,201 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ToolOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_usage_get: {
+        parameters: {
+            query?: {
+                month?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_budget_v1_admin_usage_budgets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_budget_v1_admin_usage_budgets__budget_id__put: {
+        parameters: {
+            query: {
+                expected_version: number;
+            };
+            header?: never;
+            path: {
+                budget_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_budget_v1_admin_usage_budgets__budget_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                budget_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_v1_admin_usage_export_get: {
+        parameters: {
+            query: {
+                month: string;
+                by?: "cost_centre" | "chatbot" | "group" | "provider" | "app_key";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_limits_v1_admin_usage_limits_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserLimits-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserLimits-Output"];
                 };
             };
             /** @description Validation Error */

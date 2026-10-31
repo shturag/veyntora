@@ -28,6 +28,7 @@ from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
+from veyntora_api.usage import budgets
 
 from veyntora_workers import automations, evaluations, knowledge_health, saved_answers
 from veyntora_workers.ingest import requeue_stuck, run_pending
@@ -73,6 +74,7 @@ app.conf.update(
             "options": {"expires": 60},
         },
         "canary-guard": {"task": "veyntora.canary_guard", "schedule": timedelta(minutes=5)},
+        "budget-alerts": {"task": "veyntora.budget_alerts", "schedule": timedelta(minutes=5)},
         "eval-runs": {
             "task": "veyntora.eval_runs",
             "schedule": timedelta(seconds=10),
@@ -231,6 +233,17 @@ def saved_answers_check() -> int:
 def eval_runs() -> list[str | None]:
     async def go() -> list[str | None]:
         return [await evaluations.generate_next(settings), await evaluations.run_next(settings)]
+
+    return _run(go())
+
+
+@app.task(name="veyntora.budget_alerts")
+def budget_alerts() -> int:
+    async def go() -> int:
+        async with get_sessionmaker()() as db:
+            told = await budgets.alert_tick(db)
+            await db.commit()
+        return len(told)
 
     return _run(go())
 

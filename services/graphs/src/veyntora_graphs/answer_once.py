@@ -20,7 +20,7 @@ from veyntora_api.providers.runtime import Adapters
 from veyntora_api.rag.pipeline import RunRefusedError, answer, language_of, load_context
 from veyntora_api.rag.record import record_usage
 
-from veyntora_graphs.fast_rag import _services, _subject
+from veyntora_graphs.fast_rag import _app_key, _services, _subject
 
 log = structlog.get_logger()
 _MAX_QUESTION = 8000
@@ -40,7 +40,11 @@ async def answer_node(state: State, config: RunnableConfig) -> dict[str, Any]:
     async with get_sessionmaker()() as db:
         try:
             ctx = await load_context(
-                db, authz, _subject(config), UUID(str(state.get("chatbot_id")))
+                db,
+                authz,
+                _subject(config),
+                UUID(str(state.get("chatbot_id"))),
+                app_key_id=_app_key(config),
             )
         except (RunRefusedError, ValueError) as exc:
             return {"result": {"outcome": "refused", "text": str(exc) or "Not available."}}

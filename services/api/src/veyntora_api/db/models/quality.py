@@ -156,11 +156,19 @@ class Budget(IdMixin, TimestampMixin, VersionedMixin, Base):
     fallback_instance_id: Mapped[UUID | None] = mapped_column(
         sa.ForeignKey("provider_instances.id", ondelete="SET NULL")
     )
+    # Who is told at the alert threshold and the limit (besides the scope's owner).
+    owner_id: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    # The period (e.g. "2026-10") the alert and the limit were last announced for.
+    alerted_period: Mapped[str | None] = mapped_column(sa.String(16))
+    reached_period: Mapped[str | None] = mapped_column(sa.String(16))
 
 
 class UsageRecord(IdMixin, Base):
     __tablename__ = "usage_records"
-    __table_args__ = (sa.Index("ix_usage_records_ts_chatbot", "ts", "chatbot_id"),)
+    __table_args__ = (
+        sa.Index("ix_usage_records_ts_chatbot", "ts", "chatbot_id"),
+        sa.Index("ix_usage_records_ts_cost_centre", "ts", "cost_centre"),
+    )
 
     ts: Mapped[datetime] = utcnow_col(nullable=False)
     user_id: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))

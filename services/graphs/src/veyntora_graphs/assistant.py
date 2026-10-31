@@ -55,7 +55,7 @@ from veyntora_api.rag.tracing import new_trace
 from veyntora_providers import mcp_client
 from veyntora_providers.interfaces import ChatMessage
 
-from veyntora_graphs.fast_rag import _history, _payload, _refusal, _services, _subject
+from veyntora_graphs.fast_rag import _app_key, _history, _payload, _refusal, _services, _subject
 
 log = structlog.get_logger()
 
@@ -99,7 +99,13 @@ class _Turn:
 
 async def _open(state: State, config: RunnableConfig, db: AsyncSession) -> _Turn:
     authz, reader = await _services()
-    ctx = await load_context(db, authz, _subject(config), UUID(str(state.get("chatbot_id"))))
+    ctx = await load_context(
+        db,
+        authz,
+        _subject(config),
+        UUID(str(state.get("chatbot_id"))),
+        app_key_id=_app_key(config),
+    )
     return _Turn(db, ctx, Adapters(db, reader), reader)
 
 

@@ -1974,6 +1974,215 @@
         "title": "BotChannelOut",
         "type": "object"
       },
+      "BudgetAction": {
+        "enum": [
+          "notify",
+          "fallback_model",
+          "fast_only",
+          "block"
+        ],
+        "title": "BudgetAction",
+        "type": "string"
+      },
+      "BudgetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "action_at_limit": {
+            "$ref": "#/components/schemas/BudgetAction",
+            "default": "notify"
+          },
+          "currency": {
+            "default": "EUR",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "type": "string"
+          },
+          "fallback_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Instance Id"
+          },
+          "limit_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Limit Amount"
+          },
+          "notify_at_percent": {
+            "default": 80,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Notify At Percent",
+            "type": "integer"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "period": {
+            "default": "month",
+            "enum": [
+              "month",
+              "quarter",
+              "year"
+            ],
+            "title": "Period",
+            "type": "string"
+          },
+          "scope_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Scope Id",
+            "type": "string"
+          },
+          "scope_type": {
+            "$ref": "#/components/schemas/BudgetScope"
+          }
+        },
+        "required": [
+          "scope_type",
+          "scope_id",
+          "limit_amount"
+        ],
+        "title": "BudgetInput",
+        "type": "object"
+      },
+      "BudgetOut": {
+        "properties": {
+          "action_at_limit": {
+            "$ref": "#/components/schemas/BudgetAction"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "fallback_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Instance Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "limit_amount": {
+            "title": "Limit Amount",
+            "type": "string"
+          },
+          "notify_at_percent": {
+            "title": "Notify At Percent",
+            "type": "integer"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "owner_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Name"
+          },
+          "percent": {
+            "title": "Percent",
+            "type": "integer"
+          },
+          "period": {
+            "title": "Period",
+            "type": "string"
+          },
+          "scope_id": {
+            "title": "Scope Id",
+            "type": "string"
+          },
+          "scope_name": {
+            "title": "Scope Name",
+            "type": "string"
+          },
+          "scope_type": {
+            "$ref": "#/components/schemas/BudgetScope"
+          },
+          "spent": {
+            "title": "Spent",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "scope_type",
+          "scope_id",
+          "scope_name",
+          "period",
+          "limit_amount",
+          "currency",
+          "notify_at_percent",
+          "action_at_limit",
+          "fallback_instance_id",
+          "owner_id",
+          "owner_name",
+          "spent",
+          "percent"
+        ],
+        "title": "BudgetOut",
+        "type": "object"
+      },
+      "BudgetScope": {
+        "enum": [
+          "chatbot",
+          "group",
+          "cost_centre"
+        ],
+        "title": "BudgetScope",
+        "type": "string"
+      },
       "BuilderOptions": {
         "properties": {
           "chatbots": {
@@ -4947,6 +5156,51 @@
           "version"
         ],
         "title": "GroupDetail",
+        "type": "object"
+      },
+      "GroupException-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "factor": {
+            "default": 2,
+            "maximum": 10.0,
+            "minimum": 2.0,
+            "title": "Factor",
+            "type": "integer"
+          },
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "group_id"
+        ],
+        "title": "GroupException",
+        "type": "object"
+      },
+      "GroupException-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "factor": {
+            "default": 2,
+            "maximum": 10.0,
+            "minimum": 2.0,
+            "title": "Factor",
+            "type": "integer"
+          },
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "group_id",
+          "factor"
+        ],
+        "title": "GroupException",
         "type": "object"
       },
       "GroupInput": {
@@ -12309,6 +12563,29 @@
         "title": "UploadSourceInput",
         "type": "object"
       },
+      "UsageModelRef": {
+        "properties": {
+          "hosting": {
+            "$ref": "#/components/schemas/Hosting"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hosting"
+        ],
+        "title": "UsageModelRef",
+        "type": "object"
+      },
       "UsageOut": {
         "properties": {
           "calls": {
@@ -12341,6 +12618,305 @@
           "cost"
         ],
         "title": "UsageOut",
+        "type": "object"
+      },
+      "UsageRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "UsageRef",
+        "type": "object"
+      },
+      "UsageReport": {
+        "properties": {
+          "agent_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Share"
+          },
+          "budget_total": {
+            "title": "Budget Total",
+            "type": "string"
+          },
+          "budgets": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetOut"
+            },
+            "title": "Budgets",
+            "type": "array"
+          },
+          "by_app_key": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "title": "By App Key",
+            "type": "array"
+          },
+          "by_chatbot": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "title": "By Chatbot",
+            "type": "array"
+          },
+          "by_cost_centre": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "title": "By Cost Centre",
+            "type": "array"
+          },
+          "by_group": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "title": "By Group",
+            "type": "array"
+          },
+          "by_provider": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            },
+            "title": "By Provider",
+            "type": "array"
+          },
+          "byok_users": {
+            "title": "Byok Users",
+            "type": "integer"
+          },
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
+          "chatbots": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRef"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "external": {
+            "title": "External",
+            "type": "string"
+          },
+          "external_providers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "External Providers",
+            "type": "array"
+          },
+          "forecast": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forecast"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRef"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/UserLimits-Output"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/UsageModelRef"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "month": {
+            "title": "Month",
+            "type": "string"
+          },
+          "months": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Months",
+            "type": "array"
+          },
+          "self_hosted": {
+            "title": "Self Hosted",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "months",
+          "currency",
+          "total",
+          "budget_total",
+          "forecast",
+          "self_hosted",
+          "external",
+          "external_providers",
+          "byok_users",
+          "tokens",
+          "agent_share",
+          "by_chatbot",
+          "by_provider",
+          "by_group",
+          "by_cost_centre",
+          "by_app_key",
+          "budgets",
+          "limits",
+          "can_edit",
+          "chatbots",
+          "groups",
+          "models"
+        ],
+        "title": "UsageReport",
+        "type": "object"
+      },
+      "UsageRow": {
+        "properties": {
+          "cost": {
+            "title": "Cost",
+            "type": "string"
+          },
+          "external_cost": {
+            "title": "External Cost",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "tokens",
+          "cost",
+          "external_cost"
+        ],
+        "title": "UsageRow",
+        "type": "object"
+      },
+      "UserLimits-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_runs_per_day": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Agent Runs Per Day",
+            "type": "integer"
+          },
+          "exceptions": {
+            "items": {
+              "$ref": "#/components/schemas/GroupException-Input"
+            },
+            "maxItems": 50,
+            "title": "Exceptions",
+            "type": "array"
+          },
+          "messages_per_hour": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Messages Per Hour",
+            "type": "integer"
+          },
+          "upload_mb": {
+            "default": 0,
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Upload Mb",
+            "type": "integer"
+          }
+        },
+        "title": "UserLimits",
+        "type": "object"
+      },
+      "UserLimits-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "agent_runs_per_day": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Agent Runs Per Day",
+            "type": "integer"
+          },
+          "exceptions": {
+            "items": {
+              "$ref": "#/components/schemas/GroupException-Output"
+            },
+            "maxItems": 50,
+            "title": "Exceptions",
+            "type": "array"
+          },
+          "messages_per_hour": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Messages Per Hour",
+            "type": "integer"
+          },
+          "upload_mb": {
+            "default": 0,
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Upload Mb",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "messages_per_hour",
+          "agent_runs_per_day",
+          "upload_mb",
+          "exceptions"
+        ],
+        "title": "UserLimits",
         "type": "object"
       },
       "ValidationError": {
@@ -19288,6 +19864,290 @@
         "summary": "Classify, enable and set the policy of a tool",
         "tags": [
           "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/usage": {
+      "get": {
+        "operationId": "overview_v1_admin_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^\\d{4}-\\d{2}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Spend, tokens and budgets for a month",
+        "tags": [
+          "admin: usage"
+        ]
+      }
+    },
+    "/v1/admin/usage/budgets": {
+      "post": {
+        "operationId": "create_budget_v1_admin_usage_budgets_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a budget",
+        "tags": [
+          "admin: usage"
+        ]
+      }
+    },
+    "/v1/admin/usage/budgets/{budget_id}": {
+      "delete": {
+        "operationId": "delete_budget_v1_admin_usage_budgets__budget_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Budget Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a budget",
+        "tags": [
+          "admin: usage"
+        ]
+      },
+      "put": {
+        "operationId": "update_budget_v1_admin_usage_budgets__budget_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "budget_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Budget Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_version",
+            "required": true,
+            "schema": {
+              "title": "Expected Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change a budget",
+        "tags": [
+          "admin: usage"
+        ]
+      }
+    },
+    "/v1/admin/usage/export": {
+      "get": {
+        "operationId": "export_v1_admin_usage_export_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "month",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}$",
+              "title": "Month",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "by",
+            "required": false,
+            "schema": {
+              "default": "cost_centre",
+              "enum": [
+                "cost_centre",
+                "chatbot",
+                "group",
+                "provider",
+                "app_key"
+              ],
+              "title": "By",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Usage for finance (CSV)",
+        "tags": [
+          "admin: usage"
+        ]
+      }
+    },
+    "/v1/admin/usage/limits": {
+      "put": {
+        "operationId": "set_limits_v1_admin_usage_limits_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLimits-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserLimits-Output"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set the limits per user",
+        "tags": [
+          "admin: usage"
         ]
       }
     },

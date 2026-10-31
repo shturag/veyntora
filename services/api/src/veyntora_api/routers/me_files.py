@@ -17,6 +17,7 @@ from veyntora_api.auth.deps import Ctx, CurrentPrincipal, DbSession, State
 from veyntora_api.db.models.knowledge import Document, DocumentStatus, ScanStatus
 from veyntora_api.knowledge import service as svc
 from veyntora_api.storage import ObjectStore
+from veyntora_api.usage import limits
 
 router = APIRouter(prefix="/v1/me/files", tags=["me"])
 
@@ -74,13 +75,18 @@ async def upload_files(
     limit = state.settings.upload_max_bytes
     out = []
     for f in files:
+        content = await f.read(limit + 1)
+        try:
+            await limits.check_upload(db, principal.user_id, len(content))
+        except limits.LimitsError as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
         doc, _ = await svc.add_upload(
             db,
             ctx,
             store,
             source,
             filename=f.filename or "",
-            content=await f.read(limit + 1),
+            content=content,
             uploader_id=principal.user_id,
             max_bytes=limit,
         )

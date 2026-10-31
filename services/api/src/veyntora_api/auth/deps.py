@@ -164,7 +164,10 @@ async def _from_app_key(state: AppState, db: AsyncSession, key: str) -> Principa
             raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit reached")
     await db.commit()  # last_used_at
     token = internal.mint(
-        state.settings.internal_token_secret.get_secret_value(), identity.keycloak_sub, "app_key"
+        state.settings.internal_token_secret.get_secret_value(),
+        identity.keycloak_sub,
+        "app_key",
+        app_key=str(row.id),
     )
     principal = _checked(identity, "app_key", token)
     return replace(principal, app_key_id=row.id, app_chatbot_id=row.chatbot_id)

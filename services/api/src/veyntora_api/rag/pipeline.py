@@ -62,6 +62,7 @@ from veyntora_api.db.models.knowledge import (
 )
 from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance
+from veyntora_api.db.models.quality import BudgetAction
 from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.providers.service import with_fallbacks
@@ -75,6 +76,7 @@ from veyntora_api.rag.guard import (
     guard_instances,
 )
 from veyntora_api.rag.tracing import Trace
+from veyntora_api.usage import budgets, limits
 
 log = structlog.get_logger()
 
@@ -138,6 +140,12 @@ class RunContext:
     source_paths: dict[str, tuple[str, ...]] = field(default_factory=dict)
     # Whether the chatbot has expert teams for "Ask a human expert".
     experts: bool = False
+    # Usage is booked to the asker's cost centre (their first group that has one) and to
+    # the app key the call came with.
+    cost_centre: str | None = None
+    app_key_id: UUID | None = None
+    # A budget at its limit or a per-user limit changed the run (Fast only, smaller model).
+    limited: str | None = None
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -215,7 +223,12 @@ async def _asker(db: AsyncSession, subject: str) -> User:
 
 
 async def load_context(
-    db: AsyncSession, authz: Authorizer, subject: str, chatbot_id: UUID
+    db: AsyncSession,
+    authz: Authorizer,
+    subject: str,
+    chatbot_id: UUID,
+    *,
+    app_key_id: UUID | None = None,
 ) -> RunContext:
     user = await _asker(db, subject)
     if not await authz.check(f"user:{user.id}", "can_chat", f"chatbot:{chatbot_id}"):
@@ -227,7 +240,7 @@ async def load_context(
     version = await db.get(PipelineVersion, version_id)
     if version is None:
         raise RunRefusedError("This assistant is not available right now.")
-    return await _context(db, user, bot, version, personal=True)
+    return await _context(db, user, bot, version, personal=True, app_key_id=app_key_id)
 
 
 async def load_test_context(
@@ -267,10 +280,16 @@ async def load_test_context(
 
 
 async def _context(
-    db: AsyncSession, user: User, bot: Chatbot, version: PipelineVersion, *, personal: bool = False
+    db: AsyncSession,
+    user: User,
+    bot: Chatbot,
+    version: PipelineVersion,
+    *,
+    personal: bool = False,
+    app_key_id: UUID | None = None,
 ) -> RunContext:
-    """`personal`: apply the asker's own model and preferences (chat, not the Playground,
-    which tests the chatbot as configured)."""
+    """`personal`: apply the asker's own model and preferences, budgets and limits (chat,
+    not the Playground, which tests the chatbot as configured)."""
     spec = PipelineSpec.model_validate(version.spec)
     profile = index_profile(spec)
     if profile is None or spec.generation.llm_instance_id is None:
@@ -278,13 +297,29 @@ async def _context(
 
     groups = (
         await db.execute(
-            sa.select(Group.id, Group.name)
+            sa.select(Group.id, Group.name, Group.cost_centre)
             .join(Membership, Membership.group_id == Group.id)
             .where(Membership.user_id == user.id)
             .order_by(Group.name)
         )
     ).all()
     principals = (f"user:{user.id}", *(f"group:{g.id}" for g in groups))
+    cost_centre = next((g.cost_centre for g in groups if g.cost_centre), None)
+    limited = None
+    if personal:
+        group_ids = [g.id for g in groups]
+        eff = await budgets.effect(db, bot.id, group_ids, [cost_centre] if cost_centre else [])
+        if eff.action is BudgetAction.BLOCK:
+            raise RunRefusedError(f"This assistant is paused: {eff.reason}.")
+        if eff.action in {BudgetAction.FAST_ONLY, BudgetAction.FALLBACK_MODEL}:
+            spec, limited = budgets.apply(spec, eff), eff.reason
+        if not user.is_service:
+            refusal, agent = await limits.check_run(db, user.id, group_ids)
+            if refusal:
+                raise RunRefusedError(refusal)
+            if not agent:
+                spec = budgets.apply(spec, budgets.Effect(action=BudgetAction.FAST_ONLY))
+                limited = limited or "your Agent runs for today are used up"
     attachments = (
         (
             await db.execute(
@@ -373,6 +408,9 @@ async def _context(
         own_model=own_model,
         preferences=dict(user.preferences or {}) if personal else {},
         source_weights=weights,
+        cost_centre=cost_centre,
+        app_key_id=app_key_id,
+        limited=limited,
         source_paths=paths,
     )
 

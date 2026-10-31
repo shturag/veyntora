@@ -39,6 +39,7 @@ from veyntora_api.routers import (
     admin_runs,
     admin_sources,
     admin_tools,
+    admin_usage,
     approvals,
     auth,
     channel_links,
@@ -221,5 +222,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(admin_playground.router)
     app.include_router(admin_sources.router)
     app.include_router(admin_tools.router)
+    app.include_router(admin_usage.router)
     app.include_router(approvals.router)
     return app
