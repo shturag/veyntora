@@ -1,7 +1,7 @@
 """Notifications to people and messages from automations (Phase 5).
 
-- `notify_user`: shown in Veyntora (the bell), and sent to the person's Teams chat with a
-  chatbot's bot (when they have one and did not turn it off) and by email (when the mail
+- `notify_user`: shown in Veyntora (the bell), and sent to the person's Teams or Slack
+  chat with a chatbot's bot (when they have one and did not turn it off) and by email (when the mail
   relay is set up and they did not turn it off).
 - `queue_post`: an automation's notify step: a Teams or Slack channel post, Teams chats
   with people, or emails.
@@ -117,13 +117,16 @@ def _queue(**values: Any) -> Delivery:
     return Delivery(status=DeliveryStatus.QUEUED, attempts=0, **values)
 
 
-async def teams_chat_of(db: AsyncSession, user_id: UUID) -> ChannelDestination | None:
-    """The person's own chat with a bot (the most recent one they used)."""
+async def chat_of(
+    db: AsyncSession, user_id: UUID, kinds: tuple[DestinationKind, ...] = ()
+) -> ChannelDestination | None:
+    """The person's own chat with a bot in Teams or Slack (the most recent one they used)."""
+    kinds = kinds or (DestinationKind.TEAMS_CHAT, DestinationKind.SLACK_CHAT)
     row: ChannelDestination | None = await db.scalar(
         sa.select(ChannelDestination)
         .where(
             ChannelDestination.user_id == user_id,
-            ChannelDestination.kind == DestinationKind.TEAMS_CHAT,
+            ChannelDestination.kind.in_(kinds),
             ChannelDestination.removed_at.is_(None),
         )
         .order_by(ChannelDestination.updated_at.desc())
@@ -155,10 +158,10 @@ async def notify_user(
     text = f"{title}\n\n{body}".strip()[:MAX_TEXT]
     if user.is_service or user.suspended:
         return note
-    if prefs.get("notify_teams", True) and (chat := await teams_chat_of(db, user_id)):
+    if prefs.get("notify_teams", True) and (chat := await chat_of(db, user_id)):
         db.add(
             _queue(
-                via=DestinationKind.TEAMS_CHAT.value,
+                via=chat.kind.value,
                 destination_id=chat.id,
                 user_id=user_id,
                 text=text,
@@ -204,7 +207,7 @@ async def queue_post(
         out.append(_queue(via=via, destination_id=dest.id, text=text, run_id=run_id))
     elif via == DestinationKind.TEAMS_CHAT.value:
         for raw in to or []:
-            chat = await teams_chat_of(db, UUID(raw))
+            chat = await chat_of(db, UUID(raw), (DestinationKind.TEAMS_CHAT,))
             if chat is None:
                 raise NotifyError("a recipient has not chatted with the bot in Teams yet")
             out.append(

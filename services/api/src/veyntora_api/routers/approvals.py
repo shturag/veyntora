@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 from veyntora_api.agent import approvals as svc
 from veyntora_api.auth.deps import Ctx, CurrentPrincipal, DbSession, State
+from veyntora_api.channels import decisions
 from veyntora_api.db.models.automations import Approval, ApprovalDecision, Run
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.identity import User
@@ -181,5 +182,6 @@ async def decide(
         )
     except svc.ApprovalError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    await decisions.tell_requester(db, row)
     await db.commit()
     return await _out(db, state, principal, row)

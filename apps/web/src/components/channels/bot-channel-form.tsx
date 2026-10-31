@@ -114,6 +114,13 @@ export function BotChannelForm({
           <input readOnly value={initial.endpoint} className={`${control} font-mono`} />
           <span className="text-xs font-normal text-fg-muted">{t(`${kind}.endpointHint`)}</span>
         </label>
+        {initial.interactions ? (
+          <label className="flex flex-col gap-1 text-[13px] font-medium">
+            {t("slack.interactions")}
+            <input readOnly value={initial.interactions} className={`${control} font-mono`} />
+            <span className="text-xs font-normal text-fg-muted">{t("slack.interactionsHint")}</span>
+          </label>
+        ) : null}
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

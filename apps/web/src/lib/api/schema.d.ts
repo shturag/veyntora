@@ -2700,6 +2700,8 @@ export interface components {
             endpoint: string;
             /** Has Secret */
             has_secret: boolean;
+            /** Interactions */
+            interactions?: string | null;
             /** Secret Last4 */
             secret_last4: string | null;
         };
@@ -3149,7 +3151,7 @@ export interface components {
          * DestinationKind
          * @enum {string}
          */
-        DestinationKind: "teams_channel" | "teams_chat" | "slack_channel";
+        DestinationKind: "teams_channel" | "teams_chat" | "slack_channel" | "slack_chat";
         /** DestinationOut */
         DestinationOut: {
             /** Chatbot */

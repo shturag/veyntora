@@ -101,6 +101,9 @@ class ChannelThread(IdMixin, Base):
     conversation_key: Mapped[str] = mapped_column(sa.String(255))
     user_id: Mapped[UUID] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"))
     thread_id: Mapped[str] = mapped_column(sa.String(64))
+    # How to post into this conversation later (Teams conversation reference, or the Slack
+    # channel and thread), so a decided approval's answer arrives without "continue".
+    reference: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
 
 
@@ -108,6 +111,7 @@ class DestinationKind(StrEnum):
     TEAMS_CHANNEL = "teams_channel"
     TEAMS_CHAT = "teams_chat"
     SLACK_CHANNEL = "slack_channel"
+    SLACK_CHAT = "slack_chat"
 
 
 class ChannelDestination(IdMixin, TimestampMixin, Base):

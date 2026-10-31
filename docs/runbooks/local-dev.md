@@ -30,6 +30,8 @@ Order: `postgres`, `valkey`, `seaweedfs` → `seaweedfs-init` (buckets), `openba
 
 Model and observability services start alongside: `tei-embed`, `tei-rerank`, `docling`, `litellm`, `langfuse` (+ `clickhouse`, `langfuse-worker`), `otel-collector`, `prometheus`, `loki`, `grafana`. `vllm` needs `--profile gpu` and `VLLM_MODEL`.
 
+`channels` (Teams and Slack, port 8010) also posts automations' messages and approval cards. `mailpit` catches email locally: under **Channels & API → Email** set host `mailpit`, port `1025`, security *None*, any from address, and read the mails at http://localhost:8025.
+
 ## Everyday commands
 
 ```bash

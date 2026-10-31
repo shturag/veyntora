@@ -99,7 +99,7 @@ def upgrade() -> None:
         sa.Column("channel_id", sa.Uuid(), nullable=False),
         sa.Column(
             "kind",
-            sa.Enum("teams_channel", "teams_chat", "slack_channel", name="destination_kind", native_enum=False,
+            sa.Enum("teams_channel", "teams_chat", "slack_channel", "slack_chat", name="destination_kind", native_enum=False,
                     create_constraint=True, length=32),
             nullable=False,
         ),
@@ -116,6 +116,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("channel_id", "kind", "external_id", name=op.f("uq_channel_destinations_channel_id")),
     )
     op.create_index(op.f("ix_channel_destinations_user_id"), "channel_destinations", ["user_id"])
+    op.add_column("channel_threads", sa.Column("reference", JSONB, server_default="{}", nullable=False))
 
     op.create_table(
         "notifications",
@@ -172,6 +173,7 @@ def downgrade() -> None:
     op.drop_table("deliveries")
     op.drop_index("ix_notifications_user_created", table_name="notifications")
     op.drop_table("notifications")
+    op.drop_column("channel_threads", "reference")
     op.drop_index(op.f("ix_channel_destinations_user_id"), table_name="channel_destinations")
     op.drop_table("channel_destinations")
     op.drop_constraint(op.f("fk_approvals_escalate_group_id_groups"), "approvals", type_="foreignkey")
@@ -191,4 +193,5 @@ def downgrade() -> None:
         op.drop_column("automations", col)
     op.add_column("automations", sa.Column("service_identity", sa.String(length=255), nullable=True))
     op.add_column("automations", sa.Column("steps", JSONB, server_default="[]", nullable=False))
-    op.add_column("automations", sa.Column("trigger", JSONB, nullable=False))
+    op.add_column("automations", sa.Column("trigger", JSONB, server_default="{}", nullable=False))
+    op.alter_column("automations", "trigger", server_default=None)

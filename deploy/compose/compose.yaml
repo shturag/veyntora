@@ -314,6 +314,17 @@ services:
       retries: 20
       start_period: 300s
 
+  mailpit:
+    # Local mail catcher: set the email relay (Channels & API → Email) to host "mailpit",
+    # port 1025, security "none", and read the mails at http://localhost:8025.
+    image: axllent/mailpit:v1.31.5
+    ports: ["127.0.0.1:8025:8025"]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   vllm:
     profiles: [gpu]
     image: vllm/vllm-openai:v0.32.0

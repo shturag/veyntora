@@ -1320,7 +1320,7 @@
       "detailed": "Ausführlich"
     },
     "showAgentSteps": "Agentenschritte während der Arbeit zeigen",
-    "notifyTeams": "Benachrichtigungen (Freigaben, Übergaben, Berichte) in meinen Teams-Chat mit dem Assistenten senden",
+    "notifyTeams": "Benachrichtigungen (Freigaben, Übergaben, Berichte) in meinen Teams- oder Slack-Chat mit dem Assistenten senden",
     "notifyEmail": "Benachrichtigungen per E-Mail senden",
     "notifyHint": "Benachrichtigungen erscheinen immer auch in Veyntora.",
     "suggestFollowUps": "Folgefragen vorschlagen",
@@ -1967,7 +1967,34 @@
       "short": "Slack",
       "title": "Slack",
       "intro": "Direktnachrichten und @Erwähnungen der Slack-App dieses Chatbots. Braucht eine in deinem Workspace installierte Slack-App.",
-      "endpointHint": "Als Request URL unter Event Subscriptions eintragen (Events: app_mention, message.im)."
+      "endpointHint": "Als Request URL unter Event Subscriptions eintragen (Events: app_mention, message.im).",
+      "interactions": "Interactivity-Request-URL",
+      "interactionsHint": "In der Slack-App unter Interactivity & Shortcuts eintragen, damit die Schaltflächen Freigeben / Ablehnen funktionieren."
+    },
+    "mail": {
+      "title": "E-Mail",
+      "text": "Das Relay, über das Benachrichtigungen und Automatisierungs-E-Mails gesendet werden. Das Passwort wird nur geschrieben; nur die letzten 4 Zeichen werden gezeigt.",
+      "host": "SMTP-Host",
+      "port": "Port",
+      "security": "Sicherheit",
+      "none": "Keine (Relay im Netzwerk)",
+      "username": "Benutzername (optional)",
+      "password": "Passwort",
+      "keep": "Gespeichert (…{last4}); zum Ersetzen eingeben",
+      "from": "Absenderadresse",
+      "fromName": "Absendername",
+      "save": "Speichern",
+      "saved": "Gespeichert.",
+      "failed": "Hat nicht funktioniert: {reason}"
+    },
+    "destinations": {
+      "title": "Wo Bots posten können",
+      "text": "Teams- und Slack-Kanäle, zu denen die Bots der Chatbots hinzugefügt wurden. Automatisierungen posten nur hier. Entfernen Sie den Bot aus einem Kanal, um ihn von der Liste zu nehmen.",
+      "empty": "Noch keine Kanäle. Fügen Sie den Teams-Bot eines Chatbots zu einem Team-Kanal hinzu oder laden Sie seine Slack-App in einen Kanal ein.",
+      "kinds": {
+        "teams_channel": "Teams-Kanal",
+        "slack_channel": "Slack-Kanal"
+      }
     }
   },
   "link": {

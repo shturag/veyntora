@@ -1320,7 +1320,7 @@
       "detailed": "Detailed"
     },
     "showAgentSteps": "Show agent steps while working",
-    "notifyTeams": "Send my notifications (approvals, hand-offs, reports) to my Teams chat with the assistant",
+    "notifyTeams": "Send my notifications (approvals, hand-offs, reports) to my Teams or Slack chat with the assistant",
     "notifyEmail": "Send my notifications by email",
     "notifyHint": "Notifications always appear in Veyntora too.",
     "suggestFollowUps": "Suggest follow-up questions",
@@ -1967,7 +1967,34 @@
       "short": "Slack",
       "title": "Slack",
       "intro": "Direct messages and @mentions of this chatbot's Slack app. Needs a Slack app installed in your workspace.",
-      "endpointHint": "Set this as the Request URL under Event Subscriptions (events: app_mention, message.im)."
+      "endpointHint": "Set this as the Request URL under Event Subscriptions (events: app_mention, message.im).",
+      "interactions": "Interactivity request URL",
+      "interactionsHint": "Paste this into the Slack app under Interactivity & Shortcuts so Approve / Reject buttons work."
+    },
+    "mail": {
+      "title": "Email",
+      "text": "The relay that sends notifications and automation emails. The password is stored write-only; only its last 4 characters are shown.",
+      "host": "SMTP host",
+      "port": "Port",
+      "security": "Security",
+      "none": "None (relay inside the network)",
+      "username": "User name (optional)",
+      "password": "Password",
+      "keep": "Kept (…{last4}); type to replace",
+      "from": "From address",
+      "fromName": "From name",
+      "save": "Save",
+      "saved": "Saved.",
+      "failed": "Did not work: {reason}"
+    },
+    "destinations": {
+      "title": "Where bots can post",
+      "text": "Teams channels and Slack channels the chatbots' bots were added to. Automations post only here. Remove the bot from a channel to take it off this list.",
+      "empty": "No channels yet. Add a chatbot's Teams bot to a team channel, or invite its Slack app to a channel.",
+      "kinds": {
+        "teams_channel": "Teams channel",
+        "slack_channel": "Slack channel"
+      }
     }
   },
   "link": {

@@ -22,7 +22,6 @@ router = APIRouter(prefix="/v1/admin", tags=["admin: channels"])
 
 Viewer = Annotated[Principal, Depends(require_admin_area("channels", "viewer"))]
 Editor = Annotated[Principal, Depends(require_admin_area("channels", "editor"))]
-AutomationViewer = Annotated[Principal, Depends(require_admin_area("automations", "viewer"))]
 
 
 class MailOut(BaseModel):
@@ -67,7 +66,7 @@ class DestinationOut(BaseModel):
 
 @router.get("/destinations", summary="Teams and Slack channels the bots can post in")
 async def destinations(
-    _: AutomationViewer, db: DbSession, chatbot_id: UUID | None = None
+    _: Viewer, db: DbSession, chatbot_id: UUID | None = None
 ) -> list[DestinationOut]:
     q = (
         sa.select(ChannelDestination, Channel, Chatbot)
@@ -75,7 +74,9 @@ async def destinations(
         .join(Chatbot, Chatbot.id == Channel.chatbot_id)
         .where(
             ChannelDestination.removed_at.is_(None),
-            ChannelDestination.kind != DestinationKind.TEAMS_CHAT,
+            ChannelDestination.kind.in_(
+                [DestinationKind.TEAMS_CHANNEL, DestinationKind.SLACK_CHANNEL]
+            ),
         )
         .order_by(Chatbot.name, ChannelDestination.name)
     )

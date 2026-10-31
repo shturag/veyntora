@@ -8,21 +8,29 @@ secret to check with, so a forged one still fails. The Slack user id links to a 
 Slack wants an answer within 3 seconds: the request is acknowledged at once and the
 answer is posted when it is ready. Slack's retries are not processed twice.
 
-Not tested against a live Slack workspace yet (Phase 4 report).
+Channels the app joins are remembered as places automations may post (and forgotten when
+it leaves); a linked person's direct messages with the app are remembered for their
+notifications. Approval requests carry Approve / Reject buttons; a press arrives signed at
+/slack/interactions and counts for the linked person who pressed it.
+
+Not tested against a live Slack workspace yet (Phase 4 and 5 reports).
 """
 
 from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import parse_qs
 
 import sqlalchemy as sa
 from fastapi import BackgroundTasks, Request, Response
 from fastapi.responses import JSONResponse
+from slack_sdk.errors import SlackApiError
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from veyntora_api.db.models.channels import Channel, ChannelStatus, ChannelType
+from veyntora_api.channels import decisions
+from veyntora_api.db.models.channels import Channel, ChannelStatus, ChannelType, DestinationKind
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_providers.secrets import SecretReader
 
@@ -54,13 +62,16 @@ class Slack:
         return {k: str(v) for k, v in value.items()} if isinstance(value, dict) else {}
 
     async def _verified(
-        self, request: Request, body: bytes
+        self, request: Request, body: bytes, payload: dict[str, Any] | None = None
     ) -> tuple[Channel, dict[str, Any], dict[str, str]] | Response:
         """The channel, payload and credentials of a correctly signed request, or the error."""
-        try:
-            payload: dict[str, Any] = json.loads(body)
-        except ValueError:
-            return JSONResponse({"error": "invalid body"}, status_code=400)
+        if payload is None:
+            try:
+                payload = json.loads(body)
+            except ValueError:
+                return JSONResponse({"error": "invalid body"}, status_code=400)
+            if not isinstance(payload, dict):
+                return JSONResponse({"error": "invalid body"}, status_code=400)
         async with get_sessionmaker()() as db:
             channel = await _channel_for(
                 db, str(payload.get("team_id") or ""), str(payload.get("api_app_id") or "")
@@ -85,6 +96,17 @@ class Slack:
         if payload.get("type") == "url_verification":
             return JSONResponse({"challenge": payload.get("challenge")})
         event = payload.get("event") or {}
+        bot_user = str(((payload.get("authorizations") or [{}])[0]).get("user_id") or "")
+        if event.get("type") in {"member_joined_channel", "member_left_channel"}:
+            if bot_user and event.get("user") == bot_user:
+                background.add_task(
+                    self._membership,
+                    channel,
+                    str(event.get("channel") or ""),
+                    joined=event["type"] == "member_joined_channel",
+                    token=creds.get("bot_token", ""),
+                )
+            return Response(status_code=200)
         wanted = event.get("type") == "app_mention" or (
             event.get("type") == "message" and event.get("channel_type") == "im"
         )
@@ -116,6 +138,8 @@ class Slack:
                     display_name=user,
                     conversation_key=f"{event.get('channel')}:{thread_ts}",
                     text=text,
+                    reference={"channel": str(event.get("channel")), "thread_ts": thread_ts},
+                    personal=event.get("channel_type") == "im",
                 ),
             )
         message = f"{reply.text}\n{reply.link_url}" if reply.link_url else reply.text
@@ -128,3 +152,135 @@ class Slack:
             await client.chat_postMessage(
                 channel=str(event.get("channel")), thread_ts=thread_ts, text=message
             )
+
+    async def _membership(
+        self, channel: Channel, slack_channel: str, *, joined: bool, token: str
+    ) -> None:
+        async with get_sessionmaker()() as db:
+            if not joined:
+                await decisions.forget(
+                    db,
+                    channel_id=channel.id,
+                    kind=DestinationKind.SLACK_CHANNEL,
+                    external_id=slack_channel,
+                )
+            else:
+                name = slack_channel
+                try:
+                    info = await AsyncWebClient(token=token).conversations_info(
+                        channel=slack_channel
+                    )
+                    name = f"#{info['channel']['name']}"
+                except SlackApiError:
+                    pass
+                await decisions.remember(
+                    db,
+                    channel_id=channel.id,
+                    kind=DestinationKind.SLACK_CHANNEL,
+                    external_id=slack_channel,
+                    name=name,
+                    reference={"channel": slack_channel},
+                )
+            await db.commit()
+
+    async def interactions(self, request: Request, background: BackgroundTasks) -> Response:
+        """A button press (form-encoded, signed like events)."""
+        body = await request.body()
+        try:
+            raw = parse_qs(body.decode()).get("payload", [""])[0]
+            parsed: Any = json.loads(raw)
+        except (ValueError, UnicodeDecodeError):
+            return JSONResponse({"error": "invalid body"}, status_code=400)
+        if not isinstance(parsed, dict):
+            return JSONResponse({"error": "invalid body"}, status_code=400)
+        payload: dict[str, Any] = parsed
+        team = str((payload.get("team") or {}).get("id") or "")
+        checked = await self._verified(
+            request, body, {"team_id": team, "api_app_id": payload.get("api_app_id")}
+        )
+        if isinstance(checked, Response):
+            return checked
+        actions = payload.get("actions") or []
+        action = actions[0] if actions else {}
+        if payload.get("type") != "block_actions" or action.get("action_id") not in BUTTONS:
+            return Response(status_code=200)
+        background.add_task(
+            self._decide,
+            team,
+            str((payload.get("user") or {}).get("id") or ""),
+            str(action.get("value") or ""),
+            approve=action["action_id"] == BUTTONS[0],
+            response_url=str(payload.get("response_url") or ""),
+        )
+        return Response(status_code=200)
+
+    async def _decide(
+        self, team: str, user: str, approval_id: str, *, approve: bool, response_url: str
+    ) -> None:
+        async with get_sessionmaker()() as db:
+            text = await decisions.decide_from_chat(
+                db,
+                self.runner.authz,
+                channel_type=ChannelType.SLACK,
+                tenant=team,
+                external_user_id=user,
+                approval_id=approval_id,
+                approve=approve,
+            )
+        if response_url.startswith("https://hooks.slack.com/"):
+            await self.runner.http.post(
+                response_url,
+                json={"response_type": "ephemeral", "replace_original": False, "text": text},
+                timeout=10.0,
+            )
+
+    async def post(
+        self, channel: Channel, reference: dict[str, Any], text: str, card: dict[str, Any]
+    ) -> None:
+        """Post into a remembered channel or direct message (and thread)."""
+        creds = await self._credentials(channel)
+        client = AsyncWebClient(token=creds.get("bot_token", ""))
+        link = card.get("link")
+        url = f"{self.runner.settings.public_base_url.rstrip('/')}{link}" if link else None
+        blocks: list[dict[str, Any]] | None = None
+        if card.get("approval_id"):
+            blocks = approval_blocks(text, str(card["approval_id"]), url)
+        elif url:
+            text = f"{text}\n{url}"
+        await client.chat_postMessage(
+            channel=str(reference["channel"]),
+            thread_ts=reference.get("thread_ts"),
+            text=text,
+            blocks=blocks,
+        )
+
+
+BUTTONS = ("veyntora_approve", "veyntora_reject")
+
+
+def approval_blocks(text: str, approval_id: str, url: str | None) -> list[dict[str, Any]]:
+    elements: list[dict[str, Any]] = [
+        {
+            "type": "button",
+            "text": {"type": "plain_text", "text": label},
+            "style": style,
+            "action_id": action_id,
+            "value": approval_id,
+        }
+        for label, style, action_id in (
+            ("Approve", "primary", BUTTONS[0]),
+            ("Reject", "danger", BUTTONS[1]),
+        )
+    ]
+    if url:
+        elements.append(
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "text": "Open in Veyntora"},
+                "url": url,
+            }
+        )
+    return [
+        {"type": "section", "text": {"type": "mrkdwn", "text": text[:2900]}},
+        {"type": "actions", "elements": elements},
+    ]

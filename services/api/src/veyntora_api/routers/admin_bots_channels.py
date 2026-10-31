@@ -26,6 +26,8 @@ class BotChannelOut(BaseModel):
     secret_last4: str | None
     # Where the platform sends messages (set this in the Azure bot or Slack app).
     endpoint: str
+    # Slack: where button presses go (the app's Interactivity request URL).
+    interactions: str | None = None
 
 
 def _out(row: Channel | None, endpoint: str) -> BotChannelOut:
@@ -35,6 +37,9 @@ def _out(row: Channel | None, endpoint: str) -> BotChannelOut:
         has_secret=bool(row and row.secret_ref),
         secret_last4=row.secret_last4 if row else None,
         endpoint=endpoint,
+        interactions=endpoint.replace("/slack/events", "/slack/interactions")
+        if endpoint.endswith("/slack/events")
+        else None,
     )
 
 

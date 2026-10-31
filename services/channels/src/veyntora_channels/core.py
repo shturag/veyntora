@@ -5,14 +5,17 @@
 - The question runs on the graph server as that person (an API-signed internal token),
   exactly like chat: chat access, document permissions, data rules, approvals.
 - One Veyntora conversation per platform conversation and person.
-- When the agent waits for an approval, the reply says so and links the Approvals page.
-  The person writes "continue" once it is decided; the run reads the decision from the
-  database, as in the web app.
+- When the agent waits for an approval, the reply says so. Approvers get Approve / Reject
+  buttons in their own chat; once it is decided the run goes on by itself and the answer
+  is posted in the conversation (outbox.resume_decided). "continue" still works. The run
+  reads the decision from the database, as in the web app.
+- Each conversation's reference is kept (to post the answer later), and a linked
+  person's own chat with the bot is remembered for their notifications.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID
 
@@ -21,10 +24,15 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_api.auth import internal
 from veyntora_api.authz.fga import Authz
-from veyntora_api.channels import links
+from veyntora_api.channels import decisions, links
 from veyntora_api.channels.answers import ApiAnswer, answer_from
 from veyntora_api.db.models.automations import Approval, ApprovalDecision
-from veyntora_api.db.models.channels import Channel, ChannelThread, ChannelType
+from veyntora_api.db.models.channels import (
+    Channel,
+    ChannelThread,
+    ChannelType,
+    DestinationKind,
+)
 from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus
 from veyntora_api.db.models.identity import User
 from veyntora_api.settings import Settings
@@ -43,6 +51,10 @@ class Incoming:
     display_name: str
     conversation_key: str
     text: str
+    # How to post here later (Teams conversation reference, Slack channel and thread).
+    reference: dict[str, Any] = field(default_factory=dict)
+    # A one-to-one chat with the bot (Teams personal chat, Slack direct message).
+    personal: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,6 +125,20 @@ class Runner:
         if not await self.authz.check(f"user:{user.id}", "can_chat", f"chatbot:{bot.id}"):
             return Reply(text="You don't have access to this assistant.")
         thread, _ = await self._thread(db, msg, user)
+        if msg.reference:
+            thread.reference = msg.reference
+        if msg.personal:
+            await decisions.remember(
+                db,
+                channel_id=msg.channel.id,
+                kind=DestinationKind.TEAMS_CHAT
+                if msg.channel_type is ChannelType.TEAMS
+                else DestinationKind.SLACK_CHAT,
+                external_id=msg.conversation_key.split(":", 1)[0],
+                name=user.display_name or msg.display_name,
+                reference=msg.reference,
+                user_id=user.id,
+            )
         await db.commit()
         if msg.text.strip().lower() in CONTINUE_WORDS:
             answer = await self._resume(db, user, thread)
@@ -131,6 +157,15 @@ class Runner:
             )
             answer = answer_from(UUID(thread.thread_id), values)
         return Reply(text=self.format(answer))
+
+    async def resume(self, user: User, thread: ChannelThread, approval_id: str) -> ApiAnswer:
+        """Go on after a decided approval (the run reads the decision from the database)."""
+        values = await self._graph(
+            user,
+            f"threads/{thread.thread_id}/runs/wait",
+            {"assistant_id": GRAPH, "command": {"resume": {"approval_id": approval_id}}},
+        )
+        return answer_from(UUID(thread.thread_id), values)
 
     async def _resume(self, db: AsyncSession, user: User, thread: ChannelThread) -> ApiAnswer:
         state = await self.http.get(
@@ -164,9 +199,9 @@ class Runner:
     def format(self, answer: ApiAnswer) -> str:
         if answer.outcome == "waiting_approval":
             return (
-                f"{answer.answer}. Nothing happens until a person approves it: "
-                f"{self.settings.public_base_url.rstrip('/')}/approvals. "
-                'Write "continue" here once it is decided.'
+                f"{answer.answer}. Nothing happens until a person approves it "
+                f"({self.settings.public_base_url.rstrip('/')}/approvals). "
+                "The answer follows here once it is decided."
             )
         lines = [answer.answer]
         if answer.citations:

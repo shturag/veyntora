@@ -363,7 +363,9 @@ async def builder_options(_: Viewer, db: DbSession) -> BuilderOptions:
         .join(Chatbot, Chatbot.id == Channel.chatbot_id)
         .where(
             ChannelDestination.removed_at.is_(None),
-            ChannelDestination.kind != DestinationKind.TEAMS_CHAT,
+            ChannelDestination.kind.in_(
+                [DestinationKind.TEAMS_CHANNEL, DestinationKind.SLACK_CHANNEL]
+            ),
         )
         .order_by(ChannelDestination.name)
     )
