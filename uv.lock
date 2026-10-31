@@ -5,6 +5,7 @@ requires-python = "==3.12.*"
 [manifest]
 members = [
     "veyntora-api",
+    "veyntora-channels",
     "veyntora-graphs",
     "veyntora-providers",
     "veyntora-spec",
@@ -331,6 +332,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/9a/8e/82a0fe20a541c03148528be8cac2408564a6c9a0cc7e9171802bc1d26985/attrs-26.1.0.tar.gz", hash = "sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32", size = 952055, upload-time = "2026-03-19T14:22:25.026Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl", hash = "sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309", size = 67548, upload-time = "2026-03-19T14:22:23.645Z" },
+]
+
+[[package]]
+name = "azure-core"
+version = "1.41.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/f3/b416179e408990df5db0d516283022dde0f5d0111d98c1a848e41853e81c/azure_core-1.41.0.tar.gz", hash = "sha256:f46ff5dfcd230f25cf1c19e8a34b8dc08a337b2503e268bb600a16c00db8ad5a", size = 381042, upload-time = "2026-05-07T23:30:54.302Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5b/db/325c6d7312d2200251c52323878281045aaffcb5586612296484e4280eaa/azure_core-1.41.0-py3-none-any.whl", hash = "sha256:522b4011e8180b1a3dcd2024396a4e7fe9ac37fb8597db47163d230b5efe892d", size = 220920, upload-time = "2026-05-07T23:30:56.357Z" },
 ]
 
 [[package]]
@@ -907,6 +921,15 @@ wheels = [
 ]
 
 [[package]]
+name = "isodate"
+version = "0.7.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/54/4d/e940025e2ce31a8ce1202635910747e5a87cc3a6a6bb2d00973375014749/isodate-0.7.2.tar.gz", hash = "sha256:4cd1aa0f43ca76f4a6c6c0292a85f40b35ec2e43e315b59f06e6d32171a953e6", size = 29705, upload-time = "2024-10-08T23:04:11.5Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/aa/0aca39a37d3c7eb941ba736ede56d689e7be91cab5d9ca846bde3999eba6/isodate-0.7.2-py3-none-any.whl", hash = "sha256:28009937d8031054830160fce6d409ed342816b543597cece116d966c6d99e15", size = 22320, upload-time = "2024-10-08T23:04:09.501Z" },
+]
+
+[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1269,6 +1292,81 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d6/54/cfe61301667036ec958cb99bd3efefba235e65cdeb9c84d24a8293ba1d90/mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba", size = 8729, upload-time = "2022-08-14T12:40:10.846Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8", size = 9979, upload-time = "2022-08-14T12:40:09.779Z" },
+]
+
+[[package]]
+name = "microsoft-agents-activity"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6f/75/be04a148d6b8332ffd25699daa6923df56e9a5f339517afb421d1964d8eb/microsoft_agents_activity-1.8.0.tar.gz", hash = "sha256:fe19016eb59b1173ab84e6455fe88afd93db95459bf00f49b73cd0a941a7e0a6", size = 73781, upload-time = "2026-10-01T21:14:04.45Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/30/5788096a4fc26533d476d2ae80467fbff7dfa70fa39be1181f723f2f9ceb/microsoft_agents_activity-1.8.0-py3-none-any.whl", hash = "sha256:a384d0124c3ce8ae5a8eeaacab80893494d6c79efe3d6718dd8e5787c253ba01", size = 148284, upload-time = "2026-10-01T21:14:19.734Z" },
+]
+
+[[package]]
+name = "microsoft-agents-authentication-msal"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "azure-core" },
+    { name = "microsoft-agents-hosting-core" },
+    { name = "msal" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/07/3e/190dd013afd68e1299fc99b6798cd63a8ba165f22d79f48e8cbb9b666888/microsoft_agents_authentication_msal-1.8.0.tar.gz", hash = "sha256:0eb425cde14fd194a80cd3203cdea4792ccc5d920d60075ce877abcc6fe234e7", size = 14945, upload-time = "2026-10-01T21:14:06.651Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/ca/95edecb3831ffb53519b43ce04926df08e9e57cc8f908ca030707053fc7c/microsoft_agents_authentication_msal-1.8.0-py3-none-any.whl", hash = "sha256:c05434f11ee55a1b2be5ec9d2210c924aec6efc2182ff5c4562b04f8c8c1eafb", size = 14263, upload-time = "2026-10-01T21:14:21.731Z" },
+]
+
+[[package]]
+name = "microsoft-agents-hosting-core"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "azure-core" },
+    { name = "isodate" },
+    { name = "microsoft-agents-activity" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
+    { name = "pyjwt" },
+    { name = "python-dotenv" },
+    { name = "yarl" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/53/517a10da27aed47caba0c041930a629410d4652e72b54163374de4cdb595/microsoft_agents_hosting_core-1.8.0.tar.gz", hash = "sha256:98c615c174764865ca987a476c60035ce09813d84e8c176293627ddcb8d57e1e", size = 159806, upload-time = "2026-10-01T21:14:10.501Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/da/48/634867e4a4a00961136cac85af048431e3e7c037256afc89e3f6ee9f61df/microsoft_agents_hosting_core-1.8.0-py3-none-any.whl", hash = "sha256:3350d81f2f3c40108f4044df0272830532f431b79aa1b4092612d1b1e32f3fd7", size = 234607, upload-time = "2026-10-01T21:14:24.67Z" },
+]
+
+[[package]]
+name = "microsoft-agents-hosting-fastapi"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "microsoft-agents-hosting-core" },
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/67/82/6179a8f00e9db1fffffa8042693cf8d6bd5ca2a97fc8cc46e9f42b13afb1/microsoft_agents_hosting_fastapi-1.8.0.tar.gz", hash = "sha256:25b4b331defb49a59c4f6c0ad92f22b015f51a913cc3e121491db8130f040147", size = 8521, upload-time = "2026-10-01T21:14:13.334Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/84/71/e5c02675fbcbe333489b6b9a99f323e2389f6ff08038bfd7869094422ebc/microsoft_agents_hosting_fastapi-1.8.0-py3-none-any.whl", hash = "sha256:d7e983fd682d212ab93025342ccf02a02f22cb69e7aca177a56bbb031e3b322e", size = 9616, upload-time = "2026-10-01T21:14:26.803Z" },
+]
+
+[[package]]
+name = "msal"
+version = "1.39.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "pyjwt", extra = ["crypto"] },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bb/85/747d28986a44b715cc51cf57aa021c8fd94e9614064261ceec77320e8b0b/msal-1.39.0.tar.gz", hash = "sha256:6ab7de335e6d7f5717e2c7e1dbf86e4dda2f6acf3c56773b78dc53ebc6395b5f", size = 205360, upload-time = "2026-09-17T16:07:45.1Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/32/178457385925ce301c7b3232bd85665d4df57da39568b62dcfc74031873f/msal-1.39.0-py3-none-any.whl", hash = "sha256:2d2577886906cd7293850dffa2da29119966c213bfc6ec0cecf8bf7621e1ca77", size = 131629, upload-time = "2026-09-17T16:07:46.722Z" },
 ]
 
 [[package]]
@@ -2117,6 +2215,15 @@ wheels = [
 ]
 
 [[package]]
+name = "slack-sdk"
+version = "3.45.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/74/a4b30685bc76846b70baa9edaa45ba577ce5a28fc9e474b51524bb2aa932/slack_sdk-3.45.0.tar.gz", hash = "sha256:1ab794452f238b59db0d8a4d346263d65190288add53ec67a05751d8e7402486", size = 259739, upload-time = "2026-10-01T22:24:56.998Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/af/58/d54e4564946a9a3276f3de2905d18b66977977d4ba0fd7d11164df3c73cb/slack_sdk-3.45.0-py2.py3-none-any.whl", hash = "sha256:6356d4486d1a3ad156462c5544ab1b9c076ff426a250495c08f51b7ad71eb8fb", size = 322681, upload-time = "2026-10-01T22:24:55.133Z" },
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2384,6 +2491,35 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = "==0.54.0" },
     { name = "veyntora-providers", editable = "packages/providers" },
     { name = "veyntora-spec", editable = "packages/spec" },
+]
+
+[[package]]
+name = "veyntora-channels"
+version = "0.1.0"
+source = { editable = "services/channels" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "microsoft-agents-activity" },
+    { name = "microsoft-agents-authentication-msal" },
+    { name = "microsoft-agents-hosting-core" },
+    { name = "microsoft-agents-hosting-fastapi" },
+    { name = "slack-sdk" },
+    { name = "uvicorn", extra = ["standard"] },
+    { name = "veyntora-api" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = "==0.162.0" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "microsoft-agents-activity", specifier = "==1.8.0" },
+    { name = "microsoft-agents-authentication-msal", specifier = "==1.8.0" },
+    { name = "microsoft-agents-hosting-core", specifier = "==1.8.0" },
+    { name = "microsoft-agents-hosting-fastapi", specifier = "==1.8.0" },
+    { name = "slack-sdk", specifier = "==3.45.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = "==0.54.0" },
+    { name = "veyntora-api", editable = "services/api" },
 ]
 
 [[package]]

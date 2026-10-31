@@ -494,6 +494,27 @@ services:
       migrate: { condition: service_completed_successfully }
       valkey: { condition: service_healthy }
 
+  channels:
+    # Teams and Slack bots (ADR 0020). A runtime service: reads its bots' credentials.
+    build:
+      context: ../..
+      dockerfile: services/channels/Dockerfile
+    image: veyntora/channels:local
+    environment:
+      <<: *app-env
+      VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
+    volumes:
+      - openbao-runtime-token:/run/openbao:ro
+    ports: ["127.0.0.1:8010:8010"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      graphs: { condition: service_started }
+
   scheduler:
     image: veyntora/api:local
     build: *python-build
@@ -546,6 +567,7 @@ services:
     image: veyntora/web:local
     environment:
       API_INTERNAL_URL: http://api:8000
+      VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
     ports: ["127.0.0.1:3000:3000"]
     depends_on:
       api: { condition: service_healthy }

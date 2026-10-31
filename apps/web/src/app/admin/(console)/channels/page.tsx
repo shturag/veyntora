@@ -2,6 +2,7 @@ import { PageHeader } from "@veyntora/ui";
 import { getTranslations } from "next-intl/server";
 
 import { AppKeys } from "@/components/channels/app-keys";
+import { BotChannelForm } from "@/components/channels/bot-channel-form";
 import { WidgetSettings } from "@/components/channels/widget-settings";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
@@ -27,11 +28,30 @@ export default async function ChannelsPage({
   ]);
   const list = bots ?? [];
   const selected = list.find((b) => b.id === bot) ?? list[0];
+  const bots_ = await Promise.all(
+    list.map(async (b) => {
+      const [tm, sl] = await Promise.all(
+        (["teams", "slack"] as const).map((kind) =>
+          api.GET("/v1/admin/bots/{bot_id}/{kind}", { params: { path: { bot_id: b.id, kind } } }),
+        ),
+      );
+      return { teams: Boolean(tm?.data?.enabled), slack: Boolean(sl?.data?.enabled) };
+    }),
+  );
   const widgets = await Promise.all(
     list.map((b) => api.GET("/v1/admin/widget/{bot_id}", { params: { path: { bot_id: b.id } } })),
   );
+  const [teams, slack] = selected
+    ? await Promise.all(
+        (["teams", "slack"] as const).map((kind) =>
+          api.GET("/v1/admin/bots/{bot_id}/{kind}", {
+            params: { path: { bot_id: selected.id, kind } },
+          }),
+        ),
+      )
+    : [undefined, undefined];
   const editor = access.level === "editor";
-  const base = process.env.VEY_PUBLIC_WEB_URL ?? "http://localhost:3000";
+  const base = process.env.VEY_PUBLIC_BASE_URL ?? "http://localhost:3000";
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
@@ -42,6 +62,8 @@ export default async function ChannelsPage({
               <th className="px-4 py-2.5 font-semibold">{t("chatbot")}</th>
               <th className="px-4 py-2.5 font-semibold">{t("webApp")}</th>
               <th className="px-4 py-2.5 font-semibold">{t("widget")}</th>
+              <th className="px-4 py-2.5 font-semibold">{t("teams.short")}</th>
+              <th className="px-4 py-2.5 font-semibold">{t("slack.short")}</th>
               <th className="px-4 py-2.5 font-semibold">{t("api")}</th>
             </tr>
           </thead>
@@ -51,6 +73,8 @@ export default async function ChannelsPage({
                 <td className="px-4 py-2.5 font-medium">{b.name}</td>
                 <td className="px-4 py-2.5">{b.status === "live" ? t("on") : t("notLive")}</td>
                 <td className="px-4 py-2.5">{widgets[i]?.data?.enabled ? t("on") : t("off")}</td>
+                <td className="px-4 py-2.5">{bots_[i]?.teams ? t("on") : t("off")}</td>
+                <td className="px-4 py-2.5">{bots_[i]?.slack ? t("on") : t("off")}</td>
                 <td className="px-4 py-2.5">
                   {t("keys", {
                     count: (keys ?? []).filter(
@@ -76,6 +100,24 @@ export default async function ChannelsPage({
             allowed_origins: widgets[list.indexOf(selected)]?.data?.allowed_origins ?? [],
           }}
           base={base}
+          canEdit={editor}
+        />
+      ) : null}
+      {selected && teams?.data ? (
+        <BotChannelForm
+          key={`teams-${selected.id}`}
+          botId={selected.id}
+          kind="teams"
+          initial={teams.data}
+          canEdit={editor}
+        />
+      ) : null}
+      {selected && slack?.data ? (
+        <BotChannelForm
+          key={`slack-${selected.id}`}
+          botId={selected.id}
+          kind="slack"
+          initial={slack.data}
           canEdit={editor}
         />
       ) : null}

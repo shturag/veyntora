@@ -1,7 +1,7 @@
 """Import every model so Base.metadata is complete for Alembic and tests."""
 
 from veyntora_api.db.models.automations import Approval, Automation, Run
-from veyntora_api.db.models.channels import AppKey, Channel
+from veyntora_api.db.models.channels import AppKey, Channel, ChannelIdentity, ChannelThread
 from veyntora_api.db.models.chatbots import Chatbot, PipelineVersion
 from veyntora_api.db.models.conversations import (
     Citation,
@@ -49,6 +49,8 @@ __all__ = [
     "Budget",
     "ByokKey",
     "Channel",
+    "ChannelIdentity",
+    "ChannelThread",
     "Chatbot",
     "Citation",
     "Conversation",

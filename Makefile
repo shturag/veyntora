@@ -6,7 +6,7 @@ UV ?= uv
 PNPM ?= pnpm
 # Explicit import paths so local runs never depend on editable-install .pth files
 # (macOS can flag them hidden; see docs/runbooks/local-dev.md).
-export PYTHONPATH := $(ROOT)/packages/spec/src:$(ROOT)/packages/providers/src:$(ROOT)/services/api/src:$(ROOT)/services/graphs/src:$(ROOT)/services/workers/src
+export PYTHONPATH := $(ROOT)/packages/spec/src:$(ROOT)/packages/providers/src:$(ROOT)/services/api/src:$(ROOT)/services/graphs/src:$(ROOT)/services/workers/src:$(ROOT)/services/channels/src
 # Dev user passwords for Playwright when .env exists (scripts/gen-env.sh).
 ifneq (,$(wildcard .env))
 include .env
@@ -77,7 +77,7 @@ lint: ## Ruff, ESLint, Prettier check
 
 .PHONY: typecheck
 typecheck: ## mypy --strict and tsc
-	$(UV) run --no-sync mypy packages/spec/src packages/providers/src services/api/src services/graphs/src services/workers/src
+	$(UV) run --no-sync mypy packages/spec/src packages/providers/src services/api/src services/graphs/src services/workers/src services/channels/src
 	$(PNPM) -r typecheck
 
 .PHONY: test

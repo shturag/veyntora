@@ -25,6 +25,7 @@ from veyntora_api.knowledge.service import KnowledgeError
 from veyntora_api.providers.service import purge_replaced_keys
 from veyntora_api.routers import (
     admin_bot_insights,
+    admin_bots_channels,
     admin_channels,
     admin_chatbots,
     admin_people,
@@ -35,6 +36,7 @@ from veyntora_api.routers import (
     admin_tools,
     approvals,
     auth,
+    channel_links,
     chat,
     me,
     me_files,
@@ -188,8 +190,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(admin_bot_insights.router)
     app.include_router(admin_chatbots.router)
     app.include_router(admin_channels.router)
+    app.include_router(admin_bots_channels.router)
     app.include_router(public_api.router)
     app.include_router(widget.router)
+    app.include_router(channel_links.router)
     app.include_router(admin_people.router)
     app.include_router(admin_playground.router)
     app.include_router(admin_sources.router)

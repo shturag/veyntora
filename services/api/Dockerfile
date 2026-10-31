@@ -19,6 +19,7 @@ COPY packages/providers/pyproject.toml packages/providers/
 COPY services/api/pyproject.toml services/api/
 COPY services/graphs/pyproject.toml services/graphs/
 COPY services/workers/pyproject.toml services/workers/
+COPY services/channels/pyproject.toml services/channels/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package veyntora-workers
 

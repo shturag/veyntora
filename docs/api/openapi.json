@@ -836,6 +836,47 @@
         "title": "BotCard",
         "type": "object"
       },
+      "BotChannelOut": {
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          }
+        },
+        "required": [
+          "enabled",
+          "config",
+          "has_secret",
+          "secret_last4",
+          "endpoint"
+        ],
+        "title": "BotChannelOut",
+        "type": "object"
+      },
       "ByokInput": {
         "additionalProperties": false,
         "properties": {
@@ -3433,6 +3474,43 @@
         "title": "Level",
         "type": "string"
       },
+      "LinkedAccount": {
+        "properties": {
+          "account": {
+            "title": "Account",
+            "type": "string"
+          },
+          "channel": {
+            "title": "Channel",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "linked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked At"
+          }
+        },
+        "required": [
+          "id",
+          "channel",
+          "account",
+          "linked_at"
+        ],
+        "title": "LinkedAccount",
+        "type": "object"
+      },
       "LogoutResult": {
         "properties": {
           "redirect_to": {
@@ -3889,6 +3967,30 @@
         ],
         "title": "ParentChunk",
         "type": "string"
+      },
+      "PendingLink": {
+        "properties": {
+          "account": {
+            "title": "Account",
+            "type": "string"
+          },
+          "channel": {
+            "title": "Channel",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "channel",
+          "account",
+          "expires_at"
+        ],
+        "title": "PendingLink",
+        "type": "object"
       },
       "PeopleSummary": {
         "properties": {
@@ -6255,6 +6357,60 @@
         "title": "SharePointSourceInput",
         "type": "object"
       },
+      "SlackInput": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "App Id",
+            "type": "string"
+          },
+          "bot_token": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bot Token"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "signing_secret": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signing Secret"
+          },
+          "team_id": {
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Team Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "team_id",
+          "app_id"
+        ],
+        "title": "SlackInput",
+        "type": "object"
+      },
       "SourceAcl": {
         "additionalProperties": false,
         "description": "Who may read documents of an upload source. Veyntora group and user ids.",
@@ -6547,6 +6703,47 @@
           }
         },
         "title": "SuspendIn",
+        "type": "object"
+      },
+      "TeamsInput": {
+        "additionalProperties": false,
+        "properties": {
+          "app_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "App Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "tenant_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "app_id",
+          "tenant_id"
+        ],
+        "title": "TeamsInput",
         "type": "object"
       },
       "ToolAccess": {
@@ -7349,6 +7546,168 @@
           }
         },
         "summary": "Revoke an app key",
+        "tags": [
+          "admin: channels"
+        ]
+      }
+    },
+    "/v1/admin/bots/{bot_id}/slack": {
+      "put": {
+        "operationId": "put_slack_v1_admin_bots__bot_id__slack_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SlackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotChannelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Connect a Slack app to the chatbot",
+        "tags": [
+          "admin: channels"
+        ]
+      }
+    },
+    "/v1/admin/bots/{bot_id}/teams": {
+      "put": {
+        "operationId": "put_teams_v1_admin_bots__bot_id__teams_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotChannelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Connect a Teams bot to the chatbot",
+        "tags": [
+          "admin: channels"
+        ]
+      }
+    },
+    "/v1/admin/bots/{bot_id}/{kind}": {
+      "get": {
+        "operationId": "get_channel_v1_admin_bots__bot_id___kind__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "teams",
+                "slack"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotChannelOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Teams or Slack settings of a chatbot",
         "tags": [
           "admin: channels"
         ]
@@ -10744,6 +11103,90 @@
         ]
       }
     },
+    "/v1/channel-links/{code}": {
+      "get": {
+        "operationId": "describe_v1_channel_links__code__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingLink"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What the link would connect",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
+    "/v1/channel-links/{code}/confirm": {
+      "post": {
+        "operationId": "confirm_v1_channel_links__code__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "title": "Code",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkedAccount"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Link this account to me",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
     "/v1/chat/conversations": {
       "get": {
         "operationId": "conversations_v1_chat_conversations_get",
@@ -11128,6 +11571,67 @@
         "summary": "The signed-in user, their groups, roles and admin areas",
         "tags": [
           "me"
+        ]
+      }
+    },
+    "/v1/me/channel-links": {
+      "get": {
+        "operationId": "my_links_v1_me_channel_links_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LinkedAccount"
+                  },
+                  "title": "Response My Links V1 Me Channel Links Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My linked Teams and Slack accounts",
+        "tags": [
+          "channels"
+        ]
+      }
+    },
+    "/v1/me/channel-links/{link_id}": {
+      "delete": {
+        "operationId": "unlink_v1_me_channel_links__link_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unlink",
+        "tags": [
+          "channels"
         ]
       }
     },

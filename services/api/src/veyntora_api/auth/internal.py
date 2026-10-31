@@ -1,7 +1,8 @@
 """Short-lived tokens from the API to the graph server, for runs without a Keycloak token.
 
-API app keys (a service identity) and the website widget (a person signed in through the
-pop-up) have no Keycloak access token to forward. For their runs the API signs a token:
+API app keys (a service identity), the website widget (a person signed in through the
+pop-up) and Teams or Slack (a linked person) have no Keycloak access token to
+forward. For their runs the API signs a token:
 HS256 with VEY_INTERNAL_TOKEN_SECRET, audience `veyntora-graphs`, five minutes, naming the
 identity by its `sub`. The graph server accepts it only with that algorithm and secret
 (veyntora_graphs.auth), and checks every permission itself, as for any run.
@@ -24,7 +25,7 @@ class InternalTokenError(RuntimeError):
     pass
 
 
-def mint(secret: str, sub: str, kind: Literal["app_key", "widget"]) -> str:
+def mint(secret: str, sub: str, kind: Literal["app_key", "widget", "channel"]) -> str:
     if len(secret) < _MIN_SECRET:
         raise InternalTokenError("VEY_INTERNAL_TOKEN_SECRET must be at least 32 characters")
     now = int(time.time())

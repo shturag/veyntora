@@ -1380,7 +1380,11 @@
     "deleteChats": "Delete all chats",
     "chatsDeleted": "All chats removed.",
     "deleteChatsTitle": "Delete all your chats?",
-    "deleteChatsText": "This removes all your chats from your list on every device. This cannot be undone."
+    "deleteChatsText": "This removes all your chats from your list on every device. This cannot be undone.",
+    "linkedAccounts": "Linked Teams and Slack accounts",
+    "linkedIntro": "These accounts answer with your access. Remove one you don't use any more.",
+    "noLinks": "No linked accounts.",
+    "unlink": "Unlink"
   },
   "tools": {
     "title": "Tools (MCP)",
@@ -1900,6 +1904,45 @@
     "rateLimit": "Requests per minute",
     "expiresField": "Expires (optional)",
     "cancel": "Cancel",
-    "create": "Create key"
+    "create": "Create key",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "endpoint": "Messaging endpoint",
+    "turnOn": "Turn on for this chatbot",
+    "keep": "stored ••••{last4}; leave empty to keep",
+    "linkNote": "People link their account once by signing in to Veyntora; answers then use their own access. Accounts are never matched by e-mail.",
+    "fields": {
+      "app_id": "App ID",
+      "tenant_id": "Entra tenant ID",
+      "client_secret": "Client secret",
+      "team_id": "Workspace (team) ID",
+      "bot_token": "Bot token (xoxb-…)",
+      "signing_secret": "Signing secret"
+    },
+    "teams": {
+      "short": "Teams",
+      "title": "Microsoft Teams",
+      "intro": "Personal chat with this chatbot in Teams. Needs a bot registration in your Azure tenant (Azure Bot with this app ID).",
+      "endpointHint": "Set this as the messaging endpoint of the Azure Bot."
+    },
+    "slack": {
+      "short": "Slack",
+      "title": "Slack",
+      "intro": "Direct messages and @mentions of this chatbot's Slack app. Needs a Slack app installed in your workspace.",
+      "endpointHint": "Set this as the Request URL under Event Subscriptions (events: app_mention, message.im)."
+    }
+  },
+  "link": {
+    "title": "Link your account",
+    "invalid": "This link is not valid any more. Ask the bot for a new one.",
+    "platforms": {
+      "teams": "Microsoft Teams",
+      "slack": "Slack",
+      "web_widget": "Website widget"
+    },
+    "question": "Is the {platform} account “{account}” yours? Once linked, it gets answers with your access ({me}).",
+    "explain": "Only link an account you use yourself. You can unlink it any time in Settings.",
+    "confirm": "Yes, link it",
+    "done": "Linked. Go back to {platform} and ask your question."
   }
 }

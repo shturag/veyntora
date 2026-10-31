@@ -107,6 +107,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/bots/{bot_id}/slack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Connect a Slack app to the chatbot */
+        put: operations["put_slack_v1_admin_bots__bot_id__slack_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/bots/{bot_id}/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Connect a Teams bot to the chatbot */
+        put: operations["put_teams_v1_admin_bots__bot_id__teams_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/bots/{bot_id}/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Teams or Slack settings of a chatbot */
+        get: operations["get_channel_v1_admin_bots__bot_id___kind__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots": {
         parameters: {
             query?: never;
@@ -1136,6 +1187,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/channel-links/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the link would connect */
+        get: operations["describe_v1_channel_links__code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/channel-links/{code}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link this account to me */
+        post: operations["confirm_v1_channel_links__code__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/chat/conversations": {
         parameters: {
             query?: never;
@@ -1284,6 +1369,40 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/channel-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My linked Teams and Slack accounts */
+        get: operations["my_links_v1_me_channel_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/channel-links/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlink */
+        delete: operations["unlink_v1_me_channel_links__link_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1828,6 +1947,21 @@ export interface components {
             users: number;
             /** Visible To */
             visible_to: string[];
+        };
+        /** BotChannelOut */
+        BotChannelOut: {
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /** Enabled */
+            enabled: boolean;
+            /** Endpoint */
+            endpoint: string;
+            /** Has Secret */
+            has_secret: boolean;
+            /** Secret Last4 */
+            secret_last4: string | null;
         };
         /** ByokInput */
         ByokInput: {
@@ -2799,6 +2933,20 @@ export interface components {
          * @enum {string}
          */
         Level: "operational" | "degraded" | "down" | "not_configured";
+        /** LinkedAccount */
+        LinkedAccount: {
+            /** Account */
+            account: string;
+            /** Channel */
+            channel: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Linked At */
+            linked_at: string | null;
+        };
         /** LogoutResult */
         LogoutResult: {
             /** Redirect To */
@@ -2956,6 +3104,18 @@ export interface components {
          * @enum {string}
          */
         ParentChunk: "section" | "off";
+        /** PendingLink */
+        PendingLink: {
+            /** Account */
+            account: string;
+            /** Channel */
+            channel: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
         /** PeopleSummary */
         PeopleSummary: {
             /** Groups */
@@ -3777,6 +3937,22 @@ export interface components {
             secret_expires_at?: string | null;
             settings: components["schemas"]["SharePointSettings"];
         };
+        /** SlackInput */
+        SlackInput: {
+            /** App Id */
+            app_id: string;
+            /** Bot Token */
+            bot_token?: string | null;
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /** Signing Secret */
+            signing_secret?: string | null;
+            /** Team Id */
+            team_id: string;
+        };
         /**
          * SourceAcl
          * @description Who may read documents of an upload source. Veyntora group and user ids.
@@ -3864,6 +4040,20 @@ export interface components {
         SuspendIn: {
             /** Reason */
             reason?: string | null;
+        };
+        /** TeamsInput */
+        TeamsInput: {
+            /** App Id */
+            app_id: string;
+            /** Client Secret */
+            client_secret?: string | null;
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled: boolean;
+            /** Tenant Id */
+            tenant_id: string;
         };
         /**
          * ToolAccess
@@ -4244,6 +4434,108 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_slack_v1_admin_bots__bot_id__slack_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SlackInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotChannelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_teams_v1_admin_bots__bot_id__teams_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamsInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotChannelOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_channel_v1_admin_bots__bot_id___kind__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+                kind: "teams" | "slack";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotChannelOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -6516,6 +6808,68 @@ export interface operations {
             };
         };
     };
+    describe_v1_channel_links__code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingLink"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_v1_channel_links__code__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedAccount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     conversations_v1_chat_conversations_get: {
         parameters: {
             query?: {
@@ -6784,6 +7138,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeOut"];
+                };
+            };
+        };
+    };
+    my_links_v1_me_channel_links_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedAccount"][];
+                };
+            };
+        };
+    };
+    unlink_v1_me_channel_links__link_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

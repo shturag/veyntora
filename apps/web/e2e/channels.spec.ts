@@ -12,6 +12,13 @@ test.describe("channels & API as a platform admin", () => {
     if (await page.getByRole("heading", { name: "Website widget" }).count()) {
       await expect(page.locator("pre").first()).toContainText("widget.js");
     }
+    const teams = page.getByRole("form", { name: "Microsoft Teams" });
+    if (await teams.count()) {
+      await expect(teams.getByLabel("Messaging endpoint")).toHaveValue(/\/teams\/messages$/);
+      await expect(
+        page.getByRole("form", { name: "Slack" }).getByLabel("Messaging endpoint"),
+      ).toHaveValue(/\/slack\/events$/);
+    }
     await page.getByRole("button", { name: "+ Create app key" }).click();
     await expect(page.getByRole("dialog", { name: "Create an app key" })).toBeVisible();
     await page.getByRole("button", { name: "Cancel" }).click();
@@ -33,5 +40,21 @@ test.describe("website widget frame", () => {
     const res = await request.get("/widget.js");
     expect(res.status()).toBe(200);
     expect(await res.text()).toContain("/widget/");
+  });
+});
+
+test.describe("linking a Teams or Slack account", () => {
+  test.use({ storageState: USERS.employee.state });
+
+  test("an unknown or expired link is refused", async ({ page }) => {
+    await page.goto("/link/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    await expect(page.getByRole("main").getByRole("alert")).toContainText("not valid any more");
+  });
+
+  test("settings list the linked accounts", async ({ page }) => {
+    await page.goto("/settings");
+    await expect(
+      page.getByRole("heading", { name: "Linked Teams and Slack accounts" }),
+    ).toBeVisible();
   });
 });

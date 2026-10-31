@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { screenMetadata } from "@/components/screen-placeholder";
 import { Appearance } from "@/components/settings/appearance";
+import { LinkedAccounts } from "@/components/settings/linked-accounts";
 import { OwnModels } from "@/components/settings/own-models";
 import { PreferencesForm } from "@/components/settings/preferences-form";
 import { Privacy } from "@/components/settings/privacy";
@@ -13,10 +14,11 @@ export const generateMetadata = () => screenMetadata("settings");
 export default async function SettingsPage() {
   const t = await getTranslations("settings");
   const api = await serverApi();
-  const [{ data: prefs }, { data: bots }, { data: keys }] = await Promise.all([
+  const [{ data: prefs }, { data: bots }, { data: keys }, { data: links }] = await Promise.all([
     api.GET("/v1/me/preferences"),
     api.GET("/v1/me/chatbots"),
     api.GET("/v1/me/keys"),
+    api.GET("/v1/me/channel-links"),
   ]);
   return (
     <div className="mx-auto flex max-w-[760px] flex-col gap-5">
@@ -35,6 +37,7 @@ export default async function SettingsPage() {
       />
       <Appearance />
       <OwnModels initial={keys ?? { allowed: false, chatbots: [], keys: [] }} />
+      <LinkedAccounts links={links ?? []} />
       <Privacy />
     </div>
   );

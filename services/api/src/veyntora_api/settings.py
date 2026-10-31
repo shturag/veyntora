@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     # Signs the short-lived tokens the API gives the graph server for runs that have no
     # Keycloak token (API app keys, the website widget). Shared by the API and the graphs.
     internal_token_secret: SecretStr = SecretStr("")
+    # Public URL of the channels service (Teams and Slack send messages there).
+    channels_public_url: str = "http://localhost:8010"
 
     alembic_ini: Path = Path(__file__).resolve().parents[2] / "alembic.ini"
 

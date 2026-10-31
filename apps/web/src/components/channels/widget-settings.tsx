@@ -146,7 +146,9 @@ export function WidgetSettings({
       </form>
       <div className="flex flex-col gap-1">
         <span className="text-[13px] font-medium">{t("snippet")}</span>
-        <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-sunken p-3 text-xs">{snippet}</pre>
+        <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-sunken p-3 text-xs">
+          {snippet}
+        </pre>
         <div>
           <Button
             size="sm"

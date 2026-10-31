@@ -62,3 +62,43 @@ class Channel(IdMixin, TimestampMixin, VersionedMixin, SecretMetaMixin, Base):
     type: Mapped[ChannelType] = mapped_column(str_enum(ChannelType, "channel_type"))
     config: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     status: Mapped[ChannelStatus] = mapped_column(str_enum(ChannelStatus, "channel_status"))
+
+
+class ChannelIdentity(IdMixin, Base):
+    """A Teams or Slack user linked to a Veyntora person (product owner, 2026-10-31).
+
+    Linking needs a Veyntora sign-in: the bot sends a one-time link, the person signs in
+    (Keycloak) and confirms. Until then `user_id` is empty and the bot answers nothing.
+    Never matched by e-mail.
+    """
+
+    __tablename__ = "channel_identities"
+    __table_args__ = (sa.UniqueConstraint("channel_type", "tenant", "external_user_id"),)
+
+    channel_type: Mapped[ChannelType] = mapped_column(
+        str_enum(ChannelType, "channel_identity_type")
+    )
+    # Microsoft tenant id, or Slack team id.
+    tenant: Mapped[str] = mapped_column(sa.String(128))
+    # Entra object id (Teams), or Slack user id.
+    external_user_id: Mapped[str] = mapped_column(sa.String(128))
+    display_name: Mapped[str] = mapped_column(sa.String(255), default="", server_default="")
+    user_id: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"))
+    # The pending one-time link: hash of the code and when it stops working.
+    code_hash: Mapped[str | None] = mapped_column(sa.String(128), unique=True)
+    code_expires_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    linked_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)
+
+
+class ChannelThread(IdMixin, Base):
+    """The Veyntora conversation behind one Teams or Slack conversation of one person."""
+
+    __tablename__ = "channel_threads"
+    __table_args__ = (sa.UniqueConstraint("channel_id", "conversation_key", "user_id"),)
+
+    channel_id: Mapped[UUID] = mapped_column(sa.ForeignKey("channels.id", ondelete="CASCADE"))
+    conversation_key: Mapped[str] = mapped_column(sa.String(255))
+    user_id: Mapped[UUID] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"))
+    thread_id: Mapped[str] = mapped_column(sa.String(64))
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)

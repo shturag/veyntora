@@ -1380,7 +1380,11 @@
     "deleteChats": "Alle Chats löschen",
     "chatsDeleted": "Alle Chats entfernt.",
     "deleteChatsTitle": "Alle deine Chats löschen?",
-    "deleteChatsText": "Damit werden alle deine Chats auf allen Geräten aus deiner Liste entfernt. Das lässt sich nicht rückgängig machen."
+    "deleteChatsText": "Damit werden alle deine Chats auf allen Geräten aus deiner Liste entfernt. Das lässt sich nicht rückgängig machen.",
+    "linkedAccounts": "Verknüpfte Teams- und Slack-Konten",
+    "linkedIntro": "Diese Konten erhalten Antworten mit deinem Zugriff. Entferne eines, das du nicht mehr nutzt.",
+    "noLinks": "Keine verknüpften Konten.",
+    "unlink": "Trennen"
   },
   "tools": {
     "title": "Tools (MCP)",
@@ -1900,6 +1904,45 @@
     "rateLimit": "Anfragen pro Minute",
     "expiresField": "Läuft ab (optional)",
     "cancel": "Abbrechen",
-    "create": "Schlüssel anlegen"
+    "create": "Schlüssel anlegen",
+    "connected": "Verbunden",
+    "notConnected": "Nicht verbunden",
+    "endpoint": "Nachrichten-Endpunkt",
+    "turnOn": "Für diesen Chatbot einschalten",
+    "keep": "gespeichert ••••{last4}; leer lassen zum Behalten",
+    "linkNote": "Personen verknüpfen ihr Konto einmal mit einer Anmeldung bei Veyntora; Antworten nutzen dann ihren eigenen Zugriff. Konten werden nie über die E-Mail zugeordnet.",
+    "fields": {
+      "app_id": "App-ID",
+      "tenant_id": "Entra-Tenant-ID",
+      "client_secret": "Client-Secret",
+      "team_id": "Workspace-(Team-)ID",
+      "bot_token": "Bot-Token (xoxb-…)",
+      "signing_secret": "Signing Secret"
+    },
+    "teams": {
+      "short": "Teams",
+      "title": "Microsoft Teams",
+      "intro": "Persönlicher Chat mit diesem Chatbot in Teams. Braucht eine Bot-Registrierung in deinem Azure-Tenant (Azure Bot mit dieser App-ID).",
+      "endpointHint": "Als Nachrichten-Endpunkt des Azure Bots eintragen."
+    },
+    "slack": {
+      "short": "Slack",
+      "title": "Slack",
+      "intro": "Direktnachrichten und @Erwähnungen der Slack-App dieses Chatbots. Braucht eine in deinem Workspace installierte Slack-App.",
+      "endpointHint": "Als Request URL unter Event Subscriptions eintragen (Events: app_mention, message.im)."
+    }
+  },
+  "link": {
+    "title": "Konto verknüpfen",
+    "invalid": "Dieser Link ist nicht mehr gültig. Bitte den Bot um einen neuen.",
+    "platforms": {
+      "teams": "Microsoft Teams",
+      "slack": "Slack",
+      "web_widget": "Website-Widget"
+    },
+    "question": "Gehört das {platform}-Konto „{account}“ dir? Nach dem Verknüpfen erhält es Antworten mit deinem Zugriff ({me}).",
+    "explain": "Verknüpfe nur ein Konto, das du selbst nutzt. Du kannst es jederzeit in den Einstellungen trennen.",
+    "confirm": "Ja, verknüpfen",
+    "done": "Verknüpft. Geh zurück zu {platform} und stelle deine Frage."
   }
 }
