@@ -16,7 +16,7 @@ Status: accepted · 2026-10-30 · Phase 2
 - **Metadata filter:** a strict language, `key = value` and `key in [a, b]` joined by AND (`veyntora_spec.filters`). Keys are limited to indexed payload fields (`language`, `source_id`, `document_id`). The filter can only narrow a search: `source_id` is intersected with the chatbot's own sources, and permission filters are always added. Invalid filters are refused when the draft is saved.
 - **Minimum matching terms:** candidates must contain at least N distinct words of the question (compared by 5-letter prefix, as in grounding).
 - **Semantic chunking:** sections are split where neighbouring sentences stop being similar (cosine over the pipeline's own embeddings) or before the size limit. The threshold is part of the index profile only for semantic chunking, so other profiles keep their keys.
-- **German compound splitting: still not applied.** It needs a German word list or a decompounding library (a new dependency). This is an open question for the product owner. The toggle is saved, but has no effect yet.
+- **German compound splitting:** not applied in part 1; applied since Phase 3 with an own splitter built from the documents' vocabulary (ADR 0018).
 
 ## Guardrails (product owner: external PII API, Llama Guard via API)
 

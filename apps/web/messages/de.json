@@ -1030,7 +1030,7 @@
       },
       "german_compound_splitting": {
         "label": "Deutsche Komposita zerlegen",
-        "hint": "„Rückerstattungsrichtlinie“ findet auch „Rückerstattung“ und „Richtlinie“."
+        "hint": "Die Stichwortsuche findet auch die Teile von Komposita und die Komposita, die auf ein Wort enden – anhand der Wörter in den Dokumenten dieses Chatbots."
       },
       "query_rewrite": {
         "label": "Rückfragen umformulieren",

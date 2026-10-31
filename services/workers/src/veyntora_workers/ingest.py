@@ -39,6 +39,7 @@ from veyntora_api.db.models.knowledge import (
 )
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge import clamd as scan
+from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.profiles import profiles_for_source
 from veyntora_api.knowledge.service import principals_of, source_acl
 from veyntora_api.providers.runtime import Adapters, ProviderUnavailableError
@@ -276,8 +277,10 @@ class Ingestor:
             row.collection = profile.collection
             row.vector_store_instance_id = profile.vector_store_instance_id
             try:
-                row.chunk_count = await self._index_profile(doc, profile, work)
+                row.chunk_count, terms = await self._index_profile(doc, profile, work)
                 row.status, row.error, row.content_hash = IndexStatus.INDEXED, None, doc.hash
+                await vocabulary.update(self.db, profile.key, row.terms or [], terms)
+                row.terms = sorted(terms)
                 indexed += 1
             except RETRYABLE:
                 raise
@@ -313,7 +316,10 @@ class Ingestor:
             work.parsed[key] = await parser.parse(_parser_file(doc, content), opts)
         return work.parsed[key]
 
-    async def _index_profile(self, doc: Document, profile: IndexProfile, work: _Work) -> int:
+    async def _index_profile(
+        self, doc: Document, profile: IndexProfile, work: _Work
+    ) -> tuple[int, set[str]]:
+        """Index the document under the profile. Returns its chunk count and its words."""
         parsed = await self._parse(doc, profile, work)
         embedder = await self.adapters.get(profile.embedding_instance_id)
         chunks = await _chunks(profile, parsed, embedder)
@@ -367,7 +373,11 @@ class Ingestor:
         await store.delete_by_document(profile.collection, str(doc.id), profile=profile.key)
         for start in range(0, len(points), _UPSERT_BATCH):
             await store.upsert(profile.collection, points[start : start + _UPSERT_BATCH])
-        return len(points)
+        # The vocabulary covers what keyword search sees: the indexed text and the headings.
+        terms: set[str] = set()
+        for c, text in zip(chunks, texts, strict=True):
+            terms |= vocabulary.words(" ".join([text, *c.heading_path]))
+        return len(points), terms
 
     # ------------------------------------------------------------ source-level jobs
 
@@ -444,6 +454,7 @@ class Ingestor:
             if idx.vector_store_instance_id is not None:
                 store = await self.adapters.get(idx.vector_store_instance_id)
                 await store.delete_by_document(idx.collection, str(doc.id), profile=idx.profile_key)
+            await vocabulary.update(self.db, idx.profile_key, idx.terms or [], [])
             await self.db.delete(idx)
             removed += 1
         self._drop_original(doc)

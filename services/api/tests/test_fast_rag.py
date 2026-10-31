@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
+from dataclasses import replace
 from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
@@ -24,6 +25,7 @@ from veyntora_api.db.models.identity import GroupSource, Membership, User
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance
 from veyntora_api.db.models.quality import UsageRecord
 from veyntora_api.knowledge import service as knowledge
+from veyntora_api.knowledge import vocabulary
 from veyntora_api.providers.runtime import Retrying
 from veyntora_api.rag import pipeline
 from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
@@ -43,6 +45,7 @@ from veyntora_providers.interfaces import (
     Scored,
     Usage,
 )
+from veyntora_spec.pipeline import SearchType
 
 from tests.test_ingestion import (
     CTX,
@@ -687,3 +690,42 @@ async def test_answer_preferences_shape_the_prompt(rag: Rag) -> None:
     assert "Answer in this language: de." in prompt and "two or three sentences" in prompt
     # A chatbot set to one language keeps it.
     assert "Answer in this language: en." in pipeline.system_prompt(ctx, "en")
+
+
+GERMAN = (
+    b"# Erstattungsrichtlinie\n\n## Digitale Produkte\n\n"
+    b"Die Erstattung digitaler Produkte ist nach dem Download ausgeschlossen. "
+    b"Diese Richtlinie gilt seit Januar.\n"
+)
+
+
+async def test_german_compounds_match_their_parts_and_back(rag: Rag) -> None:
+    db = rag.w.db
+    doc = await _upload(rag.w, rag.source, GERMAN)
+    await rag.w.ingestor().index_document(doc, force=False)
+    spec = rag.w.spec()
+    spec.rerank.enabled = False
+    spec.retrieval.search_type = SearchType.SPARSE
+    ctx = await load_context(db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    key = ctx.profile.key
+    assert await vocabulary.expand(db, key, "Erstattungsrichtlinien?") == []
+    # Parts are only ever words the documents use ("Dauer" is not one of them).
+    assert await vocabulary.expand(db, key, "Welche Erstattungsdauer?") == []
+    assert set(await vocabulary.expand(db, key, "Gibt es eine Downloaderstattung")) == {
+        "download",
+        "erstattung",
+    }
+    # A head noun brings in the documents' compounds that end in it.
+    assert "erstattungsrichtlinie" in await vocabulary.expand(db, key, "Welche Richtlinie?")
+
+    async def found(question: str, splitting: bool) -> list[str]:
+        spec.retrieval.german_compound_splitting = splitting
+        test = replace(ctx, spec=spec)
+        return [s.title for s in await pipeline.retrieve(db, rag.adapters(), test, question)]
+
+    assert not await found("Gibt es eine Downloaderstattung", False)
+    assert await found("Gibt es eine Downloaderstattung", True)
+
+    # Removing the document takes its words out of the vocabulary.
+    await rag.w.ingestor().remove_document(doc)
+    assert "erstattungsrichtlinie" not in await vocabulary.expand(db, key, "Welche Richtlinie?")

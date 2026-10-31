@@ -179,6 +179,29 @@ class DocumentIndex(Base):
     chunk_count: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
     error: Mapped[str | None] = mapped_column(sa.Text)
     indexed_at: Mapped[datetime] = utcnow_col(nullable=False)
+    # The document's distinct words under this profile, so re-indexing or removing it can
+    # update the vocabulary counts (knowledge.vocabulary).
+    terms: Mapped[list[Any]] = mapped_column(server_default="[]", default=list)
+
+
+class IndexTerm(Base):
+    """In how many documents of an index profile a word occurs (compound splitting)."""
+
+    __tablename__ = "index_terms"
+    __table_args__ = (
+        sa.Index(
+            "ix_index_terms_reversed",
+            "profile_key",
+            "reversed",
+            postgresql_ops={"reversed": "text_pattern_ops"},
+        ),
+    )
+
+    profile_key: Mapped[str] = mapped_column(sa.String(32), primary_key=True)
+    term: Mapped[str] = mapped_column(sa.String(128), primary_key=True)
+    # The term spelled backwards: "compounds ending in X" is then a prefix lookup.
+    reversed: Mapped[str] = mapped_column(sa.String(128))
+    docs: Mapped[int] = mapped_column(sa.Integer, default=1, server_default="1")
 
 
 class IngestJob(IdMixin, Base):

@@ -1030,7 +1030,7 @@
       },
       "german_compound_splitting": {
         "label": "German compound splitting",
-        "hint": "\"Rückerstattungsrichtlinie\" also matches \"Rückerstattung\" and \"Richtlinie\"."
+        "hint": "Keyword search also finds the parts of compounds and the compounds that end in a word, using the words in this chatbot's documents."
       },
       "query_rewrite": {
         "label": "Rewrite follow-up questions",

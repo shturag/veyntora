@@ -62,6 +62,7 @@ from veyntora_api.db.models.knowledge import (
 )
 from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance
+from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.providers.service import with_fallbacks
 from veyntora_api.rag import grounding
@@ -377,11 +378,16 @@ async def retrieve(
         dense = (
             await embed_query(query) if embed_query else (await embedder.embed([query])).dense[0]
         )
+    sparse_text = query
+    if ret.german_compound_splitting and ret.search_type is not SearchType.DENSE:
+        # Keyword search also gets the compounds' parts and compounds ending in the words.
+        extra = await vocabulary.expand(db, ctx.profile.key, query)
+        sparse_text = " ".join([query, *extra])
     store = await adapters.get(ctx.profile.vector_store_instance_id)
     hits: list[Hit] = await store.hybrid_search(
         ctx.profile.collection,
         HybridQuery(
-            text=query,
+            text=sparse_text,
             dense=dense,
             dense_weight=ret.dense_weight if ret.search_type is SearchType.HYBRID else 1.0,
             sparse=ret.search_type is not SearchType.DENSE,
