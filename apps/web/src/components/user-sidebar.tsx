@@ -15,10 +15,18 @@ const link =
 const active = "bg-accent-soft font-medium text-fg";
 
 /**
- * The user app's left sidebar (prototype: Home.html) with the most recent chats. The approvals
- * count appears with approvals (Phase 3).
+ * The user app's left sidebar (prototype: Home.html) with the most recent chats, and the
+ * number of unread notifications.
  */
-export function UserSidebar({ me, recent }: { me: Me; recent: Recent[] }) {
+export function UserSidebar({
+  me,
+  recent,
+  unread = 0,
+}: {
+  me: Me;
+  recent: Recent[];
+  unread?: number;
+}) {
   const t = useTranslations();
   return (
     <aside className="flex flex-col gap-[18px] border-line bg-surface px-4 py-5 max-[900px]:basis-full max-[900px]:border-b min-[901px]:sticky min-[901px]:top-0 min-[901px]:h-screen min-[901px]:w-[280px] min-[901px]:shrink-0 min-[901px]:overflow-y-auto min-[901px]:border-r">
@@ -41,6 +49,22 @@ export function UserSidebar({ me, recent }: { me: Me; recent: Recent[] }) {
         </NavLink>
         <NavLink href="/approvals" className={link} activeClassName={active}>
           {t("nav.approvals")}
+        </NavLink>
+        <NavLink href="/notifications" className={link} activeClassName={active}>
+          <span className="flex w-full items-center justify-between gap-2">
+            {t("nav.notifications")}
+            {unread ? (
+              <span
+                aria-label={t("nav.unread", { count: unread })}
+                className="rounded-full bg-accent px-2 text-xs font-semibold text-white"
+              >
+                {unread}
+              </span>
+            ) : null}
+          </span>
+        </NavLink>
+        <NavLink href="/handoff" className={link} activeClassName={active}>
+          {t("nav.handoffs")}
         </NavLink>
         <NavLink href="/settings" className={link} activeClassName={active}>
           {t("nav.settings")}

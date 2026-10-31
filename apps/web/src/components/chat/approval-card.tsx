@@ -64,7 +64,9 @@ export function ApprovalCard({
         <Badge tone="amber">{t(`decision.${approval?.decision ?? "pending"}`)}</Badge>
       </div>
       <p className="m-0 text-sm">{t("approvalText", { tool: wait.tool, server: wait.server })}</p>
-      <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-surface p-2 text-xs">{wait.summary}</pre>
+      <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-surface p-2 text-xs">
+        {wait.summary}
+      </pre>
       <p className="m-0 text-xs text-fg-muted">{t("approvalWho")}</p>
       <div>
         <Button size="sm" variant="ghost" onClick={onStop}>

@@ -1,9 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from veyntora_api.db.base import Base, IdMixin, TimestampMixin, str_enum, utcnow_col
@@ -122,6 +124,18 @@ class SavedAnswer(IdMixin, TimestampMixin, Base):
     # Set when a cited source changed after the answer was saved.
     stale: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     refreshed_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # A snapshot: the question, the answer and its citations
+    # ([{"n", "document_id", "title", "quote", "hash"}]), refreshed on demand.
+    chatbot_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("chatbots.id", ondelete="SET NULL")
+    )
+    question: Mapped[str] = mapped_column(sa.Text, default="", server_default="")
+    answer: Mapped[str] = mapped_column(sa.Text, default="", server_default="")
+    citations: Mapped[list[Any]] = mapped_column(server_default="[]", default=list)
+    # Shared with everyone who may use the chatbot (besides the shared groups).
+    everyone: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
+    # Refreshed by itself when a cited source changes (as the person who saved it).
+    refresh_on_change: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
 
 
 class SavedAnswerShare(Base):
@@ -153,3 +167,49 @@ class Handoff(IdMixin, TimestampMixin, Base):
     question: Mapped[str] = mapped_column(sa.Text)
     answer: Mapped[str | None] = mapped_column(sa.Text)
     resolved_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # two_days | today
+    urgency: Mapped[str] = mapped_column(
+        sa.String(16), default="two_days", server_default="two_days"
+    )
+    include_conversation: Mapped[bool] = mapped_column(server_default=sa.true(), default=True)
+    # chat | teams | email: where the asker wants the reply (always also in Veyntora).
+    reply_via: Mapped[str] = mapped_column(sa.String(16), default="chat", server_default="chat")
+    due_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    answered_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    # The expert may offer the answer to the knowledge base for chosen groups; a chatbot
+    # owner or knowledge admin reviews it first (none | pending | added | declined).
+    knowledge_status: Mapped[str] = mapped_column(
+        sa.String(16), default="none", server_default="none"
+    )
+    knowledge_group_ids: Mapped[list[UUID]] = mapped_column(
+        ARRAY(sa.Uuid), server_default="{}", default=list
+    )
+    knowledge_document_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("documents.id", ondelete="SET NULL")
+    )
+    knowledge_reviewer_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )
+
+
+class ShareScope(StrEnum):
+    PEOPLE = "people"
+    TEAM = "team"
+    ASSISTANT = "assistant"
+
+
+class ConversationShare(IdMixin, Base):
+    """A read-only link to a chat. Each viewer sees an answer only if they may open every
+    document it cites; sources are shown only when the sharer included them."""
+
+    __tablename__ = "conversation_shares"
+
+    conversation_id: Mapped[UUID] = mapped_column(
+        sa.ForeignKey("conversations.id", ondelete="CASCADE"), index=True
+    )
+    created_by: Mapped[UUID] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"))
+    scope: Mapped[ShareScope] = mapped_column(str_enum(ShareScope, "share_scope"))
+    user_ids: Mapped[list[UUID]] = mapped_column(ARRAY(sa.Uuid), server_default="{}", default=list)
+    include_sources: Mapped[bool] = mapped_column(server_default=sa.true(), default=True)
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))

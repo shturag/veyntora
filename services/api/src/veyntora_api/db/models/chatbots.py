@@ -4,6 +4,7 @@ from typing import Any
 from uuid import UUID
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from veyntora_api.db.base import Base, IdMixin, TimestampMixin, VersionedMixin, str_enum, utcnow_col
@@ -34,6 +35,10 @@ class Chatbot(IdMixin, TimestampMixin, VersionedMixin, Base):
     description: Mapped[str] = mapped_column(sa.Text, default="", server_default="")
     avatar: Mapped[str | None] = mapped_column(sa.String(512))
     owner_id: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    # Groups whose members answer hand-offs ("Ask a human expert") for this chatbot.
+    expert_group_ids: Mapped[list[UUID]] = mapped_column(
+        ARRAY(sa.Uuid), server_default="{}", default=list
+    )
     live_version_id: Mapped[UUID | None] = mapped_column(
         sa.ForeignKey("pipeline_versions.id", use_alter=True, ondelete="SET NULL")
     )

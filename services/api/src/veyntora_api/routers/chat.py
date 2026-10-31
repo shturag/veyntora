@@ -25,8 +25,6 @@ from veyntora_api.db.models.conversations import (
     Citation,
     Conversation,
     Feedback,
-    Handoff,
-    HandoffStatus,
     Message,
     MessageRole,
     Rating,
@@ -301,41 +299,41 @@ async def put_feedback(
     return data
 
 
-class HandoffOut(BaseModel):
-    id: UUID
-    status: HandoffStatus
-
-
-@router.post(
-    "/messages/{message_id}/handoff",
-    status_code=status.HTTP_201_CREATED,
-    summary="Ask a human expert instead",
-)
-async def handoff(message_id: UUID, principal: CurrentPrincipal, db: DbSession) -> HandoffOut:
-    msg = await _own_answer(db, principal, message_id)
-    existing = await db.scalar(sa.select(Handoff).where(Handoff.message_id == message_id))
-    if existing is not None:
-        return HandoffOut(id=existing.id, status=existing.status)
-    question = await db.scalar(
-        sa.select(Message.content)
-        .where(
-            Message.conversation_id == msg.conversation_id,
-            Message.role == MessageRole.USER,
-            Message.created_at <= msg.created_at,
+@router.get("/threads/{thread_id}/export", summary="Download one of my chats (Markdown)")
+async def export_chat(thread_id: str, principal: CurrentPrincipal, db: DbSession) -> Response:
+    conv = await db.scalar(sa.select(Conversation).where(Conversation.thread_id == thread_id))
+    if conv is None or conv.user_id != principal.user_id or conv.deleted_at is not None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Chat not found")
+    rows = (
+        await db.execute(
+            sa.select(Message)
+            .where(
+                Message.conversation_id == conv.id,
+                Message.role.in_([MessageRole.USER, MessageRole.ASSISTANT]),
+            )
+            .order_by(Message.created_at)
         )
-        .order_by(Message.created_at.desc())
-        .limit(1)
+    ).scalars()
+    lines = [f"# {conv.title or 'Chat'}", ""]
+    for m in rows:
+        who = "**You**" if m.role is MessageRole.USER else "**Assistant**"
+        lines += [who, "", m.content, ""]
+        if m.role is MessageRole.ASSISTANT:
+            cites = (
+                await db.execute(
+                    sa.select(Citation, Document)
+                    .outerjoin(Document, Document.id == Citation.document_id)
+                    .where(Citation.message_id == m.id)
+                    .order_by(Citation.ordinal)
+                )
+            ).all()
+            lines += [f"- [{c.ordinal}] {(d.title or d.path) if d else ''}" for c, d in cites]
+            lines.append("")
+    return Response(
+        "\n".join(lines),
+        media_type="text/markdown; charset=utf-8",
+        headers={"content-disposition": 'attachment; filename="chat.md"'},
     )
-    row = Handoff(
-        conversation_id=msg.conversation_id,
-        message_id=msg.id,
-        user_id=principal.user_id,
-        status=HandoffStatus.OPEN,
-        question=question or "",
-    )
-    db.add(row)
-    await db.commit()
-    return HandoffOut(id=row.id, status=row.status)
 
 
 # ---------------------------------------------------------------- sources

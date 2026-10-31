@@ -258,6 +258,11 @@
           "title": "Max Answer Tokens",
           "type": "integer"
         },
+        "suggest_follow_ups": {
+          "default": false,
+          "title": "Suggest Follow Ups",
+          "type": "boolean"
+        },
         "system_prompt": {
           "default": "",
           "title": "System Prompt",

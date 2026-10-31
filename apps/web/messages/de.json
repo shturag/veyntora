@@ -26,7 +26,10 @@
     "approvals": "Freigaben",
     "settings": "Einstellungen",
     "help": "Hilfe",
-    "recent": "Zuletzt"
+    "recent": "Zuletzt",
+    "notifications": "Benachrichtigungen",
+    "unread": "{count} ungelesen",
+    "handoffs": "Fragen an Fachleute"
   },
   "adminNav": {
     "label": "Administration",
@@ -615,8 +618,6 @@
     "externalExplained": "Für diese Antwort wurde ein externer Anbieter genutzt, wie es die Datenregeln dieses Assistenten erlauben.",
     "noAnswerHint": "Du kannst die Frage stattdessen an eine Fachperson weitergeben.",
     "askExpert": "Fachperson fragen",
-    "expertSent": "Deine Frage wurde an die Warteschlange der Fachleute weitergegeben.",
-    "expertFailed": "Konnte nicht gesendet werden. Versuch es noch einmal.",
     "groundingWarning": "Teile dieser Antwort sind möglicherweise nicht vollständig durch die Quellen belegt. Prüfe die zitierten Dokumente.",
     "sourceN": "Quelle {n}: {title}",
     "page": "S. {page}",
@@ -636,7 +637,6 @@
     "copied": "Kopiert",
     "regenerate": "Neu erzeugen",
     "share": "Teilen",
-    "shareLater": "Antworten teilen kommt mit gespeicherten Antworten in Phase {phase}.",
     "moreOptions": "Weitere Optionen",
     "deleteChat": "Chat löschen",
     "attach": "Dateien zu „Meine Dateien“ hinzufügen",
@@ -674,7 +674,32 @@
       "approved": "Genehmigt",
       "rejected": "Abgelehnt",
       "expired": "Abgelaufen"
-    }
+    },
+    "save": "Antwort speichern",
+    "saved": "Gespeichert",
+    "savedLink": "In Gespeicherte Antworten",
+    "saveFailed": "Konnte nicht speichern",
+    "followUps": "Folgefragen",
+    "expertReply": "Antwort einer Fachperson",
+    "expertAnswered": "{name} ({team}) hat geantwortet:",
+    "expertWaiting": "Ihre Frage liegt bei {team}. Die Antwort erscheint hier.",
+    "shareTitle": "Diesen Chat teilen",
+    "shareWho": "Wer",
+    "shareScopes": {
+      "people": "Nur Personen, die ich hinzufüge",
+      "team": "Mein Team",
+      "assistant": "Alle mit Zugriff auf diesen Assistenten"
+    },
+    "addPeople": "Personen hinzufügen",
+    "removePerson": "{name} entfernen",
+    "includeSources": "Quellen einschließen",
+    "shareNote": "Personen sehen nur Antworten, deren Quellen sie selbst öffnen dürfen.",
+    "copyLink": "Link kopieren",
+    "linkCopied": "Link kopiert: {link}",
+    "shareFailed": "Hat nicht funktioniert: {reason}",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "exportChat": "Chat exportieren"
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -1215,6 +1240,10 @@
       "tools": {
         "label": "Tools",
         "hint": "Der Agent kann immer die Dokumente des Chatbots durchsuchen. Schreibende Tools warten jedes Mal auf eine Genehmigung."
+      },
+      "suggest_follow_ups": {
+        "label": "Folgefragen vorschlagen",
+        "hint": "Bis zu drei Fragen unter einer belegten Antwort (ein kleiner zusätzlicher Modellaufruf). Personen können sie in den Einstellungen ausschalten."
       }
     },
     "o": {
@@ -1882,7 +1911,14 @@
     "ready": "Bereit zum Veröffentlichen.",
     "testFirst": "Im Playground testen",
     "openChatbot": "Chatbot öffnen",
-    "publishNote": "Veröffentlichen schaltet diesen Entwurf für die Personen mit Zugriff live."
+    "publishNote": "Veröffentlichen schaltet diesen Entwurf für die Personen mit Zugriff live.",
+    "experts": {
+      "title": "Fachleute für Übergaben",
+      "text": "Wenn der Assistent nicht antworten kann, können Personen ihre Frage an eine dieser Gruppen senden. Deren Mitglieder antworten in Veyntora.",
+      "save": "Speichern",
+      "saved": "Gespeichert.",
+      "failed": "Hat nicht funktioniert: {reason}"
+    }
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",
@@ -2559,5 +2595,121 @@
     "cancel": "Abbrechen",
     "close": "Schließen",
     "failed": "Hat nicht funktioniert: {reason}"
+  },
+  "saved": {
+    "title": "Gespeicherte Antworten",
+    "filter": "Filter",
+    "scopes": {
+      "all": "Alle",
+      "shared": "Mit meinem Team geteilt"
+    },
+    "search": "Gespeicherte Antworten durchsuchen",
+    "empty": "Noch keine gespeicherten Antworten. Speichern Sie eine im Chat mit dem Lesezeichen.",
+    "emptyShared": "Mit Ihrem Team ist noch nichts geteilt.",
+    "savedOn": "gespeichert {when}",
+    "shared": "Mit Team geteilt",
+    "private": "Privat",
+    "sharedBy": "Geteilt von {name}",
+    "hidden": "Diese Antwort nutzt Dokumente, die Sie nicht öffnen dürfen; sie wird Ihnen nicht gezeigt.",
+    "sources": "Quellen:",
+    "stale": "Eine Quelle hat sich seit dem Speichern geändert. Aktualisieren Sie, um die neueste Antwort zu sehen.",
+    "openChat": "Chat öffnen",
+    "refresh": "Antwort aktualisieren",
+    "share": "Mit Team teilen",
+    "sharing": "Geteilt",
+    "delete": "Löschen",
+    "deleted": "Gelöscht.",
+    "refreshedChanged": "Antwort aus den neuesten Dokumenten aktualisiert.",
+    "refreshedSame": "Antwort aus den neuesten Dokumenten aktualisiert. Nichts hat sich geändert.",
+    "shareTitle": "Antwort teilen",
+    "shareWith": "Teilen mit",
+    "noGroups": "Sie sind noch in keiner Gruppe.",
+    "everyone": "Alle, die diesen Assistenten nutzen dürfen",
+    "refreshOnChange": "Aktualisieren, wenn sich Quellen ändern",
+    "shareNote": "Kolleginnen und Kollegen sehen die Antwort nur, wenn sie die Quellen selbst öffnen dürfen.",
+    "sharedDone": "Geteilt.",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "failed": "Hat nicht funktioniert: {reason}"
+  },
+  "shared": {
+    "sharedBy": "Geteilt von {name} · {chatbot} · {when}",
+    "hidden": "Diese Antwort nutzt Dokumente, die Sie nicht öffnen dürfen; sie wird Ihnen nicht gezeigt."
+  },
+  "handoff": {
+    "title": "Eine Fachperson fragen",
+    "intro": "Der Assistent konnte das nicht beantworten. Wir senden Ihre Frage und das Gespräch an das richtige Team.",
+    "notFound": "Diese Antwort wurde nicht gefunden.",
+    "question": "Ihre Frage",
+    "sendTo": "Senden an",
+    "suggested": "{name} (vorgeschlagen)",
+    "urgency": "Wie dringend?",
+    "urgencies": {
+      "two_days": "Innerhalb von 2 Arbeitstagen",
+      "today": "Heute"
+    },
+    "includeConversation": "Dieses Gespräch und die gefundenen Quellen mitsenden",
+    "replyBy": "Antwort per",
+    "replyVia": {
+      "chat": "In diesem Chat",
+      "teams": "Teams-Nachricht",
+      "email": "E-Mail"
+    },
+    "send": "An Fachperson senden",
+    "cancel": "Abbrechen",
+    "note": "Wenn die Fachperson antwortet, erscheint die Antwort in Ihrem Chat und kann in die Wissensbasis aufgenommen werden, damit der Assistent beim nächsten Mal antworten kann.",
+    "sent": "An {team} gesendet. Sie erhalten die Antwort in diesem Chat.",
+    "backToChat": "Zurück zum Chat",
+    "noTeams": "Für diesen Assistenten ist noch kein Fachteam eingerichtet. Bitten Sie die Verantwortlichen, auf der Zugriffsseite eines zu wählen.",
+    "failed": "Hat nicht funktioniert: {reason}",
+    "listTitle": "Fragen an Fachleute",
+    "forMyTeam": "Fragen an mein Team",
+    "toReview": "Fachantworten zur Prüfung für die Wissensbasis",
+    "mine": "Meine Fragen",
+    "noneMine": "Noch keine Fragen.",
+    "due": "Antwort bis {when}",
+    "statuses": {
+      "open": "Offen",
+      "assigned": "In Bearbeitung",
+      "answered": "Beantwortet",
+      "closed": "Geschlossen"
+    },
+    "conversation": "Das Gespräch",
+    "asked": "Frage",
+    "assistant": "Assistent",
+    "answeredBy": "{name} hat geantwortet",
+    "openChat": "Chat öffnen",
+    "claim": "Frage übernehmen",
+    "yourAnswer": "Ihre Antwort",
+    "addToKnowledge": "In die Wissensbasis aufnehmen, damit der Assistent beim nächsten Mal antworten kann",
+    "whoMayRead": "Wer darf sie lesen",
+    "reviewNote": "Chatbot-Verantwortliche oder Wissens-Admins prüfen sie vorher.",
+    "sendAnswer": "Antwort senden",
+    "reviewQuestion": "Diese Antwort in die Wissensbasis aufnehmen?",
+    "accept": "Aufnehmen",
+    "decline": "Nicht aufnehmen",
+    "knowledge": {
+      "pending": "Wartet auf Prüfung, bevor sie in die Wissensbasis kommt.",
+      "added": "In die Wissensbasis aufgenommen.",
+      "declined": "Nicht in die Wissensbasis aufgenommen."
+    }
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "empty": "Nichts Neues.",
+    "markAllRead": "Alle als gelesen markieren",
+    "alsoSent": "Auch gesendet: {where}",
+    "via": {
+      "teams_chat": "Teams",
+      "teams_channel": "Teams-Kanal",
+      "slack_chat": "Slack",
+      "slack_channel": "Slack-Kanal",
+      "email": "E-Mail"
+    },
+    "status": {
+      "queued": "in Warteschlange",
+      "sent": "gesendet",
+      "failed": "fehlgeschlagen"
+    }
   }
 }

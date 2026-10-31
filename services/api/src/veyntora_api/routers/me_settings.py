@@ -38,6 +38,8 @@ class Preferences(BaseModel):
     # Show the agent's steps live while it works (they stay under the answer either way).
     show_agent_steps: bool = True
     default_chatbot_id: UUID | None = None
+    # Follow-up questions under answers, where the chatbot offers them.
+    suggest_follow_ups: bool = True
     # Where notifications go besides Veyntora itself (approvals, hand-offs, reports).
     notify_teams: bool = True
     notify_email: bool = True

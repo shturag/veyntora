@@ -136,6 +136,8 @@ class RunContext:
     # Per attached source: score multiplier, and folders it is limited to (empty: all).
     source_weights: dict[str, float] = field(default_factory=dict)
     source_paths: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # Whether the chatbot has expert teams for "Ask a human expert".
+    experts: bool = False
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -189,6 +191,8 @@ class Answer:
     # Model calls as (instance that served it, usage), for usage and cost per provider;
     # None is the asker's own model.
     calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
+    # Up to three follow-up questions the sources can answer (when the chatbot offers them).
+    follow_ups: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- context
@@ -357,6 +361,7 @@ async def _context(
         principals=principals,
         chatbot_id=bot.id,
         chatbot_name=bot.name,
+        experts=bool(bot.expert_group_ids),
         version_id=version.id,
         version_number=version.number,
         spec=spec,
@@ -879,6 +884,17 @@ async def answer(
     if out.action != "allow":
         return run.finish(Answer("blocked", g.blocked_message, sources=sources, warning=out.reason))
     cited = [(n, sources[n - 1]) for n in check.cited]
+    follow_ups: list[str] = []
+    if gen.suggest_follow_ups and ctx.preferences.get("suggest_follow_ups", True):
+        follow_ups = await _follow_ups(
+            adapters,
+            ctx,
+            run,
+            text,
+            [s for _, s in cited],
+            masking=(masker, pii, language_hint) if need_mask else None,
+            tr=tr,
+        )
     return run.finish(
         Answer(
             "answered",
@@ -887,8 +903,49 @@ async def answer(
             cited=cited,
             groundedness=check.score,
             warning=problem,
+            follow_ups=follow_ups,
         )
     )
+
+
+FOLLOW_UPS = """Suggest up to three short follow-up questions the person might ask next, which
+the passages below can answer. Write them in the language of the answer, one per line,
+without numbering or quotes. If there are none, write nothing."""
+
+
+async def _follow_ups(
+    adapters: AdapterSource,
+    ctx: RunContext,
+    run: _Run,
+    answer_text: str,
+    sources: Sequence[Source],
+    *,
+    masking: tuple[Masker, Any, str] | None,
+    tr: Trace,
+) -> list[str]:
+    """One small call to the answer model (already allowed for this chatbot); personal data
+    is masked for it exactly as for the answer."""
+    if not sources:
+        return []
+    llm, own = await _llm(adapters, ctx)
+    prompt = f"{sources_block(list(sources))}\n\nAnswer given: {answer_text[:2000]}"
+    if masking is not None:
+        masker, pii, language = masking
+        [spans] = await find_pii(pii, [prompt], language)
+        prompt = masker.mask(prompt, spans)
+    with tr.step("follow_ups", generation=True) as step:
+        text, u = await _complete(
+            llm,
+            [ChatMessage("system", FOLLOW_UPS), ChatMessage("user", prompt)],
+            120,
+            None,
+        )
+        if masking is not None:
+            text = masking[0].unmask(text)
+        step.set(**_usage_attrs(ctx, ctx.spec.generation.llm_instance_id, u))
+    run.call(adapters, ctx.spec.generation.llm_instance_id, u, own)
+    lines = [re.sub(r"^[\s\-*\d.)]+", "", line).strip().strip('"') for line in text.splitlines()]
+    return [q for q in lines if 8 <= len(q) <= 200 and q.endswith("?")][:3]
 
 
 async def _generate(

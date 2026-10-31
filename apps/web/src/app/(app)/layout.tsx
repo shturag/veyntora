@@ -8,11 +8,11 @@ import { requireMe } from "@/lib/session";
 export default async function UserLayout({ children }: { children: ReactNode }) {
   const me = await requireMe();
   const t = await getTranslations("common");
-  const { data: recent } = await (
-    await serverApi()
-  ).GET("/v1/chat/conversations", {
-    params: { query: { limit: 8 } },
-  });
+  const api = await serverApi();
+  const [{ data: recent }, { data: notes }] = await Promise.all([
+    api.GET("/v1/chat/conversations", { params: { query: { limit: 8 } } }),
+    api.GET("/v1/me/notifications"),
+  ]);
   return (
     <div className="flex min-h-screen flex-wrap bg-ground min-[901px]:flex-nowrap">
       <a
@@ -21,7 +21,7 @@ export default async function UserLayout({ children }: { children: ReactNode }) 
       >
         {t("skipToContent")}
       </a>
-      <UserSidebar me={me} recent={recent ?? []} />
+      <UserSidebar me={me} recent={recent ?? []} unread={notes?.unread ?? 0} />
       <main id="main" className="min-w-0 flex-1 px-8 py-7 max-[640px]:px-4">
         {children}
       </main>

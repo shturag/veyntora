@@ -304,6 +304,36 @@
         "title": "AgentToolBinding",
         "type": "object"
       },
+      "AnswerInput": {
+        "additionalProperties": false,
+        "properties": {
+          "add_to_knowledge": {
+            "default": false,
+            "title": "Add To Knowledge",
+            "type": "boolean"
+          },
+          "answer": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          },
+          "knowledge_group_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Knowledge Group Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "title": "AnswerInput",
+        "type": "object"
+      },
       "ApiAnswer": {
         "properties": {
           "answer": {
@@ -3709,6 +3739,46 @@
         "title": "ExcludeInput",
         "type": "object"
       },
+      "ExpertsInput": {
+        "additionalProperties": false,
+        "properties": {
+          "group_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Group Ids",
+            "type": "array"
+          }
+        },
+        "title": "ExpertsInput",
+        "type": "object"
+      },
+      "ExpertsOut": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupRef"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/GroupRef"
+            },
+            "title": "Teams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "teams",
+          "groups"
+        ],
+        "title": "ExpertsOut",
+        "type": "object"
+      },
       "FeedbackInput": {
         "properties": {
           "comment": {
@@ -4119,6 +4189,11 @@
             "title": "Max Answer Tokens",
             "type": "integer"
           },
+          "suggest_follow_ups": {
+            "default": false,
+            "title": "Suggest Follow Ups",
+            "type": "boolean"
+          },
           "system_prompt": {
             "default": "",
             "title": "System Prompt",
@@ -4513,6 +4588,25 @@
         "title": "GroupOption",
         "type": "object"
       },
+      "GroupOptionOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "GroupOptionOut",
+        "type": "object"
+      },
       "GroupOut": {
         "properties": {
           "id": {
@@ -4542,6 +4636,25 @@
           "path"
         ],
         "title": "GroupOut",
+        "type": "object"
+      },
+      "GroupRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "GroupRef",
         "type": "object"
       },
       "GroupRole": {
@@ -4837,20 +4950,292 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HandoffForm": {
+        "properties": {
+          "chatbot": {
+            "title": "Chatbot",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "teams": {
+            "items": {
+              "$ref": "#/components/schemas/GroupRef"
+            },
+            "title": "Teams",
+            "type": "array"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "question",
+          "chatbot",
+          "teams",
+          "thread_id"
+        ],
+        "title": "HandoffForm",
+        "type": "object"
+      },
+      "HandoffInput": {
+        "additionalProperties": false,
+        "properties": {
+          "group_id": {
+            "format": "uuid",
+            "title": "Group Id",
+            "type": "string"
+          },
+          "include_conversation": {
+            "default": true,
+            "title": "Include Conversation",
+            "type": "boolean"
+          },
+          "message_id": {
+            "format": "uuid",
+            "title": "Message Id",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "reply_via": {
+            "default": "chat",
+            "enum": [
+              "chat",
+              "teams",
+              "email"
+            ],
+            "title": "Reply Via",
+            "type": "string"
+          },
+          "urgency": {
+            "default": "two_days",
+            "enum": [
+              "two_days",
+              "today"
+            ],
+            "title": "Urgency",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message_id",
+          "question",
+          "group_id"
+        ],
+        "title": "HandoffInput",
+        "type": "object"
+      },
+      "HandoffLists": {
+        "properties": {
+          "for_my_team": {
+            "items": {
+              "$ref": "#/components/schemas/HandoffOut"
+            },
+            "title": "For My Team",
+            "type": "array"
+          },
+          "mine": {
+            "items": {
+              "$ref": "#/components/schemas/HandoffOut"
+            },
+            "title": "Mine",
+            "type": "array"
+          },
+          "to_review": {
+            "items": {
+              "$ref": "#/components/schemas/HandoffOut"
+            },
+            "title": "To Review",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mine",
+          "for_my_team",
+          "to_review"
+        ],
+        "title": "HandoffLists",
+        "type": "object"
+      },
       "HandoffOut": {
         "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "answered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered At"
+          },
+          "answered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered By"
+          },
+          "asker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asker"
+          },
+          "can_answer": {
+            "title": "Can Answer",
+            "type": "boolean"
+          },
+          "can_review": {
+            "title": "Can Review",
+            "type": "boolean"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "conversation": {
+            "default": [],
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Conversation",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
             "type": "string"
           },
+          "knowledge_status": {
+            "title": "Knowledge Status",
+            "type": "string"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "reply_via": {
+            "title": "Reply Via",
+            "type": "string"
+          },
           "status": {
             "$ref": "#/components/schemas/HandoffStatus"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "urgency": {
+            "title": "Urgency",
+            "type": "string"
           }
         },
         "required": [
           "id",
-          "status"
+          "status",
+          "question",
+          "chatbot",
+          "team",
+          "asker",
+          "urgency",
+          "reply_via",
+          "due_at",
+          "created_at",
+          "answer",
+          "answered_by",
+          "answered_at",
+          "knowledge_status",
+          "mine",
+          "can_answer",
+          "can_review",
+          "thread_id"
         ],
         "title": "HandoffOut",
         "type": "object"
@@ -6789,6 +7174,37 @@
         "title": "PersonDetail",
         "type": "object"
       },
+      "PersonOut": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "title": "PersonOut",
+        "type": "object"
+      },
       "PersonRow": {
         "properties": {
           "approves_in": {
@@ -7207,6 +7623,11 @@
           "show_agent_steps": {
             "default": true,
             "title": "Show Agent Steps",
+            "type": "boolean"
+          },
+          "suggest_follow_ups": {
+            "default": true,
+            "title": "Suggest Follow Ups",
             "type": "boolean"
           }
         },
@@ -7690,6 +8111,19 @@
         "title": "Rating",
         "type": "string"
       },
+      "Refreshed": {
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "changed"
+        ],
+        "title": "Refreshed",
+        "type": "object"
+      },
       "Repeat": {
         "enum": [
           "daily",
@@ -7940,6 +8374,20 @@
           }
         },
         "title": "RetrievalSpec",
+        "type": "object"
+      },
+      "ReviewInput": {
+        "additionalProperties": false,
+        "properties": {
+          "accept": {
+            "title": "Accept",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accept"
+        ],
+        "title": "ReviewInput",
         "type": "object"
       },
       "Roles": {
@@ -8687,65 +9135,149 @@
         "title": "Safety",
         "type": "object"
       },
-      "SaveInput": {
-        "additionalProperties": false,
+      "SavedOut": {
         "properties": {
-          "change_note": {
-            "default": "",
-            "maxLength": 500,
-            "title": "Change Note",
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "citations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "everyone": {
+            "title": "Everyone",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
             "type": "string"
           },
-          "chatbot_id": {
+          "own": {
+            "title": "Own",
+            "type": "boolean"
+          },
+          "owner": {
             "anyOf": [
               {
-                "format": "uuid",
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Chatbot Id"
+            "title": "Owner"
           },
-          "description": {
+          "question": {
             "anyOf": [
               {
-                "maxLength": 4000,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Question"
           },
-          "expected_version": {
-            "title": "Expected Version",
-            "type": "integer"
+          "readable": {
+            "title": "Readable",
+            "type": "boolean"
           },
-          "name": {
+          "refresh_on_change": {
+            "title": "Refresh On Change",
+            "type": "boolean"
+          },
+          "refreshed_at": {
             "anyOf": [
               {
-                "maxLength": 255,
-                "minLength": 1,
+                "format": "date-time",
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Name"
+            "title": "Refreshed At"
           },
-          "spec": {
-            "$ref": "#/components/schemas/AutomationSpec-Input"
+          "saved_at": {
+            "format": "date-time",
+            "title": "Saved At",
+            "type": "string"
+          },
+          "shared": {
+            "title": "Shared",
+            "type": "boolean"
+          },
+          "shared_groups": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Shared Groups",
+            "type": "array"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
           }
         },
         "required": [
-          "spec",
-          "expected_version"
+          "id",
+          "title",
+          "chatbot",
+          "saved_at",
+          "refreshed_at",
+          "own",
+          "owner",
+          "readable",
+          "question",
+          "answer",
+          "citations",
+          "stale",
+          "shared",
+          "shared_groups",
+          "everyone",
+          "refresh_on_change",
+          "thread_id"
         ],
-        "title": "SaveInput",
+        "title": "SavedOut",
         "type": "object"
       },
       "ScanOut": {
@@ -9543,6 +10075,25 @@
         "title": "SettingsOut",
         "type": "object"
       },
+      "ShareOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "path"
+        ],
+        "title": "ShareOut",
+        "type": "object"
+      },
       "SharePointOut": {
         "additionalProperties": false,
         "description": "Connection settings without the secret; plus what the last test and sync found.",
@@ -9736,6 +10287,110 @@
           "client_secret"
         ],
         "title": "SharePointSourceInput",
+        "type": "object"
+      },
+      "ShareScope": {
+        "enum": [
+          "people",
+          "team",
+          "assistant"
+        ],
+        "title": "ShareScope",
+        "type": "string"
+      },
+      "SharedChat": {
+        "properties": {
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "include_sources": {
+            "title": "Include Sources",
+            "type": "boolean"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/SharedMessage"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "shared_at": {
+            "format": "date-time",
+            "title": "Shared At",
+            "type": "string"
+          },
+          "shared_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared By"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "chatbot",
+          "shared_by",
+          "shared_at",
+          "include_sources",
+          "messages"
+        ],
+        "title": "SharedChat",
+        "type": "object"
+      },
+      "SharedMessage": {
+        "properties": {
+          "citations": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "hidden": {
+            "default": false,
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "SharedMessage",
         "type": "object"
       },
       "SlackInput": {
@@ -10153,6 +10808,80 @@
           "description"
         ],
         "title": "TemplateOut",
+        "type": "object"
+      },
+      "ThreadReply": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "answered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered At"
+          },
+          "answered_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered By"
+          },
+          "message_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/HandoffStatus"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          }
+        },
+        "required": [
+          "message_id",
+          "status",
+          "team",
+          "answer",
+          "answered_by",
+          "answered_at"
+        ],
+        "title": "ThreadReply",
         "type": "object"
       },
       "ToolAccess": {
@@ -10887,6 +11616,93 @@
         "title": "WidgetToken",
         "type": "object"
       },
+      "veyntora_api__answers__saved__ShareInput": {
+        "additionalProperties": false,
+        "properties": {
+          "everyone": {
+            "default": false,
+            "title": "Everyone",
+            "type": "boolean"
+          },
+          "group_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Group Ids",
+            "type": "array"
+          },
+          "refresh_on_change": {
+            "default": false,
+            "title": "Refresh On Change",
+            "type": "boolean"
+          }
+        },
+        "title": "ShareInput",
+        "type": "object"
+      },
+      "veyntora_api__automations__service__SaveInput": {
+        "additionalProperties": false,
+        "properties": {
+          "change_note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Change Note",
+            "type": "string"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "expected_version": {
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationSpec-Input"
+          }
+        },
+        "required": [
+          "spec",
+          "expected_version"
+        ],
+        "title": "SaveInput",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_automations__Started": {
         "properties": {
           "run_id": {
@@ -10978,6 +11794,67 @@
           "secret"
         ],
         "title": "SecretInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__me_saved__SaveInput": {
+        "additionalProperties": false,
+        "properties": {
+          "message_id": {
+            "format": "uuid",
+            "title": "Message Id",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "message_id"
+        ],
+        "title": "SaveInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__shares__ShareInput": {
+        "additionalProperties": false,
+        "properties": {
+          "include_sources": {
+            "default": true,
+            "title": "Include Sources",
+            "type": "boolean"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/ShareScope"
+          },
+          "thread_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "User Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "thread_id",
+          "scope"
+        ],
+        "title": "ShareInput",
         "type": "object"
       }
     }
@@ -11732,7 +12609,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SaveInput"
+                "$ref": "#/components/schemas/veyntora_api__automations__service__SaveInput"
               }
             }
           },
@@ -12622,6 +13499,100 @@
           }
         },
         "summary": "Copy a chatbot as a draft",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/experts": {
+      "get": {
+        "operationId": "get_experts_v1_admin_chatbots__bot_id__experts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The chatbot's expert teams (hand-offs)",
+        "tags": [
+          "admin: chatbots"
+        ]
+      },
+      "put": {
+        "operationId": "put_experts_v1_admin_chatbots__bot_id__experts_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpertsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Choose the chatbot's expert teams",
         "tags": [
           "admin: chatbots"
         ]
@@ -16484,49 +17455,6 @@
         ]
       }
     },
-    "/v1/chat/messages/{message_id}/handoff": {
-      "post": {
-        "operationId": "handoff_v1_chat_messages__message_id__handoff_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "message_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Message Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HandoffOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Ask a human expert instead",
-        "tags": [
-          "chat"
-        ]
-      }
-    },
     "/v1/chat/threads/{thread_id}": {
       "get": {
         "operationId": "conversation_by_thread_v1_chat_threads__thread_id__get",
@@ -16566,6 +17494,387 @@
         "summary": "The conversation behind a chat thread",
         "tags": [
           "chat"
+        ]
+      }
+    },
+    "/v1/chat/threads/{thread_id}/export": {
+      "get": {
+        "operationId": "export_chat_v1_chat_threads__thread_id__export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download one of my chats (Markdown)",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/handoffs": {
+      "get": {
+        "operationId": "lists_v1_handoffs_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffLists"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My questions, my team's queue, and answers to review",
+        "tags": [
+          "hand-offs"
+        ]
+      },
+      "post": {
+        "operationId": "ask_v1_handoffs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send a question to an expert team",
+        "tags": [
+          "hand-offs"
+        ]
+      }
+    },
+    "/v1/handoffs/by-thread/{thread_id}": {
+      "get": {
+        "operationId": "by_thread_v1_handoffs_by_thread__thread_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadReply"
+                  },
+                  "title": "Response By Thread V1 Handoffs By Thread  Thread Id  Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Expert replies in one of my chats",
+        "tags": [
+          "hand-offs"
+        ]
+      }
+    },
+    "/v1/handoffs/form": {
+      "get": {
+        "operationId": "form_v1_handoffs_form_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffForm"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What the hand-off form needs for an answer",
+        "tags": [
+          "hand-offs"
+        ]
+      }
+    },
+    "/v1/handoffs/{handoff_id}": {
+      "get": {
+        "operationId": "detail_v1_handoffs__handoff_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handoff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Handoff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One question (asker, expert team or reviewer)",
+        "tags": [
+          "hand-offs"
+        ]
+      }
+    },
+    "/v1/handoffs/{handoff_id}/answer": {
+      "post": {
+        "operationId": "answer_v1_handoffs__handoff_id__answer_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handoff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Handoff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer the question (expert team)",
+        "tags": [
+          "hand-offs"
+        ]
+      }
+    },
+    "/v1/handoffs/{handoff_id}/claim": {
+      "post": {
+        "operationId": "claim_v1_handoffs__handoff_id__claim_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handoff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Handoff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Take the question (expert team)",
+        "tags": [
+          "hand-offs"
+        ]
+      }
+    },
+    "/v1/handoffs/{handoff_id}/review": {
+      "post": {
+        "operationId": "review_v1_handoffs__handoff_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "handoff_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Handoff Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HandoffOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add an expert answer to the knowledge base, or not",
+        "tags": [
+          "hand-offs"
         ]
       }
     },
@@ -17268,6 +18577,428 @@
         "summary": "Platform facts shown before sign-in",
         "tags": [
           "status"
+        ]
+      }
+    },
+    "/v1/saved": {
+      "get": {
+        "operationId": "list_saved_v1_saved_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "shared"
+              ],
+              "title": "Scope",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SavedOut"
+                  },
+                  "title": "Response List Saved V1 Saved Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My saved answers and those shared with me",
+        "tags": [
+          "saved answers"
+        ]
+      },
+      "post": {
+        "operationId": "save_answer_v1_saved_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__routers__me_saved__SaveInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save an answer",
+        "tags": [
+          "saved answers"
+        ]
+      }
+    },
+    "/v1/saved/groups": {
+      "get": {
+        "operationId": "my_groups_v1_saved_groups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupOptionOut"
+                  },
+                  "title": "Response My Groups V1 Saved Groups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My groups (to share with)",
+        "tags": [
+          "saved answers"
+        ]
+      }
+    },
+    "/v1/saved/{saved_id}": {
+      "delete": {
+        "operationId": "delete_saved_v1_saved__saved_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "saved_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Saved Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a saved answer",
+        "tags": [
+          "saved answers"
+        ]
+      }
+    },
+    "/v1/saved/{saved_id}/refresh": {
+      "post": {
+        "operationId": "refresh_answer_v1_saved__saved_id__refresh_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "saved_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Saved Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Refreshed"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask again with the latest documents",
+        "tags": [
+          "saved answers"
+        ]
+      }
+    },
+    "/v1/saved/{saved_id}/share": {
+      "post": {
+        "operationId": "share_answer_v1_saved__saved_id__share_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "saved_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Saved Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__answers__saved__ShareInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Share with my groups or everyone with access",
+        "tags": [
+          "saved answers"
+        ]
+      }
+    },
+    "/v1/shares": {
+      "post": {
+        "operationId": "share_chat_v1_shares_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__routers__shares__ShareInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Share one of my chats (read-only)",
+        "tags": [
+          "shared chats"
+        ]
+      }
+    },
+    "/v1/shares/people/search": {
+      "get": {
+        "operationId": "people_v1_shares_people_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonOut"
+                  },
+                  "title": "Response People V1 Shares People Search Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Colleagues to share with",
+        "tags": [
+          "shared chats"
+        ]
+      }
+    },
+    "/v1/shares/{share_id}": {
+      "delete": {
+        "operationId": "stop_sharing_v1_shares__share_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Share Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop sharing",
+        "tags": [
+          "shared chats"
+        ]
+      },
+      "get": {
+        "operationId": "shared_chat_v1_shares__share_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Share Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedChat"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A chat shared with me",
+        "tags": [
+          "shared chats"
         ]
       }
     },

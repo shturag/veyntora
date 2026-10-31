@@ -41,12 +41,15 @@ from veyntora_api.routers import (
     auth,
     channel_links,
     chat,
+    handoffs,
     hooks,
     me,
     me_files,
     me_notifications,
+    me_saved,
     me_settings,
     public_api,
+    shares,
     status,
     widget,
 )
@@ -196,6 +199,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(admin_notify.router)
     app.include_router(admin_knowledge_health.router)
     app.include_router(me_notifications.router)
+    app.include_router(me_saved.router)
+    app.include_router(handoffs.router)
+    app.include_router(handoffs.admin_router)
+    app.include_router(shares.router)
     # Before admin_chatbots: its /{bot_id} would otherwise catch /cards.
     app.include_router(admin_bot_insights.router)
     app.include_router(admin_chatbots.router)

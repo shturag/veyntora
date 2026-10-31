@@ -30,6 +30,7 @@ export type AnswerMeta = {
   route_reason?: string | null;
   run_id?: string;
   steps?: AgentStep[];
+  follow_ups?: string[];
 };
 
 /** One agent step (think, search, a tool call, an approval, a limit). */

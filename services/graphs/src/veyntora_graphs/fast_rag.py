@@ -80,7 +80,9 @@ def _history(messages: list[AnyMessage]) -> list[ChatMessage]:
     return out
 
 
-def _payload(result: Answer, message_id: UUID, version: int) -> dict[str, Any]:
+def _payload(
+    result: Answer, message_id: UUID, version: int, *, experts: bool = True
+) -> dict[str, Any]:
     return {
         "outcome": result.outcome,
         "message_id": str(message_id),
@@ -89,7 +91,8 @@ def _payload(result: Answer, message_id: UUID, version: int) -> dict[str, Any]:
         "warning": result.warning,
         "external_egress": result.external_egress,
         "latency_ms": result.latency_ms,
-        "handoff_available": result.outcome != "answered",
+        "handoff_available": result.outcome != "answered" and experts,
+        "follow_ups": result.follow_ups,
         "citations": [
             {
                 "n": n,
@@ -183,7 +186,11 @@ async def answer_node(state: State, config: RunnableConfig) -> dict[str, Any]:
             AIMessage(
                 id=str(message_id),
                 content=result.text,
-                additional_kwargs={"veyntora": _payload(result, message_id, ctx.version_number)},
+                additional_kwargs={
+                    "veyntora": _payload(
+                        result, message_id, ctx.version_number, experts=ctx.experts
+                    )
+                },
             )
         ]
     }

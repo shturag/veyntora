@@ -31,6 +31,7 @@ export default async function SettingsPage() {
             default_chatbot_id: null,
             default_mode: "auto",
             show_agent_steps: true,
+            suggest_follow_ups: true,
             notify_teams: true,
             notify_email: true,
           }

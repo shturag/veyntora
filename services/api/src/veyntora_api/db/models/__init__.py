@@ -18,6 +18,7 @@ from veyntora_api.db.models.chatbots import Chatbot, PipelineVersion
 from veyntora_api.db.models.conversations import (
     Citation,
     Conversation,
+    ConversationShare,
     Feedback,
     Handoff,
     Message,
@@ -71,6 +72,7 @@ __all__ = [
     "Chatbot",
     "Citation",
     "Conversation",
+    "ConversationShare",
     "DataSource",
     "Delivery",
     "Document",

@@ -544,6 +544,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots/{bot_id}/experts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The chatbot's expert teams (hand-offs) */
+        get: operations["get_experts_v1_admin_chatbots__bot_id__experts_get"];
+        /** Choose the chatbot's expert teams */
+        put: operations["put_experts_v1_admin_chatbots__bot_id__experts_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots/{bot_id}/governance": {
         parameters: {
             query?: never;
@@ -1793,23 +1811,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/chat/messages/{message_id}/handoff": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Ask a human expert instead */
-        post: operations["handoff_v1_chat_messages__message_id__handoff_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/chat/threads/{thread_id}": {
         parameters: {
             query?: never;
@@ -1821,6 +1822,143 @@ export interface paths {
         get: operations["conversation_by_thread_v1_chat_threads__thread_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chat/threads/{thread_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download one of my chats (Markdown) */
+        get: operations["export_chat_v1_chat_threads__thread_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My questions, my team's queue, and answers to review */
+        get: operations["lists_v1_handoffs_get"];
+        put?: never;
+        /** Send a question to an expert team */
+        post: operations["ask_v1_handoffs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs/by-thread/{thread_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Expert replies in one of my chats */
+        get: operations["by_thread_v1_handoffs_by_thread__thread_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs/form": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the hand-off form needs for an answer */
+        get: operations["form_v1_handoffs_form_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs/{handoff_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One question (asker, expert team or reviewer) */
+        get: operations["detail_v1_handoffs__handoff_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs/{handoff_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer the question (expert team) */
+        post: operations["answer_v1_handoffs__handoff_id__answer_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs/{handoff_id}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Take the question (expert team) */
+        post: operations["claim_v1_handoffs__handoff_id__claim_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/handoffs/{handoff_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add an expert answer to the knowledge base, or not */
+        post: operations["review_v1_handoffs__handoff_id__review_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2121,6 +2259,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My saved answers and those shared with me */
+        get: operations["list_saved_v1_saved_get"];
+        put?: never;
+        /** Save an answer */
+        post: operations["save_answer_v1_saved_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/saved/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My groups (to share with) */
+        get: operations["my_groups_v1_saved_groups_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/saved/{saved_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a saved answer */
+        delete: operations["delete_saved_v1_saved__saved_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/saved/{saved_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask again with the latest documents */
+        post: operations["refresh_answer_v1_saved__saved_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/saved/{saved_id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Share with my groups or everyone with access */
+        post: operations["share_answer_v1_saved__saved_id__share_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Share one of my chats (read-only) */
+        post: operations["share_chat_v1_shares_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/shares/people/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Colleagues to share with */
+        get: operations["people_v1_shares_people_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/shares/{share_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A chat shared with me */
+        get: operations["shared_chat_v1_shares__share_id__get"];
+        put?: never;
+        post?: never;
+        /** Stop sharing */
+        delete: operations["stop_sharing_v1_shares__share_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/status": {
         parameters: {
             query?: never;
@@ -2323,6 +2599,18 @@ export interface components {
              * Format: uuid
              */
             tool_id: string;
+        };
+        /** AnswerInput */
+        AnswerInput: {
+            /**
+             * Add To Knowledge
+             * @default false
+             */
+            add_to_knowledge: boolean;
+            /** Answer */
+            answer: string;
+            /** Knowledge Group Ids */
+            knowledge_group_ids?: string[];
         };
         /** ApiAnswer */
         ApiAnswer: {
@@ -3514,6 +3802,18 @@ export interface components {
             /** Document Id */
             document_id?: string | null;
         };
+        /** ExpertsInput */
+        ExpertsInput: {
+            /** Group Ids */
+            group_ids?: string[];
+        };
+        /** ExpertsOut */
+        ExpertsOut: {
+            /** Groups */
+            groups: components["schemas"]["GroupRef"][];
+            /** Teams */
+            teams: components["schemas"]["GroupRef"][];
+        };
         /** FeedbackInput */
         FeedbackInput: {
             /** Comment */
@@ -3698,6 +3998,11 @@ export interface components {
              */
             max_answer_tokens: number;
             /**
+             * Suggest Follow Ups
+             * @default false
+             */
+            suggest_follow_ups: boolean;
+            /**
              * System Prompt
              * @default
              */
@@ -3859,6 +4164,16 @@ export interface components {
             /** Path */
             path: string | null;
         };
+        /** GroupOptionOut */
+        GroupOptionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** GroupOut */
         GroupOut: {
             /**
@@ -3870,6 +4185,16 @@ export interface components {
             name: string;
             /** Path */
             path: string | null;
+        };
+        /** GroupRef */
+        GroupRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** GroupRole */
         GroupRole: {
@@ -3981,14 +4306,108 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HandoffForm */
+        HandoffForm: {
+            /** Chatbot */
+            chatbot: string;
+            /** Question */
+            question: string;
+            /** Teams */
+            teams: components["schemas"]["GroupRef"][];
+            /** Thread Id */
+            thread_id: string | null;
+        };
+        /** HandoffInput */
+        HandoffInput: {
+            /**
+             * Group Id
+             * Format: uuid
+             */
+            group_id: string;
+            /**
+             * Include Conversation
+             * @default true
+             */
+            include_conversation: boolean;
+            /**
+             * Message Id
+             * Format: uuid
+             */
+            message_id: string;
+            /** Question */
+            question: string;
+            /**
+             * Reply Via
+             * @default chat
+             * @enum {string}
+             */
+            reply_via: "chat" | "teams" | "email";
+            /**
+             * Urgency
+             * @default two_days
+             * @enum {string}
+             */
+            urgency: "two_days" | "today";
+        };
+        /** HandoffLists */
+        HandoffLists: {
+            /** For My Team */
+            for_my_team: components["schemas"]["HandoffOut"][];
+            /** Mine */
+            mine: components["schemas"]["HandoffOut"][];
+            /** To Review */
+            to_review: components["schemas"]["HandoffOut"][];
+        };
         /** HandoffOut */
         HandoffOut: {
+            /** Answer */
+            answer: string | null;
+            /** Answered At */
+            answered_at: string | null;
+            /** Answered By */
+            answered_by: string | null;
+            /** Asker */
+            asker: string | null;
+            /** Can Answer */
+            can_answer: boolean;
+            /** Can Review */
+            can_review: boolean;
+            /** Chatbot */
+            chatbot: string | null;
+            /**
+             * Conversation
+             * @default []
+             */
+            conversation: {
+                [key: string]: string;
+            }[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Due At */
+            due_at: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Knowledge Status */
+            knowledge_status: string;
+            /** Mine */
+            mine: boolean;
+            /** Question */
+            question: string;
+            /** Reply Via */
+            reply_via: string;
             status: components["schemas"]["HandoffStatus"];
+            /** Team */
+            team: string | null;
+            /** Thread Id */
+            thread_id: string | null;
+            /** Urgency */
+            urgency: string;
         };
         /**
          * HandoffStatus
@@ -4755,6 +5174,18 @@ export interface components {
             /** Suspended Reason */
             suspended_reason: string | null;
         };
+        /** PersonOut */
+        PersonOut: {
+            /** Email */
+            email: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** PersonRow */
         PersonRow: {
             /** Approves In */
@@ -4934,6 +5365,11 @@ export interface components {
              * @default true
              */
             show_agent_steps: boolean;
+            /**
+             * Suggest Follow Ups
+             * @default true
+             */
+            suggest_follow_ups: boolean;
         };
         /** PreviewBot */
         PreviewBot: {
@@ -5066,6 +5502,11 @@ export interface components {
          * @enum {string}
          */
         Rating: "up" | "down";
+        /** Refreshed */
+        Refreshed: {
+            /** Changed */
+            changed: boolean;
+        };
         /**
          * Repeat
          * @enum {string}
@@ -5186,6 +5627,11 @@ export interface components {
             top_k: number;
             /** Vector Store Instance Id */
             vector_store_instance_id?: string | null;
+        };
+        /** ReviewInput */
+        ReviewInput: {
+            /** Accept */
+            accept: boolean;
         };
         /** Roles */
         Roles: {
@@ -5483,22 +5929,50 @@ export interface components {
              */
             retries: number;
         };
-        /** SaveInput */
-        SaveInput: {
+        /** SavedOut */
+        SavedOut: {
+            /** Answer */
+            answer: string | null;
+            /** Chatbot */
+            chatbot: string | null;
+            /** Citations */
+            citations: {
+                [key: string]: unknown;
+            }[];
+            /** Everyone */
+            everyone: boolean;
             /**
-             * Change Note
-             * @default
+             * Id
+             * Format: uuid
              */
-            change_note: string;
-            /** Chatbot Id */
-            chatbot_id?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Expected Version */
-            expected_version: number;
-            /** Name */
-            name?: string | null;
-            spec: components["schemas"]["AutomationSpec-Input"];
+            id: string;
+            /** Own */
+            own: boolean;
+            /** Owner */
+            owner: string | null;
+            /** Question */
+            question: string | null;
+            /** Readable */
+            readable: boolean;
+            /** Refresh On Change */
+            refresh_on_change: boolean;
+            /** Refreshed At */
+            refreshed_at: string | null;
+            /**
+             * Saved At
+             * Format: date-time
+             */
+            saved_at: string;
+            /** Shared */
+            shared: boolean;
+            /** Shared Groups */
+            shared_groups: string[];
+            /** Stale */
+            stale: boolean;
+            /** Thread Id */
+            thread_id: string | null;
+            /** Title */
+            title: string;
         };
         /** ScanOut */
         ScanOut: {
@@ -5755,6 +6229,16 @@ export interface components {
             llms: components["schemas"]["JudgeOption"][];
             settings: components["schemas"]["HealthSettings"];
         };
+        /** ShareOut */
+        ShareOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Path */
+            path: string;
+        };
         /**
          * SharePointOut
          * @description Connection settings without the secret; plus what the last test and sync found.
@@ -5823,6 +6307,48 @@ export interface components {
             /** Secret Expires At */
             secret_expires_at?: string | null;
             settings: components["schemas"]["SharePointSettings"];
+        };
+        /**
+         * ShareScope
+         * @enum {string}
+         */
+        ShareScope: "people" | "team" | "assistant";
+        /** SharedChat */
+        SharedChat: {
+            /** Chatbot */
+            chatbot: string | null;
+            /** Include Sources */
+            include_sources: boolean;
+            /** Messages */
+            messages: components["schemas"]["SharedMessage"][];
+            /**
+             * Shared At
+             * Format: date-time
+             */
+            shared_at: string;
+            /** Shared By */
+            shared_by: string | null;
+            /** Title */
+            title: string;
+        };
+        /** SharedMessage */
+        SharedMessage: {
+            /**
+             * Citations
+             * @default []
+             */
+            citations: {
+                [key: string]: unknown;
+            }[];
+            /** Content */
+            content: string | null;
+            /**
+             * Hidden
+             * @default false
+             */
+            hidden: boolean;
+            /** Role */
+            role: string;
         };
         /** SlackInput */
         SlackInput: {
@@ -5952,6 +6478,20 @@ export interface components {
             name: string;
             /** Trigger */
             trigger: string;
+        };
+        /** ThreadReply */
+        ThreadReply: {
+            /** Answer */
+            answer: string | null;
+            /** Answered At */
+            answered_at: string | null;
+            /** Answered By */
+            answered_by: string | null;
+            /** Message Id */
+            message_id: string | null;
+            status: components["schemas"]["HandoffStatus"];
+            /** Team */
+            team: string | null;
         };
         /**
          * ToolAccess
@@ -6257,6 +6797,38 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** ShareInput */
+        veyntora_api__answers__saved__ShareInput: {
+            /**
+             * Everyone
+             * @default false
+             */
+            everyone: boolean;
+            /** Group Ids */
+            group_ids?: string[];
+            /**
+             * Refresh On Change
+             * @default false
+             */
+            refresh_on_change: boolean;
+        };
+        /** SaveInput */
+        veyntora_api__automations__service__SaveInput: {
+            /**
+             * Change Note
+             * @default
+             */
+            change_note: string;
+            /** Chatbot Id */
+            chatbot_id?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Expected Version */
+            expected_version: number;
+            /** Name */
+            name?: string | null;
+            spec: components["schemas"]["AutomationSpec-Input"];
+        };
         /** Started */
         veyntora_api__routers__admin_automations__Started: {
             /**
@@ -6298,6 +6870,29 @@ export interface components {
              * Format: password
              */
             secret: string;
+        };
+        /** SaveInput */
+        veyntora_api__routers__me_saved__SaveInput: {
+            /**
+             * Message Id
+             * Format: uuid
+             */
+            message_id: string;
+            /** Title */
+            title?: string | null;
+        };
+        /** ShareInput */
+        veyntora_api__routers__shares__ShareInput: {
+            /**
+             * Include Sources
+             * @default true
+             */
+            include_sources: boolean;
+            scope: components["schemas"]["ShareScope"];
+            /** Thread Id */
+            thread_id: string;
+            /** User Ids */
+            user_ids?: string[];
         };
     };
     responses: never;
@@ -6824,7 +7419,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SaveInput"];
+                "application/json": components["schemas"]["veyntora_api__automations__service__SaveInput"];
             };
         };
         responses: {
@@ -7439,6 +8034,72 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_experts_v1_admin_chatbots__bot_id__experts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpertsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_experts_v1_admin_chatbots__bot_id__experts_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExpertsInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpertsOut"];
                 };
             };
             /** @description Validation Error */
@@ -10070,16 +10731,100 @@ export interface operations {
             };
         };
     };
-    handoff_v1_chat_messages__message_id__handoff_post: {
+    conversation_by_thread_v1_chat_threads__thread_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                message_id: string;
+                thread_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_chat_v1_chat_threads__thread_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                thread_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lists_v1_handoffs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffLists"];
+                };
+            };
+        };
+    };
+    ask_v1_handoffs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HandoffInput"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             201: {
@@ -10101,7 +10846,7 @@ export interface operations {
             };
         };
     };
-    conversation_by_thread_v1_chat_threads__thread_id__get: {
+    by_thread_v1_handoffs_by_thread__thread_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -10118,7 +10863,170 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ConversationOut"];
+                    "application/json": components["schemas"]["ThreadReply"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    form_v1_handoffs_form_get: {
+        parameters: {
+            query: {
+                message_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffForm"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detail_v1_handoffs__handoff_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_v1_handoffs__handoff_id__answer_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    claim_v1_handoffs__handoff_id__claim_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_v1_handoffs__handoff_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                handoff_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HandoffOut"];
                 };
             };
             /** @description Validation Error */
@@ -10694,6 +11602,310 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicInfoOut"];
+                };
+            };
+        };
+    };
+    list_saved_v1_saved_get: {
+        parameters: {
+            query?: {
+                scope?: "all" | "shared";
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_answer_v1_saved_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__routers__me_saved__SaveInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_groups_v1_saved_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupOptionOut"][];
+                };
+            };
+        };
+    };
+    delete_saved_v1_saved__saved_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_answer_v1_saved__saved_id__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Refreshed"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    share_answer_v1_saved__saved_id__share_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                saved_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__answers__saved__ShareInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    share_chat_v1_shares_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__routers__shares__ShareInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    people_v1_shares_people_search_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    shared_chat_v1_shares__share_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedChat"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_sharing_v1_shares__share_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

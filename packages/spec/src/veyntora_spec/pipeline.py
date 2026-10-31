@@ -154,6 +154,9 @@ class GenerationSpec(_Spec):
     if_ungrounded: UngroundedAction = UngroundedAction.NO_ANSWER
     # Language of the answer: "auto" follows the question, otherwise a BCP-47 tag.
     answer_language: str = "auto"
+    # Suggest up to three follow-up questions under a grounded answer (one small extra
+    # model call: the router model, else the answer model). People can turn them off.
+    suggest_follow_ups: bool = False
 
 
 # ---------------------------------------------------------------- agent

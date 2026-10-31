@@ -43,7 +43,7 @@ export default async function ChatPage({ params, searchParams }: Props) {
           <h1 className="m-0 truncate text-[15px] font-semibold">{title}</h1>
           <span className="text-xs text-fg-muted">{chatbotName}</span>
         </div>
-        <ChatHeaderActions conversationId={conv.data?.id} />
+        <ChatHeaderActions conversationId={conv.data?.id} threadId={id} />
       </header>
       <ChatView
         threadId={id}

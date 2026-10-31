@@ -26,7 +26,10 @@
     "approvals": "Approvals",
     "settings": "Settings",
     "help": "Help",
-    "recent": "Recent"
+    "recent": "Recent",
+    "notifications": "Notifications",
+    "unread": "{count} unread",
+    "handoffs": "Expert questions"
   },
   "adminNav": {
     "label": "Admin",
@@ -615,8 +618,6 @@
     "externalExplained": "An external provider was used for this answer, as allowed by this assistant's data rules.",
     "noAnswerHint": "You can pass the question to a human expert instead.",
     "askExpert": "Ask an expert",
-    "expertSent": "Your question was passed to the experts' queue.",
-    "expertFailed": "Could not send it. Try again.",
     "groundingWarning": "Parts of this answer may not be fully supported by its sources. Check the cited documents.",
     "sourceN": "Source {n}: {title}",
     "page": "p. {page}",
@@ -636,7 +637,6 @@
     "copied": "Copied",
     "regenerate": "Regenerate",
     "share": "Share",
-    "shareLater": "Sharing answers arrives with saved answers in Phase {phase}.",
     "moreOptions": "More options",
     "deleteChat": "Delete chat",
     "attach": "Attach files to My files",
@@ -674,7 +674,32 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "expired": "Expired"
-    }
+    },
+    "save": "Save answer",
+    "saved": "Saved",
+    "savedLink": "In Saved answers",
+    "saveFailed": "Could not save",
+    "followUps": "Follow-up questions",
+    "expertReply": "Expert reply",
+    "expertAnswered": "{name} ({team}) answered:",
+    "expertWaiting": "Your question is with {team}. Their reply will appear here.",
+    "shareTitle": "Share this chat",
+    "shareWho": "Who",
+    "shareScopes": {
+      "people": "Only people I add",
+      "team": "My team",
+      "assistant": "Anyone with access to this assistant"
+    },
+    "addPeople": "Add people",
+    "removePerson": "Remove {name}",
+    "includeSources": "Include sources",
+    "shareNote": "People only see answers whose sources they may open themselves.",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied: {link}",
+    "shareFailed": "Did not work: {reason}",
+    "cancel": "Cancel",
+    "close": "Close",
+    "exportChat": "Export chat"
   },
   "source": {
     "updated": "updated {date}",
@@ -1215,6 +1240,10 @@
       "tools": {
         "label": "Tools",
         "hint": "The agent can always search the chatbot's documents. Write tools wait for an approval every time."
+      },
+      "suggest_follow_ups": {
+        "label": "Suggest follow-up questions",
+        "hint": "Up to three questions under a grounded answer (one small extra model call). People can turn them off in Settings."
       }
     },
     "o": {
@@ -1882,7 +1911,14 @@
     "ready": "Ready to publish.",
     "testFirst": "Test in the Playground",
     "openChatbot": "Open the chatbot",
-    "publishNote": "Publishing makes this draft live for the people with access."
+    "publishNote": "Publishing makes this draft live for the people with access.",
+    "experts": {
+      "title": "Experts for hand-off",
+      "text": "When the assistant cannot answer, people can send their question to one of these groups. Their members answer in Veyntora.",
+      "save": "Save",
+      "saved": "Saved.",
+      "failed": "Did not work: {reason}"
+    }
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
@@ -2559,5 +2595,121 @@
     "cancel": "Cancel",
     "close": "Close",
     "failed": "Did not work: {reason}"
+  },
+  "saved": {
+    "title": "Saved answers",
+    "filter": "Filter",
+    "scopes": {
+      "all": "All",
+      "shared": "Shared with my team"
+    },
+    "search": "Search saved answers",
+    "empty": "No saved answers yet. Save one from a chat with the bookmark button.",
+    "emptyShared": "Nothing is shared with your team yet.",
+    "savedOn": "saved {when}",
+    "shared": "Shared with team",
+    "private": "Private",
+    "sharedBy": "Shared by {name}",
+    "hidden": "This answer uses documents you cannot open, so it is not shown to you.",
+    "sources": "Sources:",
+    "stale": "Source changed since saving. Refresh to see the latest answer.",
+    "openChat": "Open chat",
+    "refresh": "Refresh answer",
+    "share": "Share with team",
+    "sharing": "Sharing",
+    "delete": "Delete",
+    "deleted": "Deleted.",
+    "refreshedChanged": "Answer refreshed from the latest documents.",
+    "refreshedSame": "Answer refreshed from the latest documents. Nothing changed.",
+    "shareTitle": "Share answer",
+    "shareWith": "Share with",
+    "noGroups": "You are not in any group yet.",
+    "everyone": "Everyone who may use this assistant",
+    "refreshOnChange": "Refresh when sources change",
+    "shareNote": "Colleagues only see the answer if they may open its sources themselves.",
+    "sharedDone": "Shared.",
+    "cancel": "Cancel",
+    "close": "Close",
+    "failed": "Did not work: {reason}"
+  },
+  "shared": {
+    "sharedBy": "Shared by {name} · {chatbot} · {when}",
+    "hidden": "This answer uses documents you cannot open, so it is not shown to you."
+  },
+  "handoff": {
+    "title": "Ask a human expert",
+    "intro": "The assistant couldn't answer this. We'll send your question and the conversation to the right team.",
+    "notFound": "This answer was not found.",
+    "question": "Your question",
+    "sendTo": "Send to",
+    "suggested": "{name} (suggested)",
+    "urgency": "How urgent?",
+    "urgencies": {
+      "two_days": "Within 2 working days",
+      "today": "Today"
+    },
+    "includeConversation": "Include this conversation and the sources the assistant found",
+    "replyBy": "Reply by",
+    "replyVia": {
+      "chat": "In this chat",
+      "teams": "Teams message",
+      "email": "Email"
+    },
+    "send": "Send to expert",
+    "cancel": "Cancel",
+    "note": "When the expert answers, their reply appears in your chat and can be added to the knowledge base, so the assistant can answer next time.",
+    "sent": "Sent to {team}. You'll get a reply in this chat.",
+    "backToChat": "Back to chat",
+    "noTeams": "No expert team is set up for this assistant yet. Ask its owner to choose one on the assistant's Access page.",
+    "failed": "Did not work: {reason}",
+    "listTitle": "Expert questions",
+    "forMyTeam": "Questions for my team",
+    "toReview": "Expert answers to review for the knowledge base",
+    "mine": "My questions",
+    "noneMine": "No questions yet.",
+    "due": "reply by {when}",
+    "statuses": {
+      "open": "Open",
+      "assigned": "Being answered",
+      "answered": "Answered",
+      "closed": "Closed"
+    },
+    "conversation": "The conversation",
+    "asked": "Question",
+    "assistant": "Assistant",
+    "answeredBy": "{name} answered",
+    "openChat": "Open the chat",
+    "claim": "Take this question",
+    "yourAnswer": "Your answer",
+    "addToKnowledge": "Add to the knowledge base, so the assistant can answer next time",
+    "whoMayRead": "Who may read it",
+    "reviewNote": "A chatbot owner or knowledge admin checks it first.",
+    "sendAnswer": "Send answer",
+    "reviewQuestion": "Add this answer to the knowledge base?",
+    "accept": "Add",
+    "decline": "Don't add",
+    "knowledge": {
+      "pending": "Waiting for review before it joins the knowledge base.",
+      "added": "Added to the knowledge base.",
+      "declined": "Not added to the knowledge base."
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Nothing new.",
+    "markAllRead": "Mark all as read",
+    "alsoSent": "Also sent: {where}",
+    "via": {
+      "teams_chat": "Teams",
+      "teams_channel": "Teams channel",
+      "slack_chat": "Slack",
+      "slack_channel": "Slack channel",
+      "email": "email"
+    },
+    "status": {
+      "queued": "queued",
+      "sent": "sent",
+      "failed": "failed"
+    }
   }
 }

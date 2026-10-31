@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import {
+  api,
   CSRF_HEADERS,
   textOf,
   type ApprovalWait,
@@ -146,6 +147,7 @@ function Thread({
               text={textOf(m.content)}
               meta={meta}
               onRegenerate={last && question && !busy ? () => ask(question) : undefined}
+              onAsk={last && !busy ? ask : undefined}
             />
           );
         })}
@@ -175,6 +177,7 @@ function Thread({
             {draft ? <p className="m-0 text-base leading-[1.7] text-fg">{draft}</p> : null}
           </div>
         ) : null}
+        <ExpertReplies threadId={threadId} />
         {wait?.type === "approval" ? (
           <ApprovalCard
             wait={wait}
@@ -199,6 +202,47 @@ function Thread({
         />
         <p className="mt-2 mb-0 text-center text-xs text-fg-muted">{t("disclaimer")}</p>
       </div>
+    </>
+  );
+}
+
+type Reply = {
+  message_id: string | null;
+  status: string;
+  team: string | null;
+  answer: string | null;
+  answered_by: string | null;
+};
+
+/** Replies from human experts to questions handed off from this chat. */
+function ExpertReplies({ threadId }: { threadId: string }) {
+  const t = useTranslations("chat");
+  const [replies, setReplies] = useState<Reply[]>([]);
+  useEffect(() => {
+    api<Reply[]>(`/v1/handoffs/by-thread/${threadId}`)
+      .then(setReplies)
+      .catch(() => setReplies([]));
+  }, [threadId]);
+  return (
+    <>
+      {replies.map((r, i) =>
+        r.answer ? (
+          <article
+            key={i}
+            aria-label={t("expertReply")}
+            className="flex flex-col gap-1 rounded-lg border border-green/40 bg-surface px-4 py-3"
+          >
+            <span className="text-xs text-fg-muted">
+              {t("expertAnswered", { name: r.answered_by ?? "", team: r.team ?? "" })}
+            </span>
+            <p className="m-0 text-[15px] whitespace-pre-wrap">{r.answer}</p>
+          </article>
+        ) : (
+          <p key={i} role="status" className="m-0 text-sm text-fg-muted">
+            {t("expertWaiting", { team: r.team ?? "" })}
+          </p>
+        ),
+      )}
     </>
   );
 }

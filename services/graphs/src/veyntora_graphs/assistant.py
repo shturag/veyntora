@@ -410,7 +410,7 @@ async def _store(
         route_reason=route_reason,
         run_id=run_id,
     )
-    payload = _payload(result, message_id, ctx.version_number)
+    payload = _payload(result, message_id, ctx.version_number, experts=ctx.experts)
     payload.update({"mode_used": used.value, "route_reason": route_reason})
     if run_id is not None:
         payload["run_id"] = str(run_id)

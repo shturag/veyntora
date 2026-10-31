@@ -97,6 +97,7 @@ export const SECTIONS: readonly Section[] = [
       { name: "citations", kind: "select", options: ["required", "optional"] },
       { name: "if_ungrounded", kind: "select", options: ["no_answer", "warn"] },
       { name: "answer_language", kind: "select", options: ["auto", "de", "en"] },
+      { name: "suggest_follow_ups", kind: "toggle" },
     ],
   },
   {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, Button, Tooltip } from "@veyntora/ui";
-import { Copy, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Bookmark, BookmarkCheck, Copy, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Popover } from "radix-ui";
@@ -148,33 +148,58 @@ function Feedback({ messageId }: { messageId: string }) {
 
 function AskExpert({ messageId }: { messageId: string }) {
   const t = useTranslations("chat");
-  const [state, setState] = useState<"idle" | "sent" | "failed">("idle");
-  async function send() {
-    try {
-      await api(`/v1/chat/messages/${messageId}/handoff`, { method: "POST", body: "{}" });
-      setState("sent");
-    } catch {
-      setState("failed");
-    }
-  }
-  if (state === "sent") {
-    return (
-      <p role="status" className="m-0 text-sm text-fg-secondary">
-        {t("expertSent")}
-      </p>
-    );
-  }
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button variant="primary" onClick={send}>
-        {t("askExpert")}
+      <Button asChild variant="primary">
+        <Link href={`/handoff?message=${messageId}`}>{t("askExpert")}</Link>
       </Button>
-      {state === "failed" ? (
-        <span role="alert" className="text-sm text-red">
-          {t("expertFailed")}
+    </div>
+  );
+}
+
+/** Save the answer to Saved answers (with its sources), once. */
+function SaveAnswer({ messageId }: { messageId: string }) {
+  const t = useTranslations("chat");
+  const [state, setState] = useState<"idle" | "saved" | "failed">("idle");
+  return (
+    <>
+      <Button
+        size="md"
+        className="w-10 px-0"
+        aria-label={state === "saved" ? t("saved") : t("save")}
+        aria-pressed={state === "saved"}
+        disabled={state === "saved"}
+        onClick={async () => {
+          try {
+            await api("/v1/saved", {
+              method: "POST",
+              body: JSON.stringify({ message_id: messageId }),
+            });
+            setState("saved");
+          } catch {
+            setState("failed");
+          }
+        }}
+      >
+        {state === "saved" ? (
+          <BookmarkCheck aria-hidden className="size-[18px]" />
+        ) : (
+          <Bookmark aria-hidden className="size-[18px]" />
+        )}
+      </Button>
+      {state === "saved" ? (
+        <span role="status" className="self-center text-xs text-fg-muted">
+          <Link href="/saved" className="underline">
+            {t("savedLink")}
+          </Link>
         </span>
       ) : null}
-    </div>
+      {state === "failed" ? (
+        <span role="alert" className="self-center text-xs text-red">
+          {t("saveFailed")}
+        </span>
+      ) : null}
+    </>
   );
 }
 
@@ -218,10 +243,13 @@ export function AnswerBlock({
   text,
   meta,
   onRegenerate,
+  onAsk,
 }: {
   text: string;
   meta: AnswerMeta;
   onRegenerate?: () => void;
+  // Ask a suggested follow-up question.
+  onAsk?: (question: string) => void;
 }) {
   const t = useTranslations("chat");
   const [copied, setCopied] = useState(false);
@@ -276,6 +304,7 @@ export function AnswerBlock({
       {meta.message_id ? (
         <div className="flex flex-wrap gap-1.5">
           {answered ? <Feedback messageId={meta.message_id} /> : null}
+          {answered ? <SaveAnswer messageId={meta.message_id} /> : null}
           {answered ? (
             <Button
               size="md"
@@ -296,6 +325,21 @@ export function AnswerBlock({
             </Button>
           ) : null}
         </div>
+      ) : null}
+      {answered && onAsk && meta.follow_ups?.length ? (
+        <ul aria-label={t("followUps")} className="m-0 flex list-none flex-wrap gap-2 p-0">
+          {meta.follow_ups.map((q) => (
+            <li key={q}>
+              <button
+                type="button"
+                onClick={() => onAsk(q)}
+                className="rounded-full border border-line-strong bg-surface px-3 py-1.5 text-left text-sm hover:bg-sunken"
+              >
+                {q}
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : null}
     </div>
   );

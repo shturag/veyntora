@@ -19,6 +19,10 @@
     "automation_draft": {
       "path": "./src/veyntora_graphs/automation_draft.py:graph",
       "description": "Automation draft: a description becomes a draft trigger and steps (no side effects)"
+    },
+    "answer_once": {
+      "path": "./src/veyntora_graphs/answer_once.py:graph",
+      "description": "Answer once: one question with the live pipeline, nothing stored as a chat (refreshing saved answers)"
     }
   },
   "auth": {

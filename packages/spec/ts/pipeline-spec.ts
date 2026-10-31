@@ -36,6 +36,7 @@ export type CitationPolicy = "required" | "optional";
 export type UngroundedAction = "warn" | "no_answer";
 export type LlmInstanceId1 = string | null;
 export type MaxAnswerTokens = number;
+export type SuggestFollowUps = boolean;
 export type SystemPrompt = string;
 export type Temperature = number;
 export type BlockedMessage = string;
@@ -142,6 +143,7 @@ export interface GenerationSpec {
   if_ungrounded?: UngroundedAction;
   llm_instance_id?: LlmInstanceId1;
   max_answer_tokens?: MaxAnswerTokens;
+  suggest_follow_ups?: SuggestFollowUps;
   system_prompt?: SystemPrompt;
   temperature?: Temperature;
 }

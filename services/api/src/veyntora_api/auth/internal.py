@@ -25,7 +25,9 @@ class InternalTokenError(RuntimeError):
     pass
 
 
-def mint(secret: str, sub: str, kind: Literal["app_key", "widget", "channel", "automation"]) -> str:
+def mint(
+    secret: str, sub: str, kind: Literal["app_key", "widget", "channel", "automation", "refresh"]
+) -> str:
     if len(secret) < _MIN_SECRET:
         raise InternalTokenError("VEY_INTERNAL_TOKEN_SECRET must be at least 32 characters")
     now = int(time.time())

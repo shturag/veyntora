@@ -11,7 +11,7 @@ import { control, field, Section } from "./section";
 
 type Preferences = components["schemas"]["Preferences"];
 
-/** Answer preferences. Follow-up suggestions arrive with answer quality features (Phase 5). */
+/** Answer preferences and where notifications go. */
 export function PreferencesForm({
   initial,
   assistants,
@@ -37,6 +37,7 @@ export function PreferencesForm({
           default_chatbot_id: String(form.get("default_chatbot_id") || "") || null,
           default_mode: form.get("default_mode"),
           show_agent_steps: form.get("show_agent_steps") === "on",
+          suggest_follow_ups: form.get("suggest_follow_ups") === "on",
           notify_teams: form.get("notify_teams") === "on",
           notify_email: form.get("notify_email") === "on",
         }),
@@ -52,7 +53,6 @@ export function PreferencesForm({
     }
   }
 
-  const later = t("later", { phase: 5 });
   return (
     <Section id="answers" title={t("answers")}>
       <form aria-labelledby="answers" onSubmit={save} className="flex flex-col gap-4">
@@ -118,9 +118,14 @@ export function PreferencesForm({
             />
             {t("showAgentSteps")}
           </label>
-          <label title={later} className="flex items-center gap-2 text-sm text-fg-muted">
-            <input type="checkbox" disabled className="size-4" />
-            {t("suggestFollowUps")} · {later}
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="suggest_follow_ups"
+              defaultChecked={initial.suggest_follow_ups ?? true}
+              className="size-4"
+            />
+            {t("suggestFollowUps")}
           </label>
         </div>
         <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
