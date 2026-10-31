@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Mapping
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from typing import Annotated, Any, TypedDict, cast
 from uuid import UUID
@@ -31,6 +32,7 @@ from langgraph.graph.message import add_messages
 from langgraph.types import Command, interrupt
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_api.agent import approvals, runner
+from veyntora_api.agent import flow as flow_engine
 from veyntora_api.agent import router as auto
 from veyntora_api.agent import tools as agent_tools
 from veyntora_api.db.models.automations import ApprovalDecision, Run, RunKind, RunStatus
@@ -60,6 +62,8 @@ class State(TypedDict, total=False):
     mode: str
     route: dict[str, Any]
     agent: runner.AgentState
+    # A custom flow's position and results (graph editor; veyntora_api.agent.flow).
+    flow: flow_engine.FlowState
 
 
 class _Turn:
@@ -135,6 +139,8 @@ async def route_node(state: State, config: RunnableConfig) -> Command[Any]:
         try:
             turn = await _open(state, config, db)
             question = _question(state)
+            if turn.ctx.spec.flow.custom:
+                return await _start_flow(db, turn, config, question)
             env = await turn.env()
             tools = await agent_tools.offered_tools(db, turn.ctx, env.group_ids)
             chosen = await auto.route(turn.adapters, turn.ctx, question, state.get("mode"), tools)
@@ -149,6 +155,219 @@ async def route_node(state: State, config: RunnableConfig) -> Command[Any]:
         "agent": {},
     }
     return Command(goto="fast" if chosen.mode == "fast" else "agent_start", update=update)
+
+
+# ---------------------------------------------------------------- custom flows
+
+
+async def _start_flow(
+    db: AsyncSession, turn: _Turn, config: RunnableConfig, question: str
+) -> Command[Any]:
+    conv = await conversation_for(db, _thread(config)[0], turn.ctx, question)
+    run_row = Run(
+        kind=RunKind.CHAT_AGENT,
+        conversation_id=conv.id,
+        chatbot_id=turn.ctx.chatbot_id,
+        started_by=turn.ctx.user_id,
+        status=RunStatus.RUNNING,
+        thread_id=_thread(config)[0][:64] or None,
+    )
+    db.add(run_row)
+    await db.flush()
+    start = next(n.id for n in turn.ctx.spec.flow.nodes if n.type.value == "input")
+    fs: flow_engine.FlowState = {
+        "run_id": str(run_row.id),
+        "at": start,
+        "question": question,
+        "language": language_of(question),
+        "steps": [],
+    }
+    await db.commit()
+    return Command(
+        goto="flow_step", update={"flow": fs, "agent": {}, "route": {"reason": "custom flow"}}
+    )
+
+
+def _flow_state(state: State) -> flow_engine.FlowState:
+    return cast(flow_engine.FlowState, dict(state.get("flow") or {}))
+
+
+async def flow_step_node(state: State, config: RunnableConfig) -> Command[Any]:
+    fs = _flow_state(state)
+    async with get_sessionmaker()() as db:
+        try:
+            turn = await _open(state, config, db)
+        except RunRefusedError as exc:
+            return await _abort(db, fs, str(exc))
+        try:
+            fs, nxt = await flow_engine.advance(
+                await turn.env(), fs, history=_previous(state), mode=state.get("mode")
+            )
+            await _save_steps(db, fs)  # type: ignore[arg-type]
+            if nxt != "output":
+                await db.commit()
+                return Command(goto="flow_approve", update={"flow": fs})
+            result = flow_engine.result(await turn.env(), fs)
+        finally:
+            await turn.adapters.close()
+        run_id = UUID(fs["run_id"])
+        run_row = await db.get(Run, run_id)
+        if run_row is not None:
+            run_row.status = (
+                RunStatus.SUCCEEDED if result.outcome == "answered" else RunStatus.FAILED
+            )
+            run_row.finished_at = datetime.now(UTC)
+            run_row.error = (
+                None if result.outcome == "answered" else (result.warning or result.outcome)
+            )
+        message = await _store(
+            db,
+            turn.ctx,
+            config,
+            fs["question"],
+            result,
+            requested=_requested(state),
+            used=UsedMode.AGENT if fs.get("used_agent") else UsedMode.FAST,
+            route_reason="custom flow",
+            run_id=run_id,
+        )
+        message.additional_kwargs["veyntora"]["steps"] = fs.get("steps", [])
+        await db.commit()
+    return Command(goto=END, update={"messages": [message], "flow": {}})
+
+
+@dataclass
+class _FlowWait:
+    """What a flow waits for: the tool, its arguments, and where the call came from."""
+
+    node: Any
+    tool: Any
+    args: dict[str, Any]
+    call_id: str
+    agent_ctx: RunContext | None = None
+    call: dict[str, Any] | None = None
+    target: str | None = None
+
+
+async def _flow_wait(db: AsyncSession, turn: _Turn, env: runner.Env, fs: Any) -> _FlowWait:
+    spec = turn.ctx.spec
+    node = next(n for n in spec.flow.nodes if n.id == fs["at"])
+    if node.type.value == "agent_llm":
+        st = fs["agent"]
+        call = st["pending"][0]
+        agent_ctx = flow_engine._tools_ctx(turn.ctx, flow_engine.toolbox_of(spec, node.id))
+        offered = await agent_tools.offered_tools(db, agent_ctx, env.group_ids)
+        return _FlowWait(
+            node=node,
+            tool=runner.tool_of(offered, call["name"]),
+            args=runner._unmasked_args(st, call["arguments"]),
+            call_id=call["id"],
+            agent_ctx=agent_ctx,
+            call=call,
+        )
+    target = flow_engine.approval_target(spec, node.id)
+    found = flow_engine.direct_tool(spec, target or "")
+    return _FlowWait(
+        node=node,
+        tool=await flow_engine.bound_direct_tool(env, found[0]) if found else None,
+        args=flow_engine.tool_arguments(found[0], fs["question"]) if found else {},
+        call_id=f"{node.id}:{len(fs.get('steps', []))}",
+        target=target,
+    )
+
+
+async def _flow_decided(
+    env: runner.Env, spec: Any, fs: Any, wait: _FlowWait, *, approved: bool, note: str
+) -> None:
+    """Apply a decision: run or refuse an agent's call, or open or close the guarded step."""
+    if wait.call is not None and wait.agent_ctx is not None:
+        st = fs["agent"]
+        agent_env = replace(env, ctx=wait.agent_ctx)
+        if approved:
+            await runner.run_tool(agent_env, st, wait.call, wait.tool)
+        else:
+            runner.refuse_tool(
+                st, wait.call, "the approver did not approve it.", name=wait.tool.tool_name
+            )
+        st["pending"] = st["pending"][1:]
+        fs["agent"] = st
+    elif approved:
+        fs["approved_for"] = wait.target
+        fs["at"] = wait.target or flow_engine._to_output(spec)
+    else:
+        output = flow_engine._to_output(spec)
+        fs["at"] = flow_engine.after_rejection(spec, wait.node.id) or output
+        if fs["at"] == output:
+            fs["blocked"] = "Not done: the approver did not approve it."
+    fs.setdefault("steps", []).append(
+        {
+            "kind": "approval",
+            "name": wait.tool.tool_name,
+            "status": "approved" if approved else "rejected",
+            "ms": 0,
+            "detail": note,
+        }
+    )
+
+
+async def flow_approve_node(state: State, config: RunnableConfig) -> Command[Any]:
+    """An approval inside a flow: an agent step's tool call, or a human approval step."""
+    fs = _flow_state(state)
+    async with get_sessionmaker()() as db:
+        try:
+            turn = await _open(state, config, db)
+        except RunRefusedError as exc:
+            return await _abort(db, fs, str(exc))
+        try:
+            env = await turn.env()
+            wait = await _flow_wait(db, turn, env, fs)
+            if wait.tool is None:
+                fs["blocked"] = "A tool this flow needs is not available."
+                fs["at"] = flow_engine._to_output(turn.ctx.spec)
+                return Command(goto="flow_step", update={"flow": fs})
+            row = await approvals.request(
+                db,
+                run_id=UUID(fs["run_id"]),
+                call_id=wait.call_id,
+                tool_id=wait.tool.tool_id,
+                summary=f"{wait.tool.server_name}: {wait.tool.tool_name}",
+                payload={"arguments": wait.args},
+                requested_by=turn.ctx.user_id,
+                approver_group_id=wait.tool.approver_group_id,
+            )
+            await db.commit()
+            decision = approvals.current(row)
+            if decision is ApprovalDecision.PENDING:
+                resumed = interrupt(
+                    {
+                        "type": "approval",
+                        "approval_id": str(row.id),
+                        "tool": wait.tool.tool_name,
+                        "server": wait.tool.server_name,
+                        "summary": agent_tools.summary(wait.args),
+                    }
+                )
+                await db.refresh(row)
+                if isinstance(resumed, dict) and resumed.get("cancel"):
+                    row.decision, row.note = ApprovalDecision.EXPIRED, "cancelled by the requester"
+                    row.decided_at = datetime.now(UTC)
+                    await db.commit()
+                    return await _abort(db, fs, "Stopped by you.", status=RunStatus.CANCELLED)
+                decision = approvals.current(row)
+                if decision is ApprovalDecision.PENDING:
+                    return Command(goto="flow_approve")
+            await _flow_decided(
+                env,
+                turn.ctx.spec,
+                fs,
+                wait,
+                approved=decision is ApprovalDecision.APPROVED,
+                note=row.note or "",
+            )
+            await db.commit()
+        finally:
+            await turn.adapters.close()
+    return Command(goto="flow_step", update={"flow": fs})
 
 
 # ---------------------------------------------------------------- fast
@@ -488,7 +707,9 @@ async def finish_node(state: State, config: RunnableConfig) -> Command[Any]:
 
 
 builder = StateGraph(State)
-builder.add_node("route", route_node, destinations=("fast", "agent_start", END))
+builder.add_node("route", route_node, destinations=("fast", "agent_start", "flow_step", END))
+builder.add_node("flow_step", flow_step_node, destinations=("flow_approve", END))
+builder.add_node("flow_approve", flow_approve_node, destinations=("flow_step", "flow_approve", END))
 builder.add_node("fast", fast_node, destinations=("agent_start", END))
 builder.add_node("agent_start", agent_start_node, destinations=("think", END))
 builder.add_node("think", think_node, destinations=("act", "finish", END))

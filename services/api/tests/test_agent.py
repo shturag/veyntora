@@ -334,3 +334,152 @@ async def test_auto_answers_fast_and_hands_weak_answers_to_the_agent(
     meta = out["messages"][-1].additional_kwargs["veyntora"]
     assert meta["mode_used"] == "agent"
     assert meta["route_reason"] == "Fast answer was not good enough"
+
+
+async def _custom_flow(
+    rag: Rag, db: AsyncSession, nodes: list[dict[str, Any]], edges: list[tuple[str, str, str]]
+) -> None:
+    from veyntora_spec.pipeline import FlowEdge, FlowNode, FlowSpec  # noqa: PLC0415
+
+    spec = rag.w.spec()
+    spec.generation.max_answer_tokens = 400
+    spec.flow = FlowSpec(
+        custom=True,
+        nodes=[FlowNode(**n) for n in nodes],
+        edges=[FlowEdge(source=a, target=b, label=label) for a, b, label in edges],
+    )
+    await bots.save_draft(db, CTX, rag.bot, spec, expected_version=None)
+    assert await bots.publish_problems(db, rag.bot) == []
+    await bots.publish(db, CTX, rag.bot, None)
+
+
+async def test_a_custom_flow_runs_its_own_steps(rag: Rag, monkeypatch: pytest.MonkeyPatch) -> None:
+    db = rag.w.db
+    await _custom_flow(
+        rag,
+        db,
+        [
+            {"id": "in", "type": "input"},
+            {"id": "search", "type": "retriever", "config": {"top_k": 5}},
+            {"id": "write", "type": "llm"},
+            {"id": "check", "type": "guardrail", "config": {"check": "grounded"}},
+            {"id": "out", "type": "output"},
+        ],
+        [
+            ("in", "search", ""),
+            ("search", "write", ""),
+            ("write", "check", ""),
+            ("check", "out", ""),
+        ],
+    )
+    llm = AgentLLM()
+    llm.turns = 3  # past its tool plan: plain answers from the passages
+    graph = _graph(rag, db, llm, monkeypatch)
+    out = await graph.ainvoke(
+        {
+            "chatbot_id": str(rag.bot.id),
+            "mode": "auto",
+            "messages": [HumanMessage("Can digital products be refunded?")],
+        },
+        _config(rag, "flow-1"),
+    )
+    meta = out["messages"][-1].additional_kwargs["veyntora"]
+    assert meta["outcome"] == "answered" and meta["route_reason"] == "custom flow"
+    assert [s["name"] for s in meta["steps"]] == ["in", "search", "write", "check", "out"]
+    run = await db.scalar(sa.select(Run).where(Run.thread_id == "flow-1"))
+    assert run is not None and run.status is RunStatus.SUCCEEDED
+
+
+async def test_a_flow_answer_that_is_not_grounded_is_not_shown(
+    rag: Rag, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db = rag.w.db
+    await _custom_flow(
+        rag,
+        db,
+        [
+            {"id": "in", "type": "input"},
+            {"id": "write", "type": "llm"},
+            {"id": "check", "type": "guardrail", "config": {"check": "grounded"}},
+            {"id": "out", "type": "output"},
+        ],
+        [("in", "write", ""), ("write", "check", ""), ("check", "out", "")],
+    )
+    llm = AgentLLM()
+    llm.turns = 3  # past its tool plan: plain answers from the passages
+    graph = _graph(rag, db, llm, monkeypatch)
+    out = await graph.ainvoke(
+        {
+            "chatbot_id": str(rag.bot.id),
+            "messages": [HumanMessage("Can digital products be refunded?")],
+        },
+        _config(rag, "flow-2"),
+    )
+    meta = out["messages"][-1].additional_kwargs["veyntora"]
+    assert meta["outcome"] != "answered", "no search, so the answer cites nothing real"
+
+
+async def test_a_flow_write_tool_runs_only_after_its_approval(
+    rag: Rag, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db = rag.w.db
+    TICKETS.clear()
+    tools = await _with_tools(rag, db)
+    create = str(tools["create_ticket"].id)
+    nodes = [
+        {"id": "in", "type": "input"},
+        {"id": "ask", "type": "human_approval"},
+        {
+            "id": "ticket",
+            "type": "mcp_tool",
+            "config": {"tool_id": create, "arguments": {"summary": "{question}"}},
+        },
+        {"id": "search", "type": "retriever"},
+        {"id": "write", "type": "llm"},
+        {"id": "check", "type": "guardrail", "config": {"check": "grounded"}},
+        {"id": "out", "type": "output"},
+    ]
+    edges = [
+        ("in", "ask", ""),
+        ("ask", "ticket", ""),
+        ("ticket", "search", ""),
+        ("search", "write", ""),
+        ("write", "check", ""),
+        ("check", "out", ""),
+    ]
+    from veyntora_spec.pipeline import FlowEdge, FlowNode, FlowSpec  # noqa: PLC0415
+
+    spec = rag.w.spec()
+    spec.agent.tools = [AgentToolBinding(tool_id=t.id) for t in tools.values()]
+    bad = FlowSpec(
+        custom=True,
+        nodes=[FlowNode(**n) for n in nodes if n["id"] != "ask"],
+        edges=[
+            FlowEdge(source="in" if a == "ask" else a, target=b, label=label)
+            for a, b, label in edges
+            if b != "ask"
+        ],
+    )
+    spec.flow = bad
+    await bots.save_draft(db, CTX, rag.bot, spec, expected_version=None)
+    assert any("put a human approval step" in p for p in await bots.publish_problems(db, rag.bot))
+    await _custom_flow(rag, db, nodes, edges)
+    llm = AgentLLM()
+    llm.turns = 3  # past its tool plan: plain answers from the passages
+    graph = _graph(rag, db, llm, monkeypatch)
+    config = _config(rag, "flow-3")
+    first = await graph.ainvoke(
+        {"chatbot_id": str(rag.bot.id), "messages": [HumanMessage("Refund my e-book please")]},
+        config,
+    )
+    waiting = first["__interrupt__"][0].value
+    assert waiting["tool"] == "create_ticket" and TICKETS == []
+    approval = await db.get(Approval, UUID(waiting["approval_id"]))
+    assert approval is not None
+    await approvals.decide(
+        db, CTX, rag.authz, approval, (await _approver(db)).id, approve=True, note=None
+    )
+    done = await graph.ainvoke(Command(resume={"approval_id": waiting["approval_id"]}), config)
+    assert TICKETS == ["Refund my e-book please"]
+    steps = done["messages"][-1].additional_kwargs["veyntora"]["steps"]
+    assert any(s["kind"] == "approval" and s["status"] == "approved" for s in steps)

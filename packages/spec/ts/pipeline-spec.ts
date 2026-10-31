@@ -7,6 +7,7 @@ export type TokenBudget = number;
 export type Enabled = boolean;
 export type ToolId = string;
 export type Tools = AgentToolBinding[];
+export type Custom = boolean;
 export type Label = string;
 export type Source = string;
 export type Target = string;
@@ -113,6 +114,7 @@ export interface AgentToolBinding {
   tool_id: ToolId;
 }
 export interface FlowSpec {
+  custom?: Custom;
   edges?: Edges;
   nodes?: Nodes;
 }
@@ -122,6 +124,7 @@ export interface FlowEdge {
   target: Target;
 }
 export interface FlowNode {
+  config?: Config;
   id: Id;
   label?: Label1;
   note?: Note;
@@ -129,6 +132,9 @@ export interface FlowNode {
   type: FlowNodeType;
   x?: X;
   y?: Y;
+}
+export interface Config {
+  [k: string]: unknown;
 }
 export interface GenerationSpec {
   answer_language?: AnswerLanguage;

@@ -2283,6 +2283,11 @@
       "FlowNode": {
         "additionalProperties": false,
         "properties": {
+          "config": {
+            "additionalProperties": true,
+            "title": "Config",
+            "type": "object"
+          },
           "id": {
             "maxLength": 64,
             "minLength": 1,
@@ -2353,6 +2358,11 @@
       "FlowSpec": {
         "additionalProperties": false,
         "properties": {
+          "custom": {
+            "default": false,
+            "title": "Custom",
+            "type": "boolean"
+          },
           "edges": {
             "items": {
               "$ref": "#/components/schemas/FlowEdge"

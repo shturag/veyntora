@@ -11,7 +11,7 @@ unset; `publish_problems()` lists what must be filled before a version can go li
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -269,6 +269,12 @@ class FlowNode(_Spec):
     note: str = ""
     x: float = 0.0
     y: float = 0.0
+    # Step settings (custom flows), by type:
+    #   retriever: top_k, search_type; reranker: top_n, min_score; llm: system_prompt;
+    #   mcp_tool: tool_ids (agent toolbox) or tool_id + arguments ({"q": "{question}"});
+    #   condition: test (no_sources | grounded_below | question_matches), value;
+    #   guardrail: check (grounded | input | output); router: none.
+    config: dict[str, Any] = Field(default_factory=dict)
 
 
 class FlowEdge(_Spec):
@@ -309,6 +315,9 @@ def _default_flow_edges() -> list[FlowEdge]:
 
 
 class FlowSpec(_Spec):
+    # False: the flow pictures the standard pipeline, which runs. True: this flow runs
+    # (custom graph editor, product owner 2026-10-31); see flow_problems().
+    custom: bool = False
     nodes: list[FlowNode] = Field(default_factory=_default_flow_nodes)
     edges: list[FlowEdge] = Field(default_factory=_default_flow_edges)
 
@@ -325,6 +334,128 @@ class FlowSpec(_Spec):
             if not any(n.type is required for n in self.nodes):
                 raise ValueError(f"flow needs a {required.value} node")
         return self
+
+
+CONDITION_TESTS = ("no_sources", "grounded_below", "question_matches")
+GUARDRAIL_CHECKS = ("grounded", "input", "output")
+
+
+def _agent_toolboxes(flow: FlowSpec) -> set[str]:
+    """MCP tool nodes in a loop with an agent step: the agent's toolbox, not a call."""
+    kinds = {n.id: n.type for n in flow.nodes}
+    pairs = {(e.source, e.target) for e in flow.edges}
+    return {
+        t
+        for a, t in pairs
+        if kinds.get(a) is FlowNodeType.AGENT_LLM
+        and kinds.get(t) is FlowNodeType.MCP_TOOL
+        and (t, a) in pairs
+    }
+
+
+def _step_problems(flow: FlowSpec, toolboxes: set[str]) -> list[str]:
+    out: dict[str, list[FlowEdge]] = {n.id: [] for n in flow.nodes}
+    for e in flow.edges:
+        out[e.source].append(e)
+    problems = []
+    for n in flow.nodes:
+        name = n.label or n.id
+        labels = {e.label for e in out[n.id]}
+        onward = [e for e in out[n.id] if e.target not in toolboxes]
+        if n.type is FlowNodeType.OUTPUT:
+            if out[n.id]:
+                problems.append(f"{name}: nothing can follow an output step")
+            continue
+        if n.id not in toolboxes and not onward:
+            problems.append(f"{name}: this step leads nowhere")
+        if n.type is FlowNodeType.ROUTER and not labels <= {"fast", "agent", ""}:
+            problems.append(f"{name}: router branches are labelled fast or agent")
+        if n.type is FlowNodeType.CONDITION and (
+            labels != {"yes", "no"} or n.config.get("test") not in CONDITION_TESTS
+        ):
+            problems.append(f"{name}: a condition needs a test and a yes and a no branch")
+        if n.type is FlowNodeType.GUARDRAIL and n.config.get("check", "grounded") not in (
+            GUARDRAIL_CHECKS
+        ):
+            problems.append(f"{name}: unknown guardrail check")
+        if (
+            n.type is FlowNodeType.MCP_TOOL
+            and n.id not in toolboxes
+            and not n.config.get("tool_id")
+        ):
+            problems.append(f"{name}: choose the tool this step calls")
+    return problems
+
+
+def _graph_problems(flow: FlowSpec, toolboxes: set[str], start: str) -> list[str]:
+    nodes = {n.id: n for n in flow.nodes}
+    # Edges that make up the run order: the agent <-> toolbox loop is one step.
+    out: dict[str, list[str]] = {n: [] for n in nodes}
+    for e in flow.edges:
+        if e.source not in toolboxes and e.target not in toolboxes:
+            out[e.source].append(e.target)
+    problems = []
+    seen: set[str] = set()
+    order: list[str] = []
+    stack = [start]
+    while stack:
+        nid = stack.pop()
+        if nid not in seen:
+            seen.add(nid)
+            stack += out[nid]
+    unreachable = [nodes[i].label or i for i in nodes if i not in seen and i not in toolboxes]
+    if unreachable:
+        problems.append(f"not reachable from the input: {', '.join(unreachable)}")
+    # A loop would run forever: depth-first search for a back edge.
+    state: dict[str, int] = {}
+
+    def visit(nid: str) -> bool:
+        state[nid] = 1
+        for nxt in out[nid]:
+            if state.get(nxt) == 1 or (state.get(nxt) is None and visit(nxt)):
+                return True
+        state[nid] = 2
+        order.append(nid)
+        return False
+
+    if visit(start):
+        problems.append("the flow has a loop (only an agent step and its tools may loop)")
+        return problems
+    # Grounded or silent: no way from an answer-writing step to an output skips a
+    # grounding check. Walk in reverse topological order.
+    unchecked: dict[str, bool] = {}
+    for nid in order:  # children before parents
+        node = nodes[nid]
+        grounding = (
+            node.type is FlowNodeType.GUARDRAIL
+            and node.config.get("check", "grounded") == "grounded"
+        )
+        unchecked[nid] = node.type is FlowNodeType.OUTPUT or (
+            not grounding and any(unchecked.get(c, False) for c in out[nid])
+        )
+    for nid in order:
+        node = nodes[nid]
+        writes = node.type in {FlowNodeType.LLM, FlowNodeType.AGENT_LLM}
+        if writes and any(unchecked.get(c, False) for c in out[nid]):
+            problems.append(
+                f"{node.label or nid}: its answer reaches an output without a grounding check"
+            )
+    return problems
+
+
+def flow_problems(flow: FlowSpec) -> list[str]:
+    """Why a custom flow cannot run. The rules keep the platform's promises: every answer
+    is checked for grounding before it is shown; a direct tool call that writes is
+    preceded by a human approval (checked with the tool registry when publishing);
+    retrieval always applies the asker's permissions (built in)."""
+    if not flow.custom:
+        return []
+    toolboxes = _agent_toolboxes(flow)
+    starts = [n.id for n in flow.nodes if n.type is FlowNodeType.INPUT]
+    if len(starts) != 1:
+        return ["a flow has exactly one input step"]
+    problems = _step_problems(flow, toolboxes)
+    return problems or _graph_problems(flow, toolboxes, starts[0])
 
 
 # ---------------------------------------------------------------- root
@@ -372,4 +503,5 @@ class PipelineSpec(_Spec):
             problems.append("guardrails.no_promises needs an output safety check instance")
         if g.blocked_topics and g.input_guardrail_instance_id is None:
             problems.append("guardrails.blocked_topics needs an input safety check instance")
+        problems += flow_problems(self.flow)
         return problems

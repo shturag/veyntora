@@ -147,6 +147,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/flow",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -375,7 +376,8 @@ export const SCREENS: readonly Screen[] = [
     file: "Channels.html",
     route: "/admin/channels",
     shell: "admin",
-    phase: 4, built: true,
+    phase: 4,
+    built: true,
     area: "channels",
   },
 

@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_providers.interfaces import Capability, Hosting
 from veyntora_spec.filters import FilterError, parse_filter
-from veyntora_spec.pipeline import PipelineSpec
+from veyntora_spec.pipeline import FlowNodeType, PipelineSpec
 
 from veyntora_api.authz.fga import PLATFORM, Authz, Tuple
 from veyntora_api.core import audit
@@ -252,9 +252,47 @@ async def external_problems(
     return problems
 
 
+def flow_tool_ids(spec: PipelineSpec) -> list[UUID]:
+    """Tools a custom flow uses: agent toolboxes and direct tool steps."""
+    if not spec.flow.custom:
+        return []
+    out: list[UUID] = []
+    for n in spec.flow.nodes:
+        if n.type is FlowNodeType.MCP_TOOL:
+            ids = [n.config.get("tool_id"), *(n.config.get("tool_ids") or [])]
+            out += [UUID(str(i)) for i in ids if i]
+    return out
+
+
+async def flow_approval_problems(db: AsyncSession, spec: PipelineSpec) -> list[str]:
+    """No write without approval: a direct step calling a write tool comes right after a
+    human approval step (every way into it)."""
+    if not spec.flow.custom:
+        return []
+    kinds = {n.id: n.type for n in spec.flow.nodes}
+    problems = []
+    for n in spec.flow.nodes:
+        tool_id = n.config.get("tool_id") if n.type is FlowNodeType.MCP_TOOL else None
+        if not tool_id:
+            continue
+        try:
+            tool = await db.get(Tool, UUID(str(tool_id)))
+        except ValueError:
+            tool = None
+        if tool is None:
+            continue  # reported by tool_problems
+        incoming = [e.source for e in spec.flow.edges if e.target == n.id]
+        approved = incoming and all(kinds[s] is FlowNodeType.HUMAN_APPROVAL for s in incoming)
+        if tool.access is not ToolAccess.READ and not approved:
+            problems.append(
+                f"{n.label or n.id}: {tool.name} writes; put a human approval step before it"
+            )
+    return problems
+
+
 async def tool_problems(db: AsyncSession, bot: Chatbot, spec: PipelineSpec) -> list[str]:
     """Bound tools must be usable; an external MCP server needs the chatbot's data rule."""
-    bound = [b.tool_id for b in spec.agent.tools if b.enabled]
+    bound = [b.tool_id for b in spec.agent.tools if b.enabled] + flow_tool_ids(spec)
     if not bound:
         return []
     rows = {
@@ -338,6 +376,7 @@ async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
         + ref_problems
         + await external_problems(db, bot, rows, spec)
         + await tool_problems(db, bot, spec)
+        + await flow_approval_problems(db, spec)
     )
 
 

@@ -26,7 +26,7 @@ export async function BotHeader({
   const t = await getTranslations("bots");
   const href: Record<BotTab, string | null> = {
     overview: `/admin/chatbots/${bot.id}`,
-    pipeline: `/admin/pipelines/${bot.id}`,
+    pipeline: `/admin/chatbots/${bot.id}/flow`,
     knowledge: `/admin/chatbots/${bot.id}/knowledge`,
     access: `/admin/chatbots/${bot.id}/access`,
     versions: null, // Phase 6

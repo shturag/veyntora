@@ -2438,6 +2438,10 @@ export interface components {
         };
         /** FlowNode */
         FlowNode: {
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            };
             /** Id */
             id: string;
             /**
@@ -2471,6 +2475,11 @@ export interface components {
         FlowNodeType: "input" | "router" | "retriever" | "reranker" | "llm" | "agent_llm" | "mcp_tool" | "condition" | "guardrail" | "human_approval" | "output";
         /** FlowSpec */
         FlowSpec: {
+            /**
+             * Custom
+             * @default false
+             */
+            custom: boolean;
             /** Edges */
             edges?: components["schemas"]["FlowEdge"][];
             /** Nodes */
