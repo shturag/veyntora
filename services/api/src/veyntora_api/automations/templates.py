@@ -11,6 +11,7 @@ from veyntora_spec.automation import (
     AgentStep,
     ApprovalStep,
     ApproverSees,
+    AutomationRule,
     AutomationSpec,
     Autonomy,
     EventTrigger,
@@ -20,7 +21,6 @@ from veyntora_spec.automation import (
     NotifyStep,
     Operator,
     Repeat,
-    Rule,
     Safety,
     ScheduleTrigger,
     WatcherTrigger,
@@ -160,7 +160,9 @@ def spec_for(template: str, chatbot_id: UUID | None) -> AutomationSpec:
     if template == "deadline_watcher":
         return AutomationSpec(
             trigger=WatcherTrigger(
-                fire_when=[Rule(field="event.end_date", op=Operator.WITHIN_DAYS, value="60")],
+                fire_when=[
+                    AutomationRule(field="event.end_date", op=Operator.WITHIN_DAYS, value="60")
+                ],
                 once_per="id",
             ),
             steps=[

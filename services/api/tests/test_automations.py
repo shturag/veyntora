@@ -43,6 +43,7 @@ from veyntora_providers.interfaces import ToolCall as LlmCall
 from veyntora_spec.automation import (
     AgentStep,
     ApprovalStep,
+    AutomationRule,
     AutomationSpec,
     Autonomy,
     ConditionStep,
@@ -51,7 +52,6 @@ from veyntora_spec.automation import (
     NotifyStep,
     Operator,
     Repeat,
-    Rule,
     Safety,
     ScheduleTrigger,
     ToolStep,
@@ -70,7 +70,7 @@ async def rag(db: AsyncSession) -> Rag:
 
 
 class Authz(AllowAll):
-    """Allows everything not denied; platform admins are the `admins`."""
+    """Allows everything not denied; platform admins are the `admins` (read)."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -396,7 +396,7 @@ async def test_writes_wait_for_approval_and_suggest_only_never_writes(
             ),
             ConditionStep(
                 id="step2",
-                rules=[Rule(field="step1.category", op=Operator.EQUALS, value="refund")],
+                rules=[AutomationRule(field="step1.category", op=Operator.EQUALS, value="refund")],
                 yes="step3",
                 no="end",
             ),
@@ -439,7 +439,7 @@ def test_spec_problems_name_what_is_missing() -> None:
     spec = AutomationSpec(
         steps=[
             ConditionStep(
-                id="step1", rules=[Rule(field="step2.x", value="1")], yes="step1", no=None
+                id="step1", rules=[AutomationRule(field="step2.x", value="1")], yes="step1", no=None
             ),
             NotifyStep(id="step2", channel=NotifyChannel.EMAIL, message="Hi {step3.answer}"),
         ],
@@ -482,7 +482,7 @@ async def test_webhook_events_need_the_token_and_match_the_conditions(rag: Rag) 
     spec = svc.spec_of(row)
     spec.trigger = EventTrigger(
         event="ticket.created",
-        conditions=[Rule(field="event.project", value="SUP")],
+        conditions=[AutomationRule(field="event.project", value="SUP")],
         dedupe_field="event.key",
         dedupe_minutes=60,
     )
@@ -537,7 +537,7 @@ async def test_a_watcher_fires_once_per_matching_item(rag: Rag) -> None:
     spec = svc.spec_of(row)
     spec.trigger = WatcherTrigger(
         tool_id=tools["get_ticket"].id,
-        fire_when=[Rule(field="event.end_date", op=Operator.WITHIN_DAYS, value="60")],
+        fire_when=[AutomationRule(field="event.end_date", op=Operator.WITHIN_DAYS, value="60")],
         once_per="id",
     )
     await svc.save(
@@ -550,3 +550,29 @@ async def test_a_watcher_fires_once_per_matching_item(rag: Rag) -> None:
     again = await triggers.watch(db, authz, None, row, now, connect=connect)  # type: ignore[arg-type]
     assert again.runs == [], "once per contract"
     assert row.next_run_at is not None and row.next_run_at > now
+
+
+def test_a_drafted_automation_uses_only_known_tools_and_fits_the_spec() -> None:
+    from veyntora_api.automations import draft  # noqa: PLC0415
+
+    bot, tool = uuid4(), uuid4()
+    answer = """Here is the draft:
+    {"name": "Weekly SLA report",
+     "trigger": {"type": "schedule", "repeat": "weekly", "time": "07:45", "days": ["mon"]},
+     "steps": [
+       {"id": "step1", "type": "agent", "name": "Summarise", "task": "Summarise the week",
+        "tools": ["query_tickets", "made_up_tool"], "outputs": ["trend"]},
+       {"id": "step2", "type": "approval", "name": "Lead approves"},
+       {"id": "step3", "type": "notify", "channel": "teams_channel",
+        "message": "{step1.answer}", "to": ["ignored"]}
+     ],
+     "autonomy": "approve"}"""
+    name, spec = draft.parse(answer, bot, {"query_tickets": tool})
+    assert name == "Weekly SLA report"
+    agent = spec.steps[0]
+    assert isinstance(agent, AgentStep) and agent.tool_ids == [tool] and agent.chatbot_id == bot
+    assert [s.type for s in spec.steps] == ["agent", "approval", "notify"]
+    # Still a draft: the Teams channel is for the admin to choose.
+    assert "Step 3: choose the channel to post in." in automation_problems(spec)
+    with pytest.raises(draft.DraftError):
+        draft.parse("I cannot help with that.", bot, {})

@@ -137,7 +137,7 @@
         "title": "AgentSpec",
         "type": "object"
       },
-      "AgentStep": {
+      "AgentStep-Input": {
         "additionalProperties": false,
         "description": "The agent with a chatbot's live pipeline, a task and the tools it may use.",
         "properties": {
@@ -180,8 +180,78 @@
             "type": "array"
           },
           "task": {
+            "default": "",
             "maxLength": 8000,
-            "minLength": 1,
+            "title": "Task",
+            "type": "string"
+          },
+          "tool_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Tool Ids",
+            "type": "array"
+          },
+          "type": {
+            "const": "agent",
+            "default": "agent",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "AgentStep",
+        "type": "object"
+      },
+      "AgentStep-Output": {
+        "additionalProperties": false,
+        "description": "The agent with a chatbot's live pipeline, a task and the tools it may use.",
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "max_steps": {
+            "default": 6,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "outputs": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Outputs",
+            "type": "array"
+          },
+          "task": {
+            "default": "",
+            "maxLength": 8000,
             "title": "Task",
             "type": "string"
           },
@@ -203,7 +273,13 @@
         },
         "required": [
           "id",
-          "task"
+          "name",
+          "type",
+          "chatbot_id",
+          "task",
+          "tool_ids",
+          "max_steps",
+          "outputs"
         ],
         "title": "AgentStep",
         "type": "object"
@@ -497,10 +573,46 @@
               }
             ]
           },
+          "actions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "approvals": {
+            "default": 0,
+            "title": "Approvals",
+            "type": "integer"
+          },
           "arguments": {
             "additionalProperties": true,
             "title": "Arguments",
             "type": "object"
+          },
+          "automation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation"
+          },
+          "automation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation Id"
           },
           "can_decide": {
             "title": "Can Decide",
@@ -548,6 +660,28 @@
           "decision": {
             "$ref": "#/components/schemas/ApprovalDecision"
           },
+          "draft": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft"
+          },
+          "editable": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editable"
+          },
           "expires_at": {
             "anyOf": [
               {
@@ -580,9 +714,22 @@
             ],
             "title": "Note"
           },
+          "reasoning": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasoning",
+            "type": "array"
+          },
           "requested_by": {
             "title": "Requested By",
             "type": "string"
+          },
+          "required": {
+            "default": 1,
+            "title": "Required",
+            "type": "integer"
           },
           "run_id": {
             "format": "uuid",
@@ -599,6 +746,14 @@
               }
             ],
             "title": "Server"
+          },
+          "sources": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
           },
           "summary": {
             "title": "Summary",
@@ -638,7 +793,7 @@
         "title": "ApprovalOut",
         "type": "object"
       },
-      "ApprovalStep": {
+      "ApprovalStep-Input": {
         "additionalProperties": false,
         "properties": {
           "approver_group_id": {
@@ -722,6 +877,103 @@
         },
         "required": [
           "id"
+        ],
+        "title": "ApprovalStep",
+        "type": "object"
+      },
+      "ApprovalStep-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "approver_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Group Id"
+          },
+          "editable": {
+            "anyOf": [
+              {
+                "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editable"
+          },
+          "escalate_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalate Group Id"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "on_timeout": {
+            "$ref": "#/components/schemas/OnTimeout",
+            "default": "cancel"
+          },
+          "required": {
+            "default": 1,
+            "maximum": 2.0,
+            "minimum": 1.0,
+            "title": "Required",
+            "type": "integer"
+          },
+          "shows": {
+            "items": {
+              "$ref": "#/components/schemas/ApproverSees"
+            },
+            "title": "Shows",
+            "type": "array"
+          },
+          "timeout_hours": {
+            "default": 24,
+            "maximum": 168.0,
+            "minimum": 1.0,
+            "title": "Timeout Hours",
+            "type": "integer"
+          },
+          "type": {
+            "const": "approval",
+            "default": "approval",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "approver_group_id",
+          "required",
+          "timeout_hours",
+          "on_timeout",
+          "escalate_group_id",
+          "shows",
+          "editable"
         ],
         "title": "ApprovalStep",
         "type": "object"
@@ -934,6 +1186,28 @@
         "title": "AutomationCard",
         "type": "object"
       },
+      "AutomationDraftInput": {
+        "additionalProperties": false,
+        "properties": {
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "chatbot_id"
+        ],
+        "title": "AutomationDraftInput",
+        "type": "object"
+      },
       "AutomationInput": {
         "additionalProperties": false,
         "properties": {
@@ -1124,7 +1398,7 @@
           },
           "versions": {
             "items": {
-              "$ref": "#/components/schemas/veyntora_api__routers__admin_automations__VersionOut"
+              "$ref": "#/components/schemas/AutomationVersionOut"
             },
             "title": "Versions",
             "type": "array"
@@ -1151,6 +1425,60 @@
         "title": "AutomationOut",
         "type": "object"
       },
+      "AutomationRule-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "maxLength": 128,
+            "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+            "title": "Field",
+            "type": "string"
+          },
+          "op": {
+            "$ref": "#/components/schemas/Operator",
+            "default": "equals"
+          },
+          "value": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field"
+        ],
+        "title": "AutomationRule",
+        "type": "object"
+      },
+      "AutomationRule-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "maxLength": 128,
+            "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
+            "title": "Field",
+            "type": "string"
+          },
+          "op": {
+            "$ref": "#/components/schemas/Operator",
+            "default": "equals"
+          },
+          "value": {
+            "default": "",
+            "maxLength": 512,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "op",
+          "value"
+        ],
+        "title": "AutomationRule",
+        "type": "object"
+      },
       "AutomationSpec-Input": {
         "additionalProperties": false,
         "properties": {
@@ -1167,29 +1495,29 @@
             "items": {
               "discriminator": {
                 "mapping": {
-                  "agent": "#/components/schemas/AgentStep",
-                  "approval": "#/components/schemas/ApprovalStep",
+                  "agent": "#/components/schemas/AgentStep-Input",
+                  "approval": "#/components/schemas/ApprovalStep-Input",
                   "condition": "#/components/schemas/ConditionStep-Input",
-                  "notify": "#/components/schemas/NotifyStep",
-                  "tool": "#/components/schemas/ToolStep"
+                  "notify": "#/components/schemas/NotifyStep-Input",
+                  "tool": "#/components/schemas/ToolStep-Input"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AgentStep"
+                  "$ref": "#/components/schemas/AgentStep-Input"
                 },
                 {
                   "$ref": "#/components/schemas/ConditionStep-Input"
                 },
                 {
-                  "$ref": "#/components/schemas/ApprovalStep"
+                  "$ref": "#/components/schemas/ApprovalStep-Input"
                 },
                 {
-                  "$ref": "#/components/schemas/ToolStep"
+                  "$ref": "#/components/schemas/ToolStep-Input"
                 },
                 {
-                  "$ref": "#/components/schemas/NotifyStep"
+                  "$ref": "#/components/schemas/NotifyStep-Input"
                 }
               ]
             },
@@ -1201,21 +1529,21 @@
             "discriminator": {
               "mapping": {
                 "event": "#/components/schemas/EventTrigger-Input",
-                "file": "#/components/schemas/FileTrigger",
-                "schedule": "#/components/schemas/ScheduleTrigger",
+                "file": "#/components/schemas/FileTrigger-Input",
+                "schedule": "#/components/schemas/ScheduleTrigger-Input",
                 "watcher": "#/components/schemas/WatcherTrigger-Input"
               },
               "propertyName": "type"
             },
             "oneOf": [
               {
-                "$ref": "#/components/schemas/ScheduleTrigger"
+                "$ref": "#/components/schemas/ScheduleTrigger-Input"
               },
               {
                 "$ref": "#/components/schemas/EventTrigger-Input"
               },
               {
-                "$ref": "#/components/schemas/FileTrigger"
+                "$ref": "#/components/schemas/FileTrigger-Input"
               },
               {
                 "$ref": "#/components/schemas/WatcherTrigger-Input"
@@ -1243,29 +1571,29 @@
             "items": {
               "discriminator": {
                 "mapping": {
-                  "agent": "#/components/schemas/AgentStep",
-                  "approval": "#/components/schemas/ApprovalStep",
+                  "agent": "#/components/schemas/AgentStep-Output",
+                  "approval": "#/components/schemas/ApprovalStep-Output",
                   "condition": "#/components/schemas/ConditionStep-Output",
-                  "notify": "#/components/schemas/NotifyStep",
-                  "tool": "#/components/schemas/ToolStep"
+                  "notify": "#/components/schemas/NotifyStep-Output",
+                  "tool": "#/components/schemas/ToolStep-Output"
                 },
                 "propertyName": "type"
               },
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/AgentStep"
+                  "$ref": "#/components/schemas/AgentStep-Output"
                 },
                 {
                   "$ref": "#/components/schemas/ConditionStep-Output"
                 },
                 {
-                  "$ref": "#/components/schemas/ApprovalStep"
+                  "$ref": "#/components/schemas/ApprovalStep-Output"
                 },
                 {
-                  "$ref": "#/components/schemas/ToolStep"
+                  "$ref": "#/components/schemas/ToolStep-Output"
                 },
                 {
-                  "$ref": "#/components/schemas/NotifyStep"
+                  "$ref": "#/components/schemas/NotifyStep-Output"
                 }
               ]
             },
@@ -1277,21 +1605,21 @@
             "discriminator": {
               "mapping": {
                 "event": "#/components/schemas/EventTrigger-Output",
-                "file": "#/components/schemas/FileTrigger",
-                "schedule": "#/components/schemas/ScheduleTrigger",
+                "file": "#/components/schemas/FileTrigger-Output",
+                "schedule": "#/components/schemas/ScheduleTrigger-Output",
                 "watcher": "#/components/schemas/WatcherTrigger-Output"
               },
               "propertyName": "type"
             },
             "oneOf": [
               {
-                "$ref": "#/components/schemas/ScheduleTrigger"
+                "$ref": "#/components/schemas/ScheduleTrigger-Output"
               },
               {
                 "$ref": "#/components/schemas/EventTrigger-Output"
               },
               {
-                "$ref": "#/components/schemas/FileTrigger"
+                "$ref": "#/components/schemas/FileTrigger-Output"
               },
               {
                 "$ref": "#/components/schemas/WatcherTrigger-Output"
@@ -1300,6 +1628,12 @@
             "title": "Trigger"
           }
         },
+        "required": [
+          "schema_version",
+          "trigger",
+          "steps",
+          "safety"
+        ],
         "title": "AutomationSpec",
         "type": "object"
       },
@@ -1311,6 +1645,42 @@
         ],
         "title": "AutomationStatus",
         "type": "string"
+      },
+      "AutomationVersionOut": {
+        "properties": {
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number",
+          "change_note",
+          "created_by",
+          "created_at"
+        ],
+        "title": "AutomationVersionOut",
+        "type": "object"
       },
       "Autonomy": {
         "enum": [
@@ -1533,6 +1903,59 @@
           "endpoint"
         ],
         "title": "BotChannelOut",
+        "type": "object"
+      },
+      "BuilderOptions": {
+        "properties": {
+          "chatbots": {
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "destinations": {
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            },
+            "title": "Destinations",
+            "type": "array"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "mail_ready": {
+            "title": "Mail Ready",
+            "type": "boolean"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ToolOption"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chatbots",
+          "tools",
+          "groups",
+          "destinations",
+          "sources",
+          "mail_ready"
+        ],
+        "title": "BuilderOptions",
         "type": "object"
       },
       "ByokInput": {
@@ -1808,7 +2231,7 @@
             "type": "string"
           },
           "draft": {
-            "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
+            "$ref": "#/components/schemas/VersionOut"
           },
           "draft_version": {
             "anyOf": [
@@ -2351,7 +2774,7 @@
           },
           "rules": {
             "items": {
-              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+              "$ref": "#/components/schemas/AutomationRule-Input"
             },
             "maxItems": 10,
             "minItems": 1,
@@ -2415,7 +2838,7 @@
           },
           "rules": {
             "items": {
-              "$ref": "#/components/schemas/Rule-Output"
+              "$ref": "#/components/schemas/AutomationRule-Output"
             },
             "maxItems": 10,
             "minItems": 1,
@@ -2442,7 +2865,12 @@
         },
         "required": [
           "id",
-          "rules"
+          "name",
+          "type",
+          "rules",
+          "join",
+          "yes",
+          "no"
         ],
         "title": "ConditionStep",
         "type": "object"
@@ -2487,7 +2915,7 @@
           },
           "rules": {
             "items": {
-              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+              "$ref": "#/components/schemas/AutomationRule-Input"
             },
             "maxItems": 20,
             "title": "Rules",
@@ -2682,6 +3110,20 @@
           "approve": {
             "title": "Approve",
             "type": "boolean"
+          },
+          "edits": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edits"
           },
           "note": {
             "anyOf": [
@@ -3069,7 +3511,7 @@
           },
           "conditions": {
             "items": {
-              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+              "$ref": "#/components/schemas/AutomationRule-Input"
             },
             "maxItems": 20,
             "title": "Conditions",
@@ -3136,7 +3578,7 @@
           },
           "conditions": {
             "items": {
-              "$ref": "#/components/schemas/Rule-Output"
+              "$ref": "#/components/schemas/AutomationRule-Output"
             },
             "maxItems": 20,
             "title": "Conditions",
@@ -3181,7 +3623,14 @@
           }
         },
         "required": [
-          "event"
+          "type",
+          "app",
+          "event",
+          "conditions",
+          "dedupe_field",
+          "dedupe_minutes",
+          "active_hours",
+          "timezone"
         ],
         "title": "EventTrigger",
         "type": "object"
@@ -3285,7 +3734,7 @@
         "title": "FileOut",
         "type": "object"
       },
-      "FileTrigger": {
+      "FileTrigger-Input": {
         "additionalProperties": false,
         "description": "A file in a connected data source.",
         "properties": {
@@ -3331,6 +3780,63 @@
             "default": "added"
           }
         },
+        "title": "FileTrigger",
+        "type": "object"
+      },
+      "FileTrigger-Output": {
+        "additionalProperties": false,
+        "description": "A file in a connected data source.",
+        "properties": {
+          "file_types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "File Types",
+            "type": "array"
+          },
+          "folder": {
+            "default": "",
+            "maxLength": 1024,
+            "title": "Folder",
+            "type": "string"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "type": {
+            "const": "file",
+            "default": "file",
+            "title": "Type",
+            "type": "string"
+          },
+          "wait_for_index": {
+            "default": true,
+            "title": "Wait For Index",
+            "type": "boolean"
+          },
+          "when": {
+            "$ref": "#/components/schemas/FileWhen",
+            "default": "added"
+          }
+        },
+        "required": [
+          "type",
+          "source_id",
+          "folder",
+          "file_types",
+          "when",
+          "wait_for_index"
+        ],
         "title": "FileTrigger",
         "type": "object"
       },
@@ -3831,7 +4337,7 @@
           "rule": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/veyntora_api__people__service__Rule"
+                "$ref": "#/components/schemas/Rule"
               },
               {
                 "type": "null"
@@ -4143,7 +4649,7 @@
           "rule": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/veyntora_api__people__service__Rule"
+                "$ref": "#/components/schemas/Rule"
               },
               {
                 "type": "null"
@@ -4295,7 +4801,7 @@
         "title": "HealthStatus",
         "type": "string"
       },
-      "Holidays": {
+      "Holidays-Input": {
         "additionalProperties": false,
         "description": "Skip public holidays of this country (ISO code) and, optionally, state.",
         "properties": {
@@ -4319,6 +4825,35 @@
         },
         "required": [
           "country"
+        ],
+        "title": "Holidays",
+        "type": "object"
+      },
+      "Holidays-Output": {
+        "additionalProperties": false,
+        "description": "Skip public holidays of this country (ISO code) and, optionally, state.",
+        "properties": {
+          "country": {
+            "pattern": "^[A-Z]{2}$",
+            "title": "Country",
+            "type": "string"
+          },
+          "subdivision": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Z0-9]{1,3}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subdivision"
+          }
+        },
+        "required": [
+          "country",
+          "subdivision"
         ],
         "title": "Holidays",
         "type": "object"
@@ -5317,7 +5852,7 @@
         "title": "NotifyChannel",
         "type": "string"
       },
-      "NotifyStep": {
+      "NotifyStep-Input": {
         "additionalProperties": false,
         "properties": {
           "channel": {
@@ -5342,8 +5877,65 @@
             "type": "string"
           },
           "message": {
+            "default": "",
             "maxLength": 8000,
-            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "to": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "To",
+            "type": "array"
+          },
+          "type": {
+            "const": "notify",
+            "default": "notify",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "NotifyStep",
+        "type": "object"
+      },
+      "NotifyStep-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "channel": {
+            "$ref": "#/components/schemas/NotifyChannel",
+            "default": "teams_channel"
+          },
+          "destination_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination Id"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "message": {
+            "default": "",
+            "maxLength": 8000,
             "title": "Message",
             "type": "string"
           },
@@ -5370,6 +5962,11 @@
         },
         "required": [
           "id",
+          "name",
+          "type",
+          "channel",
+          "destination_id",
+          "to",
           "message"
         ],
         "title": "NotifyStep",
@@ -5395,6 +5992,30 @@
         ],
         "title": "Operator",
         "type": "string"
+      },
+      "Option": {
+        "properties": {
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "Option",
+        "type": "object"
       },
       "Overview": {
         "properties": {
@@ -7007,28 +7628,30 @@
         "title": "RouterSpec",
         "type": "object"
       },
-      "Rule-Output": {
+      "Rule": {
         "additionalProperties": false,
         "properties": {
-          "field": {
-            "maxLength": 128,
-            "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
-            "title": "Field",
-            "type": "string"
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/Condition"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Conditions",
+            "type": "array"
           },
-          "op": {
-            "$ref": "#/components/schemas/Operator",
-            "default": "equals"
-          },
-          "value": {
-            "default": "",
-            "maxLength": 512,
-            "title": "Value",
+          "match": {
+            "default": "all",
+            "enum": [
+              "all",
+              "any"
+            ],
+            "title": "Match",
             "type": "string"
           }
         },
         "required": [
-          "field"
+          "conditions"
         ],
         "title": "Rule",
         "type": "object"
@@ -7099,6 +7722,55 @@
         "title": "RunApproval",
         "type": "object"
       },
+      "RunDelivery": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "via": {
+            "title": "Via",
+            "type": "string"
+          }
+        },
+        "required": [
+          "via",
+          "status",
+          "error",
+          "created_at",
+          "sent_at"
+        ],
+        "title": "RunDelivery",
+        "type": "object"
+      },
       "RunKind": {
         "enum": [
           "chat_agent",
@@ -7144,6 +7816,40 @@
             "title": "Approvals",
             "type": "array"
           },
+          "automation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation"
+          },
+          "automation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation Id"
+          },
+          "automation_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation Version"
+          },
           "chatbot": {
             "anyOf": [
               {
@@ -7155,10 +7861,28 @@
             ],
             "title": "Chatbot"
           },
+          "cost": {
+            "default": "0",
+            "title": "Cost",
+            "type": "string"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "deliveries": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RunDelivery"
+            },
+            "title": "Deliveries",
+            "type": "array"
+          },
+          "dry_run": {
+            "default": false,
+            "title": "Dry Run",
+            "type": "boolean"
           },
           "error": {
             "anyOf": [
@@ -7170,6 +7894,12 @@
               }
             ],
             "title": "Error"
+          },
+          "event": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Event",
+            "type": "object"
           },
           "finished_at": {
             "anyOf": [
@@ -7202,6 +7932,17 @@
           "kind": {
             "$ref": "#/components/schemas/RunKind"
           },
+          "runs_as": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runs As"
+          },
           "started_by": {
             "anyOf": [
               {
@@ -7224,6 +7965,17 @@
             "title": "Steps",
             "type": "array"
           },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
           "tokens_in": {
             "title": "Tokens In",
             "type": "integer"
@@ -7238,6 +7990,17 @@
             },
             "title": "Tool Calls",
             "type": "array"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger"
           }
         },
         "required": [
@@ -7474,6 +8237,13 @@
             "type": "integer"
           }
         },
+        "required": [
+          "autonomy",
+          "max_cost_per_run",
+          "max_runs_per_hour",
+          "retries",
+          "alert_owner_on_failure"
+        ],
         "title": "Safety",
         "type": "object"
       },
@@ -7572,14 +8342,14 @@
           "trigger": {
             "discriminator": {
               "mapping": {
-                "schedule": "#/components/schemas/ScheduleTrigger",
+                "schedule": "#/components/schemas/ScheduleTrigger-Input",
                 "watcher": "#/components/schemas/WatcherTrigger-Input"
               },
               "propertyName": "type"
             },
             "oneOf": [
               {
-                "$ref": "#/components/schemas/ScheduleTrigger"
+                "$ref": "#/components/schemas/ScheduleTrigger-Input"
               },
               {
                 "$ref": "#/components/schemas/WatcherTrigger-Input"
@@ -7594,7 +8364,7 @@
         "title": "SchedulePreviewInput",
         "type": "object"
       },
-      "ScheduleTrigger": {
+      "ScheduleTrigger-Input": {
         "additionalProperties": false,
         "properties": {
           "cron": {
@@ -7647,7 +8417,7 @@
           "skip_holidays": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Holidays"
+                "$ref": "#/components/schemas/Holidays-Input"
               },
               {
                 "type": "null"
@@ -7672,6 +8442,98 @@
             "type": "string"
           }
         },
+        "title": "ScheduleTrigger",
+        "type": "object"
+      },
+      "ScheduleTrigger-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "cron": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cron"
+          },
+          "day_of_month": {
+            "default": 1,
+            "maximum": 28.0,
+            "minimum": 1.0,
+            "title": "Day Of Month",
+            "type": "integer"
+          },
+          "days": {
+            "items": {
+              "enum": [
+                "mon",
+                "tue",
+                "wed",
+                "thu",
+                "fri",
+                "sat",
+                "sun"
+              ],
+              "type": "string"
+            },
+            "maxItems": 7,
+            "title": "Days",
+            "type": "array"
+          },
+          "every_hours": {
+            "default": 4,
+            "maximum": 24.0,
+            "minimum": 1.0,
+            "title": "Every Hours",
+            "type": "integer"
+          },
+          "repeat": {
+            "$ref": "#/components/schemas/Repeat",
+            "default": "weekly"
+          },
+          "skip_holidays": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Holidays-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "time": {
+            "default": "07:45",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Time",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          },
+          "type": {
+            "const": "schedule",
+            "default": "schedule",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "repeat",
+          "time",
+          "days",
+          "day_of_month",
+          "every_hours",
+          "cron",
+          "timezone",
+          "skip_holidays"
+        ],
         "title": "ScheduleTrigger",
         "type": "object"
       },
@@ -8815,6 +9677,34 @@
         "title": "ToolGroupOption",
         "type": "object"
       },
+      "ToolOption": {
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/ToolAccess"
+          },
+          "detail": {
+            "default": "",
+            "title": "Detail",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "access"
+        ],
+        "title": "ToolOption",
+        "type": "object"
+      },
       "ToolOut": {
         "properties": {
           "access": {
@@ -8921,7 +9811,7 @@
         "title": "ToolOut",
         "type": "object"
       },
-      "ToolStep": {
+      "ToolStep-Input": {
         "additionalProperties": false,
         "description": "One call of one MCP tool; a writing tool needs an approval step before it.",
         "properties": {
@@ -8965,6 +9855,58 @@
         },
         "required": [
           "id"
+        ],
+        "title": "ToolStep",
+        "type": "object"
+      },
+      "ToolStep-Output": {
+        "additionalProperties": false,
+        "description": "One call of one MCP tool; a writing tool needs an approval step before it.",
+        "properties": {
+          "arguments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 30,
+            "title": "Arguments",
+            "type": "object"
+          },
+          "id": {
+            "pattern": "^step\\d+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "tool_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Id"
+          },
+          "type": {
+            "const": "tool",
+            "default": "tool",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "tool_id",
+          "arguments"
         ],
         "title": "ToolStep",
         "type": "object"
@@ -9180,6 +10122,54 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "VersionOut": {
+        "properties": {
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "spec": {
+            "additionalProperties": true,
+            "title": "Spec",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "change_note",
+          "published_at",
+          "spec"
+        ],
+        "title": "VersionOut",
+        "type": "object"
+      },
       "WatchEvery": {
         "enum": [
           "hour",
@@ -9206,7 +10196,7 @@
           },
           "fire_when": {
             "items": {
-              "$ref": "#/components/schemas/veyntora_spec__automation__Rule"
+              "$ref": "#/components/schemas/AutomationRule-Input"
             },
             "maxItems": 10,
             "minItems": 1,
@@ -9279,7 +10269,7 @@
           },
           "fire_when": {
             "items": {
-              "$ref": "#/components/schemas/Rule-Output"
+              "$ref": "#/components/schemas/AutomationRule-Output"
             },
             "maxItems": 10,
             "minItems": 1,
@@ -9329,7 +10319,14 @@
           }
         },
         "required": [
-          "fire_when"
+          "type",
+          "tool_id",
+          "arguments",
+          "every",
+          "time",
+          "timezone",
+          "fire_when",
+          "once_per"
         ],
         "title": "WatcherTrigger",
         "type": "object"
@@ -9382,118 +10379,6 @@
           "expires_in"
         ],
         "title": "WidgetToken",
-        "type": "object"
-      },
-      "veyntora_api__people__service__Rule": {
-        "additionalProperties": false,
-        "properties": {
-          "conditions": {
-            "items": {
-              "$ref": "#/components/schemas/Condition"
-            },
-            "maxItems": 20,
-            "minItems": 1,
-            "title": "Conditions",
-            "type": "array"
-          },
-          "match": {
-            "default": "all",
-            "enum": [
-              "all",
-              "any"
-            ],
-            "title": "Match",
-            "type": "string"
-          }
-        },
-        "required": [
-          "conditions"
-        ],
-        "title": "Rule",
-        "type": "object"
-      },
-      "veyntora_api__routers__admin_automations__VersionOut": {
-        "properties": {
-          "change_note": {
-            "title": "Change Note",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "number": {
-            "title": "Number",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "number",
-          "change_note",
-          "created_by",
-          "created_at"
-        ],
-        "title": "VersionOut",
-        "type": "object"
-      },
-      "veyntora_api__routers__admin_chatbots__VersionOut": {
-        "properties": {
-          "change_note": {
-            "title": "Change Note",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "number": {
-            "title": "Number",
-            "type": "integer"
-          },
-          "published_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Published At"
-          },
-          "spec": {
-            "additionalProperties": true,
-            "title": "Spec",
-            "type": "object"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "number",
-          "status",
-          "change_note",
-          "published_at",
-          "spec"
-        ],
-        "title": "VersionOut",
         "type": "object"
       },
       "veyntora_api__routers__admin_providers__SecretInput": {
@@ -9559,32 +10444,6 @@
           "secret"
         ],
         "title": "SecretInput",
-        "type": "object"
-      },
-      "veyntora_spec__automation__Rule": {
-        "additionalProperties": false,
-        "properties": {
-          "field": {
-            "maxLength": 128,
-            "pattern": "^(event|approval|step\\d+)(\\.[A-Za-z_][A-Za-z0-9_]*)+$",
-            "title": "Field",
-            "type": "string"
-          },
-          "op": {
-            "$ref": "#/components/schemas/Operator",
-            "default": "equals"
-          },
-          "value": {
-            "default": "",
-            "maxLength": 512,
-            "title": "Value",
-            "type": "string"
-          }
-        },
-        "required": [
-          "field"
-        ],
-        "title": "Rule",
         "type": "object"
       }
     }
@@ -9985,6 +10844,69 @@
         ]
       }
     },
+    "/v1/admin/automations/draft": {
+      "post": {
+        "description": "The chatbot's model proposes the trigger and steps (graph server, the admin's token).",
+        "operationId": "draft_automation_v1_admin_automations_draft_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationDraftInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "A draft automation from a description",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/options": {
+      "get": {
+        "operationId": "builder_options_v1_admin_automations_options_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuilderOptions"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "What the builder can choose from",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
     "/v1/admin/automations/pause-all": {
       "post": {
         "operationId": "pause_all_v1_admin_automations_pause_all_post",
@@ -10021,6 +10943,53 @@
           }
         },
         "summary": "Pause every active automation (incidents)",
+        "tags": [
+          "admin: automations"
+        ]
+      }
+    },
+    "/v1/admin/automations/people": {
+      "get": {
+        "operationId": "recipients_v1_admin_automations_people_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Option"
+                  },
+                  "title": "Response Recipients V1 Admin Automations People Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "People who can receive messages (search)",
         "tags": [
           "admin: automations"
         ]
@@ -11453,7 +12422,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
+                    "$ref": "#/components/schemas/VersionOut"
                   },
                   "title": "Response List Versions V1 Admin Chatbots  Bot Id  Pipeline Versions Get",
                   "type": "array"

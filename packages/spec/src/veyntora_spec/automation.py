@@ -34,7 +34,10 @@ _STEP_ID = r"^step\d+$"
 
 
 class _Spec(BaseModel):
-    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    # Fields with defaults are always present in responses (required in the TS types).
+    model_config = ConfigDict(
+        extra="forbid", validate_assignment=True, json_schema_serialization_defaults_required=True
+    )
 
 
 # ---------------------------------------------------------------- conditions
@@ -51,7 +54,7 @@ class Operator(StrEnum):
     WITHIN_DAYS = "within_days"
 
 
-class Rule(_Spec):
+class AutomationRule(_Spec):
     field: str = Field(pattern=_FIELD_PATH, max_length=128)
     op: Operator = Operator.EQUALS
     # Text; numbers compare as numbers, `is_one_of` takes a comma-separated list.
@@ -120,7 +123,7 @@ class EventTrigger(_Spec):
     app: str = Field("Custom webhook", min_length=1, max_length=64)
     # The event name the sender puts in the body's "event" field or X-Veyntora-Event.
     event: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_.:-]+$")
-    conditions: list[Rule] = Field(default_factory=list, max_length=20)
+    conditions: list[AutomationRule] = Field(default_factory=list, max_length=20)
     # Ignore a repeat of the same event (by this field) within the time; 0 keeps all.
     dedupe_field: str | None = Field(default=None, pattern=_FIELD_PATH)
     dedupe_minutes: int = Field(0, ge=0, le=10_080)
@@ -167,7 +170,7 @@ class WatcherTrigger(_Spec):
     time: str = Field("06:00", pattern=_TIME)
     timezone: str = "Europe/Berlin"
     # Rules on each item (`event.<field>`); an item that matches all of them fires.
-    fire_when: list[Rule] = Field(min_length=1, max_length=10)
+    fire_when: list[AutomationRule] = Field(min_length=1, max_length=10)
     # Fire once per item with this field (a contract id); None fires on every check.
     once_per: str | None = Field(default=None, pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")
 
@@ -195,7 +198,8 @@ class AgentStep(_Step):
 
     type: Literal["agent"] = "agent"
     chatbot_id: UUID | None = None
-    task: str = Field(min_length=1, max_length=8000)
+    # Empty in a new draft; activation lists it as a problem.
+    task: str = Field("", max_length=8000)
     tool_ids: list[UUID] = Field(default_factory=list, max_length=20)
     max_steps: int = Field(6, ge=1, le=20)
     # Fields the agent fills for later steps ({stepN.<field>}); `answer` and `sources`
@@ -218,7 +222,7 @@ class Join(StrEnum):
 
 class ConditionStep(_Step):
     type: Literal["condition"] = "condition"
-    rules: list[Rule] = Field(min_length=1, max_length=10)
+    rules: list[AutomationRule] = Field(min_length=1, max_length=10)
     join: Join = Join.AND
     # A later step's id, or "end". None means the next step.
     yes: str | None = None
@@ -274,7 +278,7 @@ class NotifyStep(_Step):
     destination_id: UUID | None = None
     # People (Veyntora user ids) for Teams chats and email; e-mail addresses for email.
     to: list[str] = Field(default_factory=list, max_length=50)
-    message: str = Field(min_length=1, max_length=8000)
+    message: str = Field("", max_length=8000)
 
 
 Step = Annotated[
@@ -408,6 +412,10 @@ def _step_problems(
     ]
     if isinstance(step, AgentStep) and step.chatbot_id is None:
         out.append("choose the chatbot whose pipeline the agent uses.")
+    if isinstance(step, AgentStep) and not step.task.strip():
+        out.append("write the agent's task.")
+    if isinstance(step, NotifyStep) and not step.message.strip():
+        out.append("write the message.")
     if isinstance(step, ToolStep) and step.tool_id is None:
         out.append("choose the tool.")
     escalates = isinstance(step, ApprovalStep) and step.on_timeout is OnTimeout.ESCALATE

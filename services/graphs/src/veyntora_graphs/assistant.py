@@ -35,7 +35,14 @@ from veyntora_api.agent import approvals, runner
 from veyntora_api.agent import flow as flow_engine
 from veyntora_api.agent import router as auto
 from veyntora_api.agent import tools as agent_tools
-from veyntora_api.db.models.automations import ApprovalDecision, Run, RunKind, RunStatus
+from veyntora_api.automations import runs as run_records
+from veyntora_api.db.models.automations import (
+    Approval,
+    ApprovalDecision,
+    Run,
+    RunKind,
+    RunStatus,
+)
 from veyntora_api.db.models.conversations import RequestedMode, UsedMode
 from veyntora_api.db.models.identity import Membership
 from veyntora_api.db.session import get_sessionmaker
@@ -325,6 +332,7 @@ async def flow_approve_node(state: State, config: RunnableConfig) -> Command[Any
                 fs["blocked"] = "A tool this flow needs is not available."
                 fs["at"] = flow_engine._to_output(turn.ctx.spec)
                 return Command(goto="flow_step", update={"flow": fs})
+            fresh = not await _asked(db, UUID(fs["run_id"]), wait.call_id)
             row = await approvals.request(
                 db,
                 run_id=UUID(fs["run_id"]),
@@ -335,6 +343,8 @@ async def flow_approve_node(state: State, config: RunnableConfig) -> Command[Any
                 requested_by=turn.ctx.user_id,
                 approver_group_id=wait.tool.approver_group_id,
             )
+            if fresh:
+                await run_records.tell_approvers(db, (await _services())[0], row)
             await db.commit()
             decision = approvals.current(row)
             if decision is ApprovalDecision.PENDING:
@@ -591,6 +601,7 @@ async def approve_node(state: State, config: RunnableConfig) -> Command[Any]:
                 await db.commit()
                 return Command(goto="act", update={"agent": st})
             args = runner._unmasked_args(st, call["arguments"])
+            fresh = not await _asked(db, UUID(st["run_id"]), call["id"])
             row = await approvals.request(
                 db,
                 run_id=UUID(st["run_id"]),
@@ -601,6 +612,8 @@ async def approve_node(state: State, config: RunnableConfig) -> Command[Any]:
                 requested_by=turn.ctx.user_id,
                 approver_group_id=tool.approver_group_id,
             )
+            if fresh:
+                await run_records.tell_approvers(db, (await _services())[0], row)
             await db.commit()
             decision = approvals.current(row)
             if decision is ApprovalDecision.PENDING:
@@ -651,6 +664,14 @@ async def approve_node(state: State, config: RunnableConfig) -> Command[Any]:
         await _save_steps(db, st)
         await db.commit()
     return Command(goto="act", update={"agent": st})
+
+
+async def _asked(db: AsyncSession, run_id: UUID, call_id: str) -> bool:
+    """Whether this call already has an approval (a resumed node asks again)."""
+    found = await db.scalar(
+        sa.select(Approval.id).where(Approval.run_id == run_id, Approval.interrupt_id == call_id)
+    )
+    return found is not None
 
 
 async def _abort(

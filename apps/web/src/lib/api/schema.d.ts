@@ -142,6 +142,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/automations/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A draft automation from a description
+         * @description The chatbot's model proposes the trigger and steps (graph server, the admin's token).
+         */
+        post: operations["draft_automation_v1_admin_automations_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the builder can choose from */
+        get: operations["builder_options_v1_admin_automations_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/automations/pause-all": {
         parameters: {
             query?: never;
@@ -153,6 +190,23 @@ export interface paths {
         put?: never;
         /** Pause every active automation (incidents) */
         post: operations["pause_all_v1_admin_automations_pause_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/automations/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** People who can receive messages (search) */
+        get: operations["recipients_v1_admin_automations_people_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2036,7 +2090,7 @@ export interface components {
          * AgentStep
          * @description The agent with a chatbot's live pipeline, a task and the tools it may use.
          */
-        AgentStep: {
+        "AgentStep-Input": {
             /** Chatbot Id */
             chatbot_id?: string | null;
             /** Id */
@@ -2053,10 +2107,47 @@ export interface components {
             name: string;
             /** Outputs */
             outputs?: string[];
-            /** Task */
+            /**
+             * Task
+             * @default
+             */
             task: string;
             /** Tool Ids */
             tool_ids?: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "agent";
+        };
+        /**
+         * AgentStep
+         * @description The agent with a chatbot's live pipeline, a task and the tools it may use.
+         */
+        "AgentStep-Output": {
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Max Steps
+             * @default 6
+             */
+            max_steps: number;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** Outputs */
+            outputs: string[];
+            /**
+             * Task
+             * @default
+             */
+            task: string;
+            /** Tool Ids */
+            tool_ids: string[];
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -2159,10 +2250,24 @@ export interface components {
         /** ApprovalOut */
         ApprovalOut: {
             access: components["schemas"]["ToolAccess"] | null;
+            /**
+             * Actions
+             * @default []
+             */
+            actions: string[];
+            /**
+             * Approvals
+             * @default 0
+             */
+            approvals: number;
             /** Arguments */
             arguments: {
                 [key: string]: unknown;
             };
+            /** Automation */
+            automation?: string | null;
+            /** Automation Id */
+            automation_id?: string | null;
             /** Can Decide */
             can_decide: boolean;
             /** Chatbot */
@@ -2177,6 +2282,10 @@ export interface components {
             /** Decided By */
             decided_by: string | null;
             decision: components["schemas"]["ApprovalDecision"];
+            /** Draft */
+            draft?: string | null;
+            /** Editable */
+            editable?: string | null;
             /** Expires At */
             expires_at: string | null;
             /**
@@ -2188,8 +2297,18 @@ export interface components {
             mine: boolean;
             /** Note */
             note: string | null;
+            /**
+             * Reasoning
+             * @default []
+             */
+            reasoning: string[];
             /** Requested By */
             requested_by: string;
+            /**
+             * Required
+             * @default 1
+             */
+            required: number;
             /**
              * Run Id
              * Format: uuid
@@ -2197,13 +2316,18 @@ export interface components {
             run_id: string;
             /** Server */
             server: string | null;
+            /**
+             * Sources
+             * @default []
+             */
+            sources: string[];
             /** Summary */
             summary: string;
             /** Tool */
             tool: string | null;
         };
         /** ApprovalStep */
-        ApprovalStep: {
+        "ApprovalStep-Input": {
             /** Approver Group Id */
             approver_group_id?: string | null;
             /** Editable */
@@ -2226,6 +2350,41 @@ export interface components {
             required: number;
             /** Shows */
             shows?: components["schemas"]["ApproverSees"][];
+            /**
+             * Timeout Hours
+             * @default 24
+             */
+            timeout_hours: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "approval";
+        };
+        /** ApprovalStep */
+        "ApprovalStep-Output": {
+            /** Approver Group Id */
+            approver_group_id: string | null;
+            /** Editable */
+            editable: string | null;
+            /** Escalate Group Id */
+            escalate_group_id: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** @default cancel */
+            on_timeout: components["schemas"]["OnTimeout"];
+            /**
+             * Required
+             * @default 1
+             */
+            required: number;
+            /** Shows */
+            shows: components["schemas"]["ApproverSees"][];
             /**
              * Timeout Hours
              * @default 24
@@ -2319,6 +2478,16 @@ export interface components {
             /** Trigger Summary */
             trigger_summary: string;
         };
+        /** AutomationDraftInput */
+        AutomationDraftInput: {
+            /**
+             * Chatbot Id
+             * Format: uuid
+             */
+            chatbot_id: string;
+            /** Description */
+            description: string;
+        };
         /** AutomationInput */
         AutomationInput: {
             /** Chatbot Id */
@@ -2382,7 +2551,31 @@ export interface components {
             /** Version */
             version: number;
             /** Versions */
-            versions: components["schemas"]["veyntora_api__routers__admin_automations__VersionOut"][];
+            versions: components["schemas"]["AutomationVersionOut"][];
+        };
+        /** AutomationRule */
+        "AutomationRule-Input": {
+            /** Field */
+            field: string;
+            /** @default equals */
+            op: components["schemas"]["Operator"];
+            /**
+             * Value
+             * @default
+             */
+            value: string;
+        };
+        /** AutomationRule */
+        "AutomationRule-Output": {
+            /** Field */
+            field: string;
+            /** @default equals */
+            op: components["schemas"]["Operator"];
+            /**
+             * Value
+             * @default
+             */
+            value: string;
         };
         /** AutomationSpec */
         "AutomationSpec-Input": {
@@ -2394,13 +2587,13 @@ export interface components {
              */
             schema_version: 1;
             /** Steps */
-            steps?: (components["schemas"]["AgentStep"] | components["schemas"]["ConditionStep-Input"] | components["schemas"]["ApprovalStep"] | components["schemas"]["ToolStep"] | components["schemas"]["NotifyStep"])[];
+            steps?: (components["schemas"]["AgentStep-Input"] | components["schemas"]["ConditionStep-Input"] | components["schemas"]["ApprovalStep-Input"] | components["schemas"]["ToolStep-Input"] | components["schemas"]["NotifyStep-Input"])[];
             /** Trigger */
-            trigger?: components["schemas"]["ScheduleTrigger"] | components["schemas"]["EventTrigger-Input"] | components["schemas"]["FileTrigger"] | components["schemas"]["WatcherTrigger-Input"];
+            trigger?: components["schemas"]["ScheduleTrigger-Input"] | components["schemas"]["EventTrigger-Input"] | components["schemas"]["FileTrigger-Input"] | components["schemas"]["WatcherTrigger-Input"];
         };
         /** AutomationSpec */
         "AutomationSpec-Output": {
-            safety?: components["schemas"]["Safety-Output"];
+            safety: components["schemas"]["Safety-Output"];
             /**
              * Schema Version
              * @default 1
@@ -2408,15 +2601,29 @@ export interface components {
              */
             schema_version: 1;
             /** Steps */
-            steps?: (components["schemas"]["AgentStep"] | components["schemas"]["ConditionStep-Output"] | components["schemas"]["ApprovalStep"] | components["schemas"]["ToolStep"] | components["schemas"]["NotifyStep"])[];
+            steps: (components["schemas"]["AgentStep-Output"] | components["schemas"]["ConditionStep-Output"] | components["schemas"]["ApprovalStep-Output"] | components["schemas"]["ToolStep-Output"] | components["schemas"]["NotifyStep-Output"])[];
             /** Trigger */
-            trigger?: components["schemas"]["ScheduleTrigger"] | components["schemas"]["EventTrigger-Output"] | components["schemas"]["FileTrigger"] | components["schemas"]["WatcherTrigger-Output"];
+            trigger: components["schemas"]["ScheduleTrigger-Output"] | components["schemas"]["EventTrigger-Output"] | components["schemas"]["FileTrigger-Output"] | components["schemas"]["WatcherTrigger-Output"];
         };
         /**
          * AutomationStatus
          * @enum {string}
          */
         AutomationStatus: "draft" | "active" | "paused";
+        /** AutomationVersionOut */
+        AutomationVersionOut: {
+            /** Change Note */
+            change_note: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Number */
+            number: number;
+        };
         /**
          * Autonomy
          * @enum {string}
@@ -2495,6 +2702,21 @@ export interface components {
             has_secret: boolean;
             /** Secret Last4 */
             secret_last4: string | null;
+        };
+        /** BuilderOptions */
+        BuilderOptions: {
+            /** Chatbots */
+            chatbots: components["schemas"]["Option"][];
+            /** Destinations */
+            destinations: components["schemas"]["Option"][];
+            /** Groups */
+            groups: components["schemas"]["Option"][];
+            /** Mail Ready */
+            mail_ready: boolean;
+            /** Sources */
+            sources: components["schemas"]["Option"][];
+            /** Tools */
+            tools: components["schemas"]["ToolOption"][];
         };
         /** ByokInput */
         ByokInput: {
@@ -2594,7 +2816,7 @@ export interface components {
             answer_language: string;
             /** Description */
             description: string;
-            draft: components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"];
+            draft: components["schemas"]["VersionOut"];
             /** Draft Version */
             draft_version: number | null;
             governance: components["schemas"]["GovernanceOut"];
@@ -2774,7 +2996,7 @@ export interface components {
              */
             no: string | null;
             /** Rules */
-            rules: components["schemas"]["veyntora_spec__automation__Rule"][];
+            rules: components["schemas"]["AutomationRule-Input"][];
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -2800,14 +3022,14 @@ export interface components {
              */
             no: string | null;
             /** Rules */
-            rules: components["schemas"]["Rule-Output"][];
+            rules: components["schemas"]["AutomationRule-Output"][];
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
              */
             type: "condition";
             /** Yes */
-            yes?: string | null;
+            yes: string | null;
         };
         /** ConditionTest */
         ConditionTest: {
@@ -2829,7 +3051,7 @@ export interface components {
                 [key: string]: unknown;
             };
             /** Rules */
-            rules: components["schemas"]["veyntora_spec__automation__Rule"][];
+            rules: components["schemas"]["AutomationRule-Input"][];
         };
         /** ConversationOut */
         ConversationOut: {
@@ -2897,6 +3119,10 @@ export interface components {
         DecisionIn: {
             /** Approve */
             approve: boolean;
+            /** Edits */
+            edits?: {
+                [key: string]: string;
+            } | null;
             /** Note */
             note?: string | null;
         };
@@ -3043,7 +3269,7 @@ export interface components {
              */
             app: string;
             /** Conditions */
-            conditions?: components["schemas"]["veyntora_spec__automation__Rule"][];
+            conditions?: components["schemas"]["AutomationRule-Input"][];
             /** Dedupe Field */
             dedupe_field?: string | null;
             /**
@@ -3077,9 +3303,9 @@ export interface components {
              */
             app: string;
             /** Conditions */
-            conditions?: components["schemas"]["Rule-Output"][];
+            conditions: components["schemas"]["AutomationRule-Output"][];
             /** Dedupe Field */
-            dedupe_field?: string | null;
+            dedupe_field: string | null;
             /**
              * Dedupe Minutes
              * @default 0
@@ -3131,7 +3357,7 @@ export interface components {
          * FileTrigger
          * @description A file in a connected data source.
          */
-        FileTrigger: {
+        "FileTrigger-Input": {
             /** File Types */
             file_types?: string[];
             /**
@@ -3141,6 +3367,33 @@ export interface components {
             folder: string;
             /** Source Id */
             source_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "file";
+            /**
+             * Wait For Index
+             * @default true
+             */
+            wait_for_index: boolean;
+            /** @default added */
+            when: components["schemas"]["FileWhen"];
+        };
+        /**
+         * FileTrigger
+         * @description A file in a connected data source.
+         */
+        "FileTrigger-Output": {
+            /** File Types */
+            file_types: string[];
+            /**
+             * Folder
+             * @default
+             */
+            folder: string;
+            /** Source Id */
+            source_id: string | null;
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -3382,7 +3635,7 @@ export interface components {
             name: string;
             /** Owner Id */
             owner_id?: string | null;
-            rule?: components["schemas"]["veyntora_api__people__service__Rule"] | null;
+            rule?: components["schemas"]["Rule"] | null;
             /**
              * Source
              * @enum {string}
@@ -3492,7 +3745,7 @@ export interface components {
             name?: string | null;
             /** Owner Id */
             owner_id?: string | null;
-            rule?: components["schemas"]["veyntora_api__people__service__Rule"] | null;
+            rule?: components["schemas"]["Rule"] | null;
         };
         /** GuardrailsSpec */
         GuardrailsSpec: {
@@ -3561,11 +3814,21 @@ export interface components {
          * Holidays
          * @description Skip public holidays of this country (ISO code) and, optionally, state.
          */
-        Holidays: {
+        "Holidays-Input": {
             /** Country */
             country: string;
             /** Subdivision */
             subdivision?: string | null;
+        };
+        /**
+         * Holidays
+         * @description Skip public holidays of this country (ISO code) and, optionally, state.
+         */
+        "Holidays-Output": {
+            /** Country */
+            country: string;
+            /** Subdivision */
+            subdivision: string | null;
         };
         /** HookResult */
         HookResult: {
@@ -3969,14 +4232,17 @@ export interface components {
          */
         NotifyChannel: "teams_channel" | "teams_chat" | "slack_channel" | "email";
         /** NotifyStep */
-        NotifyStep: {
+        "NotifyStep-Input": {
             /** @default teams_channel */
             channel: components["schemas"]["NotifyChannel"];
             /** Destination Id */
             destination_id?: string | null;
             /** Id */
             id: string;
-            /** Message */
+            /**
+             * Message
+             * @default
+             */
             message: string;
             /**
              * Name
@@ -3985,6 +4251,32 @@ export interface components {
             name: string;
             /** To */
             to?: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "notify";
+        };
+        /** NotifyStep */
+        "NotifyStep-Output": {
+            /** @default teams_channel */
+            channel: components["schemas"]["NotifyChannel"];
+            /** Destination Id */
+            destination_id: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** To */
+            to: string[];
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -4001,6 +4293,21 @@ export interface components {
          * @enum {string}
          */
         Operator: "equals" | "not_equals" | "contains" | "gt" | "lt" | "is_one_of" | "within_days";
+        /** Option */
+        Option: {
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** Overview */
         Overview: {
             /** Canary Percent */
@@ -4594,16 +4901,15 @@ export interface components {
             router_instance_id?: string | null;
         };
         /** Rule */
-        "Rule-Output": {
-            /** Field */
-            field: string;
-            /** @default equals */
-            op: components["schemas"]["Operator"];
+        Rule: {
+            /** Conditions */
+            conditions: components["schemas"]["Condition"][];
             /**
-             * Value
-             * @default
+             * Match
+             * @default all
+             * @enum {string}
              */
-            value: string;
+            match: "all" | "any";
         };
         /** RunApproval */
         RunApproval: {
@@ -4626,6 +4932,22 @@ export interface components {
             note: string | null;
             /** Summary */
             summary: string;
+        };
+        /** RunDelivery */
+        RunDelivery: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Sent At */
+            sent_at: string | null;
+            /** Status */
+            status: string;
+            /** Via */
+            via: string;
         };
         /**
          * RunKind
@@ -4650,15 +4972,43 @@ export interface components {
             answer: string | null;
             /** Approvals */
             approvals: components["schemas"]["RunApproval"][];
+            /** Automation */
+            automation?: string | null;
+            /** Automation Id */
+            automation_id?: string | null;
+            /** Automation Version */
+            automation_version?: number | null;
             /** Chatbot */
             chatbot: string | null;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: string;
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Deliveries
+             * @default []
+             */
+            deliveries: components["schemas"]["RunDelivery"][];
+            /**
+             * Dry Run
+             * @default false
+             */
+            dry_run: boolean;
             /** Error */
             error: string | null;
+            /**
+             * Event
+             * @default {}
+             */
+            event: {
+                [key: string]: unknown;
+            };
             /** Finished At */
             finished_at: string | null;
             /** Groundedness */
@@ -4669,6 +5019,8 @@ export interface components {
              */
             id: string;
             kind: components["schemas"]["RunKind"];
+            /** Runs As */
+            runs_as?: string | null;
             /** Started By */
             started_by: string | null;
             status: components["schemas"]["RunStatus"];
@@ -4676,12 +5028,16 @@ export interface components {
             steps: {
                 [key: string]: unknown;
             }[];
+            /** Summary */
+            summary?: string | null;
             /** Tokens In */
             tokens_in: number;
             /** Tokens Out */
             tokens_out: number;
             /** Tool Calls */
             tool_calls: components["schemas"]["RunToolCall"][];
+            /** Trigger */
+            trigger?: string | null;
         };
         /** RunRow */
         RunRow: {
@@ -4810,10 +5166,10 @@ export interface components {
         /** SchedulePreviewInput */
         SchedulePreviewInput: {
             /** Trigger */
-            trigger: components["schemas"]["ScheduleTrigger"] | components["schemas"]["WatcherTrigger-Input"];
+            trigger: components["schemas"]["ScheduleTrigger-Input"] | components["schemas"]["WatcherTrigger-Input"];
         };
         /** ScheduleTrigger */
-        ScheduleTrigger: {
+        "ScheduleTrigger-Input": {
             /** Cron */
             cron?: string | null;
             /**
@@ -4830,7 +5186,42 @@ export interface components {
             every_hours: number;
             /** @default weekly */
             repeat: components["schemas"]["Repeat"];
-            skip_holidays?: components["schemas"]["Holidays"] | null;
+            skip_holidays?: components["schemas"]["Holidays-Input"] | null;
+            /**
+             * Time
+             * @default 07:45
+             */
+            time: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "schedule";
+        };
+        /** ScheduleTrigger */
+        "ScheduleTrigger-Output": {
+            /** Cron */
+            cron: string | null;
+            /**
+             * Day Of Month
+             * @default 1
+             */
+            day_of_month: number;
+            /** Days */
+            days: ("mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun")[];
+            /**
+             * Every Hours
+             * @default 4
+             */
+            every_hours: number;
+            /** @default weekly */
+            repeat: components["schemas"]["Repeat"];
+            skip_holidays: components["schemas"]["Holidays-Output"] | null;
             /**
              * Time
              * @default 07:45
@@ -5210,6 +5601,22 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** ToolOption */
+        ToolOption: {
+            access: components["schemas"]["ToolAccess"];
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** ToolOut */
         ToolOut: {
             access: components["schemas"]["ToolAccess"];
@@ -5251,7 +5658,7 @@ export interface components {
          * ToolStep
          * @description One call of one MCP tool; a writing tool needs an approval step before it.
          */
-        ToolStep: {
+        "ToolStep-Input": {
             /** Arguments */
             arguments?: {
                 [key: string]: string;
@@ -5265,6 +5672,30 @@ export interface components {
             name: string;
             /** Tool Id */
             tool_id?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "tool";
+        };
+        /**
+         * ToolStep
+         * @description One call of one MCP tool; a writing tool needs an approval step before it.
+         */
+        "ToolStep-Output": {
+            /** Arguments */
+            arguments: {
+                [key: string]: string;
+            };
+            /** Id */
+            id: string;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /** Tool Id */
+            tool_id: string | null;
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -5341,6 +5772,26 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** VersionOut */
+        VersionOut: {
+            /** Change Note */
+            change_note: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Published At */
+            published_at: string | null;
+            /** Spec */
+            spec: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
+        };
         /**
          * WatchEvery
          * @enum {string}
@@ -5358,7 +5809,7 @@ export interface components {
             /** @default day */
             every: components["schemas"]["WatchEvery"];
             /** Fire When */
-            fire_when: components["schemas"]["veyntora_spec__automation__Rule"][];
+            fire_when: components["schemas"]["AutomationRule-Input"][];
             /** Once Per */
             once_per?: string | null;
             /**
@@ -5385,15 +5836,15 @@ export interface components {
          */
         "WatcherTrigger-Output": {
             /** Arguments */
-            arguments?: {
+            arguments: {
                 [key: string]: string;
             };
             /** @default day */
             every: components["schemas"]["WatchEvery"];
             /** Fire When */
-            fire_when: components["schemas"]["Rule-Output"][];
+            fire_when: components["schemas"]["AutomationRule-Output"][];
             /** Once Per */
-            once_per?: string | null;
+            once_per: string | null;
             /**
              * Time
              * @default 06:00
@@ -5405,7 +5856,7 @@ export interface components {
              */
             timezone: string;
             /** Tool Id */
-            tool_id?: string | null;
+            tool_id: string | null;
             /**
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
@@ -5439,51 +5890,6 @@ export interface components {
             /** Token */
             token: string;
         };
-        /** Rule */
-        veyntora_api__people__service__Rule: {
-            /** Conditions */
-            conditions: components["schemas"]["Condition"][];
-            /**
-             * Match
-             * @default all
-             * @enum {string}
-             */
-            match: "all" | "any";
-        };
-        /** VersionOut */
-        veyntora_api__routers__admin_automations__VersionOut: {
-            /** Change Note */
-            change_note: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Created By */
-            created_by: string | null;
-            /** Number */
-            number: number;
-        };
-        /** VersionOut */
-        veyntora_api__routers__admin_chatbots__VersionOut: {
-            /** Change Note */
-            change_note: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Number */
-            number: number;
-            /** Published At */
-            published_at: string | null;
-            /** Spec */
-            spec: {
-                [key: string]: unknown;
-            };
-            /** Status */
-            status: string;
-        };
         /** SecretInput */
         veyntora_api__routers__admin_providers__SecretInput: {
             /** Expires At */
@@ -5509,18 +5915,6 @@ export interface components {
              * Format: password
              */
             secret: string;
-        };
-        /** Rule */
-        veyntora_spec__automation__Rule: {
-            /** Field */
-            field: string;
-            /** @default equals */
-            op: components["schemas"]["Operator"];
-            /**
-             * Value
-             * @default
-             */
-            value: string;
         };
     };
     responses: never;
@@ -5804,6 +6198,59 @@ export interface operations {
             };
         };
     };
+    draft_automation_v1_admin_automations_draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutomationDraftInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    builder_options_v1_admin_automations_options_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuilderOptions"];
+                };
+            };
+        };
+    };
     pause_all_v1_admin_automations_pause_all_post: {
         parameters: {
             query?: never;
@@ -5824,6 +6271,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Count"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recipients_v1_admin_automations_people_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Option"][];
                 };
             };
             /** @description Validation Error */
@@ -6810,7 +7288,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"][];
+                    "application/json": components["schemas"]["VersionOut"][];
                 };
             };
             /** @description Validation Error */

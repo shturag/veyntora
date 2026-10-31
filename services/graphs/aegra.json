@@ -15,6 +15,10 @@
     "automation": {
       "path": "./src/veyntora_graphs/automation.py:graph",
       "description": "Automation: one run of an automation's steps as its service identity, waiting for approvals"
+    },
+    "automation_draft": {
+      "path": "./src/veyntora_graphs/automation_draft.py:graph",
+      "description": "Automation draft: a description becomes a draft trigger and steps (no side effects)"
     }
   },
   "auth": {

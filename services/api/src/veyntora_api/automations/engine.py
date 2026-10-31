@@ -41,13 +41,13 @@ from veyntora_spec.automation import (
     AgentStep,
     ApprovalStep,
     ApproverSees,
+    AutomationRule,
     AutomationSpec,
     Autonomy,
     ConditionStep,
     Join,
     NotifyStep,
     Operator,
-    Rule,
     ToolStep,
     next_of,
 )
@@ -216,7 +216,9 @@ _TEXT_TESTS: dict[Operator, Callable[[str, str], bool]] = {
 }
 
 
-def holds(rule: Rule, event: dict[str, Any], outputs: dict[str, Any], today: date) -> bool:
+def holds(
+    rule: AutomationRule, event: dict[str, Any], outputs: dict[str, Any], today: date
+) -> bool:
     actual = lookup(rule.field, event, outputs)
     if rule.op is Operator.WITHIN_DAYS:
         return _within(actual, rule.value, today)
@@ -225,7 +227,9 @@ def holds(rule: Rule, event: dict[str, Any], outputs: dict[str, Any], today: dat
     return _compare(actual, rule.value, rule.op)
 
 
-def all_hold(rules: list[Rule], join: Join, event: dict[str, Any], outputs: dict[str, Any]) -> bool:
+def all_hold(
+    rules: list[AutomationRule], join: Join, event: dict[str, Any], outputs: dict[str, Any]
+) -> bool:
     today = datetime.now(UTC).date()
     results = [holds(r, event, outputs, today) for r in rules]
     return all(results) if join is Join.AND else any(results)

@@ -12,16 +12,17 @@ from decimal import Decimal
 from typing import Annotated, Any
 from uuid import UUID
 
+import httpx
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 from veyntora_spec.automation import (
+    AutomationRule,
     AutomationSpec,
     Autonomy,
     EventTrigger,
     FileTrigger,
     Join,
-    Rule,
     ScheduleTrigger,
     WatcherTrigger,
 )
@@ -42,8 +43,12 @@ from veyntora_api.db.models.automations import (
     RunKind,
     RunStatus,
 )
+from veyntora_api.db.models.channels import Channel, ChannelDestination, DestinationKind
 from veyntora_api.db.models.chatbots import Chatbot
-from veyntora_api.db.models.identity import User
+from veyntora_api.db.models.identity import Group, User
+from veyntora_api.db.models.knowledge import DataSource
+from veyntora_api.db.models.tools import McpServer, Tool, ToolAccess
+from veyntora_api.notify import service as notify
 
 router = APIRouter(prefix="/v1/admin/automations", tags=["admin: automations"])
 
@@ -92,7 +97,7 @@ class AutomationList(BaseModel):
     automations: list[AutomationCard]
 
 
-class VersionOut(BaseModel):
+class AutomationVersionOut(BaseModel):
     number: int
     change_note: str
     created_by: str | None
@@ -132,7 +137,7 @@ class AutomationOut(BaseModel):
     hook_prefix: str | None
     owner: str | None
     recent_runs: list[RunRow]
-    versions: list[VersionOut]
+    versions: list[AutomationVersionOut]
 
 
 def _trigger_summary(spec: AutomationSpec) -> str:  # noqa: PLR0911 - one line per trigger
@@ -312,7 +317,7 @@ async def _out(db: DbSession, state: State, row: Automation) -> AutomationOut:
             for r in runs
         ],
         versions=[
-            VersionOut(
+            AutomationVersionOut(
                 number=v.number,
                 change_note=v.change_note,
                 created_by=await _name(db, v.created_by),
@@ -323,6 +328,78 @@ async def _out(db: DbSession, state: State, row: Automation) -> AutomationOut:
     )
 
 
+class Option(BaseModel):
+    id: UUID
+    name: str
+    detail: str = ""
+
+
+class ToolOption(Option):
+    access: ToolAccess
+
+
+class BuilderOptions(BaseModel):
+    chatbots: list[Option]
+    tools: list[ToolOption]
+    groups: list[Option]
+    destinations: list[Option]
+    sources: list[Option]
+    mail_ready: bool
+
+
+@router.get("/options", summary="What the builder can choose from")
+async def builder_options(_: Viewer, db: DbSession) -> BuilderOptions:
+    bots = (await db.execute(sa.select(Chatbot).order_by(Chatbot.name))).scalars()
+    tools = await db.execute(
+        sa.select(Tool, McpServer)
+        .join(McpServer, McpServer.id == Tool.server_id)
+        .where(Tool.present.is_(True), Tool.access != ToolAccess.DESTRUCTIVE)
+        .order_by(McpServer.name, Tool.name)
+    )
+    groups = (await db.execute(sa.select(Group).order_by(Group.name))).scalars()
+    dests = await db.execute(
+        sa.select(ChannelDestination, Chatbot)
+        .join(Channel, Channel.id == ChannelDestination.channel_id)
+        .join(Chatbot, Chatbot.id == Channel.chatbot_id)
+        .where(
+            ChannelDestination.removed_at.is_(None),
+            ChannelDestination.kind != DestinationKind.TEAMS_CHAT,
+        )
+        .order_by(ChannelDestination.name)
+    )
+    sources = (
+        await db.execute(
+            sa.select(DataSource).where(DataSource.uploaded_by.is_(None)).order_by(DataSource.name)
+        )
+    ).scalars()
+    return BuilderOptions(
+        chatbots=[Option(id=b.id, name=b.name, detail=b.status.value) for b in bots],
+        tools=[
+            ToolOption(id=t.id, name=t.name, detail=srv.name, access=t.access)
+            for t, srv in tools.all()
+        ],
+        groups=[Option(id=g.id, name=g.name) for g in groups],
+        destinations=[
+            Option(id=d.id, name=d.name or d.external_id, detail=f"{d.kind.value} · {b.name}")
+            for d, b in dests.all()
+        ],
+        sources=[Option(id=src.id, name=src.name, detail=src.type.value) for src in sources],
+        mail_ready=await notify.mail_ready(db),
+    )
+
+
+@router.get("/people", summary="People who can receive messages (search)")
+async def recipients(_: Viewer, db: DbSession, q: str = "") -> list[Option]:
+    query = sa.select(User).where(User.is_service.is_(False), User.suspended.is_(False))
+    if q.strip():
+        like = f"%{q.strip()}%"
+        query = query.where(sa.or_(User.display_name.ilike(like), User.email.ilike(like)))
+    rows = (await db.execute(query.order_by(User.display_name).limit(20))).scalars()
+    return [
+        Option(id=u.id, name=u.display_name or (u.email or ""), detail=u.email or "") for u in rows
+    ]
+
+
 @router.post("", status_code=status.HTTP_201_CREATED, summary="Create a draft automation")
 async def create_automation(
     data: svc.AutomationInput, principal: Editor, db: DbSession, ctx: Ctx, state: State
@@ -331,6 +408,55 @@ async def create_automation(
         row = await svc.create(db, ctx, data, principal.user_id)
     except svc.AutomationError as exc:
         raise _bad(exc) from exc
+    await db.commit()
+    return await _out(db, state, row)
+
+
+class AutomationDraftInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    description: str = Field(min_length=10, max_length=4000)
+    chatbot_id: UUID
+
+
+@router.post(
+    "/draft", status_code=status.HTTP_201_CREATED, summary="A draft automation from a description"
+)
+async def draft_automation(
+    data: AutomationDraftInput, principal: Editor, db: DbSession, ctx: Ctx, state: State
+) -> AutomationOut:
+    """The chatbot's model proposes the trigger and steps (graph server, the admin's token)."""
+    try:
+        res = await state.http.post(
+            f"{state.settings.graphs_url.rstrip('/')}/runs/wait",
+            json={
+                "assistant_id": "automation_draft",
+                "input": {"chatbot_id": str(data.chatbot_id), "description": data.description},
+                "on_completion": "delete",
+            },
+            headers={"authorization": f"Bearer {principal.access_token}"},
+            timeout=httpx.Timeout(10.0, read=120.0),
+        )
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "The graph server is unavailable"
+        ) from exc
+    result = (res.json() or {}).get("result") if res.status_code == 200 else None
+    if not isinstance(result, dict):
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "No draft came back; try again")
+    if result.get("error"):
+        raise _bad(svc.AutomationError(str(result["error"])))
+    spec = AutomationSpec.model_validate(result["spec"])
+    row = await svc.create(
+        db,
+        ctx,
+        svc.AutomationInput(
+            name=str(result.get("name") or "New automation"),
+            description=data.description[:4000],
+            chatbot_id=data.chatbot_id,
+        ),
+        principal.user_id,
+        drafted=spec,
+    )
     await db.commit()
     return await _out(db, state, row)
 
@@ -535,7 +661,7 @@ async def schedule_preview(data: SchedulePreviewInput, _: Viewer) -> SchedulePre
 
 class ConditionTestInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    rules: list[Rule] = Field(max_length=20)
+    rules: list[AutomationRule] = Field(max_length=20)
     join: Join = Join.AND
     event: dict[str, Any] = Field(default_factory=dict)
     outputs: dict[str, Any] = Field(default_factory=dict)

@@ -388,6 +388,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "automations",
   },
   {
@@ -396,6 +397,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/new",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "automations",
   },
   {
@@ -404,6 +406,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "automations",
   },
   {
@@ -412,6 +415,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]/trigger",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "automations",
   },
   {
@@ -420,6 +424,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]/agent-step/[stepId]",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "automations",
   },
   {
@@ -428,6 +433,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]/approval-step/[stepId]",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "automations",
   },
   {

@@ -107,6 +107,9 @@ class Authz:
     async def check(self, user: str, relation: str, obj: str) -> bool:
         return user not in self.denied
 
+    async def read(self, obj: str, relation: str | None = None) -> list[Any]:
+        return []
+
 
 class Rag:
     def __init__(self, world: World) -> None:

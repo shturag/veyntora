@@ -95,9 +95,15 @@ def spec_of(row: Automation) -> AutomationSpec:
 
 
 async def create(
-    db: AsyncSession, ctx: RequestContext, data: AutomationInput, owner: UUID
+    db: AsyncSession,
+    ctx: RequestContext,
+    data: AutomationInput,
+    owner: UUID,
+    *,
+    drafted: AutomationSpec | None = None,
 ) -> Automation:
-    if data.template not in TEMPLATE_IDS:
+    """A draft automation from a template, or from a drafted spec (from a description)."""
+    if drafted is None and data.template not in TEMPLATE_IDS:
         raise AutomationError("unknown template")
     if data.chatbot_id is not None and await db.get(Chatbot, data.chatbot_id) is None:
         raise AutomationError("unknown chatbot")
@@ -108,13 +114,13 @@ async def create(
     )
     db.add(identity)
     await db.flush()
-    spec = spec_for(data.template, data.chatbot_id)
+    spec = drafted or spec_for(data.template, data.chatbot_id)
     row = Automation(
         name=data.name,
         description=data.description,
         chatbot_id=data.chatbot_id,
         spec=spec.model_dump(mode="json"),
-        template=data.template,
+        template="described" if drafted is not None else data.template,
         service_user_id=identity.id,
         status=AutomationStatus.DRAFT,
         owner_id=owner,

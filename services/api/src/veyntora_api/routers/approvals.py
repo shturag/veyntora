@@ -43,6 +43,17 @@ class ApprovalOut(BaseModel):
     created_at: datetime
     expires_at: datetime | None
     decided_at: datetime | None
+    # Automation approvals: which automation, what the approver was chosen to see, the field
+    # they may correct, how many approvals are needed and given.
+    automation: str | None = None
+    automation_id: UUID | None = None
+    draft: str | None = None
+    editable: str | None = None
+    reasoning: list[str] = []
+    sources: list[str] = []
+    actions: list[str] = []
+    required: int = 1
+    approvals: int = 0
 
 
 async def _out(
@@ -55,6 +66,7 @@ async def _out(
     requester = await db.get(User, row.requested_by) if row.requested_by else None
     approver = await db.get(User, row.approver_id) if row.approver_id else None
     decision = svc.current(row)
+    payload = row.payload or {}
     return ApprovalOut(
         id=row.id,
         run_id=row.run_id,
@@ -74,6 +86,17 @@ async def _out(
         created_at=row.created_at,
         expires_at=row.expires_at,
         decided_at=row.decided_at,
+        automation=payload.get("automation"),
+        automation_id=payload.get("automation_id"),
+        draft=row.edits.get(payload["editable"], payload.get("draft"))
+        if payload.get("editable") and row.edits
+        else payload.get("draft"),
+        editable=payload.get("editable"),
+        reasoning=[str(x) for x in payload.get("reasoning") or []],
+        sources=[str(x) for x in payload.get("sources") or []],
+        actions=[str(x) for x in payload.get("actions") or []],
+        required=row.required or 1,
+        approvals=sum(1 for v in row.votes or [] if v.get("approve")),
     )
 
 
@@ -131,6 +154,8 @@ async def get_approval(
 class DecisionIn(BaseModel):
     approve: bool
     note: str | None = Field(default=None, max_length=2000)
+    # The corrected value of the field the step lets approvers edit ({"step1.answer": "..."}).
+    edits: dict[str, str] | None = None
 
 
 @router.post("/{approval_id}/decision", summary="Approve or reject a request")
@@ -152,6 +177,7 @@ async def decide(
             principal.user_id,
             approve=data.approve,
             note=data.note,
+            edits=data.edits,
         )
     except svc.ApprovalError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc

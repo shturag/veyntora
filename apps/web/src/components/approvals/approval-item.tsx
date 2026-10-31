@@ -2,6 +2,7 @@
 
 import { Badge, Button } from "@veyntora/ui";
 import { useFormatter, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,6 +19,7 @@ export function ApprovalItem({ approval: a }: { approval: Approval }) {
   const format = useFormatter();
   const router = useRouter();
   const [note, setNote] = useState("");
+  const [draft, setDraft] = useState(a.draft ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const when = (iso: string) =>
@@ -29,7 +31,13 @@ export function ApprovalItem({ approval: a }: { approval: Approval }) {
     try {
       await api(`/v1/approvals/${a.id}/decision`, {
         method: "POST",
-        body: JSON.stringify({ approve, note: note.trim() || null }),
+        body: JSON.stringify({
+          approve,
+          note: note.trim() || null,
+          // An approver may correct the draft only when the step allows it, while approving.
+          edits:
+            approve && a.editable && draft !== (a.draft ?? "") ? { [a.editable]: draft } : null,
+        }),
       });
       router.refresh();
     } catch (e) {
@@ -54,14 +62,23 @@ export function ApprovalItem({ approval: a }: { approval: Approval }) {
             <Badge tone={TONE[a.decision]}>{t(`decision.${a.decision}`)}</Badge>
           </span>
         </div>
-        <div>
-          <h3 className="m-0 mb-1 text-xs font-semibold text-fg-muted uppercase">
-            {t("whatHappens")}
-          </h3>
-          <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-sunken p-3 text-xs">
-            {JSON.stringify(a.arguments, null, 2)}
-          </pre>
-        </div>
+        {a.automation ? (
+          <AutomationView approval={a} draft={draft} setDraft={setDraft} />
+        ) : (
+          <div>
+            <h3 className="m-0 mb-1 text-xs font-semibold text-fg-muted uppercase">
+              {t("whatHappens")}
+            </h3>
+            <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-sunken p-3 text-xs">
+              {JSON.stringify(a.arguments, null, 2)}
+            </pre>
+          </div>
+        )}
+        {a.required > 1 ? (
+          <p className="m-0 text-xs text-fg-muted">
+            {t("twoNeeded", { given: a.approvals, required: a.required })}
+          </p>
+        ) : null}
         {a.decision !== "pending" ? (
           <p className="m-0 text-sm text-fg-secondary">
             {a.decided_by ? t("decidedBy", { name: a.decided_by }) : null}
@@ -99,5 +116,76 @@ export function ApprovalItem({ approval: a }: { approval: Approval }) {
         ) : null}
       </article>
     </li>
+  );
+}
+
+/** An automation's approval step: what the approver was chosen to see. */
+function AutomationView({
+  approval: a,
+  draft,
+  setDraft,
+}: {
+  approval: Approval;
+  draft: string;
+  setDraft: (v: string) => void;
+}) {
+  const t = useTranslations("approvals");
+  const heading = "m-0 mb-1 text-xs font-semibold text-fg-muted uppercase";
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="m-0 text-xs text-fg-muted">
+        {t("fromAutomation", { name: a.automation ?? "" })}
+        {a.automation_id ? (
+          <>
+            {" "}
+            ·{" "}
+            <Link href={`/admin/runs/${a.run_id}`} className="underline">
+              {t("openRun")}
+            </Link>
+          </>
+        ) : null}
+      </p>
+      {a.reasoning.length ? (
+        <div>
+          <h3 className={heading}>{t("reasoning")}</h3>
+          <ul className="m-0 flex flex-col gap-0.5 pl-5 text-sm text-fg-secondary">
+            {a.reasoning.map((r, i) => (
+              <li key={i}>{r}</li>
+            ))}
+          </ul>
+          {a.sources.length ? (
+            <p className="m-0 mt-1 text-xs text-fg-muted">
+              {t("sources")}: {a.sources.join(" · ")}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      {a.draft != null ? (
+        <label className="flex flex-col gap-1">
+          <span className={heading}>{a.editable ? t("draftEditable") : t("draft")}</span>
+          {a.editable && a.can_decide ? (
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              className="min-h-[120px] rounded-md border border-line-strong bg-surface p-3 text-sm"
+            />
+          ) : (
+            <p className="m-0 rounded-md bg-sunken p-3 text-sm whitespace-pre-wrap">{a.draft}</p>
+          )}
+        </label>
+      ) : null}
+      {a.actions.length ? (
+        <div>
+          <h3 className={heading}>{t("afterApproval")}</h3>
+          <ul className="m-0 flex flex-col gap-0.5 pl-5 text-sm">
+            {a.actions.map((x, i) => (
+              <li key={i} className="font-mono text-xs">
+                {x}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
   );
 }

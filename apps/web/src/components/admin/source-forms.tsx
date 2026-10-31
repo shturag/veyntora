@@ -291,8 +291,8 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
           {LATER.map((k) => (
             <PhaseGatedButton
               key={k}
-              phase={5}
-              label={t("laterConnector", { phase: 5 })}
+              phase={6}
+              label={t("laterConnector", { phase: 6 })}
               className="h-auto w-full justify-start p-3"
             >
               {t(`types.${k}`)}
