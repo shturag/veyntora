@@ -46,3 +46,34 @@ Screens built in later phases show their real title and summary plus a "This scr
 
 - The rail lists only the areas the signed-in person may open (OpenFGA). A platform admin sees the full prototype list.
 - **Pipelines** in the rail opens `/admin/pipelines` (choose a chatbot). The prototype jumps straight to one chatbot (`/admin/pipelines/[botId]`).
+
+## Automations (Phase 5)
+
+- **Automations:** the KPI "Failed runs" counts this week's failures. The list has no sample rows; an empty list says how to start.
+- **New automation:** "Create draft" needs a chatbot (its model drafts the steps and its pipeline runs them). Templates leave out what they cannot know (tool, channel, data source) and list those as problems until they are chosen.
+- **Builder:**
+  - Steps can move up and down, and a "Before it can run" box lists what blocks activation.
+  - Versions can be restored, and an event trigger shows its webhook token panel.
+  - Autonomy options carry one-line explanations. *Act and report* still needs approvals for writing tools (principle 3).
+- **Trigger:** the condition dialog became inline rule rows. "Fire once per" takes a field name of each item, instead of the prototype's "Contract (don't repeat)".
+- **Agent step:** the step-type switch sits on the same page. "Test with sample event" starts a dry run (the result is on the run page) rather than showing inline output.
+- **Approval step:** "Preview the approval in the inbox" became the editable-field and "Approver sees" choices. The real request appears in Approvals when a run waits.
+- **Run trace:** "Replay in Playground" is not shown. An automation run is not one question, and its agent steps are listed with their tool calls instead. Messages the run sent are listed with their delivery state.
+
+## Knowledge health (Phase 5)
+
+- **Sections:** besides gaps and contradictions, the page lists stale, duplicate, reported and unreadable documents, because the scan finds them too.
+- **Scan:** there are "Scan now" and "Settings" (which model checks contradictions, the nightly time, the stale and popular thresholds).
+- **Suggested owner:** this is the source's owner (else the chatbot's owner), not a team name.
+
+## Saved answers, hand-off, chat (Phase 5)
+
+- **Saved answers:** shared answers that cite documents the viewer may not open are listed without their text. Share only offers the person's own groups plus "everyone who may use this assistant".
+- **Ask a human expert:**
+  - The "Send to" list comes from the chatbot's expert teams (Access page).
+  - The same route lists "Questions for my team", "Expert answers to review" and "My questions", because the prototype has no screen for experts.
+- **Chat options:**
+  - "Share" opens "Share this chat".
+  - The menu has Export chat and Delete. Save answer is a bookmark under each answer, and Ask a human expert stays under answers without a supported answer.
+  - Rename is not built (the title comes from the first question).
+- **Notifications:** a Notifications page and sidebar count were added; the prototype has no notification screen.
