@@ -67,7 +67,8 @@ class ProviderInstanceChatbot(Base):
 
 
 class ByokKey(IdMixin, SecretMetaMixin, Base):
-    """A user's own provider key. The value is at kv/users/{user_id}/{provider} in OpenBao."""
+    """A user's own model and key. The key is at kv/users/{user_id}/{provider} in OpenBao,
+    where `provider` is the key's own slot (its id)."""
 
     __tablename__ = "byok_keys"
     __table_args__ = (sa.UniqueConstraint("user_id", "provider"),)
@@ -77,3 +78,13 @@ class ByokKey(IdMixin, SecretMetaMixin, Base):
     label: Mapped[str] = mapped_column(sa.String(255), default="", server_default="")
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
     last_used_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # The user's own model: an LLM adapter, its endpoint and model (always external).
+    adapter: Mapped[str] = mapped_column(
+        sa.String(64), default="openai_compatible", server_default="openai_compatible"
+    )
+    endpoint: Mapped[str | None] = mapped_column(sa.String(1024))
+    model: Mapped[str | None] = mapped_column(sa.String(255))
+    # "chats" (at most one per user), "agent" (Phase 3) or "none".
+    use_for: Mapped[str] = mapped_column(sa.String(16), default="none", server_default="none")
+    previous_secret_ref: Mapped[str | None] = mapped_column(sa.String(512))
+    previous_secret_valid_until: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))

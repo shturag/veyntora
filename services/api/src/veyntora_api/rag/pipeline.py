@@ -33,6 +33,7 @@ from veyntora_providers.interfaces import (
     HybridQuery,
     Usage,
 )
+from veyntora_providers.netguard import EndpointNotAllowedError, check_public_https
 from veyntora_spec.filters import parse_filter
 from veyntora_spec.pipeline import (
     CitationPolicy,
@@ -60,7 +61,7 @@ from veyntora_api.db.models.knowledge import (
     SourceAttachment,
 )
 from veyntora_api.db.models.platform import PlatformSettings
-from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.providers import ByokKey, ProviderInstance
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.providers.service import with_fallbacks
 from veyntora_api.rag import grounding
@@ -95,6 +96,9 @@ def language_of(text: str) -> str:
     return "de" if any(c in text for c in "äöüßÄÖÜ") or len(words & _GERMAN) >= 2 else "en"
 
 
+OWN_MODEL_FAILED = "Your own model did not answer; the assistant's model answered instead."
+
+
 class RunRefusedError(Exception):
     """The run cannot start; the message is shown to the user as is."""
 
@@ -124,6 +128,10 @@ class RunContext:
     company: str
     # The data rule requires masking personal data before external providers.
     mask_external: bool = True
+    # The asker's own model (BYOK) when the data rule allows it; always external.
+    own_model: ByokKey | None = None
+    # The asker's Settings choices (answer language and length).
+    preferences: dict[str, Any] = field(default_factory=dict)
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -173,8 +181,9 @@ class Answer:
     latency_ms: int = 0
     steps: dict[str, int] = field(default_factory=dict)
     rerank_skipped: bool = False
-    # Model calls as (instance that served it, usage), for usage and cost per provider.
-    calls: list[tuple[UUID, Usage]] = field(default_factory=list)
+    # Model calls as (instance that served it, usage), for usage and cost per provider;
+    # None is the asker's own model.
+    calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- context
@@ -209,7 +218,7 @@ async def load_context(
     version = await db.get(PipelineVersion, version_id)
     if version is None:
         raise RunRefusedError("This assistant is not available right now.")
-    return await _context(db, user, bot, version)
+    return await _context(db, user, bot, version, personal=True)
 
 
 async def load_test_context(
@@ -249,8 +258,10 @@ async def load_test_context(
 
 
 async def _context(
-    db: AsyncSession, user: User, bot: Chatbot, version: PipelineVersion
+    db: AsyncSession, user: User, bot: Chatbot, version: PipelineVersion, *, personal: bool = False
 ) -> RunContext:
+    """`personal`: apply the asker's own model and preferences (chat, not the Playground,
+    which tests the chatbot as configured)."""
     spec = PipelineSpec.model_validate(version.spec)
     profile = index_profile(spec)
     if profile is None or spec.generation.llm_instance_id is None:
@@ -303,6 +314,14 @@ async def _context(
                 "This assistant's data rule requires masking personal data before external "
                 "models, but its pipeline has no PII provider."
             )
+    own_model = None
+    if (
+        personal
+        and rule is not None
+        and rule.allow_byok
+        and (not rule.mask_pii_before_external or spec.guardrails.pii_instance_id is not None)
+    ):
+        own_model = await _own_model(db, user.id)
     settings = await db.get(PlatformSettings, 1)
     return RunContext(
         user_id=user.id,
@@ -319,7 +338,22 @@ async def _context(
         providers=providers,
         company=settings.company_name if settings else "",
         mask_external=rule.mask_pii_before_external if rule else True,
+        own_model=own_model,
+        preferences=dict(user.preferences or {}) if personal else {},
     )
+
+
+async def _own_model(db: AsyncSession, user_id: UUID) -> ByokKey | None:
+    now = datetime.now(UTC)
+    row: ByokKey | None = await db.scalar(
+        sa.select(ByokKey).where(
+            ByokKey.user_id == user_id,
+            ByokKey.use_for == "chats",
+            ByokKey.secret_ref.is_not(None),
+            sa.or_(ByokKey.secret_expires_at.is_(None), ByokKey.secret_expires_at > now),
+        )
+    )
+    return row
 
 
 # ---------------------------------------------------------------- retrieval
@@ -476,6 +510,12 @@ Never use outside knowledge and never invent sources.
 If the sources do not answer the question, reply with exactly: NO_ANSWER"""
 
 
+_LENGTH = {
+    "short": "\nKeep the answer short: two or three sentences.",
+    "detailed": "\nGive a detailed answer that covers every relevant point in the sources.",
+}
+
+
 def system_prompt(ctx: RunContext, language: str) -> str:
     base = ctx.spec.generation.system_prompt
     for key, value in {
@@ -485,12 +525,16 @@ def system_prompt(ctx: RunContext, language: str) -> str:
         "today": datetime.now(UTC).date().isoformat(),
     }.items():
         base = base.replace("{" + key + "}", value)
+    if language == "auto" and ctx.preferences.get("answer_language") in {"de", "en"}:
+        # The chatbot answers in the asker's language; the asker chose one in Settings.
+        language = str(ctx.preferences["answer_language"])
     lang = (
         "Answer in the language of the question."
         if language == "auto"
         else f"Answer in this language: {language}."
     )
-    return f"{base.strip()}\n\n{_RULES}\n{lang}"
+    length = _LENGTH.get(str(ctx.preferences.get("answer_length") or ""), "")
+    return f"{base.strip()}\n\n{_RULES}\n{lang}{length}"
 
 
 def sources_block(sources: Sequence[Source]) -> str:
@@ -518,10 +562,9 @@ async def _complete(
 
 
 async def rewrite_query(
-    adapters: AdapterSource, ctx: RunContext, question: str, history: Sequence[ChatMessage]
+    llm: Any, question: str, history: Sequence[ChatMessage]
 ) -> tuple[str, Usage]:
     """A follow-up question rewritten to stand alone, for search only."""
-    llm = await adapters.get(ctx.spec.generation.llm_instance_id)  # type: ignore[arg-type]
     convo = "\n".join(f"{m.role}: {m.content}" for m in history[-2 * _HISTORY_TURNS :])
     text, usage = await _complete(
         llm,
@@ -592,12 +635,20 @@ class _Run:
     egress: bool = False
     warning: str | None = None
     skipped: bool = False
-    calls: list[tuple[UUID, Usage]] = field(default_factory=list)
+    calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
 
-    def call(self, adapters: AdapterSource, instance_id: UUID | None, usage: Usage) -> None:
+    def call(
+        self, adapters: AdapterSource, instance_id: UUID | None, usage: Usage, own: Any = None
+    ) -> None:
+        """Count one model call. `own` is the asker's own model, if it was offered."""
         if instance_id is None:
             return
         self.usage = _add(self.usage, usage)
+        if own is not None and not own.switched:
+            self.calls.append((None, usage))  # the asker's own model and account
+            return
+        if own is not None:
+            self.warning = self.warning or OWN_MODEL_FAILED
         served_by = getattr(adapters, "served_by", None)
         self.calls.append((served_by(instance_id) if served_by else instance_id, usage))
 
@@ -616,6 +667,28 @@ async def _adapter(adapters: AdapterSource, instance_id: UUID | None) -> Any:
     return await adapters.get(instance_id) if instance_id is not None else None
 
 
+async def _llm(adapters: AdapterSource, ctx: RunContext) -> tuple[Any, Any]:
+    """The model that answers, and the asker's own model wrapper when it is used."""
+    company = ctx.spec.generation.llm_instance_id
+    own_model = getattr(adapters, "own_model", None)
+    row = ctx.own_model
+    if row is not None and own_model is not None:
+        try:
+            if row.endpoint:
+                await check_public_https(row.endpoint)  # again: DNS may have changed
+        except EndpointNotAllowedError:
+            log.warning("own_model.endpoint_refused", key=str(row.id))
+        else:
+            own = await own_model(row, company)
+            return own, own
+    return await adapters.get(company), None  # type: ignore[arg-type]
+
+
+def _llm_external(ctx: RunContext) -> bool:
+    own = ctx.own_model is not None
+    return own or ctx.hosting(ctx.spec.generation.llm_instance_id) is Hosting.EXTERNAL
+
+
 async def _guard_input(
     adapters: AdapterSource,
     ctx: RunContext,
@@ -630,7 +703,7 @@ async def _guard_input(
     answer to stop with, if any."""
     g = ctx.spec.guardrails
     # Personal data leaves for an external model only masked (data rule or pipeline setting).
-    llm_external = ctx.hosting(ctx.spec.generation.llm_instance_id) is Hosting.EXTERNAL
+    llm_external = _llm_external(ctx)
     need_mask = llm_external and (ctx.mask_external or g.pii is PiiAction.MASK)
     pii = await _adapter(adapters, g.pii_instance_id)
     masker = Masker()
@@ -684,16 +757,17 @@ async def answer(
     )
     if stop is not None:
         return run.finish(stop)
-    llm_external = ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
+    llm_external = _llm_external(ctx)
 
     query = question
     if spec.retrieval.query_rewrite and history:
         t0 = time.perf_counter()
+        llm, own = await _llm(adapters, ctx)
         with tr.step("rewrite", generation=True) as step:
-            query, u = await rewrite_query(adapters, ctx, guarded, history)
+            query, u = await rewrite_query(llm, guarded, history)
             query = masker.unmask(query)
-            step.set(**_usage_attrs(ctx, gen.llm_instance_id, u))
-        run.call(adapters, gen.llm_instance_id, u)
+            step.set(**_usage_attrs(ctx, gen.llm_instance_id, u), own_model=own is not None)
+        run.call(adapters, gen.llm_instance_id, u, own)
         run.egress |= llm_external
         run.steps["rewrite"] = round((time.perf_counter() - t0) * 1000)
 
@@ -787,7 +861,7 @@ async def _generate(
         *turns,
         ChatMessage("user", f"{block}\n\nQuestion: {question}"),
     ]
-    llm = await adapters.get(gen.llm_instance_id)  # type: ignore[arg-type]
+    llm, own = await _llm(adapters, ctx)
     t0 = time.perf_counter()
     with tr.step("generate", generation=True) as step:
         text, u = await _complete(llm, messages, gen.max_answer_tokens, emit)
@@ -795,9 +869,12 @@ async def _generate(
             **_usage_attrs(ctx, gen.llm_instance_id, u),
             streamed=emit is not None,
             masked=masker.count if masker else 0,
+            own_model=own is not None and not own.switched,
         )
-    run.call(adapters, gen.llm_instance_id, u)
-    run.egress |= ctx.hosting(gen.llm_instance_id) is Hosting.EXTERNAL
+    run.call(adapters, gen.llm_instance_id, u, own)
+    if own is not None and not own.switched and ctx.own_model is not None:
+        ctx.own_model.last_used_at = datetime.now(UTC)
+    run.egress |= _llm_external(ctx)
     run.steps["generate"] = round((time.perf_counter() - t0) * 1000)
     return masker.unmask(text) if masker is not None else text
 

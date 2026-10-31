@@ -98,7 +98,7 @@ export const SCREENS: readonly Screen[] = [
   { key: "savedAnswers", file: "SavedAnswers.html", route: "/saved", shell: "user", phase: 5 },
   { key: "approvals", file: "Approvals.html", route: "/approvals", shell: "user", phase: 3 },
   { key: "handoff", file: "Handoff.html", route: "/handoff", shell: "user", phase: 5 },
-  { key: "settings", file: "Settings.html", route: "/settings", shell: "user", phase: 2 },
+  { key: "settings", file: "Settings.html", route: "/settings", shell: "user", phase: 2, built: true },
 
   // admin: overview and chatbots
   {

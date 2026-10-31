@@ -5,11 +5,13 @@ volumes). Skipped when the tokens are not provided.
 """
 
 import os
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
 import pytest
 from veyntora_api.secrets.openbao import SecretWriter
+from veyntora_providers.secrets import OpenBaoReader, SecretUnavailableError
 
 BAO = os.environ.get("VEY_IT_OPENBAO_URL", "http://localhost:8200")
 API_TOKEN = os.environ.get("VEY_IT_OPENBAO_API_TOKEN", "")
@@ -60,3 +62,24 @@ async def test_api_token_cannot_touch_system_paths() -> None:
         ):
             res = await http.request(method, url, headers={"X-Vault-Token": API_TOKEN}, json={})
             assert res.status_code == 403, url
+
+
+async def test_replaced_key_stays_readable_by_version_until_destroyed(tmp_path: Path) -> None:
+    path = f"users/{uuid4()}/{uuid4()}"
+    writer = SecretWriter(BAO, API_TOKEN)
+    token = tmp_path / "runtime.token"
+    token.write_text(RUNTIME_TOKEN)
+    reader = OpenBaoReader(BAO, token)
+    try:
+        await writer.put(path, "sk-old-0123456789abcdef")
+        new = await writer.put(path, "sk-new-0123456789abcdef")
+        previous = new.previous()
+        assert new.version == 2 and previous == f"kv/{path}?version=1"
+        assert await reader.read(new.ref) == "sk-new-0123456789abcdef"
+        assert await reader.read(previous) == "sk-old-0123456789abcdef"
+        await writer.destroy_version(previous)
+        with pytest.raises(SecretUnavailableError):
+            await OpenBaoReader(BAO, token).read(previous)  # a fresh reader: no cache
+    finally:
+        await writer.delete(path)
+        await writer.close()

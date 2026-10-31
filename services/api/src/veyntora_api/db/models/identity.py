@@ -23,6 +23,8 @@ class User(IdMixin, TimestampMixin, Base):
     display_name: Mapped[str] = mapped_column(sa.String(255), default="")
     locale: Mapped[str | None] = mapped_column(sa.String(16))
     attributes: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
+    # Settings page choices (answer language and length, default assistant).
+    preferences: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     suspended: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     suspended_reason: Mapped[str | None] = mapped_column(sa.Text)
     last_login_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))

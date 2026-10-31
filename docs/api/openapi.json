@@ -175,6 +175,222 @@
         "title": "Body_upload_files_v1_me_files_post",
         "type": "object"
       },
+      "ByokInput": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter": {
+            "enum": [
+              "openai_compatible",
+              "anthropic"
+            ],
+            "title": "Adapter",
+            "type": "string"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "key": {
+            "format": "password",
+            "title": "Key",
+            "type": "string",
+            "writeOnly": true
+          },
+          "label": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Label",
+            "type": "string"
+          },
+          "model": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "use_for": {
+            "default": "chats",
+            "enum": [
+              "chats",
+              "none"
+            ],
+            "title": "Use For",
+            "type": "string"
+          }
+        },
+        "required": [
+          "adapter",
+          "model",
+          "key"
+        ],
+        "title": "ByokInput",
+        "type": "object"
+      },
+      "ByokOut": {
+        "description": "Never contains the key or its OpenBao path: only last 4 and expiry.",
+        "properties": {
+          "adapter": {
+            "title": "Adapter",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "previous_key_valid_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previous Key Valid Until"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "use_for": {
+            "title": "Use For",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "adapter",
+          "endpoint",
+          "model",
+          "use_for",
+          "secret_last4",
+          "secret_expires_at",
+          "previous_key_valid_until",
+          "created_at",
+          "last_used_at"
+        ],
+        "title": "ByokOut",
+        "type": "object"
+      },
+      "ByokUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "use_for": {
+            "anyOf": [
+              {
+                "enum": [
+                  "chats",
+                  "none"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use For"
+          }
+        },
+        "title": "ByokUpdate",
+        "type": "object"
+      },
       "Capability": {
         "enum": [
           "llm",
@@ -1650,6 +1866,73 @@
         "title": "JobStatus",
         "type": "string"
       },
+      "KeySecretIn": {
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "grace": {
+            "default": "24h",
+            "enum": [
+              "now",
+              "1h",
+              "24h",
+              "7d"
+            ],
+            "title": "Grace",
+            "type": "string"
+          },
+          "key": {
+            "format": "password",
+            "title": "Key",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "key"
+        ],
+        "title": "KeySecretIn",
+        "type": "object"
+      },
+      "KeysOut": {
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "chatbots": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/ByokOut"
+            },
+            "title": "Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "allowed",
+          "chatbots",
+          "keys"
+        ],
+        "title": "KeysOut",
+        "type": "object"
+      },
       "Level": {
         "enum": [
           "operational",
@@ -2103,6 +2386,45 @@
           "attrs"
         ],
         "title": "PlaygroundStep",
+        "type": "object"
+      },
+      "Preferences": {
+        "additionalProperties": false,
+        "properties": {
+          "answer_language": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "de",
+              "en"
+            ],
+            "title": "Answer Language",
+            "type": "string"
+          },
+          "answer_length": {
+            "default": "balanced",
+            "enum": [
+              "balanced",
+              "short",
+              "detailed"
+            ],
+            "title": "Answer Length",
+            "type": "string"
+          },
+          "default_chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Chatbot Id"
+          }
+        },
+        "title": "Preferences",
         "type": "object"
       },
       "ProviderInput": {
@@ -5733,6 +6055,20 @@
         ]
       }
     },
+    "/v1/me/conversations": {
+      "delete": {
+        "operationId": "delete_all_conversations_v1_me_conversations_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Remove all of the user's conversations from their list",
+        "tags": [
+          "me"
+        ]
+      }
+    },
     "/v1/me/files": {
       "get": {
         "operationId": "list_files_v1_me_files_get",
@@ -5832,6 +6168,266 @@
           }
         },
         "summary": "Remove one of your files",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/keys": {
+      "get": {
+        "operationId": "list_keys_v1_me_keys_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The user's own models and whether they may be used",
+        "tags": [
+          "me"
+        ]
+      },
+      "post": {
+        "operationId": "add_key_v1_me_keys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ByokInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ByokOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add an own model (tested)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/keys/{key_id}": {
+      "delete": {
+        "operationId": "remove_key_v1_me_keys__key_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Key Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove an own model",
+        "tags": [
+          "me"
+        ]
+      },
+      "patch": {
+        "operationId": "change_key_v1_me_keys__key_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Key Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ByokUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ByokOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rename an own model or choose what it is used for",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/keys/{key_id}/secret": {
+      "put": {
+        "operationId": "replace_key_v1_me_keys__key_id__secret_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Key Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeySecretIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ByokOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the key of an own model (tested)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/preferences": {
+      "get": {
+        "operationId": "get_preferences_v1_me_preferences_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preferences"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The user's answer preferences",
+        "tags": [
+          "me"
+        ]
+      },
+      "put": {
+        "operationId": "put_preferences_v1_me_preferences_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Preferences"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preferences"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the user's answer preferences",
         "tags": [
           "me"
         ]

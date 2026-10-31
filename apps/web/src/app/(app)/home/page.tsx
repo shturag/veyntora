@@ -10,7 +10,11 @@ export const generateMetadata = () => screenMetadata("home");
 export default async function HomePage() {
   const me = await requireMe();
   const t = await getTranslations("chat");
-  const { data } = await (await serverApi()).GET("/v1/me/chatbots");
+  const api = await serverApi();
+  const [{ data }, { data: prefs }] = await Promise.all([
+    api.GET("/v1/me/chatbots"),
+    api.GET("/v1/me/preferences"),
+  ]);
   const first = (me.name || me.email || "").split(" ")[0] ?? "";
   return (
     <div className="flex justify-center py-9 max-[640px]:py-2">
@@ -22,6 +26,7 @@ export default async function HomePage() {
           <p className="m-0 text-base text-fg-muted">{t("intro")}</p>
         </div>
         <HomeClient
+          initial={prefs?.default_chatbot_id}
           assistants={(data ?? []).map((b) => ({
             id: b.id,
             name: b.name,

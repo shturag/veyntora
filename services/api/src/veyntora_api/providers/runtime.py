@@ -27,7 +27,9 @@ from veyntora_providers.instance import ProviderInstanceConfig
 from veyntora_providers.interfaces import KeyRejectedError
 from veyntora_providers.secrets import SecretReader
 
-from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.providers import ByokKey, ProviderInstance
+from veyntora_api.providers.byok import config_of as byok_config
+from veyntora_api.providers.byok import in_grace as byok_in_grace
 
 log = structlog.get_logger()
 
@@ -145,6 +147,7 @@ class Adapters:
         self._made: dict[UUID, Any] = {}
         # Disabled instances and the fallback that stands in for them.
         self._replaced: dict[UUID, UUID] = {}
+        self._own: list[Retrying] = []
         self.rows: dict[UUID, ProviderInstance] = {}
 
     def served_by(self, instance_id: UUID) -> UUID:
@@ -160,6 +163,30 @@ class Adapters:
             else:
                 break
         return current
+
+    async def own_model(self, row: ByokKey, company_id: UUID) -> Retrying:
+        """The user's own model; the chatbot's own provider answers when it fails."""
+        config = byok_config(row)
+        adapter: Any = registry.create(config, self._secrets)
+        if byok_in_grace(row):
+            old = config.model_copy(update={"secret_ref": row.previous_secret_ref})
+            adapter = Retrying(
+                adapter,
+                lambda: registry.create(old, self._secrets),
+                (KeyRejectedError,),
+                "replaced own key",
+                owns_alternative=True,
+            )
+        own = Retrying(
+            adapter,
+            lambda: self.get(company_id),
+            (Exception,),
+            "own model failed",
+            owns_alternative=False,
+            target=company_id,
+        )
+        self._own.append(own)
+        return own
 
     async def get(self, instance_id: UUID, *, _depth: int = 0) -> Any:
         if instance_id in self._made:
@@ -201,10 +228,11 @@ class Adapters:
 
     async def close(self) -> None:
         closed: set[int] = set()
-        for adapter in self._made.values():
+        for adapter in [*self._own, *self._made.values()]:
             close = getattr(adapter, "close", None)
             if close is not None and id(adapter) not in closed:
                 closed.add(id(adapter))
                 await close()
         self._made.clear()
         self._replaced.clear()
+        self._own.clear()

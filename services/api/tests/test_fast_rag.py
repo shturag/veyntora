@@ -21,9 +21,10 @@ from veyntora_api.chatbots import service as bots
 from veyntora_api.db.models.chatbots import ChatbotStatus
 from veyntora_api.db.models.conversations import Citation, Conversation, Message, MessageRole
 from veyntora_api.db.models.identity import GroupSource, Membership, User
-from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.providers import ByokKey, ProviderInstance
 from veyntora_api.db.models.quality import UsageRecord
 from veyntora_api.knowledge import service as knowledge
+from veyntora_api.providers.runtime import Retrying
 from veyntora_api.rag import pipeline
 from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
 from veyntora_api.rag.record import PRICE_IN, PRICE_OUT
@@ -38,6 +39,7 @@ from veyntora_providers.interfaces import (
     Hit,
     Hosting,
     HybridQuery,
+    KeyRejectedError,
     Scored,
     Usage,
 )
@@ -574,3 +576,114 @@ async def test_data_rules_cover_fallback_providers(rag: Rag) -> None:
         await rag.ask("refund?")
     problems = await bots.publish_problems(db, rag.bot)
     assert any("Outside embedder" in p for p in problems)
+
+
+class OwnAdapters:
+    """The test adapters plus the asker's own model, as providers.runtime builds it."""
+
+    def __init__(self, rag: Rag, own: Any) -> None:
+        self.inner = rag.adapters()
+        self.own = own
+
+    async def get(self, instance_id: UUID) -> Any:
+        return await self.inner.get(instance_id)
+
+    async def own_model(self, row: Any, company: UUID) -> Retrying:
+        return Retrying(
+            self.own,
+            lambda: self.get(company),
+            (Exception,),
+            "own model failed",
+            owns_alternative=False,
+            target=company,
+        )
+
+
+class BrokenLLM:
+    async def chat(self, messages: Sequence[ChatMessage], **_: Any) -> AsyncIterator[ChatChunk]:
+        raise KeyRejectedError("own key rejected (HTTP 401)")
+        yield ChatChunk()  # pragma: no cover - makes this an async generator
+
+
+async def _own_model(rag: Rag, *, allow: bool, endpoint: str = "https://1.1.1.1/v1") -> None:
+    db = rag.w.db
+    await bots.set_governance(
+        db,
+        CTX,
+        rag.bot,
+        bots.GovernanceInput(
+            allowed_external_instance_ids=[rag.w.llm],
+            mask_pii_before_external=False,
+            allow_byok=allow,
+        ),
+    )
+    db.add(
+        ByokKey(
+            user_id=rag.w.user.id,
+            provider="own",
+            adapter="openai_compatible",
+            endpoint=endpoint,
+            model="gpt-x",
+            use_for="chats",
+            secret_ref=f"kv/users/{rag.w.user.id}/own",
+        )
+    )
+    await db.flush()
+
+
+async def test_own_model_answers_when_the_data_rule_allows_it(rag: Rag) -> None:
+    question = "Can digital products be refunded?"
+    own = ScriptedLLM("Own model: digital products can't be refunded once downloaded [1].")
+    await _own_model(rag, allow=True)
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    assert ctx.own_model is not None
+    result = await answer(rag.w.db, OwnAdapters(rag, own), ctx, question)
+    assert result.outcome == "answered" and result.text.startswith("Own model")
+    assert result.calls == [(None, Usage(120, 30))], "billed to the asker, not a provider"
+    assert result.external_egress and ctx.own_model.last_used_at is not None
+
+    # The own key fails: the chatbot's model answers, and the asker is told.
+    result = await answer(rag.w.db, OwnAdapters(rag, BrokenLLM()), ctx, question)
+    assert result.outcome == "answered" and not result.text.startswith("Own model")
+    assert result.warning == pipeline.OWN_MODEL_FAILED
+    assert result.calls == [(rag.w.llm, Usage(120, 30))]
+
+
+async def test_own_model_is_not_used_without_permission_or_on_internal_hosts(rag: Rag) -> None:
+    await _own_model(rag, allow=False)
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    assert ctx.own_model is None
+
+    await rag.w.db.execute(sa.update(ByokKey).values(endpoint="https://10.0.0.7/v1"))
+    await bots.set_governance(
+        rag.w.db,
+        CTX,
+        rag.bot,
+        bots.GovernanceInput(
+            allowed_external_instance_ids=[rag.w.llm],
+            mask_pii_before_external=False,
+            allow_byok=True,
+        ),
+    )
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    own = ScriptedLLM("Own model: never called [1].")
+    result = await answer(rag.w.db, OwnAdapters(rag, own), ctx, "Can digital products be refunded?")
+    assert not own.calls, "an endpoint inside the network is never called"
+    assert result.calls == [(rag.w.llm, Usage(120, 30))]
+
+    # The Playground tests the chatbot as configured, without the tester's own model.
+    test_ctx = await pipeline.load_test_context(
+        rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id, "live"
+    )
+    assert test_ctx.own_model is None and test_ctx.preferences == {}
+
+
+async def test_answer_preferences_shape_the_prompt(rag: Rag) -> None:
+    user = rag.w.user
+    user.preferences = {"answer_language": "de", "answer_length": "short"}
+    await rag.w.db.flush()
+    ctx = await load_context(rag.w.db, rag.authz, user.keycloak_sub, rag.bot.id)
+    prompt = pipeline.system_prompt(ctx, "auto")
+    assert "Answer in this language: de." in prompt and "two or three sentences" in prompt
+    # A chatbot set to one language keeps it.
+    assert "Answer in this language: en." in pipeline.system_prompt(ctx, "en")

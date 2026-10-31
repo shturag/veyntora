@@ -12,10 +12,19 @@ import { Composer } from "./composer";
 export type Assistant = { id: string; name: string; description: string };
 
 /** Assistant picker and first question; the chat continues on /chat/<thread>. */
-export function HomeClient({ assistants }: { assistants: Assistant[] }) {
+export function HomeClient({
+  assistants,
+  initial,
+}: {
+  assistants: Assistant[];
+  /** The default assistant chosen in Settings, if the user may still use it. */
+  initial?: string | null;
+}) {
   const t = useTranslations("chat");
   const router = useRouter();
-  const [selected, setSelected] = useState(assistants[0]?.id ?? "");
+  const [selected, setSelected] = useState(
+    assistants.find((a) => a.id === initial)?.id ?? assistants[0]?.id ?? "",
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
 

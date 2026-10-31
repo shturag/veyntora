@@ -39,7 +39,12 @@ async def record_usage(
     db: AsyncSession, ctx: RunContext, result: Answer, *, message_id: UUID | None
 ) -> None:
     for instance_id, usage in result.calls:
-        row = ctx.providers.get(instance_id) or await db.get(ProviderInstance, instance_id)
+        if instance_id is None:
+            # The asker's own model: billed to their own account, always external.
+            row, own = None, True
+        else:
+            row = ctx.providers.get(instance_id) or await db.get(ProviderInstance, instance_id)
+            own = False
         db.add(
             UsageRecord(
                 user_id=ctx.user_id,
@@ -49,7 +54,8 @@ async def record_usage(
                 tokens_in=usage.prompt_tokens,
                 tokens_out=usage.completion_tokens,
                 cost=cost_of(row, usage),
-                external=bool(row and row.hosting is Hosting.EXTERNAL),
+                external=own or bool(row and row.hosting is Hosting.EXTERNAL),
+                byok=own,
             )
         )
     await db.flush()

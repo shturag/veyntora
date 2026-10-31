@@ -712,6 +712,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove all of the user's conversations from their list */
+        delete: operations["delete_all_conversations_v1_me_conversations_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/files": {
         parameters: {
             query?: never;
@@ -742,6 +759,77 @@ export interface paths {
         post?: never;
         /** Remove one of your files */
         delete: operations["delete_file_v1_me_files__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's own models and whether they may be used */
+        get: operations["list_keys_v1_me_keys_get"];
+        put?: never;
+        /** Add an own model (tested) */
+        post: operations["add_key_v1_me_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove an own model */
+        delete: operations["remove_key_v1_me_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename an own model or choose what it is used for */
+        patch: operations["change_key_v1_me_keys__key_id__patch"];
+        trace?: never;
+    };
+    "/v1/me/keys/{key_id}/secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the key of an own model (tested) */
+        put: operations["replace_key_v1_me_keys__key_id__secret_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's answer preferences */
+        get: operations["get_preferences_v1_me_preferences_get"];
+        /** Replace the user's answer preferences */
+        put: operations["put_preferences_v1_me_preferences_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -867,6 +955,77 @@ export interface components {
         Body_upload_files_v1_me_files_post: {
             /** Files */
             files: string[];
+        };
+        /** ByokInput */
+        ByokInput: {
+            /**
+             * Adapter
+             * @enum {string}
+             */
+            adapter: "openai_compatible" | "anthropic";
+            /** Endpoint */
+            endpoint?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Key
+             * Format: password
+             */
+            key: string;
+            /**
+             * Label
+             * @default
+             */
+            label: string;
+            /** Model */
+            model: string;
+            /**
+             * Use For
+             * @default chats
+             * @enum {string}
+             */
+            use_for: "chats" | "none";
+        };
+        /**
+         * ByokOut
+         * @description Never contains the key or its OpenBao path: only last 4 and expiry.
+         */
+        ByokOut: {
+            /** Adapter */
+            adapter: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Endpoint */
+            endpoint: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Label */
+            label: string;
+            /** Last Used At */
+            last_used_at: string | null;
+            /** Model */
+            model: string | null;
+            /** Previous Key Valid Until */
+            previous_key_valid_until: string | null;
+            /** Secret Expires At */
+            secret_expires_at: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Use For */
+            use_for: string;
+        };
+        /** ByokUpdate */
+        ByokUpdate: {
+            /** Label */
+            label?: string | null;
+            /** Use For */
+            use_for?: ("chats" | "none") | null;
         };
         /**
          * Capability
@@ -1466,6 +1625,31 @@ export interface components {
          * @enum {string}
          */
         JobStatus: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+        /** KeySecretIn */
+        KeySecretIn: {
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Grace
+             * @default 24h
+             * @enum {string}
+             */
+            grace: "now" | "1h" | "24h" | "7d";
+            /**
+             * Key
+             * Format: password
+             */
+            key: string;
+        };
+        /** KeysOut */
+        KeysOut: {
+            /** Allowed */
+            allowed: boolean;
+            /** Chatbots */
+            chatbots: string[];
+            /** Keys */
+            keys: components["schemas"]["ByokOut"][];
+        };
         /**
          * Level
          * @enum {string}
@@ -1649,6 +1833,23 @@ export interface components {
             ms: number;
             /** Name */
             name: string;
+        };
+        /** Preferences */
+        Preferences: {
+            /**
+             * Answer Language
+             * @default auto
+             * @enum {string}
+             */
+            answer_language: "auto" | "de" | "en";
+            /**
+             * Answer Length
+             * @default balanced
+             * @enum {string}
+             */
+            answer_length: "balanced" | "short" | "detailed";
+            /** Default Chatbot Id */
+            default_chatbot_id?: string | null;
         };
         /** ProviderInput */
         ProviderInput: {
@@ -3622,6 +3823,24 @@ export interface operations {
             };
         };
     };
+    delete_all_conversations_v1_me_conversations_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_files_v1_me_files_get: {
         parameters: {
             query?: never;
@@ -3692,6 +3911,211 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_keys_v1_me_keys_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeysOut"];
+                };
+            };
+        };
+    };
+    add_key_v1_me_keys_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ByokInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ByokOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_key_v1_me_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_key_v1_me_keys__key_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ByokUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ByokOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_key_v1_me_keys__key_id__secret_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KeySecretIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ByokOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preferences_v1_me_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preferences"];
+                };
+            };
+        };
+    };
+    put_preferences_v1_me_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Preferences"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Preferences"];
+                };
             };
             /** @description Validation Error */
             422: {

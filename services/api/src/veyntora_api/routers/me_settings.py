@@ -1,0 +1,239 @@
+"""The user's own settings: answer preferences, own models (BYOK), deleting all chats.
+
+Language and theme are per browser (cookie, local storage) and set in the web app.
+"""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from typing import Literal
+from uuid import UUID
+
+import sqlalchemy as sa
+from fastapi import APIRouter, HTTPException, Response, status
+from pydantic import BaseModel, ConfigDict, SecretStr
+
+from veyntora_api.auth.deps import Ctx, CurrentPrincipal, DbSession, State
+from veyntora_api.core import audit
+from veyntora_api.db.models.chatbots import Chatbot
+from veyntora_api.db.models.conversations import Conversation
+from veyntora_api.db.models.governance import GovernanceRule
+from veyntora_api.db.models.identity import User
+from veyntora_api.db.models.providers import ByokKey
+from veyntora_api.providers import byok
+from veyntora_api.providers.service import ProviderError
+
+router = APIRouter(prefix="/v1/me", tags=["me"])
+
+
+class Preferences(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # Applies when the chatbot answers in the language of the question ("auto").
+    answer_language: Literal["auto", "de", "en"] = "auto"
+    answer_length: Literal["balanced", "short", "detailed"] = "balanced"
+    default_chatbot_id: UUID | None = None
+
+
+async def _user(db: DbSession, principal: CurrentPrincipal) -> User:
+    user = await db.get(User, principal.user_id)
+    if user is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
+    return user
+
+
+@router.get("/preferences", summary="The user's answer preferences")
+async def get_preferences(principal: CurrentPrincipal, db: DbSession) -> Preferences:
+    user = await _user(db, principal)
+    return Preferences.model_validate(
+        {k: v for k, v in (user.preferences or {}).items() if k in Preferences.model_fields}
+    )
+
+
+@router.put("/preferences", summary="Replace the user's answer preferences")
+async def put_preferences(
+    data: Preferences, principal: CurrentPrincipal, db: DbSession, state: State
+) -> Preferences:
+    if data.default_chatbot_id is not None and not await state.require_authz().check(
+        principal.fga, "can_chat", f"chatbot:{data.default_chatbot_id}"
+    ):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "No access to that assistant")
+    user = await _user(db, principal)
+    user.preferences = data.model_dump(mode="json")
+    await db.commit()
+    return data
+
+
+@router.delete(
+    "/conversations",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove all of the user's conversations from their list",
+)
+async def delete_all_conversations(
+    principal: CurrentPrincipal, db: DbSession, ctx: Ctx
+) -> Response:
+    result = await db.execute(
+        sa.update(Conversation)
+        .where(Conversation.user_id == principal.user_id, Conversation.deleted_at.is_(None))
+        .values(deleted_at=datetime.now(UTC))
+    )
+    await audit.record(
+        db,
+        ctx,
+        action="conversations.delete_all",
+        target_type="user",
+        target_id=str(principal.user_id),
+        after={"conversations": result.rowcount},  # type: ignore[attr-defined]
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------- own models (BYOK)
+
+
+class ByokOut(BaseModel):
+    """Never contains the key or its OpenBao path: only last 4 and expiry."""
+
+    id: UUID
+    label: str
+    adapter: str
+    endpoint: str | None
+    model: str | None
+    use_for: str
+    secret_last4: str | None
+    secret_expires_at: datetime | None
+    previous_key_valid_until: datetime | None
+    created_at: datetime
+    last_used_at: datetime | None
+
+    @classmethod
+    def of(cls, row: ByokKey) -> ByokOut:
+        return cls(
+            id=row.id,
+            label=row.label,
+            adapter=row.adapter,
+            endpoint=row.endpoint,
+            model=row.model,
+            use_for=row.use_for,
+            secret_last4=row.secret_last4,
+            secret_expires_at=row.secret_expires_at,
+            previous_key_valid_until=row.previous_secret_valid_until
+            if byok.in_grace(row)
+            else None,
+            created_at=row.created_at,
+            last_used_at=row.last_used_at,
+        )
+
+
+class KeysOut(BaseModel):
+    # Whether any assistant this user may chat with allows own keys (its data rule).
+    allowed: bool
+    chatbots: list[str]
+    keys: list[ByokOut]
+
+
+async def _byok_chatbots(db: DbSession, state: State, principal: CurrentPrincipal) -> list[str]:
+    objects = await state.require_authz().list_objects(principal.fga, "can_chat", "chatbot")
+    ids = [UUID(o.split(":", 1)[1]) for o in objects]
+    if not ids:
+        return []
+    rows = await db.execute(
+        sa.select(Chatbot.name)
+        .join(GovernanceRule, GovernanceRule.chatbot_id == Chatbot.id)
+        .where(Chatbot.id.in_(ids), GovernanceRule.allow_byok.is_(True))
+        .order_by(Chatbot.name)
+    )
+    return list(rows.scalars())
+
+
+async def _own_key(db: DbSession, principal: CurrentPrincipal, key_id: UUID) -> ByokKey:
+    row = await db.get(ByokKey, key_id)
+    if row is None or row.user_id != principal.user_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Key not found")
+    return row
+
+
+def _refused(exc: ProviderError) -> HTTPException:
+    return HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc))
+
+
+@router.get("/keys", summary="The user's own models and whether they may be used")
+async def list_keys(principal: CurrentPrincipal, db: DbSession, state: State) -> KeysOut:
+    chatbots = await _byok_chatbots(db, state, principal)
+    rows = await db.execute(
+        sa.select(ByokKey).where(ByokKey.user_id == principal.user_id).order_by(ByokKey.created_at)
+    )
+    return KeysOut(
+        allowed=bool(chatbots), chatbots=chatbots, keys=[ByokOut.of(r) for r in rows.scalars()]
+    )
+
+
+@router.post("/keys", status_code=status.HTTP_201_CREATED, summary="Add an own model (tested)")
+async def add_key(
+    data: byok.ByokInput, principal: CurrentPrincipal, db: DbSession, state: State, ctx: Ctx
+) -> ByokOut:
+    if not await _byok_chatbots(db, state, principal):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Your admin has not allowed own keys")
+    try:
+        row = await byok.add_key(db, ctx, state.secrets, principal.user_id, data)
+    except ProviderError as exc:
+        raise _refused(exc) from exc
+    await db.commit()
+    return ByokOut.of(row)
+
+
+class KeySecretIn(BaseModel):
+    key: SecretStr
+    expires_at: datetime | None = None
+    grace: Literal["now", "1h", "24h", "7d"] = "24h"
+
+
+@router.put("/keys/{key_id}/secret", summary="Replace the key of an own model (tested)")
+async def replace_key(
+    key_id: UUID,
+    data: KeySecretIn,
+    principal: CurrentPrincipal,
+    db: DbSession,
+    state: State,
+    ctx: Ctx,
+) -> ByokOut:
+    row = await _own_key(db, principal, key_id)
+    try:
+        await byok.replace_secret(
+            db,
+            ctx,
+            state.secrets,
+            row,
+            value=data.key,
+            expires_at=data.expires_at,
+            grace=data.grace,
+        )
+    except ProviderError as exc:
+        raise _refused(exc) from exc
+    await db.commit()
+    return ByokOut.of(row)
+
+
+@router.patch("/keys/{key_id}", summary="Rename an own model or choose what it is used for")
+async def change_key(
+    key_id: UUID, data: byok.ByokUpdate, principal: CurrentPrincipal, db: DbSession, ctx: Ctx
+) -> ByokOut:
+    row = await byok.update_key(db, ctx, await _own_key(db, principal, key_id), data)
+    await db.commit()
+    return ByokOut.of(row)
+
+
+@router.delete(
+    "/keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Remove an own model"
+)
+async def remove_key(
+    key_id: UUID, principal: CurrentPrincipal, db: DbSession, state: State, ctx: Ctx
+) -> Response:
+    row = await _own_key(db, principal, key_id)
+    try:
+        await byok.remove_key(db, ctx, state.secrets, row)
+    except ProviderError as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

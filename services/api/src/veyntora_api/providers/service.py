@@ -7,8 +7,9 @@ last 4 characters and expiry are kept.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
-from typing import Any, Protocol
+from typing import Any, Protocol, cast
 from uuid import UUID
 
 import sqlalchemy as sa
@@ -24,7 +25,7 @@ from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService
 from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.chatbots import Chatbot, PipelineStatus, PipelineVersion
-from veyntora_api.db.models.providers import HealthStatus, ProviderInstance
+from veyntora_api.db.models.providers import ByokKey, HealthStatus, ProviderInstance
 from veyntora_api.secrets.openbao import SecretWriter
 
 # Adapters that call a vendor outside the network: they must be marked external.
@@ -299,27 +300,30 @@ async def set_secret(
 
 
 async def purge_replaced_keys(db: AsyncSession, secrets: SecretWriter) -> int:
-    """Destroy replaced keys whose grace period is over. Returns how many."""
+    """Destroy replaced keys (provider and own keys) whose grace period is over."""
     now = datetime.now(UTC)
-    rows = (
-        (
-            await db.execute(
-                sa.select(ProviderInstance).where(
-                    ProviderInstance.previous_secret_valid_until.is_not(None),
-                    ProviderInstance.previous_secret_valid_until <= now,
+    purged = 0
+    for model in (ProviderInstance, ByokKey):
+        rows = (
+            (
+                await db.execute(
+                    sa.select(model).where(
+                        model.previous_secret_valid_until.is_not(None),
+                        model.previous_secret_valid_until <= now,
+                    )
                 )
             )
+            .scalars()
+            .all()
         )
-        .scalars()
-        .all()
-    )
-    for row in rows:
-        if row.previous_secret_ref:
-            await secrets.destroy_version(row.previous_secret_ref)
-        row.previous_secret_ref = None
-        row.previous_secret_valid_until = None
+        for row in cast("Sequence[Rotating]", rows):
+            if row.previous_secret_ref:
+                await secrets.destroy_version(row.previous_secret_ref)
+            row.previous_secret_ref = None
+            row.previous_secret_valid_until = None
+        purged += len(rows)
     await db.flush()
-    return len(rows)
+    return purged
 
 
 async def mark_health(db: AsyncSession, row: ProviderInstance, ok: bool, detail: str) -> None:
