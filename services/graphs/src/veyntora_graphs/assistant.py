@@ -435,7 +435,7 @@ async def fast_node(state: State, config: RunnableConfig) -> Command[Any]:
             await conversation_for(db, _thread(config)[0], turn.ctx, question)
         except RunRefusedError as exc:
             return Command(goto=END, update={"messages": [_refusal(str(exc))]})
-        trace = new_trace()
+        trace = new_trace(mask=turn.ctx.mask_traces)
         try:
             with trace.run("assistant.fast", **{"langfuse.user.id": str(turn.ctx.user_id)}):
                 result = await pipeline.answer(
@@ -499,7 +499,12 @@ async def agent_start_node(state: State, config: RunnableConfig) -> Command[Any]
         run_ = pipeline._Run(started=time.perf_counter())
         try:
             guarded, masker, pii, need_mask, stop = await pipeline._guard_input(
-                turn.adapters, turn.ctx, run_, question, language=language, tr=new_trace()
+                turn.adapters,
+                turn.ctx,
+                run_,
+                question,
+                language=language,
+                tr=new_trace(mask=turn.ctx.mask_traces),
             )
             history = _previous(state)
             if need_mask and history:

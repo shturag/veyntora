@@ -33,6 +33,7 @@ from veyntora_api.db.models.conversations import (
 from veyntora_api.db.models.identity import Group, Membership
 from veyntora_api.db.models.knowledge import Document
 from veyntora_api.db.models.tools import Tool, ToolCall
+from veyntora_api.governance import service as governance
 from veyntora_api.knowledge import health
 from veyntora_api.notify import service as notify
 from veyntora_api.rag.guard import Masker, rule_spans
@@ -46,10 +47,15 @@ class ReviewError(ValueError):
     pass
 
 
-def mask(text: str | None) -> str:
+def mask(text: str | None, on: bool = True) -> str:
     if not text:
         return ""
-    return Masker().mask(text, rule_spans(text))
+    return Masker().mask(text, rule_spans(text)) if on else text
+
+
+async def masking(db: AsyncSession) -> bool:
+    """Governance setting "mask personal data in traces and admin reviews"."""
+    return (await governance.settings_of(db)).mask_reviews_and_traces
 
 
 def _where(f: Filter) -> sa.ColumnElement[bool]:
@@ -102,6 +108,7 @@ class Item:
     message: Message
     chatbot_id: UUID
     question: str
+    comment: str
 
 
 async def queue(
@@ -116,8 +123,15 @@ async def queue(
     if f is not None:
         q = q.where(_where(f))
     rows = (await db.execute(q.order_by(Feedback.created_at.desc()).limit(limit))).all()
+    on = await masking(db)
     return [
-        Item(feedback=fb, message=m, chatbot_id=bot, question=mask(await question_of(db, m)))
+        Item(
+            feedback=fb,
+            message=m,
+            chatbot_id=bot,
+            question=mask(await question_of(db, m), on),
+            comment=mask(fb.comment, on),
+        )
         for fb, m, bot in rows
     ]
 
@@ -141,6 +155,7 @@ class Detail:
     question: str
     answer: str
     comment: str
+    route_reason: str | None
     team: str | None
     version: int | None
     sources: list[Source] = field(default_factory=list)
@@ -190,6 +205,7 @@ async def detail(
         if message.pipeline_version_id
         else None
     )
+    on = await masking(db)
     sources = []
     cites = (
         await db.execute(
@@ -208,7 +224,7 @@ async def detail(
                 page=c.page,
                 score=c.score,
                 updated_at=doc.updated_at if doc else None,
-                quote=mask(c.quote) if readable else None,
+                quote=mask(c.quote, on) if readable else None,
             )
         )
     tools: list[str] = []
@@ -237,9 +253,10 @@ async def detail(
         feedback=feedback,
         message=message,
         chatbot=bot,
-        question=mask(await question_of(db, message)),
-        answer=mask(message.content),
-        comment=mask(feedback.comment),
+        question=mask(await question_of(db, message), on),
+        answer=mask(message.content, on),
+        comment=mask(feedback.comment, on),
+        route_reason=mask(message.route_reason, on) or None,
         team=await _team(db, conv.user_id) if conv.user_id else None,
         version=version.number if version else None,
         sources=sources,

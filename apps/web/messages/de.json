@@ -544,7 +544,8 @@
       "token": "Die Anmeldung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
       "access_denied": "Die Anmeldung wurde abgebrochen.",
       "default": "Die Anmeldung ist fehlgeschlagen. Bitte versuchen Sie es erneut."
-    }
+    },
+    "kept": "Chats werden {days} Tage aufbewahrt."
   },
   "status": {
     "title": "Status",
@@ -3232,5 +3233,76 @@
       "external": "extern"
     },
     "calls": "{count, plural, one {# Aufruf} other {# Aufrufe}}"
+  },
+  "governance": {
+    "title": "Governance",
+    "subtitle": "Aufbewahrung, personenbezogene Daten, externe Anbieter, Legal Holds und Betroffenenanfragen.",
+    "unavailable": "Governance konnte nicht geladen werden.",
+    "settingsTitle": "Governance-Einstellungen",
+    "retention": "Aufbewahrung",
+    "retentionFields": {
+      "chat": "Chatverlauf (Tage)",
+      "traces": "Traces (Tage)",
+      "uploads": "Uploads der Personen (Tage)",
+      "audit": "Audit-Log (Tage, mindestens 365)"
+    },
+    "keepUploads": "Uploads behalten, bis die Person sie entfernt",
+    "retentionHint": "Ein nächtlicher Lauf entfernt Älteres. Die Datenregel eines Chatbots kann eine eigene Chat-Aufbewahrung setzen. Chats mit gespeicherter Antwort und alles unter Legal Hold bleiben. Audit-Einträge werden vor dem Entfernen unveränderbar archiviert.",
+    "personalData": "Personenbezogene Daten und externe Anbieter",
+    "toggles": {
+      "mask_reviews": "Personenbezogene Daten in Traces und Admin-Prüfungen maskieren",
+      "require_mask": "Personenbezogene Daten vor jedem externen Anbieter maskieren",
+      "eu_only": "Externe Anbieter nur in EU-Regionen erlauben"
+    },
+    "toggleHints": {
+      "mask_reviews": "E-Mail, IBAN, Telefon- und Kartennummern werden in Langfuse-Traces und unter Unterhaltungen ersetzt.",
+      "require_mask": "Jeder Chatbot muss maskieren; Chatbots mit externen Modellen brauchen dann einen PII-Anbieter.",
+      "eu_only": "Externe Instanzen brauchen eine EU-Region (eu-…, europe-…); andere werden beim Veröffentlichen und im Chat abgelehnt."
+    },
+    "aiNotice": "KI-Hinweis für Nutzende",
+    "aiNoticeText": "Text des KI-Hinweises",
+    "aiNoticeHint": "Erscheint bei der Anmeldung und unter dem Chat.",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "editorsOnly": "Nur Governance-Bearbeitende können diese Einstellungen ändern.",
+    "externalTitle": "Chatbots, die externe Anbieter nutzen dürfen",
+    "externalList": "{names} · {mask}",
+    "masked": "maskiert",
+    "notMasked": "nicht maskiert",
+    "selfHostedOnly": "nur selbst betrieben",
+    "externalHint": "Pro Chatbot in seiner Datenregel (Seite Zugriff).",
+    "holds": "Legal Holds",
+    "holdsHint": "Daten unter Legal Hold werden weder durch Aufbewahrung noch durch Löschung entfernt.",
+    "legalOnly": "Nur die Rolle Recht setzt oder hebt Holds auf.",
+    "noHolds": "Keine aktiven Holds.",
+    "lifted": "{count, plural, one {# Hold früher aufgehoben} other {# Holds früher aufgehoben}}",
+    "placeHold": "Hold setzen",
+    "place": "Hold setzen",
+    "holdName": "Name",
+    "holdReason": "Grund",
+    "holdPeople": "Personen (E-Mail-Adressen)",
+    "holdChatbots": "Chatbots",
+    "holdNote": "Alles dieser Personen und Chatbots bleibt erhalten, bis der Hold aufgehoben wird.",
+    "holdPlaced": "Hold gesetzt.",
+    "lift": "Aufheben",
+    "liftHold": "Hold {name} aufheben",
+    "holdLifted": "Hold aufgehoben.",
+    "roles": "Plattformrollen",
+    "roleNames": {
+      "knowledge_admin": "Wissens-Admin",
+      "security_reviewer": "Sicherheitsprüfung",
+      "auditor": "Revision",
+      "legal": "Recht",
+      "dpo": "Datenschutzbeauftragte"
+    },
+    "roleTitle": "Gruppen mit der Rolle {role}",
+    "groups": "Gruppen",
+    "noGroups": "Keine Gruppen",
+    "rolesHint": "Plattform-Admins kommen aus der Bootstrap-Gruppe in Keycloak.",
+    "adminsOnly": "Nur Plattform-Admins vergeben Rollen.",
+    "edit": "Bearbeiten",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "failed": "Hat nicht funktioniert: {reason}"
   }
 }

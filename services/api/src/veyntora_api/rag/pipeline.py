@@ -63,6 +63,7 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.models.platform import PlatformSettings
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance
 from veyntora_api.db.models.quality import BudgetAction
+from veyntora_api.governance import service as governance
 from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.providers.service import with_fallbacks
@@ -146,6 +147,8 @@ class RunContext:
     app_key_id: UUID | None = None
     # A budget at its limit or a per-user limit changed the run (Fast only, smaller model).
     limited: str | None = None
+    # Governance: mask personal data in traces.
+    mask_traces: bool = True
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -279,6 +282,34 @@ async def load_test_context(
     return await _context(db, user, bot, version)
 
 
+async def _check_external(
+    db: AsyncSession,
+    providers: dict[UUID, ProviderInstance],
+    rule: GovernanceRule | None,
+    spec: PipelineSpec,
+) -> bool:
+    """Refuse a run the data rules forbid; returns whether personal data must be masked."""
+    platform = await governance.settings_of(db)
+    must_mask = platform.require_mask_before_external or bool(
+        rule and rule.mask_pii_before_external
+    )
+    if await governance.external_problems(db, list(providers.values())):
+        raise RunRefusedError("This assistant uses an external model outside the EU.")
+    for p in providers.values():
+        if p.hosting is not Hosting.EXTERNAL:
+            continue
+        # Publishing checks this too; checked again in case the data rule changed since.
+        if rule is None or p.id not in rule.allowed_external_instance_ids:
+            raise RunRefusedError("This assistant is not allowed to use an external model.")
+        masker = spec.guardrails.pii_instance_id
+        if must_mask and masker is None:
+            raise RunRefusedError(
+                "This assistant's data rule requires masking personal data before external "
+                "models, but its pipeline has no PII provider."
+            )
+    return must_mask
+
+
 async def _context(
     db: AsyncSession,
     user: User,
@@ -368,24 +399,13 @@ async def _context(
     }
     providers = await with_fallbacks(db, providers)
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
-    for p in providers.values():
-        if p.hosting is not Hosting.EXTERNAL:
-            continue
-        # Publishing checks this too; checked again in case the data rule changed since.
-        if rule is None or p.id not in rule.allowed_external_instance_ids:
-            raise RunRefusedError("This assistant is not allowed to use an external model.")
-        masker = spec.guardrails.pii_instance_id
-        if rule.mask_pii_before_external and masker is None:
-            raise RunRefusedError(
-                "This assistant's data rule requires masking personal data before external "
-                "models, but its pipeline has no PII provider."
-            )
+    must_mask = await _check_external(db, providers, rule, spec)
     own_model = None
     if (
         personal
         and rule is not None
         and rule.allow_byok
-        and (not rule.mask_pii_before_external or spec.guardrails.pii_instance_id is not None)
+        and (not must_mask or spec.guardrails.pii_instance_id is not None)
     ):
         own_model = await _own_model(db, user.id)
     settings = await db.get(PlatformSettings, 1)
@@ -404,13 +424,14 @@ async def _context(
         source_ids=source_ids,
         providers=providers,
         company=settings.company_name if settings else "",
-        mask_external=rule.mask_pii_before_external if rule else True,
+        mask_external=must_mask if rule else True,
         own_model=own_model,
         preferences=dict(user.preferences or {}) if personal else {},
         source_weights=weights,
         cost_centre=cost_centre,
         app_key_id=app_key_id,
         limited=limited,
+        mask_traces=(await governance.settings_of(db)).mask_reviews_and_traces,
         source_paths=paths,
     )
 

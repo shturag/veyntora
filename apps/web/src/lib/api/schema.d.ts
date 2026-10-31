@@ -1180,6 +1180,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/governance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retention, personal data, holds and roles */
+        get: operations["overview_v1_admin_governance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Place a legal hold */
+        post: operations["place_hold_v1_admin_governance_holds_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/holds/{hold_id}/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lift a legal hold */
+        post: operations["release_hold_v1_admin_governance_holds__hold_id__release_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/roles/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Groups that hold a platform role */
+        put: operations["set_role_v1_admin_governance_roles__role__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/governance/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Retention, masking, EU-only, AI notice */
+        put: operations["save_settings_v1_admin_governance_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/groups": {
         parameters: {
             query?: never;
@@ -3804,6 +3889,22 @@ export interface components {
             /** Secret Last4 */
             secret_last4: string | null;
         };
+        /** BotRule */
+        BotRule: {
+            /** Chat Retention Days */
+            chat_retention_days: number | null;
+            /** External */
+            external: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mask */
+            mask: boolean;
+            /** Name */
+            name: string;
+        };
         /** BotToday */
         BotToday: {
             /** Helpful Rate */
@@ -4997,6 +5098,16 @@ export interface components {
              */
             temperature: number;
         };
+        /** GovRef */
+        GovRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** GovernanceInput */
         GovernanceInput: {
             /**
@@ -5052,6 +5163,110 @@ export interface components {
              * @default 30
              */
             trace_retention_days: number;
+        };
+        /** GovernancePage */
+        GovernancePage: {
+            /** Can Edit */
+            can_edit: boolean;
+            /** Can Grant */
+            can_grant: boolean;
+            /** Can Hold */
+            can_hold: boolean;
+            /** Chatbots */
+            chatbots: components["schemas"]["BotRule"][];
+            /** Groups */
+            groups: components["schemas"]["GovRef"][];
+            /** Holds */
+            holds: components["schemas"]["HoldOut"][];
+            /** Roles */
+            roles: components["schemas"]["RoleOut"][];
+            settings: components["schemas"]["GovernanceSettings-Output"];
+        };
+        /** GovernanceSettings */
+        "GovernanceSettings-Input": {
+            /**
+             * Ai Notice
+             * @default You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.
+             */
+            ai_notice: string;
+            /**
+             * Audit Retention Days
+             * @default 730
+             */
+            audit_retention_days: number;
+            /**
+             * Chat Retention Days
+             * @default 90
+             */
+            chat_retention_days: number;
+            /**
+             * Eu Only External
+             * @default false
+             */
+            eu_only_external: boolean;
+            /**
+             * Mask Reviews And Traces
+             * @default true
+             */
+            mask_reviews_and_traces: boolean;
+            /**
+             * Require Mask Before External
+             * @default false
+             */
+            require_mask_before_external: boolean;
+            /**
+             * Trace Retention Days
+             * @default 30
+             */
+            trace_retention_days: number;
+            /**
+             * Upload Retention Days
+             * @default 180
+             */
+            upload_retention_days: number | null;
+        };
+        /** GovernanceSettings */
+        "GovernanceSettings-Output": {
+            /**
+             * Ai Notice
+             * @default You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.
+             */
+            ai_notice: string;
+            /**
+             * Audit Retention Days
+             * @default 730
+             */
+            audit_retention_days: number;
+            /**
+             * Chat Retention Days
+             * @default 90
+             */
+            chat_retention_days: number;
+            /**
+             * Eu Only External
+             * @default false
+             */
+            eu_only_external: boolean;
+            /**
+             * Mask Reviews And Traces
+             * @default true
+             */
+            mask_reviews_and_traces: boolean;
+            /**
+             * Require Mask Before External
+             * @default false
+             */
+            require_mask_before_external: boolean;
+            /**
+             * Trace Retention Days
+             * @default 30
+             */
+            trace_retention_days: number;
+            /**
+             * Upload Retention Days
+             * @default 180
+             */
+            upload_retention_days: number | null;
         };
         /** Grant */
         Grant: {
@@ -5566,6 +5781,46 @@ export interface components {
             published_at: string | null;
             /** Status */
             status: string;
+        };
+        /** HoldInput */
+        HoldInput: {
+            /** Emails */
+            emails?: string[];
+            /** Name */
+            name: string;
+            /** Reason */
+            reason: string;
+            scope: components["schemas"]["HoldScope"];
+        };
+        /** HoldOut */
+        HoldOut: {
+            /** Chatbots */
+            chatbots: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** People */
+            people: string[];
+            /** Reason */
+            reason: string;
+            /** Released At */
+            released_at: string | null;
+        };
+        /** HoldScope */
+        HoldScope: {
+            /** Chatbot Ids */
+            chatbot_ids?: string[];
+            /** User Ids */
+            user_ids?: string[];
         };
         /**
          * Holidays
@@ -6669,6 +6924,8 @@ export interface components {
         };
         /** PublicInfoOut */
         PublicInfoOut: {
+            /** Ai Notice */
+            ai_notice: string;
             /** Chat Retention Days */
             chat_retention_days: number;
             /** Company Name */
@@ -6970,12 +7227,28 @@ export interface components {
             /** Updated At */
             updated_at: string | null;
         };
+        /** RoleInput */
+        RoleInput: {
+            /** Group Ids */
+            group_ids: string[];
+        };
+        /** RoleOut */
+        RoleOut: {
+            /** Groups */
+            groups: components["schemas"]["GovRef"][];
+            /** Role */
+            role: string;
+        };
         /** Roles */
         Roles: {
             /** Auditor */
             auditor: boolean;
+            /** Dpo */
+            dpo: boolean;
             /** Knowledge Admin */
             knowledge_admin: boolean;
+            /** Legal */
+            legal: boolean;
             /** Platform Admin */
             platform_admin: boolean;
             /** Security Reviewer */
@@ -11192,6 +11465,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_governance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GovernancePage"];
+                };
+            };
+        };
+    };
+    place_hold_v1_admin_governance_holds_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HoldInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    release_hold_v1_admin_governance_holds__hold_id__release_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hold_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_role_v1_admin_governance_roles__role__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: "knowledge_admin" | "security_reviewer" | "auditor" | "legal" | "dpo";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_settings_v1_admin_governance_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GovernanceSettings-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GovernanceSettings-Output"];
                 };
             };
             /** @description Validation Error */

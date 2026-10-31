@@ -21,13 +21,46 @@
   ],
   "roles": {
     "knowledge_admin": {
-      "editor": ["sources", "knowledge_health"],
-      "viewer": ["overview", "monitoring"]
+      "editor": [
+        "sources",
+        "knowledge_health"
+      ],
+      "viewer": [
+        "overview",
+        "monitoring"
+      ]
     },
     "security_reviewer": {
-      "editor": ["tools", "governance"],
-      "viewer": ["overview", "providers", "monitoring", "users", "audit"]
+      "editor": [
+        "tools",
+        "governance"
+      ],
+      "viewer": [
+        "overview",
+        "providers",
+        "monitoring",
+        "users",
+        "audit"
+      ]
+    },
+    "legal": {
+      "viewer": [
+        "governance",
+        "audit"
+      ]
+    },
+    "dpo": {
+      "viewer": [
+        "governance",
+        "audit"
+      ]
     }
   },
-  "chatbot_scoped_areas": ["chatbots", "pipelines", "playground", "conversations", "evaluation"]
+  "chatbot_scoped_areas": [
+    "chatbots",
+    "pipelines",
+    "playground",
+    "conversations",
+    "evaluation"
+  ]
 }

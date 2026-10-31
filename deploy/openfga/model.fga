@@ -16,6 +16,10 @@ type platform
     define knowledge_admin: [user, group#member] or platform_admin
     define security_reviewer: [user, group#member] or platform_admin
     define auditor: [user, group#member]
+    # Place and lift legal holds; platform admins cannot (separation of duties).
+    define legal: [user, group#member]
+    # Data protection officer: approves erasures and exports of personal data.
+    define dpo: [user, group#member]
 
 # Admin console areas (chatbots, providers, governance, audit, ...).
 # Which platform roles may edit or view an area is itself data: bootstrap tuples like
@@ -24,7 +28,7 @@ type admin_area
   relations
     define platform: [platform]
     define editor: [user, group#member, platform#knowledge_admin, platform#security_reviewer] or platform_admin from platform
-    define viewer: [user, group#member, platform#knowledge_admin, platform#security_reviewer] or editor or auditor from platform
+    define viewer: [user, group#member, platform#knowledge_admin, platform#security_reviewer, platform#legal, platform#dpo] or editor or auditor from platform
 
 # Roles per chatbot, from the Users & groups "Roles & permissions" matrix.
 # A person's highest role across their groups applies (relations are unions).

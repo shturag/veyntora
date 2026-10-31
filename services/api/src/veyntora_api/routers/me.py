@@ -35,6 +35,8 @@ class Roles(BaseModel):
     knowledge_admin: bool
     security_reviewer: bool
     auditor: bool
+    legal: bool
+    dpo: bool
 
 
 class MeOut(BaseModel):

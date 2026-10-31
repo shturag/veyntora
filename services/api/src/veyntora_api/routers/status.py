@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from veyntora_api.auth.deps import DbSession, State
 from veyntora_api.db.models.channels import Channel, ChannelStatus, ChannelType
 from veyntora_api.db.models.platform import NoticeKind, PlatformSettings, StatusNotice
+from veyntora_api.governance import service as governance
 from veyntora_api.health.checks import Level, build_probes, overall, roll_up, run_probes
 
 router = APIRouter(tags=["status"])
@@ -46,6 +47,8 @@ class PublicInfoOut(BaseModel):
     chat_retention_days: int
     privacy_notice_url: str | None
     imprint_url: str | None
+    # Governance: the AI notice shown on sign-in, in the chat and in channels.
+    ai_notice: str
 
 
 @router.get("/healthz", include_in_schema=False)
@@ -134,4 +137,5 @@ async def public_info(db: DbSession) -> PublicInfoOut:
         chat_retention_days=settings.default_chat_retention_days or 90,
         privacy_notice_url=settings.privacy_notice_url,
         imprint_url=settings.imprint_url,
+        ai_notice=(await governance.settings_of(db)).ai_notice,
     )

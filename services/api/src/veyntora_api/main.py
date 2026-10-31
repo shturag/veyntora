@@ -31,6 +31,7 @@ from veyntora_api.routers import (
     admin_chatbots,
     admin_conversations,
     admin_evaluation,
+    admin_governance,
     admin_knowledge_health,
     admin_notify,
     admin_overview,
@@ -228,6 +229,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         admin_sources,
         admin_tools,
         admin_usage,
+        admin_governance,
         approvals,
     ):
         app.include_router(module.router)

@@ -30,6 +30,7 @@ function Thread({
   chatbotId,
   initialMode,
   showSteps,
+  aiNotice,
   initialQuestion,
 }: {
   apiUrl: string;
@@ -37,6 +38,7 @@ function Thread({
   chatbotId: string;
   initialMode: Mode;
   showSteps: boolean;
+  aiNotice?: string;
   initialQuestion?: string;
 }) {
   const t = useTranslations("chat");
@@ -200,7 +202,10 @@ function Thread({
           rows={2}
           submitLabel={t("send")}
         />
-        <p className="mt-2 mb-0 text-center text-xs text-fg-muted">{t("disclaimer")}</p>
+        <p className="mt-2 mb-0 text-center text-xs text-fg-muted">
+          {aiNotice ? `${aiNotice} ` : ""}
+          {t("disclaimer")}
+        </p>
       </div>
     </>
   );
@@ -256,6 +261,7 @@ export function ChatView(props: {
   initialMode: Mode;
   showSteps: boolean;
   initialQuestion?: string;
+  aiNotice?: string;
 }) {
   const origin = useSyncExternalStore(
     noSubscribe,

@@ -25,26 +25,33 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Span, Tracer
 
+from veyntora_api.rag.guard import Masker, rule_spans
 from veyntora_api.settings import Settings, get_settings
 
 
-def _value(value: Any) -> Any:
-    if isinstance(value, str | bool | int | float):
+def _value(value: Any, mask: bool = False) -> Any:
+    if isinstance(value, bool | int | float):
         return value
-    return json.dumps(value, default=str, ensure_ascii=False)
+    text = value if isinstance(value, str) else json.dumps(value, default=str, ensure_ascii=False)
+    # Governance: personal data in traces is masked with the local rules (e-mail, IBAN,
+    # phone, card numbers) unless an admin switched that off.
+    return Masker().mask(text, rule_spans(text)) if mask else text
 
 
 class StepSpan:
-    def __init__(self, span: Span | None, record: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self, span: Span | None, record: dict[str, Any] | None = None, *, mask: bool = False
+    ) -> None:
         self._span = span
         self._record = record
+        self._mask = mask
 
     def set(self, **attrs: Any) -> None:
         for key, value in attrs.items():
             if value is None:
                 continue
             if self._span is not None:
-                self._span.set_attribute(key, _value(value))
+                self._span.set_attribute(key, _value(value, self._mask))
             if self._record is not None:
                 self._record["attrs"][key] = value
 
@@ -52,8 +59,9 @@ class StepSpan:
 class Trace:
     """Spans of one run. With no tracer configured every call is a no-op."""
 
-    def __init__(self, tracer: Tracer | None, *, collect: bool = False) -> None:
+    def __init__(self, tracer: Tracer | None, *, collect: bool = False, mask: bool = False) -> None:
         self._tracer = tracer
+        self.mask = mask
         self.root: Span | None = None
         # Steps in the order they ran: {"name", "ms", "attrs"} (only with collect=True).
         self.steps: list[dict[str, Any]] | None = [] if collect else None
@@ -88,7 +96,7 @@ class Trace:
             with self._tracer.start_as_current_span(name) as span:
                 kind = "generation" if generation else "span"
                 span.set_attribute("langfuse.observation.type", kind)
-                yield StepSpan(span, record)
+                yield StepSpan(span, record, mask=self.mask)
         finally:
             if record is not None:
                 record["ms"] = round((time.perf_counter() - t0) * 1000)
@@ -97,7 +105,7 @@ class Trace:
         if self.root is not None:
             for key, value in attrs.items():
                 if value is not None:
-                    self.root.set_attribute(key, _value(value))
+                    self.root.set_attribute(key, _value(value, self.mask))
 
 
 @lru_cache
@@ -120,5 +128,5 @@ def _tracer() -> Tracer | None:
     return provider.get_tracer("veyntora.fast_rag")
 
 
-def new_trace(*, collect: bool = False) -> Trace:
-    return Trace(_tracer(), collect=collect)
+def new_trace(*, collect: bool = False, mask: bool = False) -> Trace:
+    return Trace(_tracer(), collect=collect, mask=mask)

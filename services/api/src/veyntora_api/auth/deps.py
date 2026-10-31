@@ -229,7 +229,7 @@ def require_admin_area(
 
 
 async def platform_roles(state: AppState, principal: Principal) -> dict[str, bool]:
-    roles = ["platform_admin", "knowledge_admin", "security_reviewer", "auditor"]
+    roles = ["platform_admin", "knowledge_admin", "security_reviewer", "auditor", "legal", "dpo"]
     allowed = await state.require_authz().batch_check(
         [CheckItem(principal.fga, r, PLATFORM) for r in roles]
     )

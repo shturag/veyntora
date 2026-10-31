@@ -30,6 +30,7 @@ from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAt
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.models.tools import McpServer, McpServerStatus, Tool, ToolAccess
 from veyntora_api.evaluation import service as evaluation
+from veyntora_api.governance import service as governance
 from veyntora_api.knowledge.service import enqueue
 from veyntora_api.providers.service import with_fallbacks
 
@@ -235,7 +236,11 @@ async def external_problems(
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     allowed = set(rule.allowed_external_instance_ids) if rule else set()
     masker = spec.guardrails.pii_instance_id
-    problems = []
+    platform = await governance.settings_of(db)
+    must_mask = platform.require_mask_before_external or bool(
+        rule and rule.mask_pii_before_external
+    )
+    problems = await governance.external_problems(db, list(rows.values()))
     for p in rows.values():
         if p.hosting is not Hosting.EXTERNAL:
             continue
@@ -243,9 +248,7 @@ async def external_problems(
             problems.append(
                 f"{p.name} is an external provider; allow it in this chatbot's data rules first"
             )
-        elif (
-            rule is not None and rule.mask_pii_before_external and p.id != masker and masker is None
-        ):
+        elif must_mask and p.id != masker and masker is None:
             problems.append(
                 f"the data rule asks to mask personal data before {p.name}; choose a PII "
                 "provider on the Guardrails page, or switch the rule off"
@@ -549,6 +552,11 @@ async def set_governance(
                 raise ChatbotError(f"unknown provider {i}")
             if row.hosting is not Hosting.EXTERNAL:
                 raise ChatbotError(f"{row.name} is self-hosted; only external providers are listed")
+        if eu := await governance.external_problems(db, list(by_id.values())):
+            raise ChatbotError("; ".join(eu))
+    platform = await governance.settings_of(db)
+    if platform.require_mask_before_external and not data.mask_pii_before_external:
+        raise ChatbotError("the platform requires masking personal data before external providers")
     servers = set(data.allowed_external_mcp_server_ids)
     for server_id in servers:
         server = await db.get(McpServer, server_id)

@@ -18,6 +18,7 @@ import httpx
 import sqlalchemy as sa
 import structlog
 from celery import Celery
+from celery.schedules import crontab
 from redis import Redis
 from veyntora_api.authz.fga import Authz
 from veyntora_api.chatbots import rollout
@@ -30,7 +31,7 @@ from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
 from veyntora_api.usage import budgets
 
-from veyntora_workers import automations, evaluations, knowledge_health, saved_answers
+from veyntora_workers import automations, evaluations, knowledge_health, retention, saved_answers
 from veyntora_workers.ingest import requeue_stuck, run_pending
 from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
@@ -75,6 +76,8 @@ app.conf.update(
         },
         "canary-guard": {"task": "veyntora.canary_guard", "schedule": timedelta(minutes=5)},
         "budget-alerts": {"task": "veyntora.budget_alerts", "schedule": timedelta(minutes=5)},
+        # Nightly, UTC: chats, uploads and traces past their retention.
+        "retention": {"task": "veyntora.retention", "schedule": crontab(hour=2, minute=30)},
         "eval-runs": {
             "task": "veyntora.eval_runs",
             "schedule": timedelta(seconds=10),
@@ -235,6 +238,11 @@ def eval_runs() -> list[str | None]:
         return [await evaluations.generate_next(settings), await evaluations.run_next(settings)]
 
     return _run(go())
+
+
+@app.task(name="veyntora.retention")
+def retention_purge() -> dict[str, int]:
+    return _run(retention.run(settings))
 
 
 @app.task(name="veyntora.budget_alerts")

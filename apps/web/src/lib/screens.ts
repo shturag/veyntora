@@ -547,6 +547,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/governance",
     shell: "admin",
     phase: 7,
+    built: true,
     area: "governance",
   },
   {

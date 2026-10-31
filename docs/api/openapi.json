@@ -2032,6 +2032,50 @@
         "title": "BotChannelOut",
         "type": "object"
       },
+      "BotRule": {
+        "properties": {
+          "chat_retention_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chat Retention Days"
+          },
+          "external": {
+            "items": {
+              "type": "string"
+            },
+            "title": "External",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mask": {
+            "title": "Mask",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "external",
+          "mask",
+          "chat_retention_days"
+        ],
+        "title": "BotRule",
+        "type": "object"
+      },
       "BotToday": {
         "properties": {
           "helpful_rate": {
@@ -5286,6 +5330,25 @@
         "title": "GenerationSpec",
         "type": "object"
       },
+      "GovRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "GovRef",
+        "type": "object"
+      },
       "GovernanceInput": {
         "additionalProperties": false,
         "properties": {
@@ -5385,6 +5448,203 @@
           "configured"
         ],
         "title": "GovernanceOut",
+        "type": "object"
+      },
+      "GovernancePage": {
+        "properties": {
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
+          "can_grant": {
+            "title": "Can Grant",
+            "type": "boolean"
+          },
+          "can_hold": {
+            "title": "Can Hold",
+            "type": "boolean"
+          },
+          "chatbots": {
+            "items": {
+              "$ref": "#/components/schemas/BotRule"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GovRef"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "holds": {
+            "items": {
+              "$ref": "#/components/schemas/HoldOut"
+            },
+            "title": "Holds",
+            "type": "array"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleOut"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/GovernanceSettings-Output"
+          }
+        },
+        "required": [
+          "settings",
+          "holds",
+          "roles",
+          "chatbots",
+          "groups",
+          "can_edit",
+          "can_hold",
+          "can_grant"
+        ],
+        "title": "GovernancePage",
+        "type": "object"
+      },
+      "GovernanceSettings-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_notice": {
+            "default": "You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Ai Notice",
+            "type": "string"
+          },
+          "audit_retention_days": {
+            "default": 730,
+            "maximum": 3650.0,
+            "minimum": 365.0,
+            "title": "Audit Retention Days",
+            "type": "integer"
+          },
+          "chat_retention_days": {
+            "default": 90,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Chat Retention Days",
+            "type": "integer"
+          },
+          "eu_only_external": {
+            "default": false,
+            "title": "Eu Only External",
+            "type": "boolean"
+          },
+          "mask_reviews_and_traces": {
+            "default": true,
+            "title": "Mask Reviews And Traces",
+            "type": "boolean"
+          },
+          "require_mask_before_external": {
+            "default": false,
+            "title": "Require Mask Before External",
+            "type": "boolean"
+          },
+          "trace_retention_days": {
+            "default": 30,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Trace Retention Days",
+            "type": "integer"
+          },
+          "upload_retention_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 180,
+            "title": "Upload Retention Days"
+          }
+        },
+        "title": "GovernanceSettings",
+        "type": "object"
+      },
+      "GovernanceSettings-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_notice": {
+            "default": "You're chatting with an AI assistant. Answers come from company documents and can be wrong. Check important details in the linked source.",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Ai Notice",
+            "type": "string"
+          },
+          "audit_retention_days": {
+            "default": 730,
+            "maximum": 3650.0,
+            "minimum": 365.0,
+            "title": "Audit Retention Days",
+            "type": "integer"
+          },
+          "chat_retention_days": {
+            "default": 90,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Chat Retention Days",
+            "type": "integer"
+          },
+          "eu_only_external": {
+            "default": false,
+            "title": "Eu Only External",
+            "type": "boolean"
+          },
+          "mask_reviews_and_traces": {
+            "default": true,
+            "title": "Mask Reviews And Traces",
+            "type": "boolean"
+          },
+          "require_mask_before_external": {
+            "default": false,
+            "title": "Require Mask Before External",
+            "type": "boolean"
+          },
+          "trace_retention_days": {
+            "default": 30,
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Trace Retention Days",
+            "type": "integer"
+          },
+          "upload_retention_days": {
+            "anyOf": [
+              {
+                "maximum": 3650.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 180,
+            "title": "Upload Retention Days"
+          }
+        },
+        "required": [
+          "chat_retention_days",
+          "trace_retention_days",
+          "upload_retention_days",
+          "audit_retention_days",
+          "mask_reviews_and_traces",
+          "require_mask_before_external",
+          "eu_only_external",
+          "ai_notice"
+        ],
+        "title": "GovernanceSettings",
         "type": "object"
       },
       "Grant": {
@@ -6650,6 +6910,125 @@
           "eval_passed"
         ],
         "title": "HistoryItem",
+        "type": "object"
+      },
+      "HoldInput": {
+        "additionalProperties": false,
+        "properties": {
+          "emails": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 500,
+            "title": "Emails",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/HoldScope"
+          }
+        },
+        "required": [
+          "name",
+          "reason",
+          "scope"
+        ],
+        "title": "HoldInput",
+        "type": "object"
+      },
+      "HoldOut": {
+        "properties": {
+          "chatbots": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "people": {
+            "items": {
+              "type": "string"
+            },
+            "title": "People",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "released_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Released At"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "reason",
+          "people",
+          "chatbots",
+          "created_at",
+          "released_at"
+        ],
+        "title": "HoldOut",
+        "type": "object"
+      },
+      "HoldScope": {
+        "additionalProperties": false,
+        "properties": {
+          "chatbot_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Chatbot Ids",
+            "type": "array"
+          },
+          "user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "title": "User Ids",
+            "type": "array"
+          }
+        },
+        "title": "HoldScope",
         "type": "object"
       },
       "Holidays-Input": {
@@ -9594,6 +9973,10 @@
       },
       "PublicInfoOut": {
         "properties": {
+          "ai_notice": {
+            "title": "Ai Notice",
+            "type": "string"
+          },
           "chat_retention_days": {
             "title": "Chat Retention Days",
             "type": "integer"
@@ -9634,7 +10017,8 @@
           "default_locale",
           "chat_retention_days",
           "privacy_notice_url",
-          "imprint_url"
+          "imprint_url",
+          "ai_notice"
         ],
         "title": "PublicInfoOut",
         "type": "object"
@@ -10459,14 +10843,60 @@
         "title": "ReviewSource",
         "type": "object"
       },
+      "RoleInput": {
+        "properties": {
+          "group_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Group Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "group_ids"
+        ],
+        "title": "RoleInput",
+        "type": "object"
+      },
+      "RoleOut": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GovRef"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "groups"
+        ],
+        "title": "RoleOut",
+        "type": "object"
+      },
       "Roles": {
         "properties": {
           "auditor": {
             "title": "Auditor",
             "type": "boolean"
           },
+          "dpo": {
+            "title": "Dpo",
+            "type": "boolean"
+          },
           "knowledge_admin": {
             "title": "Knowledge Admin",
+            "type": "boolean"
+          },
+          "legal": {
+            "title": "Legal",
             "type": "boolean"
           },
           "platform_admin": {
@@ -10482,7 +10912,9 @@
           "platform_admin",
           "knowledge_admin",
           "security_reviewer",
-          "auditor"
+          "auditor",
+          "legal",
+          "dpo"
         ],
         "title": "Roles",
         "type": "object"
@@ -19038,6 +19470,204 @@
         "summary": "Import cases from CSV",
         "tags": [
           "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/governance": {
+      "get": {
+        "operationId": "overview_v1_admin_governance_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernancePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Retention, personal data, holds and roles",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/holds": {
+      "post": {
+        "operationId": "place_hold_v1_admin_governance_holds_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoldInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Place a legal hold",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/holds/{hold_id}/release": {
+      "post": {
+        "operationId": "release_hold_v1_admin_governance_holds__hold_id__release_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "hold_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Hold Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lift a legal hold",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/roles/{role}": {
+      "put": {
+        "operationId": "set_role_v1_admin_governance_roles__role__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "knowledge_admin",
+                "security_reviewer",
+                "auditor",
+                "legal",
+                "dpo"
+              ],
+              "title": "Role",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Groups that hold a platform role",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/settings": {
+      "put": {
+        "operationId": "save_settings_v1_admin_governance_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GovernanceSettings-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GovernanceSettings-Output"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retention, masking, EU-only, AI notice",
+        "tags": [
+          "admin: governance"
         ]
       }
     },

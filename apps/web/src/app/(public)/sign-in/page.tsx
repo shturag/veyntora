@@ -35,7 +35,11 @@ export default async function SignInPage({
   const info = await getPublicInfo();
   const days = info?.chat_retention_days ?? 90;
   const loginHref = `/api/auth/login?${new URLSearchParams({ return_to: returnTo, locale })}`;
-  const errorKey = params.error ? (KNOWN_ERRORS.has(params.error) ? params.error : "default") : null;
+  const errorKey = params.error
+    ? KNOWN_ERRORS.has(params.error)
+      ? params.error
+      : "default"
+    : null;
   const footerLink = "text-fg-muted hover:text-fg";
 
   return (
@@ -51,12 +55,18 @@ export default async function SignInPage({
             <p className="m-0 text-[15px] leading-normal text-fg-muted">{t("tagline")}</p>
           </div>
           {errorKey ? (
-            <p role="alert" className="m-0 rounded-md bg-red-soft px-3 py-2.5 text-center text-sm text-red">
+            <p
+              role="alert"
+              className="m-0 rounded-md bg-red-soft px-3 py-2.5 text-center text-sm text-red"
+            >
               {t(`errors.${errorKey}`)}
             </p>
           ) : null}
           {params.signed_out ? (
-            <p role="status" className="m-0 rounded-md bg-green-soft px-3 py-2.5 text-center text-sm text-green">
+            <p
+              role="status"
+              className="m-0 rounded-md bg-green-soft px-3 py-2.5 text-center text-sm text-green"
+            >
               {t("signedOut")}
             </p>
           ) : null}
@@ -65,7 +75,17 @@ export default async function SignInPage({
             href={loginHref}
             className="flex h-12 items-center justify-center gap-2.5 rounded-lg bg-accent text-[15px] font-semibold text-on-accent no-underline hover:bg-accent-hover hover:text-on-accent"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <rect x="4" y="11" width="16" height="10" rx="2" />
               <path d="M8 11V7a4 4 0 0 1 8 0v4" />
             </svg>
@@ -73,7 +93,7 @@ export default async function SignInPage({
           </a>
           <p className="m-0 text-center text-[13px] text-fg-muted">{t("sso")}</p>
           <div className="border-t border-divider pt-[18px] text-center text-xs leading-relaxed text-fg-muted">
-            {t("notice", { days })}{" "}
+            {info?.ai_notice ? `${info.ai_notice} ${t("kept", { days })}` : t("notice", { days })}{" "}
             <a href={info?.privacy_notice_url ?? "/help#privacy"} className="underline">
               {t("privacy")}
             </a>

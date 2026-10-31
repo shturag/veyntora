@@ -97,7 +97,7 @@ async def run_node(state: State, config: RunnableConfig) -> dict[str, Any]:
         except RunRefusedError as exc:
             return _refused(which, str(exc))
         adapters = Adapters(db, reader)
-        trace = new_trace(collect=True)
+        trace = new_trace(collect=True, mask=ctx.mask_traces)
         with trace.run(
             "playground",
             **{

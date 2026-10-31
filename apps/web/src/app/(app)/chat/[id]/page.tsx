@@ -5,6 +5,7 @@ import { ChatView } from "@/components/chat/chat-view";
 import { MODES } from "@/lib/chat";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
+import { getPublicInfo } from "@/lib/public-info";
 
 export const generateMetadata = () => screenMetadata("chat");
 
@@ -34,6 +35,7 @@ export default async function ChatPage({ params, searchParams }: Props) {
     chatbotName = match?.name;
   }
   if (!chatbotId) notFound();
+  const info = await getPublicInfo();
   const title = conv.data?.title || q || chatbotName || "";
 
   return (
@@ -51,6 +53,7 @@ export default async function ChatPage({ params, searchParams }: Props) {
         initialMode={initialMode}
         showSteps={prefs?.show_agent_steps ?? true}
         initialQuestion={conv.data ? undefined : q}
+        aiNotice={info?.ai_notice}
       />
     </div>
   );

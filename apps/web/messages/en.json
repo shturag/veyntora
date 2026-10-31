@@ -544,7 +544,8 @@
       "token": "Sign-in failed. Please try again.",
       "access_denied": "Sign-in was cancelled.",
       "default": "Sign-in failed. Please try again."
-    }
+    },
+    "kept": "Chats are kept for {days} days."
   },
   "status": {
     "title": "Status",
@@ -3232,5 +3233,76 @@
       "external": "external"
     },
     "calls": "{count, plural, one {# call} other {# calls}}"
+  },
+  "governance": {
+    "title": "Governance",
+    "subtitle": "Data retention, personal data, external providers, legal holds and data subject requests.",
+    "unavailable": "Governance could not be loaded.",
+    "settingsTitle": "Governance settings",
+    "retention": "Retention",
+    "retentionFields": {
+      "chat": "Chat history (days)",
+      "traces": "Traces (days)",
+      "uploads": "User uploads (days)",
+      "audit": "Audit log (days, at least 365)"
+    },
+    "keepUploads": "Keep uploads until their owner removes them",
+    "retentionHint": "A nightly purge removes what is older. A chatbot's data rule can set its own chat retention. Chats with a saved answer and everything under a legal hold are kept. Audit entries are archived write-once before they are removed.",
+    "personalData": "Personal data and external providers",
+    "toggles": {
+      "mask_reviews": "Mask personal data in traces and admin reviews",
+      "require_mask": "Mask personal data before any external provider call",
+      "eu_only": "Allow external providers only in EU regions"
+    },
+    "toggleHints": {
+      "mask_reviews": "E-mail, IBAN, phone and card numbers are replaced in Langfuse traces and in Conversations.",
+      "require_mask": "Every chatbot must mask; chatbots using external models then need a PII provider.",
+      "eu_only": "External instances need an EU region (eu-…, europe-…); others are refused at publish and in chat."
+    },
+    "aiNotice": "AI notice shown to users",
+    "aiNoticeText": "AI notice text",
+    "aiNoticeHint": "Shown on sign-in and in the chat footer.",
+    "save": "Save",
+    "saved": "Saved.",
+    "editorsOnly": "Only Governance editors can change these settings.",
+    "externalTitle": "Chatbots that may use external providers",
+    "externalList": "{names} · {mask}",
+    "masked": "masked",
+    "notMasked": "not masked",
+    "selfHostedOnly": "self-hosted only",
+    "externalHint": "Set per chatbot in its data rule (Access page).",
+    "holds": "Legal holds",
+    "holdsHint": "Data under a legal hold is never removed by retention or erasure.",
+    "legalOnly": "Only the Legal role places or lifts holds.",
+    "noHolds": "No active holds.",
+    "lifted": "{count, plural, one {# hold lifted earlier} other {# holds lifted earlier}}",
+    "placeHold": "Place hold",
+    "place": "Place hold",
+    "holdName": "Name",
+    "holdReason": "Reason",
+    "holdPeople": "People (e-mail addresses)",
+    "holdChatbots": "Chatbots",
+    "holdNote": "Everything of these people and chatbots is kept until the hold is lifted.",
+    "holdPlaced": "Hold placed.",
+    "lift": "Lift",
+    "liftHold": "Lift the hold {name}",
+    "holdLifted": "Hold lifted.",
+    "roles": "Platform roles",
+    "roleNames": {
+      "knowledge_admin": "Knowledge admin",
+      "security_reviewer": "Security reviewer",
+      "auditor": "Auditor",
+      "legal": "Legal",
+      "dpo": "Data protection officer"
+    },
+    "roleTitle": "Groups with the role {role}",
+    "groups": "Groups",
+    "noGroups": "No groups",
+    "rolesHint": "Platform admins come from the bootstrap group in Keycloak.",
+    "adminsOnly": "Only platform admins grant roles.",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "close": "Close",
+    "failed": "Did not work: {reason}"
   }
 }
