@@ -1,7 +1,9 @@
 """Aegra auth handler: only valid Keycloak access tokens for the Veyntora audience get in.
 
 Browsers never call the graph server directly; the API proxies runs with the user's token
-(Phase 1). This handler makes sure a direct call without a valid token is rejected.
+(Phase 1). This handler makes sure a direct call without a valid token is rejected. Runs for
+API app keys and the website widget carry a short-lived API-signed token instead
+(veyntora_api.auth.internal).
 """
 
 from __future__ import annotations
@@ -12,6 +14,7 @@ from typing import Any
 import jwt
 from jwt import PyJWKClient
 from langgraph_sdk import Auth
+from veyntora_api.auth import internal
 
 auth = Auth()
 
@@ -23,7 +26,18 @@ _jwks = PyJWKClient(
 )
 
 
+_INTERNAL_SECRET = os.environ.get("VEY_INTERNAL_TOKEN_SECRET", "")
+
+
 def verify(token: str) -> dict[str, Any]:
+    # API-signed tokens (app keys, widget) are HS256 with the shared secret, nothing else;
+    # Keycloak tokens never are. Choosing by the header cannot mix the two up: each path
+    # only accepts its own algorithms and key.
+    if jwt.get_unverified_header(token).get("alg") == "HS256":
+        try:
+            return dict(internal.verify(_INTERNAL_SECRET, token))
+        except internal.InternalTokenError as exc:
+            raise jwt.InvalidTokenError(str(exc)) from exc
     key = _jwks.get_signing_key_from_jwt(token)
     claims: dict[str, Any] = jwt.decode(
         token,

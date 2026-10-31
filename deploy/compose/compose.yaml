@@ -18,6 +18,8 @@ x-app-env: &app-env
   VEY_OIDC_INTERNAL_BASE: http://keycloak:8080/realms/veyntora
   VEY_OIDC_CLIENT_SECRET: ${VEY_OIDC_CLIENT_SECRET:-dev-oidc-client-secret}
   VEY_KEYCLOAK_SYNC_CLIENT_SECRET: ${VEY_KEYCLOAK_SYNC_CLIENT_SECRET:-dev-keycloak-sync-secret}
+  # API -> graph server tokens for app keys and the widget (ADR 0020).
+  VEY_INTERNAL_TOKEN_SECRET: ${VEY_INTERNAL_TOKEN_SECRET:-dev-internal-token-secret-0123456789abcdef}
   VEY_OPENFGA_URL: http://openfga:8080
   VEY_OPENFGA_MODEL_PATH: /app/deploy/openfga/model.json
   VEY_OPENBAO_URL: http://openbao:8200

@@ -46,6 +46,10 @@ class AppKey(IdMixin, Base):
     rate_limit_per_minute: Mapped[int | None] = mapped_column(sa.Integer)
     expires_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     created_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    # The service identity whose access the key uses (product owner, 2026-10-31).
+    service_user_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="CASCADE")
+    )
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     last_used_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))

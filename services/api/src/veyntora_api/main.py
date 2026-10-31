@@ -25,6 +25,7 @@ from veyntora_api.knowledge.service import KnowledgeError
 from veyntora_api.providers.service import purge_replaced_keys
 from veyntora_api.routers import (
     admin_bot_insights,
+    admin_channels,
     admin_chatbots,
     admin_people,
     admin_playground,
@@ -38,7 +39,9 @@ from veyntora_api.routers import (
     me,
     me_files,
     me_settings,
+    public_api,
     status,
+    widget,
 )
 from veyntora_api.secrets.openbao import SecretWriter
 from veyntora_api.settings import Settings, get_settings
@@ -184,6 +187,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Before admin_chatbots: its /{bot_id} would otherwise catch /cards.
     app.include_router(admin_bot_insights.router)
     app.include_router(admin_chatbots.router)
+    app.include_router(admin_channels.router)
+    app.include_router(public_api.router)
+    app.include_router(widget.router)
     app.include_router(admin_people.router)
     app.include_router(admin_playground.router)
     app.include_router(admin_sources.router)

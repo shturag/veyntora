@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -14,9 +14,11 @@ from asgi_correlation_id import correlation_id
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from veyntora_api.auth import internal
 from veyntora_api.auth.oidc import OidcError
 from veyntora_api.auth.tokens import InvalidTokenError
 from veyntora_api.authz.fga import PLATFORM, CheckItem, user_ref
+from veyntora_api.channels import app_keys
 from veyntora_api.core.context import Actor, RequestContext
 from veyntora_api.core.state import AppState
 from veyntora_api.db.models.governance import ActorType
@@ -43,9 +45,13 @@ class Principal:
     email: str | None
     name: str
     locale: str | None
-    via: Literal["session", "bearer"]
-    # The caller's Keycloak access token, forwarded to the graph server on chat runs.
+    via: Literal["session", "bearer", "app_key", "widget"]
+    # The caller's Keycloak access token, forwarded to the graph server on chat runs (for
+    # app keys: a short-lived API-signed token, auth.internal).
     access_token: str = field(default="", repr=False)
+    # App keys: the key, and the one chatbot it is limited to (if any).
+    app_key_id: UUID | None = None
+    app_chatbot_id: UUID | None = None
 
     @property
     def fga(self) -> str:
@@ -100,7 +106,9 @@ async def _principal_from_session(
     return _checked(user, "session", session.access_token)
 
 
-def _checked(user: User, via: Literal["session", "bearer"], token: str) -> Principal:
+def _checked(
+    user: User, via: Literal["session", "bearer", "app_key", "widget"], token: str
+) -> Principal:
     if user.suspended:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Account suspended")
     return Principal(
@@ -116,7 +124,12 @@ def _checked(user: User, via: Literal["session", "bearer"], token: str) -> Princ
 
 async def optional_principal(request: Request, state: State, db: DbSession) -> Principal | None:
     auth = request.headers.get("authorization", "")
-    if auth.lower().startswith("bearer "):
+    principal: Principal | None
+    if auth.lower().startswith("bearer ") and auth[7:].strip().startswith(app_keys.PREFIX):
+        principal = await _from_app_key(state, db, auth[7:].strip())
+    elif auth.lower().startswith("bearer ") and auth[7:].strip().startswith(internal.WIDGET_PREFIX):
+        principal = await _from_widget(state, db, auth[7:].strip())
+    elif auth.lower().startswith("bearer "):
         try:
             claims = await state.tokens.validate(auth[7:].strip())
         except InvalidTokenError as exc:
@@ -126,7 +139,7 @@ async def optional_principal(request: Request, state: State, db: DbSession) -> P
         ).scalar_one_or_none()
         if user is None:
             raise _unauthorized("Unknown user; sign in to the web app once")
-        principal: Principal | None = _checked(user, "bearer", auth[7:].strip())
+        principal = _checked(user, "bearer", auth[7:].strip())
     else:
         session_id = request.cookies.get(state.settings.session_cookie)
         principal = (
@@ -135,6 +148,40 @@ async def optional_principal(request: Request, state: State, db: DbSession) -> P
     if principal is not None:
         structlog.contextvars.bind_contextvars(user_id=str(principal.user_id))
     return principal
+
+
+async def _from_app_key(state: AppState, db: AsyncSession, key: str) -> Principal:
+    found = await app_keys.authenticate(db, key)
+    if found is None:
+        raise _unauthorized("Invalid app key")
+    row, identity = found
+    if row.rate_limit_per_minute:
+        bucket = f"vey:rl:app_key:{row.id}:{int(time.time() // 60)}"
+        count = await state.redis.incr(bucket)
+        if count == 1:
+            await state.redis.expire(bucket, 120)
+        if count > row.rate_limit_per_minute:
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit reached")
+    await db.commit()  # last_used_at
+    token = internal.mint(
+        state.settings.internal_token_secret.get_secret_value(), identity.keycloak_sub, "app_key"
+    )
+    principal = _checked(identity, "app_key", token)
+    return replace(principal, app_key_id=row.id, app_chatbot_id=row.chatbot_id)
+
+
+async def _from_widget(state: AppState, db: AsyncSession, token: str) -> Principal:
+    secret = state.settings.internal_token_secret.get_secret_value()
+    try:
+        claims = internal.verify_widget(secret, token)
+    except internal.InternalTokenError as exc:
+        raise _unauthorized("Invalid widget token") from exc
+    user = await db.scalar(sa.select(User).where(User.keycloak_sub == str(claims["sub"])))
+    if user is None:
+        raise _unauthorized("Unknown user")
+    principal = _checked(user, "widget", internal.mint(secret, user.keycloak_sub, "widget"))
+    # A widget token is for its one chatbot only.
+    return replace(principal, app_chatbot_id=UUID(str(claims["bot"])))
 
 
 async def current_principal(

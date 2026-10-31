@@ -149,6 +149,253 @@
         "title": "AgentToolBinding",
         "type": "object"
       },
+      "ApiAnswer": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "approval_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Id"
+          },
+          "citations": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "conversation_id": {
+            "format": "uuid",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "external": {
+            "default": false,
+            "title": "External",
+            "type": "boolean"
+          },
+          "groundedness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groundedness"
+          },
+          "mode_used": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode Used"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warning"
+          }
+        },
+        "required": [
+          "conversation_id",
+          "outcome",
+          "answer"
+        ],
+        "title": "ApiAnswer",
+        "type": "object"
+      },
+      "AppKeyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "rate_limit_per_minute": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 60,
+            "title": "Rate Limit Per Minute"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "AppKeyInput",
+        "type": "object"
+      },
+      "AppKeyOut": {
+        "properties": {
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefix": {
+            "title": "Prefix",
+            "type": "string"
+          },
+          "rate_limit_per_minute": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Per Minute"
+          },
+          "revoked": {
+            "title": "Revoked",
+            "type": "boolean"
+          },
+          "service_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service User Id"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "chatbot_id",
+          "chatbot",
+          "service_user_id",
+          "rate_limit_per_minute",
+          "created_at",
+          "expires_at",
+          "last_used_at",
+          "revoked"
+        ],
+        "title": "AppKeyOut",
+        "type": "object"
+      },
       "ApprovalDecision": {
         "enum": [
           "pending",
@@ -310,6 +557,43 @@
           "decided_at"
         ],
         "title": "ApprovalOut",
+        "type": "object"
+      },
+      "AskIn": {
+        "properties": {
+          "conversation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "mode": {
+            "default": "auto",
+            "enum": [
+              "auto",
+              "fast",
+              "agent"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskIn",
         "type": "object"
       },
       "Attachment": {
@@ -1165,6 +1449,57 @@
         "title": "ChunkingStrategy",
         "type": "string"
       },
+      "Citation": {
+        "properties": {
+          "document_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "title"
+        ],
+        "title": "Citation",
+        "type": "object"
+      },
       "CitationOut": {
         "properties": {
           "document_id": {
@@ -1331,6 +1666,122 @@
           "updated_at"
         ],
         "title": "ConversationOut",
+        "type": "object"
+      },
+      "CreatedKey": {
+        "properties": {
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefix": {
+            "title": "Prefix",
+            "type": "string"
+          },
+          "rate_limit_per_minute": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Per Minute"
+          },
+          "revoked": {
+            "title": "Revoked",
+            "type": "boolean"
+          },
+          "service_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service User Id"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "chatbot_id",
+          "chatbot",
+          "service_user_id",
+          "rate_limit_per_minute",
+          "created_at",
+          "expires_at",
+          "last_used_at",
+          "revoked",
+          "key"
+        ],
+        "title": "CreatedKey",
         "type": "object"
       },
       "DecisionIn": {
@@ -1877,6 +2328,43 @@
           }
         },
         "title": "FlowSpec",
+        "type": "object"
+      },
+      "FrameConfig": {
+        "properties": {
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Origins",
+            "type": "array"
+          },
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "theme": {
+            "title": "Theme",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chatbot_id",
+          "name",
+          "enabled",
+          "allowed_origins",
+          "theme"
+        ],
+        "title": "FrameConfig",
         "type": "object"
       },
       "GenerationSpec": {
@@ -3492,6 +3980,10 @@
             "title": "Id",
             "type": "string"
           },
+          "is_service": {
+            "title": "Is Service",
+            "type": "boolean"
+          },
           "last_active": {
             "anyOf": [
               {
@@ -3560,6 +4052,7 @@
           "email",
           "suspended",
           "suspended_reason",
+          "is_service",
           "last_active",
           "last_synced_at",
           "attributes",
@@ -3612,6 +4105,10 @@
             "title": "Id",
             "type": "string"
           },
+          "is_service": {
+            "title": "Is Service",
+            "type": "boolean"
+          },
           "last_active": {
             "anyOf": [
               {
@@ -3647,6 +4144,7 @@
           "edits",
           "platform_admin",
           "suspended",
+          "is_service",
           "last_active"
         ],
         "title": "PersonRow",
@@ -4540,6 +5038,29 @@
           }
         },
         "title": "RerankSpec",
+        "type": "object"
+      },
+      "ResumeIn": {
+        "properties": {
+          "approval_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Id"
+          },
+          "cancel": {
+            "default": false,
+            "title": "Cancel",
+            "type": "boolean"
+          }
+        },
+        "title": "ResumeIn",
         "type": "object"
       },
       "RetrievalSpec": {
@@ -6421,6 +6942,56 @@
         "title": "VersionOut",
         "type": "object"
       },
+      "WidgetConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_origins": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Allowed Origins",
+            "type": "array"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "position": {
+            "default": "bottom-right",
+            "pattern": "^(bottom-right|bottom-left)$",
+            "title": "Position",
+            "type": "string"
+          },
+          "theme": {
+            "default": "light",
+            "pattern": "^(light|dark|auto)$",
+            "title": "Theme",
+            "type": "string"
+          }
+        },
+        "title": "WidgetConfig",
+        "type": "object"
+      },
+      "WidgetToken": {
+        "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "expires_in"
+        ],
+        "title": "WidgetToken",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_providers__SecretInput": {
         "properties": {
           "expires_at": {
@@ -6680,6 +7251,106 @@
         "summary": "Whether the caller has a valid session",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/admin/app-keys": {
+      "get": {
+        "operationId": "list_keys_v1_admin_app_keys_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AppKeyOut"
+                  },
+                  "title": "Response List Keys V1 Admin App Keys Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "App keys",
+        "tags": [
+          "admin: channels"
+        ]
+      },
+      "post": {
+        "operationId": "create_key_v1_admin_app_keys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppKeyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedKey"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create an app key (shown once)",
+        "tags": [
+          "admin: channels"
+        ]
+      }
+    },
+    "/v1/admin/app-keys/{key_id}/revoke": {
+      "post": {
+        "operationId": "revoke_key_v1_admin_app_keys__key_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Key Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke an app key",
+        "tags": [
+          "admin: channels"
         ]
       }
     },
@@ -9715,6 +10386,206 @@
         ]
       }
     },
+    "/v1/admin/widget/{bot_id}": {
+      "get": {
+        "operationId": "get_widget_v1_admin_widget__bot_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetConfig"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Widget settings of a chatbot",
+        "tags": [
+          "widget"
+        ]
+      },
+      "put": {
+        "operationId": "put_widget_v1_admin_widget__bot_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetConfig"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Turn the widget on and set its websites",
+        "tags": [
+          "widget"
+        ]
+      }
+    },
+    "/v1/api/chatbots/{chatbot}/answers": {
+      "post": {
+        "operationId": "ask_v1_api_chatbots__chatbot__answers_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatbot",
+            "required": true,
+            "schema": {
+              "title": "Chatbot",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiAnswer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask a chatbot (id or short name)",
+        "tags": [
+          "public API"
+        ]
+      }
+    },
+    "/v1/api/conversations/{conversation_id}/resume": {
+      "post": {
+        "description": "The graph reads the decision from the database; this only says which one it was.",
+        "operationId": "resume_v1_api_conversations__conversation_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiAnswer"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Continue after an approval was decided (or stop)",
+        "tags": [
+          "public API"
+        ]
+      }
+    },
     "/v1/approvals": {
       "get": {
         "operationId": "list_approvals_v1_approvals_get",
@@ -10762,6 +11633,92 @@
         "summary": "Public system status built from live health checks",
         "tags": [
           "status"
+        ]
+      }
+    },
+    "/v1/widget/{chatbot}/config": {
+      "get": {
+        "description": "Public: the web app sets the frame's CSP from it. Holds no secrets.",
+        "operationId": "frame_config_v1_widget__chatbot__config_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatbot",
+            "required": true,
+            "schema": {
+              "title": "Chatbot",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FrameConfig"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Where the widget may be shown (public)",
+        "tags": [
+          "widget"
+        ]
+      }
+    },
+    "/v1/widget/{chatbot}/token": {
+      "post": {
+        "description": "Signed-in in the pop-up (first-party session): a 15-minute token for this chatbot.",
+        "operationId": "widget_token_v1_widget__chatbot__token_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatbot",
+            "required": true,
+            "schema": {
+              "title": "Chatbot",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetToken"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The pop-up's token for the widget",
+        "tags": [
+          "widget"
         ]
       }
     }

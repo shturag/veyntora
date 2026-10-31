@@ -102,6 +102,8 @@ class PersonRow(BaseModel):
     edits: int
     platform_admin: bool
     suspended: bool
+    # An app key's service identity, not a person.
+    is_service: bool
     last_active: datetime | None
 
 
@@ -178,6 +180,7 @@ async def list_people(
             edits=sum("editor" in a.roles or "owner" in a.roles for a in access),
             platform_admin=admin,
             suspended=u.suspended,
+            is_service=u.is_service,
             last_active=u.last_login_at,
         )
         for (u, access), admin in zip(page, admins, strict=True)
@@ -209,6 +212,7 @@ class PersonDetail(BaseModel):
     email: str | None
     suspended: bool
     suspended_reason: str | None
+    is_service: bool
     last_active: datetime | None
     last_synced_at: datetime | None
     attributes: dict[str, object]
@@ -275,6 +279,7 @@ async def get_person(user_id: UUID, _: Viewer, db: DbSession, state: State) -> P
         email=user.email,
         suspended=user.suspended,
         suspended_reason=user.suspended_reason,
+        is_service=user.is_service,
         last_active=user.last_login_at,
         last_synced_at=user.last_synced_at,
         attributes=dict(user.attributes or {}),

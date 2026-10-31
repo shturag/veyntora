@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     # Project keys for traces (graphs). Empty keys switch tracing off.
     langfuse_public_key: str = ""
     langfuse_secret_key: SecretStr = SecretStr("")
+    # Signs the short-lived tokens the API gives the graph server for runs that have no
+    # Keycloak token (API app keys, the website widget). Shared by the API and the graphs.
+    internal_token_secret: SecretStr = SecretStr("")
 
     alembic_ini: Path = Path(__file__).resolve().parents[2] / "alembic.ini"
 

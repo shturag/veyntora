@@ -58,7 +58,7 @@ export function ApprovalItem({ approval: a }: { approval: Approval }) {
           <h3 className="m-0 mb-1 text-xs font-semibold text-fg-muted uppercase">
             {t("whatHappens")}
           </h3>
-          <pre className="m-0 overflow-x-auto rounded-md bg-sunken p-3 text-xs">
+          <pre tabIndex={0} className="m-0 overflow-x-auto rounded-md bg-sunken p-3 text-xs">
             {JSON.stringify(a.arguments, null, 2)}
           </pre>
         </div>

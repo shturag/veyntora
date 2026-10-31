@@ -25,6 +25,9 @@ class User(IdMixin, TimestampMixin, Base):
     attributes: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     # Settings page choices (answer language and length, default assistant).
     preferences: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
+    # A service identity (API app key): no Keycloak account; given groups and roles like a
+    # person, never signs in.
+    is_service: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     suspended: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     suspended_reason: Mapped[str | None] = mapped_column(sa.Text)
     last_login_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))

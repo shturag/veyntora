@@ -21,6 +21,11 @@ const config: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
         ],
       },
+      {
+        // Website widget: its sign-in pop-up hands the token to the frame (window.opener).
+        source: "/widget/:path*",
+        headers: [{ key: "Cross-Origin-Opener-Policy", value: "unsafe-none" }],
+      },
     ];
   },
 };

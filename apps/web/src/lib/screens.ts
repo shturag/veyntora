@@ -375,7 +375,7 @@ export const SCREENS: readonly Screen[] = [
     file: "Channels.html",
     route: "/admin/channels",
     shell: "admin",
-    phase: 4,
+    phase: 4, built: true,
     area: "channels",
   },
 

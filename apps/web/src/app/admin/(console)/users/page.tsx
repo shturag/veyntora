@@ -180,6 +180,7 @@ export default async function UsersPage({
                       </Link>
                       <div className="text-xs text-fg-muted">{p.email}</div>
                       {p.suspended ? <Badge tone="red">{t("suspended")}</Badge> : null}
+                      {p.is_service ? <Badge tone="info">{t("service")}</Badge> : null}
                     </td>
                     <td className="px-4 py-2.5 text-xs">{p.groups.join(", ") || "—"}</td>
                     <td className="px-4 py-2.5 text-xs">

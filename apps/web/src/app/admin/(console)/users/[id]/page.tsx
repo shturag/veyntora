@@ -42,6 +42,7 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
             <h1 className="m-0 text-2xl font-bold">{p.name}</h1>
             {p.platform_admin ? <Badge tone="accent">{t("platformAdmin")}</Badge> : null}
             {p.suspended ? <Badge tone="red">{t("suspended")}</Badge> : null}
+            {p.is_service ? <Badge tone="info">{t("service")}</Badge> : null}
           </div>
           <span className="text-xs text-fg-muted">
             {p.email} ·{" "}
