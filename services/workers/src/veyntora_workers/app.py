@@ -1,8 +1,8 @@
 """Celery app for background jobs. The `scheduler` service runs `celery beat` with this app.
 
 Jobs: worker heartbeat (read by the status page), outbox relay (config events), the scheduled
-Keycloak identity sync, provider tests and ingestion (claimed from `ingest_jobs`). Eval and
-retention jobs are added in their phases.
+Keycloak identity sync, provider tests, MCP tool discovery and ingestion (claimed from
+`ingest_jobs`). Eval and retention jobs are added in their phases.
 """
 
 from __future__ import annotations
@@ -24,6 +24,7 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.settings import get_settings
 
 from veyntora_workers.ingest import requeue_stuck, run_pending
+from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
 from veyntora_workers.sources import run_due_schedules, run_queued_source_tests
 
@@ -45,6 +46,7 @@ app.conf.update(
         "heartbeat": {"task": "veyntora.heartbeat", "schedule": timedelta(seconds=30)},
         "relay-outbox": {"task": "veyntora.relay_outbox", "schedule": timedelta(seconds=10)},
         "provider-tests": {"task": "veyntora.provider_tests", "schedule": timedelta(seconds=5)},
+        "mcp-discovery": {"task": "veyntora.mcp_discovery", "schedule": timedelta(seconds=5)},
         # Ticks that wait in the broker longer than the interval are dropped, not piled up.
         "ingest": {
             "task": "veyntora.ingest",
@@ -101,6 +103,11 @@ def identity_sync() -> None:
 @app.task(name="veyntora.provider_tests")
 def provider_tests() -> int:
     return _run(run_queued_provider_tests(settings))
+
+
+@app.task(name="veyntora.mcp_discovery")
+def mcp_discovery() -> int:
+    return _run(run_queued_discovery(settings))
 
 
 @app.task(name="veyntora.ingest")

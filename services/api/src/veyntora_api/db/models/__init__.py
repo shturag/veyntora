@@ -37,7 +37,7 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.models.platform import PlatformSettings, StatusNotice
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance, ProviderInstanceChatbot
 from veyntora_api.db.models.quality import Budget, EvalCase, EvalRun, EvalSet, UsageRecord
-from veyntora_api.db.models.tools import McpServer, Tool, ToolPolicy
+from veyntora_api.db.models.tools import McpServer, Tool, ToolCall, ToolPolicy
 
 __all__ = [
     "AccessReview",
@@ -80,6 +80,7 @@ __all__ = [
     "SourceAttachment",
     "StatusNotice",
     "Tool",
+    "ToolCall",
     "ToolPolicy",
     "UsageRecord",
     "User",

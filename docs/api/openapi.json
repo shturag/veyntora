@@ -141,6 +141,39 @@
         "title": "AttachmentOut",
         "type": "object"
       },
+      "AvailableTool": {
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/ToolAccess"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "server": {
+            "title": "Server",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "server",
+          "access",
+          "description"
+        ],
+        "title": "AvailableTool",
+        "type": "object"
+      },
       "Body_upload_documents_v1_admin_sources__source_id__documents_post": {
         "properties": {
           "files": {
@@ -389,6 +422,40 @@
           }
         },
         "title": "ByokUpdate",
+        "type": "object"
+      },
+      "CallOut": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "ms": {
+            "title": "Ms",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "at",
+          "ms",
+          "ok",
+          "summary"
+        ],
+        "title": "CallOut",
         "type": "object"
       },
       "Capability": {
@@ -1956,6 +2023,34 @@
         "title": "LogoutResult",
         "type": "object"
       },
+      "McpAuth": {
+        "enum": [
+          "none",
+          "bearer",
+          "oauth_client",
+          "delegated"
+        ],
+        "title": "McpAuth",
+        "type": "string"
+      },
+      "McpServerStatus": {
+        "enum": [
+          "pending_review",
+          "active",
+          "disabled",
+          "error"
+        ],
+        "title": "McpServerStatus",
+        "type": "string"
+      },
+      "McpTransport": {
+        "enum": [
+          "streamable_http",
+          "sse"
+        ],
+        "title": "McpTransport",
+        "type": "string"
+      },
       "MeOut": {
         "properties": {
           "admin_areas": {
@@ -3125,6 +3220,470 @@
         "title": "SearchType",
         "type": "string"
       },
+      "ServerDetail": {
+        "properties": {
+          "auth": {
+            "$ref": "#/components/schemas/McpAuth"
+          },
+          "calls_7d": {
+            "title": "Calls 7D",
+            "type": "integer"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "hosting": {
+            "title": "Hosting",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_discovered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Discovered At"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "p95_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Ms"
+          },
+          "recent_calls": {
+            "items": {
+              "$ref": "#/components/schemas/CallOut"
+            },
+            "title": "Recent Calls",
+            "type": "array"
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "signed_off": {
+            "title": "Signed Off",
+            "type": "boolean"
+          },
+          "signed_off_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Off At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/McpServerStatus"
+          },
+          "token_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Url"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ToolOut"
+            },
+            "title": "Tools",
+            "type": "array"
+          },
+          "transport": {
+            "$ref": "#/components/schemas/McpTransport"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "transport",
+          "auth",
+          "hosting",
+          "status",
+          "has_secret",
+          "secret_last4",
+          "token_url",
+          "client_id",
+          "scopes",
+          "signed_off",
+          "signed_off_at",
+          "last_discovered_at",
+          "last_error",
+          "calls_7d",
+          "p95_ms",
+          "tools",
+          "version",
+          "recent_calls"
+        ],
+        "title": "ServerDetail",
+        "type": "object"
+      },
+      "ServerInput": {
+        "additionalProperties": false,
+        "properties": {
+          "auth": {
+            "$ref": "#/components/schemas/McpAuth",
+            "default": "none"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "hosting": {
+            "default": "self_hosted",
+            "enum": [
+              "self_hosted",
+              "external"
+            ],
+            "title": "Hosting",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes"
+          },
+          "secret": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret"
+          },
+          "token_url": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Url"
+          },
+          "transport": {
+            "$ref": "#/components/schemas/McpTransport",
+            "default": "streamable_http"
+          },
+          "url": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "url"
+        ],
+        "title": "ServerInput",
+        "type": "object"
+      },
+      "ServerOut": {
+        "description": "Never contains the key or its OpenBao path.",
+        "properties": {
+          "auth": {
+            "$ref": "#/components/schemas/McpAuth"
+          },
+          "calls_7d": {
+            "title": "Calls 7D",
+            "type": "integer"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "hosting": {
+            "title": "Hosting",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_discovered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Discovered At"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "p95_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Ms"
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "signed_off": {
+            "title": "Signed Off",
+            "type": "boolean"
+          },
+          "signed_off_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Off At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/McpServerStatus"
+          },
+          "token_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Url"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ToolOut"
+            },
+            "title": "Tools",
+            "type": "array"
+          },
+          "transport": {
+            "$ref": "#/components/schemas/McpTransport"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "transport",
+          "auth",
+          "hosting",
+          "status",
+          "has_secret",
+          "secret_last4",
+          "token_url",
+          "client_id",
+          "scopes",
+          "signed_off",
+          "signed_off_at",
+          "last_discovered_at",
+          "last_error",
+          "calls_7d",
+          "p95_ms",
+          "tools",
+          "version"
+        ],
+        "title": "ServerOut",
+        "type": "object"
+      },
+      "ServerSecretIn": {
+        "properties": {
+          "secret": {
+            "format": "password",
+            "title": "Secret",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "secret"
+        ],
+        "title": "ServerSecretIn",
+        "type": "object"
+      },
+      "ServerStatusIn": {
+        "properties": {
+          "status": {
+            "enum": [
+              "active",
+              "disabled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ServerStatusIn",
+        "type": "object"
+      },
       "SessionInfo": {
         "properties": {
           "signed_in": {
@@ -3557,6 +4116,224 @@
           "notices"
         ],
         "title": "StatusOut",
+        "type": "object"
+      },
+      "ToolAccess": {
+        "enum": [
+          "read",
+          "write",
+          "destructive"
+        ],
+        "title": "ToolAccess",
+        "type": "string"
+      },
+      "ToolGroupOption": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ToolGroupOption",
+        "type": "object"
+      },
+      "ToolOut": {
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/ToolAccess"
+          },
+          "approver_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Group Id"
+          },
+          "caller_group_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Caller Group Ids",
+            "type": "array"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "flagged": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flagged"
+          },
+          "hints": {
+            "additionalProperties": true,
+            "title": "Hints",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "title": "Input Schema",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "present": {
+            "title": "Present",
+            "type": "boolean"
+          },
+          "rate_limit_per_minute": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Per Minute"
+          },
+          "requires_approval": {
+            "title": "Requires Approval",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "input_schema",
+          "access",
+          "enabled",
+          "present",
+          "flagged",
+          "hints",
+          "requires_approval",
+          "approver_group_id",
+          "caller_group_ids",
+          "rate_limit_per_minute",
+          "version"
+        ],
+        "title": "ToolOut",
+        "type": "object"
+      },
+      "ToolUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "access": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolAccess"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "acknowledge_flag": {
+            "default": false,
+            "title": "Acknowledge Flag",
+            "type": "boolean"
+          },
+          "approver_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approver Group Id"
+          },
+          "caller_group_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caller Group Ids"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "rate_limit_per_minute": {
+            "anyOf": [
+              {
+                "maximum": 10000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Limit Per Minute"
+          },
+          "requires_approval": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires Approval"
+          }
+        },
+        "title": "ToolUpdate",
         "type": "object"
       },
       "TopicAction": {
@@ -5640,6 +6417,422 @@
         "summary": "Test the connection (runs in a worker; see sharepoint.last_test)",
         "tags": [
           "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/tools/available": {
+      "get": {
+        "operationId": "available_tools_v1_admin_tools_available_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AvailableTool"
+                  },
+                  "title": "Response Available Tools V1 Admin Tools Available Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Enabled tools of active servers (to bind to a chatbot)",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/groups": {
+      "get": {
+        "operationId": "groups_v1_admin_tools_groups_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ToolGroupOption"
+                  },
+                  "title": "Response Groups V1 Admin Tools Groups Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Groups that can approve or call tools",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/servers": {
+      "get": {
+        "operationId": "list_servers_v1_admin_tools_servers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServerOut"
+                  },
+                  "title": "Response List Servers V1 Admin Tools Servers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "MCP servers with their tools",
+        "tags": [
+          "admin: tools"
+        ]
+      },
+      "post": {
+        "operationId": "register_server_v1_admin_tools_servers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register an MCP server",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/servers/{server_id}": {
+      "get": {
+        "operationId": "get_server_v1_admin_tools_servers__server_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One MCP server with its tools and recent calls",
+        "tags": [
+          "admin: tools"
+        ]
+      },
+      "patch": {
+        "operationId": "set_server_status_v1_admin_tools_servers__server_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerStatusIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enable or disable a server",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/servers/{server_id}/discover": {
+      "post": {
+        "operationId": "discover_v1_admin_tools_servers__server_id__discover_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Discover the server's tools again (async)",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/servers/{server_id}/secret": {
+      "put": {
+        "operationId": "put_server_secret_v1_admin_tools_servers__server_id__secret_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerSecretIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Store or replace the server's key",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/servers/{server_id}/sign-off": {
+      "post": {
+        "operationId": "sign_off_v1_admin_tools_servers__server_id__sign_off_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Security sign-off: make the server active",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/{tool_id}": {
+      "patch": {
+        "operationId": "update_tool_v1_admin_tools__tool_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tool_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tool Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Classify, enable and set the policy of a tool",
+        "tags": [
+          "admin: tools"
         ]
       }
     },

@@ -542,6 +542,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/tools/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enabled tools of active servers (to bind to a chatbot) */
+        get: operations["available_tools_v1_admin_tools_available_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tools/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Groups that can approve or call tools */
+        get: operations["groups_v1_admin_tools_groups_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tools/servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** MCP servers with their tools */
+        get: operations["list_servers_v1_admin_tools_servers_get"];
+        put?: never;
+        /** Register an MCP server */
+        post: operations["register_server_v1_admin_tools_servers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tools/servers/{server_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One MCP server with its tools and recent calls */
+        get: operations["get_server_v1_admin_tools_servers__server_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Enable or disable a server */
+        patch: operations["set_server_status_v1_admin_tools_servers__server_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/tools/servers/{server_id}/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Discover the server's tools again (async) */
+        post: operations["discover_v1_admin_tools_servers__server_id__discover_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tools/servers/{server_id}/secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Store or replace the server's key */
+        put: operations["put_server_secret_v1_admin_tools_servers__server_id__secret_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tools/servers/{server_id}/sign-off": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Security sign-off: make the server active */
+        post: operations["sign_off_v1_admin_tools_servers__server_id__sign_off_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tools/{tool_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Classify, enable and set the policy of a tool */
+        patch: operations["update_tool_v1_admin_tools__tool_id__patch"];
+        trace?: never;
+    };
     "/v1/chat/conversations": {
         parameters: {
             query?: never;
@@ -946,6 +1084,21 @@ export interface components {
             /** Weight */
             weight: number;
         };
+        /** AvailableTool */
+        AvailableTool: {
+            access: components["schemas"]["ToolAccess"];
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Server */
+            server: string;
+        };
         /** Body_upload_documents_v1_admin_sources__source_id__documents_post */
         Body_upload_documents_v1_admin_sources__source_id__documents_post: {
             /** Files */
@@ -1026,6 +1179,22 @@ export interface components {
             label?: string | null;
             /** Use For */
             use_for?: ("chats" | "none") | null;
+        };
+        /** CallOut */
+        CallOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Ms */
+            ms: number;
+            /** Ok */
+            ok: boolean;
+            /** Summary */
+            summary: string;
+            /** Tool */
+            tool: string;
         };
         /**
          * Capability
@@ -1660,6 +1829,21 @@ export interface components {
             /** Redirect To */
             redirect_to: string;
         };
+        /**
+         * McpAuth
+         * @enum {string}
+         */
+        McpAuth: "none" | "bearer" | "oauth_client" | "delegated";
+        /**
+         * McpServerStatus
+         * @enum {string}
+         */
+        McpServerStatus: "pending_review" | "active" | "disabled" | "error";
+        /**
+         * McpTransport
+         * @enum {string}
+         */
+        McpTransport: "streamable_http" | "sse";
         /** MeOut */
         MeOut: {
             /** Admin Areas */
@@ -2102,6 +2286,138 @@ export interface components {
          * @enum {string}
          */
         SearchType: "dense" | "sparse" | "hybrid";
+        /** ServerDetail */
+        ServerDetail: {
+            auth: components["schemas"]["McpAuth"];
+            /** Calls 7D */
+            calls_7d: number;
+            /** Client Id */
+            client_id: string | null;
+            /** Has Secret */
+            has_secret: boolean;
+            /** Hosting */
+            hosting: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Discovered At */
+            last_discovered_at: string | null;
+            /** Last Error */
+            last_error: string | null;
+            /** Name */
+            name: string;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** Recent Calls */
+            recent_calls: components["schemas"]["CallOut"][];
+            /** Scopes */
+            scopes: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Signed Off */
+            signed_off: boolean;
+            /** Signed Off At */
+            signed_off_at: string | null;
+            status: components["schemas"]["McpServerStatus"];
+            /** Token Url */
+            token_url: string | null;
+            /** Tools */
+            tools: components["schemas"]["ToolOut"][];
+            transport: components["schemas"]["McpTransport"];
+            /** Url */
+            url: string;
+            /** Version */
+            version: number;
+        };
+        /** ServerInput */
+        ServerInput: {
+            /** @default none */
+            auth: components["schemas"]["McpAuth"];
+            /** Client Id */
+            client_id?: string | null;
+            /**
+             * Hosting
+             * @default self_hosted
+             * @enum {string}
+             */
+            hosting: "self_hosted" | "external";
+            /** Name */
+            name: string;
+            /** Scopes */
+            scopes?: string | null;
+            /** Secret */
+            secret?: string | null;
+            /** Token Url */
+            token_url?: string | null;
+            /** @default streamable_http */
+            transport: components["schemas"]["McpTransport"];
+            /** Url */
+            url: string;
+        };
+        /**
+         * ServerOut
+         * @description Never contains the key or its OpenBao path.
+         */
+        ServerOut: {
+            auth: components["schemas"]["McpAuth"];
+            /** Calls 7D */
+            calls_7d: number;
+            /** Client Id */
+            client_id: string | null;
+            /** Has Secret */
+            has_secret: boolean;
+            /** Hosting */
+            hosting: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Discovered At */
+            last_discovered_at: string | null;
+            /** Last Error */
+            last_error: string | null;
+            /** Name */
+            name: string;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** Scopes */
+            scopes: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Signed Off */
+            signed_off: boolean;
+            /** Signed Off At */
+            signed_off_at: string | null;
+            status: components["schemas"]["McpServerStatus"];
+            /** Token Url */
+            token_url: string | null;
+            /** Tools */
+            tools: components["schemas"]["ToolOut"][];
+            transport: components["schemas"]["McpTransport"];
+            /** Url */
+            url: string;
+            /** Version */
+            version: number;
+        };
+        /** ServerSecretIn */
+        ServerSecretIn: {
+            /**
+             * Secret
+             * Format: password
+             */
+            secret: string;
+        };
+        /** ServerStatusIn */
+        ServerStatusIn: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "disabled";
+        };
         /** SessionInfo */
         SessionInfo: {
             /** Signed In */
@@ -2240,6 +2556,77 @@ export interface components {
             /** Notices */
             notices: components["schemas"]["NoticeOut"][];
             overall: components["schemas"]["Level"];
+        };
+        /**
+         * ToolAccess
+         * @enum {string}
+         */
+        ToolAccess: "read" | "write" | "destructive";
+        /** ToolGroupOption */
+        ToolGroupOption: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** ToolOut */
+        ToolOut: {
+            access: components["schemas"]["ToolAccess"];
+            /** Approver Group Id */
+            approver_group_id: string | null;
+            /** Caller Group Ids */
+            caller_group_ids: string[];
+            /** Description */
+            description: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Flagged */
+            flagged: string | null;
+            /** Hints */
+            hints: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Input Schema */
+            input_schema: {
+                [key: string]: unknown;
+            };
+            /** Name */
+            name: string;
+            /** Present */
+            present: boolean;
+            /** Rate Limit Per Minute */
+            rate_limit_per_minute: number | null;
+            /** Requires Approval */
+            requires_approval: boolean;
+            /** Version */
+            version: number;
+        };
+        /** ToolUpdate */
+        ToolUpdate: {
+            access?: components["schemas"]["ToolAccess"] | null;
+            /**
+             * Acknowledge Flag
+             * @default false
+             */
+            acknowledge_flag: boolean;
+            /** Approver Group Id */
+            approver_group_id?: string | null;
+            /** Caller Group Ids */
+            caller_group_ids?: string[] | null;
+            /** Enabled */
+            enabled?: boolean | null;
+            /** Rate Limit Per Minute */
+            rate_limit_per_minute?: number | null;
+            /** Requires Approval */
+            requires_approval?: boolean | null;
         };
         /**
          * TopicAction
@@ -3518,6 +3905,299 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    available_tools_v1_admin_tools_available_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailableTool"][];
+                };
+            };
+        };
+    };
+    groups_v1_admin_tools_groups_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolGroupOption"][];
+                };
+            };
+        };
+    };
+    list_servers_v1_admin_tools_servers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"][];
+                };
+            };
+        };
+    };
+    register_server_v1_admin_tools_servers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_server_v1_admin_tools_servers__server_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_server_status_v1_admin_tools_servers__server_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerStatusIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discover_v1_admin_tools_servers__server_id__discover_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_server_secret_v1_admin_tools_servers__server_id__secret_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerSecretIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sign_off_v1_admin_tools_servers__server_id__sign_off_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_tool_v1_admin_tools__tool_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                tool_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ToolUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolOut"];
                 };
             };
             /** @description Validation Error */
