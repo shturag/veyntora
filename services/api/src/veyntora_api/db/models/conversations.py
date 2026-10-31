@@ -73,6 +73,8 @@ class Message(IdMixin, Base):
     cost: Mapped[Decimal] = mapped_column(sa.Numeric(12, 6), default=0, server_default="0")
     latency_ms: Mapped[int | None] = mapped_column(sa.Integer)
     groundedness: Mapped[float | None] = mapped_column(sa.Float)
+    # answered | no_answer | blocked | refused (assistant messages; gaps come from no_answer).
+    outcome: Mapped[str | None] = mapped_column(sa.String(16))
     # True when any external (non self-hosted) provider handled part of this request.
     external_egress: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     trace_id: Mapped[str | None] = mapped_column(sa.String(64), index=True)

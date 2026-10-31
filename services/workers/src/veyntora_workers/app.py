@@ -26,7 +26,7 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
 
-from veyntora_workers import automations
+from veyntora_workers import automations, knowledge_health
 from veyntora_workers.ingest import requeue_stuck, run_pending
 from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
@@ -63,6 +63,11 @@ app.conf.update(
         "ingest-requeue-stuck": {
             "task": "veyntora.ingest_requeue_stuck",
             "schedule": timedelta(minutes=5),
+        },
+        "knowledge-scan": {
+            "task": "veyntora.knowledge_scan",
+            "schedule": timedelta(minutes=1),
+            "options": {"expires": 60},
         },
         "automation-tick": {"task": "veyntora.automation_tick", "schedule": timedelta(minutes=1)},
         "automation-start": {
@@ -196,3 +201,8 @@ def automation_resume() -> int:
 @app.task(name="veyntora.email")
 def email() -> int:
     return _run(automations.send_email(settings))
+
+
+@app.task(name="veyntora.knowledge_scan")
+def knowledge_scan() -> str | None:
+    return _run(knowledge_health.run(settings))

@@ -189,6 +189,31 @@ class VectorStore(Protocol):
     ) -> list[Hit]: ...
 
 
+@dataclass(frozen=True, slots=True)
+class StoredChunk:
+    id: str
+    text: str
+    dense: list[float]
+    payload: Mapping[str, Any]
+
+
+@runtime_checkable
+class MaintenanceStore(Protocol):
+    """Reads for the knowledge health scan (a system job), not for answers: no ACL filter.
+
+    What a scan finds reaches people only after the per-person permission check
+    (veyntora_api.knowledge.health); answers always go through `hybrid_search`.
+    """
+
+    async def chunks_of(
+        self, collection: str, document_id: str, limit: int
+    ) -> list[StoredChunk]: ...
+
+    async def nearest(
+        self, collection: str, dense: list[float], k: int, exclude_document_id: str
+    ) -> list[Hit]: ...
+
+
 # ---------------------------------------------------------------- parser
 
 

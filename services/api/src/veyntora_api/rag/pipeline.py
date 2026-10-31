@@ -442,7 +442,8 @@ def _terms_matched(query: str, text: str) -> int:
 
 
 async def _recheck(db: AsyncSession, ctx: RunContext, hits: Sequence[Hit]) -> list[Source]:
-    """Drop hits whose document was deleted or whose ACL no longer includes the user."""
+    """Drop hits whose document was deleted or excluded, or whose ACL no longer includes
+    the user."""
     ids = {str(h.payload.get("document_id")) for h in hits}
     if not ids:
         return []
@@ -460,6 +461,7 @@ async def _recheck(db: AsyncSession, ctx: RunContext, hits: Sequence[Hit]) -> li
         if (
             doc is None
             or doc.status is DocumentStatus.DELETED
+            or doc.excluded_at is not None
             or str(doc.source_id) not in sources
             or not mine & set(principals_of(doc.acl))
             or not _in_folders(doc.path, ctx.source_paths.get(str(doc.source_id), ()))

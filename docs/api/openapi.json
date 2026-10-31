@@ -1024,6 +1024,20 @@
         "title": "AskIn",
         "type": "object"
       },
+      "AskInput": {
+        "additionalProperties": false,
+        "properties": {
+          "due_weeks": {
+            "default": 1,
+            "maximum": 8.0,
+            "minimum": 1.0,
+            "title": "Due Weeks",
+            "type": "integer"
+          }
+        },
+        "title": "AskInput",
+        "type": "object"
+      },
       "Attachment": {
         "additionalProperties": false,
         "properties": {
@@ -3264,6 +3278,30 @@
         "title": "DestinationOut",
         "type": "object"
       },
+      "DismissInput": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "enum": [
+              "not_a_problem",
+              "later",
+              "duplicate"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "suppress": {
+            "default": false,
+            "title": "Suppress",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "DismissInput",
+        "type": "object"
+      },
       "DocumentOut": {
         "properties": {
           "chunk_count": {
@@ -3645,6 +3683,30 @@
           "timezone"
         ],
         "title": "EventTrigger",
+        "type": "object"
+      },
+      "ExcludeInput": {
+        "additionalProperties": false,
+        "properties": {
+          "ask_archive": {
+            "default": false,
+            "title": "Ask Archive",
+            "type": "boolean"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          }
+        },
+        "title": "ExcludeInput",
         "type": "object"
       },
       "FeedbackInput": {
@@ -4803,6 +4865,124 @@
         "title": "HandoffStatus",
         "type": "string"
       },
+      "HealthOut": {
+        "properties": {
+          "gap_questions": {
+            "title": "Gap Questions",
+            "type": "integer"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueOut"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "last_scan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScanOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "open_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Open Counts",
+            "type": "object"
+          },
+          "scan_queued": {
+            "title": "Scan Queued",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "last_scan",
+          "scan_queued",
+          "open_counts",
+          "gap_questions",
+          "issues"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "HealthSettings": {
+        "additionalProperties": false,
+        "description": "Knowledge health settings (platform settings, through the config write path).",
+        "properties": {
+          "duplicate_similarity": {
+            "default": 0.9,
+            "maximum": 1.0,
+            "minimum": 0.5,
+            "title": "Duplicate Similarity",
+            "type": "number"
+          },
+          "gap_min_questions": {
+            "default": 3,
+            "maximum": 100.0,
+            "minimum": 2.0,
+            "title": "Gap Min Questions",
+            "type": "integer"
+          },
+          "llm_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Instance Id"
+          },
+          "max_pairs": {
+            "default": 60,
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Max Pairs",
+            "type": "integer"
+          },
+          "popular_citations": {
+            "default": 5,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Popular Citations",
+            "type": "integer"
+          },
+          "similarity": {
+            "default": 0.82,
+            "maximum": 0.99,
+            "minimum": 0.5,
+            "title": "Similarity",
+            "type": "number"
+          },
+          "stale_months": {
+            "default": 12,
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Stale Months",
+            "type": "integer"
+          },
+          "time": {
+            "default": "02:30",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Time",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "Europe/Berlin",
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "title": "HealthSettings",
+        "type": "object"
+      },
       "HealthStatus": {
         "enum": [
           "unknown",
@@ -5058,6 +5238,162 @@
         "title": "InjectionAction",
         "type": "string"
       },
+      "IssueDocument": {
+        "properties": {
+          "excluded": {
+            "title": "Excluded",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "updated",
+          "excluded"
+        ],
+        "title": "IssueDocument",
+        "type": "object"
+      },
+      "IssueKind": {
+        "enum": [
+          "stale",
+          "conflict",
+          "gap",
+          "parse_failure",
+          "duplicate",
+          "reported"
+        ],
+        "title": "IssueKind",
+        "type": "string"
+      },
+      "IssueOut": {
+        "properties": {
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/IssueDocument"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/IssueKind"
+          },
+          "notified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notified At"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IssueStatus"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "summary",
+          "details",
+          "documents",
+          "owner",
+          "chatbot",
+          "created_at",
+          "notified_at",
+          "due_at"
+        ],
+        "title": "IssueOut",
+        "type": "object"
+      },
+      "IssueStatus": {
+        "enum": [
+          "open",
+          "notified",
+          "resolved",
+          "dismissed"
+        ],
+        "title": "IssueStatus",
+        "type": "string"
+      },
       "JobOut": {
         "properties": {
           "attempts": {
@@ -5153,6 +5489,30 @@
         ],
         "title": "Join",
         "type": "string"
+      },
+      "JudgeOption": {
+        "properties": {
+          "hosting": {
+            "title": "Hosting",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hosting"
+        ],
+        "title": "JudgeOption",
+        "type": "object"
       },
       "KeySecretIn": {
         "properties": {
@@ -5863,6 +6223,22 @@
         ],
         "title": "NotifyChannel",
         "type": "string"
+      },
+      "NotifyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "NotifyInput",
+        "type": "object"
       },
       "NotifyStep-Input": {
         "additionalProperties": false,
@@ -7325,6 +7701,58 @@
         "title": "Repeat",
         "type": "string"
       },
+      "ReportInput": {
+        "additionalProperties": false,
+        "properties": {
+          "comment": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Comment",
+            "type": "string"
+          },
+          "message_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Id"
+          },
+          "reason": {
+            "enum": [
+              "wrong",
+              "outdated",
+              "contradicts",
+              "other"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ReportInput",
+        "type": "object"
+      },
+      "Reported": {
+        "properties": {
+          "issue_id": {
+            "format": "uuid",
+            "title": "Issue Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id"
+        ],
+        "title": "Reported",
+        "type": "object"
+      },
       "RerankFallback": {
         "enum": [
           "instance",
@@ -8320,6 +8748,66 @@
         "title": "SaveInput",
         "type": "object"
       },
+      "ScanOut": {
+        "properties": {
+          "counts": {
+            "additionalProperties": true,
+            "title": "Counts",
+            "type": "object"
+          },
+          "documents": {
+            "title": "Documents",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "external": {
+            "title": "External",
+            "type": "boolean"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "started_at",
+          "finished_at",
+          "documents",
+          "counts",
+          "external",
+          "error"
+        ],
+        "title": "ScanOut",
+        "type": "object"
+      },
       "ScanStatus": {
         "enum": [
           "pending",
@@ -9035,6 +9523,26 @@
         "title": "SessionInfo",
         "type": "object"
       },
+      "SettingsOut": {
+        "properties": {
+          "llms": {
+            "items": {
+              "$ref": "#/components/schemas/JudgeOption"
+            },
+            "title": "Llms",
+            "type": "array"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/HealthSettings"
+          }
+        },
+        "required": [
+          "settings",
+          "llms"
+        ],
+        "title": "SettingsOut",
+        "type": "object"
+      },
       "SharePointOut": {
         "additionalProperties": false,
         "description": "Connection settings without the secret; plus what the last test and sync found.",
@@ -9524,20 +10032,6 @@
           }
         },
         "title": "SourceUpdate",
-        "type": "object"
-      },
-      "Started": {
-        "properties": {
-          "run_id": {
-            "format": "uuid",
-            "title": "Run Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "run_id"
-        ],
-        "title": "Started",
         "type": "object"
       },
       "StatusOut": {
@@ -10393,6 +10887,34 @@
         "title": "WidgetToken",
         "type": "object"
       },
+      "veyntora_api__routers__admin_automations__Started": {
+        "properties": {
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "title": "Started",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_knowledge_health__Started": {
+        "properties": {
+          "scan_id": {
+            "format": "uuid",
+            "title": "Scan Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scan_id"
+        ],
+        "title": "Started",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_providers__SecretInput": {
         "properties": {
           "expires_at": {
@@ -11027,7 +11549,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Started"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_automations__Started"
                 }
               }
             },
@@ -11509,7 +12031,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Started"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_automations__Started"
                 }
               }
             },
@@ -12991,6 +13513,351 @@
         "summary": "The group's roles on one chatbot",
         "tags": [
           "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health": {
+      "get": {
+        "operationId": "overview_v1_admin_knowledge_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The last scan and the open issues",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/conflicts/ask-owners": {
+      "post": {
+        "operationId": "ask_owners_v1_admin_knowledge_health_conflicts_ask_owners_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Count"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask the owners of every open contradiction to resolve it",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/documents/{document_id}/include": {
+      "post": {
+        "operationId": "include_v1_admin_knowledge_health_documents__document_id__include_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Use an excluded document in answers again",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/issues/{issue_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_v1_admin_knowledge_health_issues__issue_id__dismiss_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "issue_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Issue Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DismissInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss an issue",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/issues/{issue_id}/exclude": {
+      "post": {
+        "operationId": "exclude_v1_admin_knowledge_health_issues__issue_id__exclude_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "issue_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Issue Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcludeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exclude a document from answers",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/issues/{issue_id}/notify": {
+      "post": {
+        "operationId": "notify_owner_v1_admin_knowledge_health_issues__issue_id__notify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "issue_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Issue Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotifyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Count"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Message the owners of an issue",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/scan": {
+      "post": {
+        "operationId": "scan_now_v1_admin_knowledge_health_scan_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_knowledge_health__Started"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scan now (the workers start it within a minute)",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/settings": {
+      "get": {
+        "operationId": "get_settings_v1_admin_knowledge_health_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scan settings",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      },
+      "put": {
+        "operationId": "put_settings_v1_admin_knowledge_health_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealthSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change the scan settings",
+        "tags": [
+          "admin: knowledge health"
         ]
       }
     },
@@ -15458,6 +16325,60 @@
           }
         },
         "summary": "Download the original file",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/documents/{document_id}/report": {
+      "post": {
+        "description": "Only someone who may read the document can report it; its owners are told.",
+        "operationId": "report_document_v1_chat_documents__document_id__report_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reported"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report a cited document as wrong",
         "tags": [
           "chat"
         ]

@@ -25,6 +25,7 @@ from veyntora_providers.interfaces import (
     Hit,
     HybridQuery,
     Point,
+    StoredChunk,
 )
 from veyntora_providers.registry import register
 from veyntora_providers.secrets import SecretReader
@@ -172,6 +173,59 @@ class QdrantStore:
                 limit=k,
                 with_payload=True,
             )
+        return [
+            Hit(id=str(p.id), score=float(p.score), payload=p.payload or {}) for p in res.points
+        ]
+
+    async def chunks_of(self, collection: str, document_id: str, limit: int) -> list[StoredChunk]:
+        """A document's chunks with their dense vectors (knowledge health scan only)."""
+        qc = await self._qc()
+        if not await qc.collection_exists(collection):
+            return []
+        points, _ = await qc.scroll(
+            collection,
+            scroll_filter=_match("document_id", [document_id]),
+            limit=limit,
+            with_payload=True,
+            with_vectors=[DENSE],
+        )
+        out = []
+        for p in points:
+            vector = p.vector.get(DENSE) if isinstance(p.vector, dict) else p.vector
+            if not isinstance(vector, list) or not all(isinstance(x, float | int) for x in vector):
+                continue
+            payload = p.payload or {}
+            out.append(
+                StoredChunk(
+                    id=str(p.id),
+                    text=str(payload.get("text") or ""),
+                    dense=[float(x) for x in vector if isinstance(x, float | int)],
+                    payload=payload,
+                )
+            )
+        return out
+
+    async def nearest(
+        self, collection: str, dense: list[float], k: int, exclude_document_id: str
+    ) -> list[Hit]:
+        """The most similar chunks of other documents (knowledge health scan only)."""
+        qc = await self._qc()
+        if not await qc.collection_exists(collection):
+            return []
+        res = await qc.query_points(
+            collection,
+            query=dense,
+            using=DENSE,
+            query_filter=models.Filter(
+                must_not=[
+                    models.FieldCondition(
+                        key="document_id", match=models.MatchAny(any=[exclude_document_id])
+                    )
+                ]
+            ),
+            limit=k,
+            with_payload=True,
+        )
         return [
             Hit(id=str(p.id), score=float(p.score), payload=p.payload or {}) for p in res.points
         ]

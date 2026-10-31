@@ -1,9 +1,10 @@
-import { Button, PhaseGatedButton } from "@veyntora/ui";
+import { Button } from "@veyntora/ui";
 import { X } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ReportSource } from "@/components/report-source";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
 
@@ -94,9 +95,10 @@ export default async function SourcePage({ params, searchParams }: Props) {
       </article>
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-3 text-xs text-fg-muted max-[640px]:px-4">
         <span>{t("visibility")}</span>
-        <PhaseGatedButton phase={5} label={t("reportLater", { phase: 5 })} size="sm">
-          {t("report")}
-        </PhaseGatedButton>
+        <ReportSource
+          documentId={doc.id}
+          messageId={m && /^[0-9a-f-]{36}$/.test(m) ? m : undefined}
+        />
       </footer>
     </div>
   );

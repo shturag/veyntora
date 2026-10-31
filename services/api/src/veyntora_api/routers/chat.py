@@ -16,7 +16,7 @@ import httpx
 import sqlalchemy as sa
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from starlette.background import BackgroundTask
 
 from veyntora_api.auth.deps import CurrentPrincipal, DbSession, State
@@ -32,6 +32,7 @@ from veyntora_api.db.models.conversations import (
     Rating,
 )
 from veyntora_api.db.models.knowledge import DataSource, Document
+from veyntora_api.knowledge import health as knowledge_health
 from veyntora_api.knowledge.service import may_read, user_principals
 from veyntora_api.storage import ObjectStore
 
@@ -402,6 +403,35 @@ async def document(document_id: UUID, principal: CurrentPrincipal, db: DbSession
         updated_at=doc.source_updated_at,
         has_original=bool(doc.object_key),
     )
+
+
+class ReportInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: Literal["wrong", "outdated", "contradicts", "other"]
+    comment: str = Field("", max_length=2000)
+    message_id: UUID | None = None
+
+
+class Reported(BaseModel):
+    issue_id: UUID
+
+
+@router.post("/documents/{document_id}/report", summary="Report a cited document as wrong")
+async def report_document(
+    document_id: UUID, data: ReportInput, principal: CurrentPrincipal, db: DbSession
+) -> Reported:
+    """Only someone who may read the document can report it; its owners are told."""
+    doc = await _readable(db, principal, document_id)
+    issue = await knowledge_health.report_source(
+        db,
+        doc,
+        principal.user_id,
+        reason=data.reason,
+        comment=data.comment,
+        message_id=data.message_id,
+    )
+    await db.commit()
+    return Reported(issue_id=issue.id)
 
 
 _INLINE = {"application/pdf", "image/png", "image/jpeg"}

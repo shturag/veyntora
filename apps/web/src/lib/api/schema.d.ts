@@ -805,6 +805,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/knowledge-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The last scan and the open issues */
+        get: operations["overview_v1_admin_knowledge_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/conflicts/ask-owners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask the owners of every open contradiction to resolve it */
+        post: operations["ask_owners_v1_admin_knowledge_health_conflicts_ask_owners_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/documents/{document_id}/include": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Use an excluded document in answers again */
+        post: operations["include_v1_admin_knowledge_health_documents__document_id__include_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/issues/{issue_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss an issue */
+        post: operations["dismiss_v1_admin_knowledge_health_issues__issue_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/issues/{issue_id}/exclude": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exclude a document from answers */
+        post: operations["exclude_v1_admin_knowledge_health_issues__issue_id__exclude_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/issues/{issue_id}/notify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Message the owners of an issue */
+        post: operations["notify_owner_v1_admin_knowledge_health_issues__issue_id__notify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scan now (the workers start it within a minute) */
+        post: operations["scan_now_v1_admin_knowledge_health_scan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/knowledge-health/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scan settings */
+        get: operations["get_settings_v1_admin_knowledge_health_settings_get"];
+        /** Change the scan settings */
+        put: operations["put_settings_v1_admin_knowledge_health_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/mail": {
         parameters: {
             query?: never;
@@ -1596,6 +1733,26 @@ export interface paths {
         get: operations["original_v1_chat_documents__document_id__original_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/chat/documents/{document_id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report a cited document as wrong
+         * @description Only someone who may read the document can report it; its owners are told.
+         */
+        post: operations["report_document_v1_chat_documents__document_id__report_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2414,6 +2571,14 @@ export interface components {
             /** Question */
             question: string;
         };
+        /** AskInput */
+        AskInput: {
+            /**
+             * Due Weeks
+             * @default 1
+             */
+            due_weeks: number;
+        };
         /** Attachment */
         Attachment: {
             /**
@@ -3170,6 +3335,19 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** DismissInput */
+        DismissInput: {
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "not_a_problem" | "later" | "duplicate";
+            /**
+             * Suppress
+             * @default false
+             */
+            suppress: boolean;
+        };
         /** DocumentOut */
         DocumentOut: {
             /** Chunk Count */
@@ -3325,6 +3503,16 @@ export interface components {
              * @enum {string}
              */
             type: "event";
+        };
+        /** ExcludeInput */
+        ExcludeInput: {
+            /**
+             * Ask Archive
+             * @default false
+             */
+            ask_archive: boolean;
+            /** Document Id */
+            document_id?: string | null;
         };
         /** FeedbackInput */
         FeedbackInput: {
@@ -3807,6 +3995,68 @@ export interface components {
          * @enum {string}
          */
         HandoffStatus: "open" | "assigned" | "answered" | "closed";
+        /** HealthOut */
+        HealthOut: {
+            /** Gap Questions */
+            gap_questions: number;
+            /** Issues */
+            issues: components["schemas"]["IssueOut"][];
+            last_scan: components["schemas"]["ScanOut"] | null;
+            /** Open Counts */
+            open_counts: {
+                [key: string]: number;
+            };
+            /** Scan Queued */
+            scan_queued: boolean;
+        };
+        /**
+         * HealthSettings
+         * @description Knowledge health settings (platform settings, through the config write path).
+         */
+        HealthSettings: {
+            /**
+             * Duplicate Similarity
+             * @default 0.9
+             */
+            duplicate_similarity: number;
+            /**
+             * Gap Min Questions
+             * @default 3
+             */
+            gap_min_questions: number;
+            /** Llm Instance Id */
+            llm_instance_id?: string | null;
+            /**
+             * Max Pairs
+             * @default 60
+             */
+            max_pairs: number;
+            /**
+             * Popular Citations
+             * @default 5
+             */
+            popular_citations: number;
+            /**
+             * Similarity
+             * @default 0.82
+             */
+            similarity: number;
+            /**
+             * Stale Months
+             * @default 12
+             */
+            stale_months: number;
+            /**
+             * Time
+             * @default 02:30
+             */
+            time: string;
+            /**
+             * Timezone
+             * @default Europe/Berlin
+             */
+            timezone: string;
+        };
         /**
          * HealthStatus
          * @enum {string}
@@ -3918,6 +4168,61 @@ export interface components {
          * @enum {string}
          */
         InjectionAction: "block" | "warn";
+        /** IssueDocument */
+        IssueDocument: {
+            /** Excluded */
+            excluded: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Updated */
+            updated: string | null;
+        };
+        /**
+         * IssueKind
+         * @enum {string}
+         */
+        IssueKind: "stale" | "conflict" | "gap" | "parse_failure" | "duplicate" | "reported";
+        /** IssueOut */
+        IssueOut: {
+            /** Chatbot */
+            chatbot: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            };
+            /** Documents */
+            documents: components["schemas"]["IssueDocument"][];
+            /** Due At */
+            due_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["IssueKind"];
+            /** Notified At */
+            notified_at: string | null;
+            /** Owner */
+            owner: string | null;
+            status: components["schemas"]["IssueStatus"];
+            /** Summary */
+            summary: string;
+        };
+        /**
+         * IssueStatus
+         * @enum {string}
+         */
+        IssueStatus: "open" | "notified" | "resolved" | "dismissed";
         /** JobOut */
         JobOut: {
             /** Attempts */
@@ -3955,6 +4260,18 @@ export interface components {
          * @enum {string}
          */
         Join: "and" | "or";
+        /** JudgeOption */
+        JudgeOption: {
+            /** Hosting */
+            hosting: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** KeySecretIn */
         KeySecretIn: {
             /** Expires At */
@@ -4233,6 +4550,11 @@ export interface components {
          * @enum {string}
          */
         NotifyChannel: "teams_channel" | "teams_chat" | "slack_channel" | "email";
+        /** NotifyInput */
+        NotifyInput: {
+            /** Message */
+            message: string;
+        };
         /** NotifyStep */
         "NotifyStep-Input": {
             /** @default teams_channel */
@@ -4749,6 +5071,29 @@ export interface components {
          * @enum {string}
          */
         Repeat: "daily" | "weekly" | "monthly" | "hours" | "cron";
+        /** ReportInput */
+        ReportInput: {
+            /**
+             * Comment
+             * @default
+             */
+            comment: string;
+            /** Message Id */
+            message_id?: string | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "wrong" | "outdated" | "contradicts" | "other";
+        };
+        /** Reported */
+        Reported: {
+            /**
+             * Issue Id
+             * Format: uuid
+             */
+            issue_id: string;
+        };
         /**
          * RerankFallback
          * @enum {string}
@@ -5155,6 +5500,28 @@ export interface components {
             name?: string | null;
             spec: components["schemas"]["AutomationSpec-Input"];
         };
+        /** ScanOut */
+        ScanOut: {
+            /** Counts */
+            counts: {
+                [key: string]: unknown;
+            };
+            /** Documents */
+            documents: number;
+            /** Error */
+            error: string | null;
+            /** External */
+            external: boolean;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Status */
+            status: string;
+        };
         /**
          * ScanStatus
          * @enum {string}
@@ -5382,6 +5749,12 @@ export interface components {
             /** Signed In */
             signed_in: boolean;
         };
+        /** SettingsOut */
+        SettingsOut: {
+            /** Llms */
+            llms: components["schemas"]["JudgeOption"][];
+            settings: components["schemas"]["HealthSettings"];
+        };
         /**
          * SharePointOut
          * @description Connection settings without the secret; plus what the last test and sync found.
@@ -5536,14 +5909,6 @@ export interface components {
             schedule?: string | null;
             sharepoint?: components["schemas"]["SharePointSettings"] | null;
             status?: components["schemas"]["SourceStatus"] | null;
-        };
-        /** Started */
-        Started: {
-            /**
-             * Run Id
-             * Format: uuid
-             */
-            run_id: string;
         };
         /** StatusOut */
         StatusOut: {
@@ -5891,6 +6256,22 @@ export interface components {
             expires_in: number;
             /** Token */
             token: string;
+        };
+        /** Started */
+        veyntora_api__routers__admin_automations__Started: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+        };
+        /** Started */
+        veyntora_api__routers__admin_knowledge_health__Started: {
+            /**
+             * Scan Id
+             * Format: uuid
+             */
+            scan_id: string;
         };
         /** SecretInput */
         veyntora_api__routers__admin_providers__SecretInput: {
@@ -6334,7 +6715,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Started"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_automations__Started"];
                 };
             };
             /** @description Validation Error */
@@ -6680,7 +7061,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Started"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_automations__Started"];
                 };
             };
             /** @description Validation Error */
@@ -7642,6 +8023,268 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GroupRole"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_knowledge_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    ask_owners_v1_admin_knowledge_health_conflicts_ask_owners_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Count"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    include_v1_admin_knowledge_health_documents__document_id__include_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueDocument"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_v1_admin_knowledge_health_issues__issue_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DismissInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exclude_v1_admin_knowledge_health_issues__issue_id__exclude_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExcludeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    notify_owner_v1_admin_knowledge_health_issues__issue_id__notify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotifyInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Count"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    scan_now_v1_admin_knowledge_health_scan_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_knowledge_health__Started"];
+                };
+            };
+        };
+    };
+    get_settings_v1_admin_knowledge_health_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    put_settings_v1_admin_knowledge_health_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HealthSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
                 };
             };
             /** @description Validation Error */
@@ -9313,6 +9956,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_document_v1_chat_documents__document_id__report_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reported"];
                 };
             };
             /** @description Validation Error */

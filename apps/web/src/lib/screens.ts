@@ -461,6 +461,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/knowledge-health",
     shell: "admin",
     phase: 5,
+    built: true,
     area: "knowledge_health",
   },
   {

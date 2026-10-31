@@ -79,6 +79,9 @@ class IssueKind(StrEnum):
     CONFLICT = "conflict"
     GAP = "gap"
     PARSE_FAILURE = "parse_failure"
+    DUPLICATE = "duplicate"
+    # Someone reported a source as wrong (Source viewer).
+    REPORTED = "reported"
 
 
 class IssueStatus(StrEnum):
@@ -154,6 +157,11 @@ class Document(IdMixin, TimestampMixin, Base):
     uploaded_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
     source_updated_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     last_synced_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # Excluded from answers by a knowledge owner (e.g. the older of two conflicting
+    # documents). It stays indexed and can be included again.
+    excluded_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    excluded_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    excluded_reason: Mapped[str | None] = mapped_column(sa.Text)
 
 
 class DocumentIndex(Base):
@@ -250,3 +258,32 @@ class KnowledgeIssue(IdMixin, TimestampMixin, Base):
     status: Mapped[IssueStatus] = mapped_column(str_enum(IssueStatus, "knowledge_issue_status"))
     notified_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
     resolved_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # What the issue is about ("conflict:<doc>:<doc>"), so a scan finds it again instead of
+    # adding a copy; a dismissed issue with `suppressed` is never raised again.
+    key: Mapped[str | None] = mapped_column(sa.String(255), index=True)
+    suppressed: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
+    dismiss_reason: Mapped[str | None] = mapped_column(sa.String(64))
+    due_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    reported_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+
+
+class KnowledgeScan(IdMixin, Base):
+    """One run of the maintenance scan (nightly or "Scan now")."""
+
+    __tablename__ = "knowledge_scans"
+
+    started_at: Mapped[datetime] = utcnow_col(nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # running | done | failed
+    status: Mapped[str] = mapped_column(sa.String(16))
+    documents: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+    # {"conflict": 2, "stale": 4, ...} found or kept open; "pairs_checked", "pairs_skipped".
+    counts: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
+    llm_instance_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("provider_instances.id", ondelete="SET NULL")
+    )
+    external: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
+    error: Mapped[str | None] = mapped_column(sa.Text)
+    requested_by: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )

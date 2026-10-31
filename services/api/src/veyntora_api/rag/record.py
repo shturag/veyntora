@@ -114,6 +114,7 @@ async def record(
         tokens_out=result.usage.completion_tokens,
         latency_ms=result.latency_ms,
         groundedness=result.groundedness,
+        outcome=result.outcome,
         external_egress=result.external_egress,
         trace_id=trace_id,
         run_id=run_id,

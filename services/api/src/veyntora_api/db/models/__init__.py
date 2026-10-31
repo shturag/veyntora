@@ -44,6 +44,7 @@ from veyntora_api.db.models.knowledge import (
     DocumentIndex,
     IngestJob,
     KnowledgeIssue,
+    KnowledgeScan,
     SourceAttachment,
 )
 from veyntora_api.db.models.notifications import Delivery, Notification
@@ -84,6 +85,7 @@ __all__ = [
     "Handoff",
     "IngestJob",
     "KnowledgeIssue",
+    "KnowledgeScan",
     "LegalHold",
     "McpServer",
     "Membership",
