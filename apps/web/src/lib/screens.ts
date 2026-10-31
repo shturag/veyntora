@@ -129,6 +129,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -137,6 +138,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -153,6 +155,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/knowledge",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -161,6 +164,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/access",
     shell: "admin",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -179,6 +183,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new",
     shell: "wizard",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -187,6 +192,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/knowledge",
     shell: "wizard",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -195,6 +201,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/pipeline",
     shell: "wizard",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -203,6 +210,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/access",
     shell: "wizard",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
   {
@@ -211,6 +219,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/publish",
     shell: "wizard",
     phase: 4,
+    built: true,
     area: "chatbots",
   },
 

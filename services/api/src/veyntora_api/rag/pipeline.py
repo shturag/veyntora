@@ -133,6 +133,9 @@ class RunContext:
     own_model: ByokKey | None = None
     # The asker's Settings choices (answer language and length).
     preferences: dict[str, Any] = field(default_factory=dict)
+    # Per attached source: score multiplier, and folders it is limited to (empty: all).
+    source_weights: dict[str, float] = field(default_factory=dict)
+    source_paths: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -166,6 +169,7 @@ class Source:
     score: float
     updated: str | None = None
     chunk_text: str = ""
+    source_id: str = ""
 
 
 @dataclass(slots=True)
@@ -277,12 +281,31 @@ async def _context(
         )
     ).all()
     principals = (f"user:{user.id}", *(f"group:{g.id}" for g in groups))
-    attached = sa.select(SourceAttachment.source_id).where(
-        SourceAttachment.chatbot_id == bot.id, SourceAttachment.enabled.is_(True)
+    attachments = (
+        (
+            await db.execute(
+                sa.select(SourceAttachment).where(
+                    SourceAttachment.chatbot_id == bot.id, SourceAttachment.enabled.is_(True)
+                )
+            )
+        )
+        .scalars()
+        .all()
     )
     # The asker's own "My files" are searched too; their chunks are readable only by them.
     own = sa.select(DataSource.id).where(DataSource.uploaded_by == user.id)
-    source_ids = tuple(str(s) for s in (await db.execute(attached.union(own))).scalars())
+    source_ids = tuple(
+        dict.fromkeys(
+            [str(a.source_id) for a in attachments]
+            + [str(s) for s in (await db.execute(own)).scalars()]
+        )
+    )
+    weights = {str(a.source_id): a.weight for a in attachments if a.weight != 1.0}
+    paths = {
+        str(a.source_id): tuple((a.scope or {}).get("paths") or ())
+        for a in attachments
+        if (a.scope or {}).get("paths")
+    }
     used = {
         i
         for i in (
@@ -344,6 +367,8 @@ async def _context(
         mask_external=rule.mask_pii_before_external if rule else True,
         own_model=own_model,
         preferences=dict(user.preferences or {}) if personal else {},
+        source_weights=weights,
+        source_paths=paths,
     )
 
 
@@ -437,6 +462,7 @@ async def _recheck(db: AsyncSession, ctx: RunContext, hits: Sequence[Hit]) -> li
             or doc.status is DocumentStatus.DELETED
             or str(doc.source_id) not in sources
             or not mine & set(principals_of(doc.acl))
+            or not _in_folders(doc.path, ctx.source_paths.get(str(doc.source_id), ()))
         ):
             continue
         pages = h.payload.get("pages") or []
@@ -451,9 +477,18 @@ async def _recheck(db: AsyncSession, ctx: RunContext, hits: Sequence[Hit]) -> li
                 page=int(pages[0]) if pages else None,
                 score=h.score,
                 updated=h.payload.get("updated"),
+                source_id=str(doc.source_id),
             )
         )
     return out
+
+
+def _in_folders(path: str, folders: Sequence[str]) -> bool:
+    """A document is in scope when no folders are set or its path is under one of them."""
+    if not folders:
+        return True
+    p = "/" + (path or "").strip("/")
+    return any(p == f or p.startswith(f.rstrip("/") + "/") for f in folders)
 
 
 async def rerank(
@@ -475,7 +510,15 @@ async def rerank(
                 log.warning("rerank.skipped", error=str(exc))
                 skipped = True
         if not skipped:
-            ranked = [s for s in ranked if s.score >= spec.min_score]
+            _weigh(ctx, ranked)
+            ranked = sorted(
+                (s for s in ranked if s.score >= spec.min_score),
+                key=lambda s: s.score,
+                reverse=True,
+            )
+    if skipped or not (spec.enabled and spec.reranker_instance_id is not None):
+        _weigh(ctx, ranked)
+        ranked = sorted(ranked, key=lambda s: s.score, reverse=True)
     if spec.prefer_newer:
         # Equal relevance (to two decimals): the more recently updated document first.
         ranked = sorted(ranked, key=lambda s: (round(s.score, 2), s.updated or ""), reverse=True)
@@ -491,6 +534,12 @@ async def rerank(
         if len(out) >= spec.top_n:
             break
     return out, skipped
+
+
+def _weigh(ctx: RunContext, sources: list[Source]) -> None:
+    """Boost or lower passages by their source's weight (Knowledge page)."""
+    for s in sources:
+        s.score *= ctx.source_weights.get(s.source_id, 1.0)
 
 
 async def _score(

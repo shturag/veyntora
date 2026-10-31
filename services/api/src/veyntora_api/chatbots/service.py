@@ -13,7 +13,7 @@ from typing import Any, Literal
 from uuid import UUID
 
 import sqlalchemy as sa
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_providers.interfaces import Capability, Hosting
 from veyntora_spec.filters import FilterError, parse_filter
@@ -64,8 +64,24 @@ class Attachment(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     source_id: UUID
+    # Scores of this source's passages are multiplied by this (boost or lower).
     weight: float = Field(1.0, gt=0, le=10)
     enabled: bool = True
+    # Only documents under these folders (path prefixes); empty means the whole source.
+    paths: list[str] = Field(default_factory=list, max_length=20)
+
+    @field_validator("paths")
+    @classmethod
+    def _folders(cls, v: list[str]) -> list[str]:
+        out = []
+        for raw in v:
+            folder = raw.strip()
+            if not folder:
+                continue
+            if len(folder) > 512 or ".." in folder:
+                raise ValueError("folders are paths like /Policies/SLAs")
+            out.append("/" + folder.strip("/"))
+        return sorted(set(out))
 
 
 class GovernanceInput(BaseModel):
@@ -449,14 +465,18 @@ async def set_sources(
         if row is None:
             await svc.create(
                 SourceAttachment(
-                    chatbot_id=bot.id, source_id=source_id, weight=item.weight, enabled=item.enabled
+                    chatbot_id=bot.id,
+                    source_id=source_id,
+                    weight=item.weight,
+                    enabled=item.enabled,
+                    scope={"paths": item.paths},
                 ),
                 action="chatbot.source_attach",
             )
         else:
             await svc.update(
                 row,
-                {"weight": item.weight, "enabled": item.enabled},
+                {"weight": item.weight, "enabled": item.enabled, "scope": {"paths": item.paths}},
                 action="chatbot.source_update",
             )
         if item.enabled:

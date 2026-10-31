@@ -62,6 +62,16 @@ class AttachmentOut(BaseModel):
     source_id: UUID
     weight: float
     enabled: bool
+    paths: list[str] = []
+
+    @classmethod
+    def of(cls, a: SourceAttachment) -> AttachmentOut:
+        return cls(
+            source_id=a.source_id,
+            weight=a.weight,
+            enabled=a.enabled,
+            paths=list((a.scope or {}).get("paths") or []),
+        )
 
 
 class GovernanceOut(svc.GovernanceInput):
@@ -148,10 +158,7 @@ async def _detail(db: DbSession, bot: Chatbot) -> ChatbotDetail:
         **_out(bot, live, draft_number).model_dump(),
         draft=_version(draft),
         publish_problems=await svc.publish_problems(db, bot),
-        sources=[
-            AttachmentOut(source_id=a.source_id, weight=a.weight, enabled=a.enabled)
-            for a in attachments
-        ],
+        sources=[AttachmentOut.of(a) for a in attachments],
         governance=governance,
     )
 
@@ -297,7 +304,7 @@ async def put_sources(
             raise HTTPException(status.HTTP_403_FORBIDDEN, f"No access to source {item.source_id}")
     rows = await svc.set_sources(db, ctx, await _bot(db, bot_id), items, principal.user_id)
     await db.commit()
-    return [AttachmentOut(source_id=a.source_id, weight=a.weight, enabled=a.enabled) for a in rows]
+    return [AttachmentOut.of(a) for a in rows]
 
 
 @router.put("/{bot_id}/governance", summary="Data rules: retention, allowed external providers")

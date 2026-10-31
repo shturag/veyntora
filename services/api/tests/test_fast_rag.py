@@ -729,3 +729,31 @@ async def test_german_compounds_match_their_parts_and_back(rag: Rag) -> None:
     # Removing the document takes its words out of the vocabulary.
     await rag.w.ingestor().remove_document(doc)
     assert "erstattungsrichtlinie" not in await vocabulary.expand(db, key, "Welche Richtlinie?")
+
+
+async def test_sources_can_be_limited_to_folders_and_weighted(rag: Rag) -> None:
+    db = rag.w.db
+    question = "Can digital products be refunded?"
+
+    async def attach(**kw: Any) -> pipeline.RunContext:
+        await bots.set_sources(
+            db, CTX, rag.bot, [bots.Attachment(source_id=rag.source.id, **kw)], None
+        )
+        return await load_context(db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+
+    ctx = await attach(paths=["Legal/", "/Contracts"])
+    assert ctx.source_paths == {str(rag.source.id): ("/Contracts", "/Legal")}
+    assert await pipeline.retrieve(db, rag.adapters(), ctx, question) == []
+    rag.doc.path = "Legal/2026/policy.md"
+    await db.flush()
+    assert await pipeline.retrieve(db, rag.adapters(), ctx, question)
+
+    plain = await attach()
+    found = await pipeline.retrieve(db, rag.adapters(), plain, question)
+    base = (await pipeline.rerank(rag.adapters(), plain, question, found))[0][0].score
+    boosted = await attach(weight=1.5)
+    found = await pipeline.retrieve(db, rag.adapters(), boosted, question)
+    ranked, _ = await pipeline.rerank(rag.adapters(), boosted, question, found)
+    assert ranked[0].score == pytest.approx(base * 1.5)
+    with pytest.raises(ValueError, match="folders"):
+        bots.Attachment(source_id=rag.source.id, paths=["/../etc"])

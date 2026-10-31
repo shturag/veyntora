@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { Forbidden } from "@/components/forbidden";
 import { WizardSteps } from "@/components/wizard-steps";
@@ -26,15 +26,29 @@ export default async function WizardLayout({ children }: { children: ReactNode }
             aria-label={t("close")}
             className="flex size-10 items-center justify-center rounded-md border border-line-strong text-fg-secondary"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </Link>
           <span className="text-base font-bold">{t("title")}</span>
         </div>
-        <WizardSteps />
+        <Suspense fallback={null}>
+          <WizardSteps />
+        </Suspense>
       </header>
-      <main id="main" className="mx-auto box-border flex w-full max-w-[1280px] flex-1 flex-col gap-6 p-8 max-[640px]:p-4">
+      <main
+        id="main"
+        className="mx-auto box-border flex w-full max-w-[1280px] flex-1 flex-col gap-6 p-8 max-[640px]:p-4"
+      >
         {children}
       </main>
     </div>

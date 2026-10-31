@@ -90,6 +90,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chatbot cards for the Chatbots page */
+        get: operations["cards_v1_admin_chatbots_cards_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots/{bot_id}": {
         parameters: {
             query?: never;
@@ -126,6 +143,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots/{bot_id}/attachable-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sources the caller may attach to the chatbot
+         * @description Attaching needs read access to the source (managers include knowledge admins).
+         */
+        get: operations["attachable_sources_v1_admin_chatbots__bot_id__attachable_sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy a chatbot as a draft */
+        post: operations["duplicate_v1_admin_chatbots__bot_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots/{bot_id}/governance": {
         parameters: {
             query?: never;
@@ -136,6 +190,40 @@ export interface paths {
         get?: never;
         /** Data rules: retention, allowed external providers */
         put: operations["put_governance_v1_admin_chatbots__bot_id__governance_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/grant-names": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Display names of the groups and people with access */
+        get: operations["grant_names_v1_admin_chatbots__bot_id__grant_names_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview of one chatbot */
+        get: operations["overview_v1_admin_chatbots__bot_id__overview_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -203,6 +291,43 @@ export interface paths {
         };
         /** All pipeline versions, newest first */
         get: operations["list_versions_v1_admin_chatbots__bot_id__pipeline_versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Which chatbots a person sees, and with which roles
+         * @description Read-only: computed from grants, nobody is impersonated.
+         */
+        get: operations["preview_v1_admin_chatbots__bot_id__preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/principals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Groups and people to give access to */
+        get: operations["principals_v1_admin_chatbots__bot_id__principals_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1397,6 +1522,8 @@ export interface components {
              * @default true
              */
             enabled: boolean;
+            /** Paths */
+            paths?: string[];
             /**
              * Source Id
              * Format: uuid
@@ -1412,6 +1539,11 @@ export interface components {
         AttachmentOut: {
             /** Enabled */
             enabled: boolean;
+            /**
+             * Paths
+             * @default []
+             */
+            paths: string[];
             /**
              * Source Id
              * Format: uuid
@@ -1444,6 +1576,40 @@ export interface components {
         Body_upload_files_v1_me_files_post: {
             /** Files */
             files: string[];
+        };
+        /** BotCard */
+        BotCard: {
+            /** Default Mode */
+            default_mode: string;
+            /** Description */
+            description: string;
+            /** Draft Pending */
+            draft_pending: boolean;
+            /** Draft Version */
+            draft_version: number | null;
+            /** Helpful */
+            helpful: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Live Version */
+            live_version: number | null;
+            /** Modes */
+            modes: string[];
+            /** Name */
+            name: string;
+            /** Sources */
+            sources: number;
+            /** Status */
+            status: string;
+            /** Tools */
+            tools: number;
+            /** Users */
+            users: number;
+            /** Visible To */
+            visible_to: string[];
         };
         /** ByokInput */
         ByokInput: {
@@ -1813,6 +1979,23 @@ export interface components {
              */
             change_note: string;
             spec: components["schemas"]["PipelineSpec"];
+        };
+        /** DuplicateIn */
+        DuplicateIn: {
+            /**
+             * Copy Access
+             * @default false
+             */
+            copy_access: boolean;
+            /**
+             * Copy Sources
+             * @default true
+             */
+            copy_sources: boolean;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
         };
         /** FeedbackInput */
         FeedbackInput: {
@@ -2448,6 +2631,46 @@ export interface components {
              */
             updated_at: string;
         };
+        /** Overview */
+        Overview: {
+            /** Canary Percent */
+            canary_percent: number;
+            /** Documents */
+            documents: number;
+            /** Draft Version */
+            draft_version: number | null;
+            /** Feedback To Review */
+            feedback_to_review: number;
+            /** Helpful */
+            helpful: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Synced At */
+            last_synced_at: string | null;
+            /** Live Version */
+            live_version: number | null;
+            /** Modes */
+            modes: string[];
+            /** Name */
+            name: string;
+            /** Owner */
+            owner: string | null;
+            /** Requests 7D */
+            requests_7d: number;
+            /** Roles */
+            roles: string[];
+            /** Sources */
+            sources: string[];
+            /** Status */
+            status: string;
+            /** Tools */
+            tools: number;
+            /** Users */
+            users: number;
+        };
         /**
          * ParentChunk
          * @enum {string}
@@ -2674,6 +2897,29 @@ export interface components {
              * @default true
              */
             show_agent_steps: boolean;
+        };
+        /** PreviewBot */
+        PreviewBot: {
+            /** Chatbot */
+            chatbot: string;
+            /**
+             * Chatbot Id
+             * Format: uuid
+             */
+            chatbot_id: string;
+            /** Live */
+            live: boolean;
+            /** Roles */
+            roles: string[];
+        };
+        /** PrincipalOption */
+        PrincipalOption: {
+            /** Detail */
+            detail: string;
+            /** Name */
+            name: string;
+            /** Principal */
+            principal: string;
         };
         /** ProviderInput */
         ProviderInput: {
@@ -3247,6 +3493,24 @@ export interface components {
             /** Users */
             users?: string[];
         };
+        /** SourceOption */
+        SourceOption: {
+            /** Documents */
+            documents: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Last Synced At */
+            last_synced_at: string | null;
+            /** Name */
+            name: string;
+            /** Used By */
+            used_by: string[];
+        };
         /** SourceOut */
         SourceOut: {
             acl: components["schemas"]["SourceAcl"] | null;
@@ -3642,6 +3906,26 @@ export interface operations {
             };
         };
     };
+    cards_v1_admin_chatbots_cards_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotCard"][];
+                };
+            };
+        };
+    };
     get_chatbot_v1_admin_chatbots__bot_id__get: {
         parameters: {
             query?: never;
@@ -3776,6 +4060,74 @@ export interface operations {
             };
         };
     };
+    attachable_sources_v1_admin_chatbots__bot_id__attachable_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOption"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    duplicate_v1_admin_chatbots__bot_id__duplicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     put_governance_v1_admin_chatbots__bot_id__governance_put: {
         parameters: {
             query?: never;
@@ -3798,6 +4150,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GovernanceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grant_names_v1_admin_chatbots__bot_id__grant_names_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_v1_admin_chatbots__bot_id__overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
                 };
             };
             /** @description Validation Error */
@@ -3932,6 +4348,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VersionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_v1_admin_chatbots__bot_id__preview_get: {
+        parameters: {
+            query: {
+                user_id: string;
+            };
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewBot"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    principals_v1_admin_chatbots__bot_id__principals_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrincipalOption"][];
                 };
             };
             /** @description Validation Error */

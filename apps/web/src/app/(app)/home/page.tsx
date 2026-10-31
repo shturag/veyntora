@@ -7,7 +7,12 @@ import { requireMe } from "@/lib/session";
 
 export const generateMetadata = () => screenMetadata("home");
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ bot?: string }>;
+}) {
+  const { bot } = await searchParams;
   const me = await requireMe();
   const t = await getTranslations("chat");
   const api = await serverApi();
@@ -26,7 +31,8 @@ export default async function HomePage() {
           <p className="m-0 text-base text-fg-muted">{t("intro")}</p>
         </div>
         <HomeClient
-          initial={prefs?.default_chatbot_id}
+          // "Open as user" from the admin console preselects that assistant.
+          initial={bot ?? prefs?.default_chatbot_id}
           initialMode={prefs?.default_mode ?? "auto"}
           assistants={(data ?? []).map((b) => ({
             id: b.id,
