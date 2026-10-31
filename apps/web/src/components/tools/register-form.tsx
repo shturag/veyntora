@@ -94,10 +94,10 @@ export function RegisterServerForm() {
         ))}
         <label
           className="flex items-center gap-2 text-sm text-fg-muted"
-          title={t("later", { phase: 4 })}
+          title={t("later", { phase: 5 })}
         >
           <input type="radio" name="auth" disabled />
-          {t("auths.delegated")} · {t("later", { phase: 4 })}
+          {t("auths.delegated")} · {t("later", { phase: 5 })}
         </label>
       </fieldset>
       {auth === "oauth_client" ? (

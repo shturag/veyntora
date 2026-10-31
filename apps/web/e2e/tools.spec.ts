@@ -23,7 +23,7 @@ test.describe("tools (MCP) as a platform admin", () => {
     await expect(form.getByText("Client secret")).toBeVisible();
     await form.getByLabel("No authentication").check();
     await expect(secret).toHaveCount(0);
-    // Passing the user's token through needs token exchange (Phase 4).
+    // Passing the user's token through needs token exchange (Phase 5).
     await expect(form.getByRole("radio", { name: /Pass the user's token through/ })).toBeDisabled();
     await expectNoA11yViolations(page);
   });

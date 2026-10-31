@@ -94,7 +94,7 @@ async def register_server(
     owner_id: UUID,
 ) -> McpServer:
     if data.auth is McpAuth.DELEGATED:
-        raise ToolsError("passing the user's token through arrives in Phase 4")
+        raise ToolsError("passing the user's token through arrives in Phase 5")
     if await db.scalar(sa.select(McpServer.id).where(McpServer.name == data.name)):
         raise ToolsError(f"a server named {data.name!r} already exists")
     needs_key = data.auth in {McpAuth.BEARER, McpAuth.OAUTH_CLIENT}
