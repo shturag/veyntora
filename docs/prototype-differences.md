@@ -77,3 +77,36 @@ Screens built in later phases show their real title and summary plus a "This scr
   - The menu has Export chat and Delete. Save answer is a bookmark under each answer, and Ask a human expert stays under answers without a supported answer.
   - Rename is not built (the title comes from the first question).
 - **Notifications:** a Notifications page and sidebar count were added; the prototype has no notification screen.
+
+## Evaluation and versions (Phase 6)
+
+- **Evaluation:** the gate settings sit on the page (owners edit them). Judge settings are a platform setting under "Settings". Runs use the starter's own permissions, so a run can show different results for different people.
+- **Eval sets:** generated cases arrive marked "review" and do not count until a person saves them. Cases from thumbs-down answers start without a reference answer.
+- **Versions:** "Start canary" is disabled while nothing is live. Overriding a failed gate needs a platform admin and a reason. The automatic rollback guard has its own settings on the page.
+
+## Usage and budgets (Phase 6)
+
+- **Spend split:** "Self-hosted (GPU)" shows the spend of self-hosted models from their prices; there are no GPU-hour numbers (Grafana has them).
+- **Budgets:** besides chatbots, budgets can be set for groups and cost centres, by month, quarter or year. "When reached" also offers "switch Agent mode off". Every budget has a delete button.
+- **Export:** CSV only, also grouped by provider or app key; Excel is not offered.
+- **Limits per user:** exceptions are a multiple of the limits per group (2×, 3×, 5×, 10×).
+
+## Conversations, Monitoring, Overview (Phase 6)
+
+- **Conversations:**
+  - Only rated answers are listed; the four filters are counts among them.
+  - "Likely cause" lines come from recorded facts (no answer, guardrail, low groundedness, agent without tools, weak passages), not from a model.
+  - "Edit router" and "Retry with OCR" are not on this page; their pages are linked instead.
+- **Monitoring:**
+  - "Error rate" became "Blocked answers" plus failed runs, because failed requests that never produced an answer are not recorded per request.
+  - Providers show calls per instance, not p95 or GPU load (Grafana has those).
+  - The Grafana link opens the configured address; there is no confirmation dialog.
+- **Overview:**
+  - "Needs attention" is built from real state.
+  - GDPR deletion requests are not listed yet; they arrive with governance in Phase 7.
+  - "Post status message to users" posts to the status page.
+
+## Connect data source (Phase 6)
+
+- **S3 and Website** have their own fields, readers chosen in Veyntora, and optional readers per folder.
+- **File share (SMB)** stays disabled until its library is approved. Confluence and Database are labelled Phase 7.

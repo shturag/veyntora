@@ -23,3 +23,4 @@
 | [0019](0019-agent-approvals-router.md) | Agent, approvals and the Auto router (Phase 3) |
 | [0020](0020-people-chatbots-channels-flows.md) | Users & groups, chatbot management, channels, custom flows (Phase 4) |
 | [0021](0021-automations-knowledge-answers.md) | Automations, knowledge health, saved answers, hand-offs, delegated tools (Phase 5) |
+| [0022](0022-evaluation-rollout-usage-operate.md) | Evaluation, canary roll-out, usage and budgets, operating screens, S3 and website connectors (Phase 6) |
