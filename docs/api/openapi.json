@@ -2277,6 +2277,25 @@
         "title": "CallOut",
         "type": "object"
       },
+      "CanaryInput": {
+        "additionalProperties": false,
+        "properties": {
+          "override_reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Override Reason"
+          }
+        },
+        "title": "CanaryInput",
+        "type": "object"
+      },
       "Capability": {
         "enum": [
           "llm",
@@ -2425,6 +2444,27 @@
           "last_passed"
         ],
         "title": "CaseOut",
+        "type": "object"
+      },
+      "Change": {
+        "properties": {
+          "after": {
+            "title": "After"
+          },
+          "before": {
+            "title": "Before"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "before",
+          "after"
+        ],
+        "title": "Change",
         "type": "object"
       },
       "ChatbotDetail": {
@@ -3675,6 +3715,19 @@
           "has_original"
         ],
         "title": "DocumentView",
+        "type": "object"
+      },
+      "Done": {
+        "properties": {
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "Done",
         "type": "object"
       },
       "DraftInput": {
@@ -5294,6 +5347,93 @@
         "title": "GroupUpdate",
         "type": "object"
       },
+      "GuardSettings-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "auto_rollback": {
+            "default": true,
+            "title": "Auto Rollback",
+            "type": "boolean"
+          },
+          "max_error_rate": {
+            "default": 0.02,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Error Rate",
+            "type": "number"
+          },
+          "max_no_answer_increase": {
+            "default": 0.1,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max No Answer Increase",
+            "type": "number"
+          },
+          "max_thumbs_down_increase": {
+            "default": 0.05,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Thumbs Down Increase",
+            "type": "number"
+          },
+          "min_answers": {
+            "default": 30,
+            "maximum": 100000.0,
+            "minimum": 5.0,
+            "title": "Min Answers",
+            "type": "integer"
+          }
+        },
+        "title": "GuardSettings",
+        "type": "object"
+      },
+      "GuardSettings-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "auto_rollback": {
+            "default": true,
+            "title": "Auto Rollback",
+            "type": "boolean"
+          },
+          "max_error_rate": {
+            "default": 0.02,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Error Rate",
+            "type": "number"
+          },
+          "max_no_answer_increase": {
+            "default": 0.1,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max No Answer Increase",
+            "type": "number"
+          },
+          "max_thumbs_down_increase": {
+            "default": 0.05,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Thumbs Down Increase",
+            "type": "number"
+          },
+          "min_answers": {
+            "default": 30,
+            "maximum": 100000.0,
+            "minimum": 5.0,
+            "title": "Min Answers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "auto_rollback",
+          "max_error_rate",
+          "max_no_answer_increase",
+          "max_thumbs_down_increase",
+          "min_answers"
+        ],
+        "title": "GuardSettings",
+        "type": "object"
+      },
       "GuardrailsSpec": {
         "additionalProperties": false,
         "properties": {
@@ -5824,6 +5964,72 @@
         ],
         "title": "HealthStatus",
         "type": "string"
+      },
+      "HistoryItem": {
+        "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "eval_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eval Passed"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "status",
+          "change_note",
+          "published_at",
+          "created_at",
+          "author",
+          "eval_passed"
+        ],
+        "title": "HistoryItem",
+        "type": "object"
       },
       "Holidays-Input": {
         "additionalProperties": false,
@@ -8608,6 +8814,22 @@
         "title": "Rating",
         "type": "string"
       },
+      "ReasonInput": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ReasonInput",
+        "type": "object"
+      },
       "Refreshed": {
         "properties": {
           "changed": {
@@ -8993,18 +9215,106 @@
         "title": "RolesIn",
         "type": "object"
       },
-      "RollbackInput": {
+      "RolloutOut": {
         "properties": {
-          "number": {
-            "minimum": 1.0,
-            "title": "Number",
+          "can_publish": {
+            "title": "Can Publish",
+            "type": "boolean"
+          },
+          "canary": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canary"
+          },
+          "canary_percent": {
+            "title": "Canary Percent",
             "type": "integer"
+          },
+          "canary_started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canary Started At"
+          },
+          "canary_stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Stats"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gate_problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gate Problems",
+            "type": "array"
+          },
+          "guard": {
+            "$ref": "#/components/schemas/GuardSettings-Output"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryItem"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "live": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Live"
+          },
+          "live_stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Stats"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "platform_admin": {
+            "title": "Platform Admin",
+            "type": "boolean"
           }
         },
         "required": [
-          "number"
+          "live",
+          "canary",
+          "canary_percent",
+          "canary_started_at",
+          "live_stats",
+          "canary_stats",
+          "guard",
+          "gate_problems",
+          "history",
+          "can_publish",
+          "platform_admin"
         ],
-        "title": "RollbackInput",
+        "title": "RolloutOut",
         "type": "object"
       },
       "RouterSpec": {
@@ -11348,6 +11658,63 @@
         "title": "SourceUpdate",
         "type": "object"
       },
+      "Stats": {
+        "properties": {
+          "answers": {
+            "title": "Answers",
+            "type": "integer"
+          },
+          "cost_per_1k": {
+            "title": "Cost Per 1K",
+            "type": "string"
+          },
+          "error_rate": {
+            "title": "Error Rate",
+            "type": "number"
+          },
+          "helpful_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Helpful Rate"
+          },
+          "no_answer_rate": {
+            "title": "No Answer Rate",
+            "type": "number"
+          },
+          "p95_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P95 Ms"
+          },
+          "thumbs_down_rate": {
+            "title": "Thumbs Down Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "answers",
+          "helpful_rate",
+          "thumbs_down_rate",
+          "no_answer_rate",
+          "error_rate",
+          "p95_ms",
+          "cost_per_1k"
+        ],
+        "title": "Stats",
+        "type": "object"
+      },
       "StatusOut": {
         "properties": {
           "checked_at": {
@@ -12437,6 +12804,20 @@
         "title": "Started",
         "type": "object"
       },
+      "veyntora_api__routers__admin_chatbots__RollbackInput": {
+        "properties": {
+          "number": {
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number"
+        ],
+        "title": "RollbackInput",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_evaluation__FeedbackInput": {
         "additionalProperties": false,
         "properties": {
@@ -12607,6 +12988,28 @@
           "secret"
         ],
         "title": "SecretInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_rollout__RollbackInput": {
+        "additionalProperties": false,
+        "properties": {
+          "number": {
+            "minimum": 1.0,
+            "title": "Number",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "number"
+        ],
+        "title": "RollbackInput",
         "type": "object"
       },
       "veyntora_api__routers__admin_runs__RunOut": {
@@ -14981,7 +15384,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RollbackInput"
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__RollbackInput"
               }
             }
           },
@@ -15172,6 +15575,412 @@
           }
         },
         "summary": "Groups and people to give access to",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout": {
+      "get": {
+        "operationId": "get_rollout_v1_admin_chatbots__bot_id__rollout_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolloutOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Live, canary, their numbers and the history",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/canary": {
+      "post": {
+        "operationId": "start_v1_admin_chatbots__bot_id__rollout_canary_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CanaryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start a canary with the draft (10%)",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/canary/increase": {
+      "post": {
+        "operationId": "increase_v1_admin_chatbots__bot_id__rollout_canary_increase_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Increase the canary (10% \u2192 50%)",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/canary/promote": {
+      "post": {
+        "operationId": "promote_v1_admin_chatbots__bot_id__rollout_canary_promote_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Promote the canary to everyone",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/canary/stop": {
+      "post": {
+        "operationId": "stop_v1_admin_chatbots__bot_id__rollout_canary_stop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop the canary",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/compare": {
+      "get": {
+        "operationId": "compare_v1_admin_chatbots__bot_id__rollout_compare_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "a",
+            "required": true,
+            "schema": {
+              "title": "A",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "b",
+            "required": true,
+            "schema": {
+              "title": "B",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Change"
+                  },
+                  "title": "Response Compare V1 Admin Chatbots  Bot Id  Rollout Compare Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What changed between two versions",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/guard": {
+      "put": {
+        "operationId": "put_guard_v1_admin_chatbots__bot_id__rollout_guard_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuardSettings-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuardSettings-Output"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The automatic rollback guard",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/rollout/rollback": {
+      "post": {
+        "operationId": "rollback_v1_admin_chatbots__bot_id__rollout_rollback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_rollout__RollbackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Done"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Roll back to an earlier published version",
         "tags": [
           "admin: chatbots"
         ]

@@ -174,6 +174,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/versions",
     shell: "admin",
     phase: 6,
+    built: true,
     area: "chatbots",
   },
 

@@ -1,4 +1,4 @@
-import { Badge, PhaseGatedButton } from "@veyntora/ui";
+import { Badge } from "@veyntora/ui";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
@@ -24,12 +24,12 @@ export async function BotHeader({
   canEdit: boolean;
 }) {
   const t = await getTranslations("bots");
-  const href: Record<BotTab, string | null> = {
+  const href: Record<BotTab, string> = {
     overview: `/admin/chatbots/${bot.id}`,
     pipeline: `/admin/chatbots/${bot.id}/flow`,
     knowledge: `/admin/chatbots/${bot.id}/knowledge`,
     access: `/admin/chatbots/${bot.id}/access`,
-    versions: null, // Phase 6
+    versions: `/admin/chatbots/${bot.id}/versions`,
   };
   return (
     <div className="flex flex-col gap-4">
@@ -57,19 +57,6 @@ export async function BotHeader({
       <nav aria-label={t("tabs")} className="flex flex-wrap gap-1 border-b border-line">
         {TABS.map((x) => {
           const link = href[x];
-          if (!link) {
-            return (
-              <PhaseGatedButton
-                key={x}
-                phase={6}
-                label={t("later", { phase: 6 })}
-                variant="ghost"
-                size="sm"
-              >
-                {t(`tabNames.${x}`)}
-              </PhaseGatedButton>
-            );
-          }
           return (
             <Link
               key={x}

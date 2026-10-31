@@ -367,7 +367,7 @@ async def save_draft(
     return draft
 
 
-async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
+async def publish_problems(db: AsyncSession, bot: Chatbot, *, gate: bool = True) -> list[str]:
     draft = await draft_of(db, bot)
     spec = PipelineSpec.model_validate(draft.spec)
     problems = spec.publish_problems()
@@ -378,7 +378,7 @@ async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
         + await external_problems(db, bot, rows, spec)
         + await tool_problems(db, bot, spec)
         + await flow_approval_problems(db, spec)
-        + await evaluation.gate_problems(db, bot)
+        + (await evaluation.gate_problems(db, bot) if gate else [])
     )
 
 

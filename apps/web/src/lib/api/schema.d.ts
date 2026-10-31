@@ -718,6 +718,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots/{bot_id}/rollout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live, canary, their numbers and the history */
+        get: operations["get_rollout_v1_admin_chatbots__bot_id__rollout_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/canary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a canary with the draft (10%) */
+        post: operations["start_v1_admin_chatbots__bot_id__rollout_canary_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/canary/increase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Increase the canary (10% → 50%) */
+        post: operations["increase_v1_admin_chatbots__bot_id__rollout_canary_increase_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/canary/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Promote the canary to everyone */
+        post: operations["promote_v1_admin_chatbots__bot_id__rollout_canary_promote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/canary/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop the canary */
+        post: operations["stop_v1_admin_chatbots__bot_id__rollout_canary_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What changed between two versions */
+        get: operations["compare_v1_admin_chatbots__bot_id__rollout_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/guard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The automatic rollback guard */
+        put: operations["put_guard_v1_admin_chatbots__bot_id__rollout_guard_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/chatbots/{bot_id}/rollout/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Roll back to an earlier published version */
+        post: operations["rollback_v1_admin_chatbots__bot_id__rollout_rollback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots/{bot_id}/sources": {
         parameters: {
             query?: never;
@@ -3472,6 +3608,11 @@ export interface components {
             /** Tool */
             tool: string;
         };
+        /** CanaryInput */
+        CanaryInput: {
+            /** Override Reason */
+            override_reason?: string | null;
+        };
         /**
          * Capability
          * @enum {string}
@@ -3520,6 +3661,15 @@ export interface components {
             question: string;
             /** Tags */
             tags: string[];
+        };
+        /** Change */
+        Change: {
+            /** After */
+            after: unknown;
+            /** Before */
+            before: unknown;
+            /** Path */
+            path: string;
         };
         /** ChatbotDetail */
         ChatbotDetail: {
@@ -3953,6 +4103,11 @@ export interface components {
             title: string;
             /** Updated At */
             updated_at: string | null;
+        };
+        /** Done */
+        Done: {
+            /** Message */
+            message: string;
         };
         /** DraftInput */
         DraftInput: {
@@ -4634,6 +4789,62 @@ export interface components {
             owner_id?: string | null;
             rule?: components["schemas"]["Rule"] | null;
         };
+        /** GuardSettings */
+        "GuardSettings-Input": {
+            /**
+             * Auto Rollback
+             * @default true
+             */
+            auto_rollback: boolean;
+            /**
+             * Max Error Rate
+             * @default 0.02
+             */
+            max_error_rate: number;
+            /**
+             * Max No Answer Increase
+             * @default 0.1
+             */
+            max_no_answer_increase: number;
+            /**
+             * Max Thumbs Down Increase
+             * @default 0.05
+             */
+            max_thumbs_down_increase: number;
+            /**
+             * Min Answers
+             * @default 30
+             */
+            min_answers: number;
+        };
+        /** GuardSettings */
+        "GuardSettings-Output": {
+            /**
+             * Auto Rollback
+             * @default true
+             */
+            auto_rollback: boolean;
+            /**
+             * Max Error Rate
+             * @default 0.02
+             */
+            max_error_rate: number;
+            /**
+             * Max No Answer Increase
+             * @default 0.1
+             */
+            max_no_answer_increase: number;
+            /**
+             * Max Thumbs Down Increase
+             * @default 0.05
+             */
+            max_thumbs_down_increase: number;
+            /**
+             * Min Answers
+             * @default 30
+             */
+            min_answers: number;
+        };
         /** GuardrailsSpec */
         GuardrailsSpec: {
             /**
@@ -4853,6 +5064,26 @@ export interface components {
          * @enum {string}
          */
         HealthStatus: "unknown" | "healthy" | "degraded" | "down";
+        /** HistoryItem */
+        HistoryItem: {
+            /** Author */
+            author: string | null;
+            /** Change Note */
+            change_note: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Eval Passed */
+            eval_passed: boolean | null;
+            /** Number */
+            number: number;
+            /** Published At */
+            published_at: string | null;
+            /** Status */
+            status: string;
+        };
         /**
          * Holidays
          * @description Skip public holidays of this country (ISO code) and, optionally, state.
@@ -5891,6 +6122,11 @@ export interface components {
          * @enum {string}
          */
         Rating: "up" | "down";
+        /** ReasonInput */
+        ReasonInput: {
+            /** Reason */
+            reason: string;
+        };
         /** Refreshed */
         Refreshed: {
             /** Changed */
@@ -6061,10 +6297,27 @@ export interface components {
             /** Roles */
             roles: ("owner" | "editor" | "approver" | "user")[];
         };
-        /** RollbackInput */
-        RollbackInput: {
-            /** Number */
-            number: number;
+        /** RolloutOut */
+        RolloutOut: {
+            /** Can Publish */
+            can_publish: boolean;
+            /** Canary */
+            canary: number | null;
+            /** Canary Percent */
+            canary_percent: number;
+            /** Canary Started At */
+            canary_started_at: string | null;
+            canary_stats: components["schemas"]["Stats"] | null;
+            /** Gate Problems */
+            gate_problems: string[];
+            guard: components["schemas"]["GuardSettings-Output"];
+            /** History */
+            history: components["schemas"]["HistoryItem"][];
+            /** Live */
+            live: number | null;
+            live_stats: components["schemas"]["Stats"] | null;
+            /** Platform Admin */
+            platform_admin: boolean;
         };
         /** RouterSpec */
         RouterSpec: {
@@ -6894,6 +7147,23 @@ export interface components {
             sharepoint?: components["schemas"]["SharePointSettings"] | null;
             status?: components["schemas"]["SourceStatus"] | null;
         };
+        /** Stats */
+        Stats: {
+            /** Answers */
+            answers: number;
+            /** Cost Per 1K */
+            cost_per_1k: string;
+            /** Error Rate */
+            error_rate: number;
+            /** Helpful Rate */
+            helpful_rate: number | null;
+            /** No Answer Rate */
+            no_answer_rate: number;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** Thumbs Down Rate */
+            thumbs_down_rate: number;
+        };
         /** StatusOut */
         StatusOut: {
             /**
@@ -7315,6 +7585,11 @@ export interface components {
              */
             run_id: string;
         };
+        /** RollbackInput */
+        veyntora_api__routers__admin_chatbots__RollbackInput: {
+            /** Number */
+            number: number;
+        };
         /** FeedbackInput */
         veyntora_api__routers__admin_evaluation__FeedbackInput: {
             /** Feedback Ids */
@@ -7379,6 +7654,13 @@ export interface components {
              * Format: password
              */
             secret: string;
+        };
+        /** RollbackInput */
+        veyntora_api__routers__admin_rollout__RollbackInput: {
+            /** Number */
+            number: number;
+            /** Reason */
+            reason: string;
         };
         /** RunOut */
         veyntora_api__routers__admin_runs__RunOut: {
@@ -8891,7 +9173,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RollbackInput"];
+                "application/json": components["schemas"]["veyntora_api__routers__admin_chatbots__RollbackInput"];
             };
         };
         responses: {
@@ -8999,6 +9281,273 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PrincipalOption"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_rollout_v1_admin_chatbots__bot_id__rollout_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RolloutOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_v1_admin_chatbots__bot_id__rollout_canary_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CanaryInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Done"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    increase_v1_admin_chatbots__bot_id__rollout_canary_increase_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Done"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    promote_v1_admin_chatbots__bot_id__rollout_canary_promote_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Done"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_v1_admin_chatbots__bot_id__rollout_canary_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Done"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_v1_admin_chatbots__bot_id__rollout_compare_get: {
+        parameters: {
+            query: {
+                a: number;
+                b: number;
+            };
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Change"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_guard_v1_admin_chatbots__bot_id__rollout_guard_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuardSettings-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuardSettings-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rollback_v1_admin_chatbots__bot_id__rollout_rollback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__routers__admin_rollout__RollbackInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Done"];
                 };
             };
             /** @description Validation Error */

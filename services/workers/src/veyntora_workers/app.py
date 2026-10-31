@@ -15,13 +15,16 @@ from datetime import timedelta
 from typing import Any
 
 import httpx
+import sqlalchemy as sa
 import structlog
 from celery import Celery
 from redis import Redis
 from veyntora_api.authz.fga import Authz
+from veyntora_api.chatbots import rollout
 from veyntora_api.cli import sync_identities
 from veyntora_api.core.config_service import relay_outbox
 from veyntora_api.core.logging import configure_logging
+from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
@@ -69,6 +72,7 @@ app.conf.update(
             "schedule": timedelta(minutes=1),
             "options": {"expires": 60},
         },
+        "canary-guard": {"task": "veyntora.canary_guard", "schedule": timedelta(minutes=5)},
         "eval-runs": {
             "task": "veyntora.eval_runs",
             "schedule": timedelta(seconds=10),
@@ -227,5 +231,24 @@ def saved_answers_check() -> int:
 def eval_runs() -> list[str | None]:
     async def go() -> list[str | None]:
         return [await evaluations.generate_next(settings), await evaluations.run_next(settings)]
+
+    return _run(go())
+
+
+@app.task(name="veyntora.canary_guard")
+def canary_guard() -> int:
+    async def go() -> int:
+        rolled = 0
+        async with get_sessionmaker()() as db:
+            bots = (
+                (await db.execute(sa.select(Chatbot).where(Chatbot.canary_version_id.is_not(None))))
+                .scalars()
+                .all()
+            )
+            for bot in bots:
+                if await rollout.guard_check(db, bot):
+                    rolled += 1
+            await db.commit()
+        return rolled
 
     return _run(go())
