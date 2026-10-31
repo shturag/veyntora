@@ -50,6 +50,18 @@ test.describe("providers and data sources as a platform admin", () => {
     await expect(page.getByLabel("Site address")).toBeVisible();
     await expect(page.getByLabel("Client secret")).toHaveAttribute("type", "password");
     await expect(page.getByRole("button", { name: "Confluence" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "File share (SMB)" })).toBeDisabled();
+
+    await page.getByRole("radio", { name: /S3 bucket/ }).click();
+    await expect(page.getByLabel("Bucket", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Secret access key")).toHaveAttribute("type", "password");
+    await page.getByRole("button", { name: "Add folder rule" }).click();
+    await expect(page.getByLabel("Folder", { exact: true })).toBeVisible();
+    await expectNoA11yViolations(page);
+
+    await page.getByRole("radio", { name: /Website/ }).click();
+    await expect(page.getByLabel("Start pages (one per line)")).toBeVisible();
+    await expect(page.getByLabel("Secret access key")).toHaveCount(0);
   });
 
   test("data sources list opens a source with its documents", async ({ page }) => {

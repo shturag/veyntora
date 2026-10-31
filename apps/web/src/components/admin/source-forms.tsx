@@ -16,6 +16,27 @@ export type SharePointSettings = {
   group_map: Record<string, string>;
 };
 
+export type S3Settings = {
+  endpoint_url: string | null;
+  region: string;
+  bucket: string;
+  prefixes: string[];
+  access_key_id: string;
+};
+export type WebsiteSettings = {
+  start_urls: string[];
+  include_paths: string[];
+  max_pages: number;
+  max_depth: number;
+};
+export type FolderReaders = { path: string; groups: string[] };
+
+const lines = (v: FormDataEntryValue | null) =>
+  String(v || "")
+    .split("\n")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
 // Cron presets the API accepts (UTC); "" is manual sync only.
 export const SCHEDULES: Record<string, "manual" | "hourly" | "every4h" | "daily"> = {
   "": "manual",
@@ -212,6 +233,193 @@ export function SharePointFields({
   );
 }
 
+export function s3From(form: FormData): S3Settings {
+  return {
+    endpoint_url: String(form.get("endpoint_url") || "").trim() || null,
+    region: String(form.get("region") || "us-east-1").trim(),
+    bucket: String(form.get("bucket")).trim(),
+    prefixes: lines(form.get("prefixes")),
+    access_key_id: String(form.get("access_key_id")).trim(),
+  };
+}
+
+export function websiteFrom(form: FormData): WebsiteSettings {
+  return {
+    start_urls: lines(form.get("start_urls")),
+    include_paths: lines(form.get("web_paths")),
+    max_pages: Number(form.get("max_pages")),
+    max_depth: Number(form.get("max_depth")),
+  };
+}
+
+/** Folder rows (path + group) merged by path. */
+export function foldersFrom(form: FormData): FolderReaders[] {
+  const paths = form.getAll("folder_path").map(String);
+  const groups = form.getAll("folder_group").map(String);
+  const out = new Map<string, string[]>();
+  paths.forEach((p, i) => {
+    const g = groups[i];
+    if (p.trim() && g) out.set(p.trim(), [...(out.get(p.trim()) ?? []), g]);
+  });
+  return [...out].map(([path, gs]) => ({ path, groups: [...new Set(gs)] }));
+}
+
+const area = "rounded-md border border-line-strong bg-surface p-3 font-mono text-sm";
+
+export function S3Fields({ value }: { value?: S3Settings }) {
+  const t = useTranslations("sources");
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {t("bucket")}
+          <input
+            name="bucket"
+            required
+            defaultValue={value?.bucket}
+            className={`${input} font-mono`}
+          />
+        </label>
+        <label className={label}>
+          {t("region")}
+          <input
+            name="region"
+            defaultValue={value?.region ?? "us-east-1"}
+            className={`${input} font-mono`}
+          />
+        </label>
+      </div>
+      <label className={label}>
+        {t("endpoint")}
+        <input
+          name="endpoint_url"
+          type="url"
+          defaultValue={value?.endpoint_url ?? ""}
+          placeholder="https://minio.internal:9000"
+          className={`${input} font-mono`}
+        />
+        <span className="text-xs font-normal text-fg-muted">{t("endpointHint")}</span>
+      </label>
+      <label className={label}>
+        {t("accessKeyId")}
+        <input
+          name="access_key_id"
+          required
+          defaultValue={value?.access_key_id}
+          autoComplete="off"
+          className={`${input} font-mono`}
+        />
+      </label>
+      <label className={label}>
+        {t("prefixes")}
+        <textarea
+          name="prefixes"
+          rows={2}
+          defaultValue={value?.prefixes.join("\n")}
+          placeholder="policies/"
+          className={area}
+        />
+      </label>
+    </>
+  );
+}
+
+export function WebsiteFields({ value }: { value?: WebsiteSettings }) {
+  const t = useTranslations("sources");
+  return (
+    <>
+      <label className={label}>
+        {t("startUrls")}
+        <textarea
+          name="start_urls"
+          rows={2}
+          required
+          defaultValue={value?.start_urls.join("\n")}
+          placeholder="https://intranet.example.com/handbook/"
+          className={area}
+        />
+        <span className="text-xs font-normal text-fg-muted">{t("startUrlsHint")}</span>
+      </label>
+      <label className={label}>
+        {t("webPaths")}
+        <textarea
+          name="web_paths"
+          rows={2}
+          defaultValue={value?.include_paths.join("\n")}
+          placeholder="/handbook"
+          className={area}
+        />
+      </label>
+      <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {t("maxPages")}
+          <input
+            name="max_pages"
+            type="number"
+            min={1}
+            max={5000}
+            defaultValue={value?.max_pages ?? 500}
+            className={input}
+          />
+        </label>
+        <label className={label}>
+          {t("maxDepth")}
+          <input
+            name="max_depth"
+            type="number"
+            min={0}
+            max={10}
+            defaultValue={value?.max_depth ?? 3}
+            className={input}
+          />
+        </label>
+      </div>
+    </>
+  );
+}
+
+/** Readers per folder: the rule replaces the source's readers below that folder. */
+export function FolderRules({ groups, value }: { groups: GroupOption[]; value: FolderReaders[] }) {
+  const t = useTranslations("sources");
+  const initial = value.flatMap((f) => f.groups.map((g) => [f.path, g] as [string, string]));
+  const [rows, setRows] = useState<[string, string][]>(initial.length ? initial : []);
+  return (
+    <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+      <legend className="mb-1 text-[13px] font-medium">{t("folders")}</legend>
+      <p className="m-0 text-xs text-fg-muted">{t("foldersHint")}</p>
+      {rows.map(([path, group], i) => (
+        <div key={i} className="grid grid-cols-[1fr_1fr] gap-2 max-[640px]:grid-cols-1">
+          <input
+            name="folder_path"
+            aria-label={t("folderPath")}
+            defaultValue={path}
+            placeholder="policies/hr/"
+            className={`${input} font-mono`}
+          />
+          <select
+            name="folder_group"
+            aria-label={t("mapGroup")}
+            defaultValue={group}
+            className={input}
+          >
+            <option value="">{t("chooseGroup")}</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
+      <div>
+        <Button type="button" size="sm" onClick={() => setRows([...rows, ["", ""]])}>
+          {t("addFolder")}
+        </Button>
+      </div>
+    </fieldset>
+  );
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
@@ -221,13 +429,19 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const LATER = ["confluence", "smb", "s3", "website", "database"] as const;
+// Not built yet, with the phase they are planned for.
+const LATER = [
+  ["smb", 6],
+  ["confluence", 7],
+  ["database", 7],
+] as const;
+type Kind = "upload" | "sharepoint" | "s3" | "website";
 
 /** Connect data source (prototype: ConnectSource.html). */
 export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
   const t = useTranslations("sources");
   const router = useRouter();
-  const [type, setType] = useState<"upload" | "sharepoint">("upload");
+  const [type, setType] = useState<Kind>("upload");
   const { error, busy, run } = useAction();
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -242,6 +456,22 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
           body: JSON.stringify({
             name,
             acl: { groups: form.getAll("readers").map(String), users: [] },
+          }),
+        });
+      } else if (type === "s3" || type === "website") {
+        const expires = String(form.get("expires") || "");
+        created = await api("/v1/admin/sources/connected", {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            type,
+            s3: type === "s3" ? s3From(form) : null,
+            website: type === "website" ? websiteFrom(form) : null,
+            acl: { groups: form.getAll("readers").map(String), users: [] },
+            folders: foldersFrom(form),
+            secret: type === "s3" ? String(form.get("client_secret")) : null,
+            secret_expires_at: expires ? new Date(`${expires}T00:00:00Z`).toISOString() : null,
+            schedule: String(form.get("schedule") || "") || null,
           }),
         });
       } else {
@@ -275,7 +505,7 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
           aria-label={t("type")}
           className="grid grid-cols-3 gap-2.5 max-[760px]:grid-cols-1"
         >
-          {(["upload", "sharepoint"] as const).map((k) => (
+          {(["upload", "sharepoint", "s3", "website"] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -288,11 +518,11 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
               <span className="text-xs text-fg-muted">{t(`typeHints.${k}`)}</span>
             </button>
           ))}
-          {LATER.map((k) => (
+          {LATER.map(([k, phase]) => (
             <PhaseGatedButton
               key={k}
-              phase={6}
-              label={t("laterConnector", { phase: 6 })}
+              phase={phase}
+              label={t("laterConnector", { phase })}
               className="h-auto w-full justify-start p-3"
             >
               {t(`types.${k}`)}
@@ -307,6 +537,38 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
         </label>
         {type === "upload" ? (
           <GroupPicker groups={groups} selected={[]} name="readers" />
+        ) : type === "s3" || type === "website" ? (
+          <>
+            {type === "s3" ? <S3Fields /> : <WebsiteFields />}
+            <ScheduleSelect value={null} />
+            <GroupPicker groups={groups} selected={[]} name="readers" />
+            <FolderRules groups={groups} value={[]} />
+            {type === "s3" ? (
+              <>
+                <div className="grid grid-cols-[1fr_auto] gap-3 max-[760px]:grid-cols-1">
+                  <label className={label}>
+                    {t("secretAccessKey")}
+                    <input
+                      name="client_secret"
+                      type="password"
+                      autoComplete="off"
+                      required
+                      className={input}
+                    />
+                  </label>
+                  <label className={label}>
+                    {t("expires")}
+                    <input name="expires" type="date" className={input} />
+                  </label>
+                </div>
+                <p className="m-0 text-xs text-fg-muted">{t("secretHint")}</p>
+              </>
+            ) : (
+              <p role="note" className="m-0 rounded-md bg-info-soft px-3 py-2 text-sm text-info">
+                {t("websiteNote")}
+              </p>
+            )}
+          </>
         ) : (
           <>
             <SharePointFields groups={groups} />
@@ -347,4 +609,4 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
   );
 }
 
-export { useAction, input as inputClass, label as labelClass };
+export { ScheduleSelect, useAction, input as inputClass, label as labelClass };

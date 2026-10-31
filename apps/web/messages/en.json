@@ -885,7 +885,9 @@
     "type": "Source type",
     "typeHints": {
       "upload": "Files you upload here; you choose who may read them",
-      "sharepoint": "Sites and libraries, with their permissions"
+      "sharepoint": "Sites and libraries, with their permissions",
+      "s3": "Buckets on AWS or your own S3 store; you choose who may read",
+      "website": "Crawl an intranet or public site; you choose who may read"
     },
     "laterConnector": "This connector arrives in Phase {phase}.",
     "step2": "2. Settings",
@@ -966,7 +968,24 @@
     "notTested": "Not tested yet.",
     "unmappedTitle": "Unmapped permissions",
     "unmappedNone": "Every permission seen so far is mapped.",
-    "unmappedHint": "These SharePoint principals were dropped. Map them above to give their members access."
+    "unmappedHint": "These SharePoint principals were dropped. Map them above to give their members access.",
+    "bucket": "Bucket",
+    "region": "Region",
+    "endpoint": "Endpoint (on-premises stores)",
+    "endpointHint": "Empty for AWS. MinIO, SeaweedFS or Ceph: their S3 address.",
+    "accessKeyId": "Access key ID",
+    "prefixes": "Prefixes to read (one per line; empty: the whole bucket)",
+    "secretAccessKey": "Secret access key",
+    "startUrls": "Start pages (one per line)",
+    "startUrlsHint": "Only these hosts are followed; robots.txt is respected.",
+    "webPaths": "Only pages below (one per line; empty: the whole site)",
+    "maxPages": "Pages at most",
+    "maxDepth": "Links deep at most",
+    "folders": "Readers per folder",
+    "foldersHint": "Optional. A folder rule replaces the readers above for everything below that folder (S3 prefix or website path); the longest match wins.",
+    "folderPath": "Folder",
+    "addFolder": "Add folder rule",
+    "websiteNote": "Pages are read without signing in. Choose who may read them in Veyntora; per-folder rules can narrow that."
   },
   "myFiles": {
     "title": "My files",

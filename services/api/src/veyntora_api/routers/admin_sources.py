@@ -1,7 +1,6 @@
-"""Data sources: upload sources, documents, ingestion jobs.
+"""Data sources: uploads, SharePoint, S3 buckets and websites; documents, ingestion jobs.
 
-Connectors for SharePoint and the other systems are added as their sources are tested live;
-until then only upload sources can be created.
+Secrets are write-only (OpenBao); connection tests run in a worker, which can read them.
 """
 
 from __future__ import annotations
@@ -29,6 +28,7 @@ from veyntora_api.db.models.knowledge import (
     SourceStatus,
     SourceType,
 )
+from veyntora_api.knowledge import connectors
 from veyntora_api.knowledge import service as svc
 from veyntora_api.storage import ObjectStore
 
@@ -51,6 +51,18 @@ class SharePointOut(svc.SharePointSettings):
     unmapped: list[str]
 
 
+class ConnectionOut(BaseModel):
+    """S3 or website settings without the secret; folder readers and the last test."""
+
+    s3: connectors.S3Settings | None
+    website: connectors.WebsiteSettings | None
+    folders: list[connectors.FolderReaders]
+    has_secret: bool
+    secret_last4: str | None
+    secret_expires_at: datetime | None
+    last_test: dict[str, Any] | None
+
+
 class SourceOut(BaseModel):
     id: UUID
     type: SourceType
@@ -58,6 +70,7 @@ class SourceOut(BaseModel):
     status: SourceStatus
     acl: svc.SourceAcl | None
     sharepoint: SharePointOut | None
+    connection: ConnectionOut | None
     schedule: str | None
     documents: int
     version: int
@@ -117,12 +130,28 @@ async def _source_out(db: DbSession, s: DataSource) -> SourceOut:
         type=s.type,
         name=s.name,
         status=s.status,
-        acl=svc.source_acl(s) if s.type is SourceType.UPLOAD else None,
+        acl=svc.source_acl(s) if s.type in {SourceType.UPLOAD, *connectors.CONNECTED} else None,
         sharepoint=_sharepoint(s),
+        connection=_connection(s),
         schedule=s.schedule,
         documents=int(count or 0),
         version=s.version,
         last_synced_at=s.last_synced_at,
+    )
+
+
+def _connection(s: DataSource) -> ConnectionOut | None:
+    if s.type not in connectors.CONNECTED:
+        return None
+    settings = connectors.settings_of(s)
+    return ConnectionOut(
+        s3=settings if isinstance(settings, connectors.S3Settings) else None,
+        website=settings if isinstance(settings, connectors.WebsiteSettings) else None,
+        folders=[connectors.FolderReaders.model_validate(f) for f in s.config.get("folders") or []],
+        has_secret=s.secret_ref is not None,
+        secret_last4=s.secret_last4,
+        secret_expires_at=s.secret_expires_at,
+        last_test=s.config.get("last_test"),
     )
 
 
@@ -238,6 +267,48 @@ async def create_sharepoint(
     return out
 
 
+@router.post(
+    "/connected",
+    status_code=status.HTTP_201_CREATED,
+    summary="Connect an S3 bucket or a website",
+)
+async def create_connected(
+    data: connectors.ConnectedSourceInput,
+    principal: Editor,
+    ctx: Ctx,
+    db: DbSession,
+    state: State,
+) -> SourceOut:
+    row = await connectors.create_connected_source(db, ctx, state.secrets, data, principal.user_id)
+    await state.require_authz().write([Tuple(PLATFORM, "platform", f"source:{row.id}")])
+    await state.redis.rpush(SOURCE_TEST_QUEUE, str(row.id))
+    out = await _source_out(db, row)
+    await db.commit()
+    return out
+
+
+@router.patch("/{source_id}/connection", summary="Change S3 or website settings, folder readers")
+async def change_connection(
+    source_id: UUID,
+    data: connectors.ConnectedUpdate,
+    principal: Editor,
+    ctx: Ctx,
+    db: DbSession,
+    if_match: Annotated[int | None, Header(alias="If-Match")] = None,
+) -> SourceOut:
+    row = await connectors.update_connected(
+        db,
+        ctx,
+        await _source(db, source_id),
+        data,
+        expected_version=if_match,
+        triggered_by=principal.user_id,
+    )
+    out = await _source_out(db, row)
+    await db.commit()
+    return out
+
+
 class SecretInput(BaseModel):
     secret: SecretStr
     expires_at: datetime | None = None
@@ -248,8 +319,8 @@ async def put_secret(
     source_id: UUID, data: SecretInput, _: Editor, ctx: Ctx, db: DbSession, state: State
 ) -> SourceOut:
     row = await _source(db, source_id)
-    if row.type is SourceType.UPLOAD:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Upload sources have no secret")
+    if row.type in {SourceType.UPLOAD, SourceType.WEBSITE}:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "This source has no secret")
     await svc.set_source_secret(
         db, ctx, state.secrets, row, value=data.secret, expires_at=data.expires_at
     )

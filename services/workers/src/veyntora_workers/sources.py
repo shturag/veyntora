@@ -21,6 +21,8 @@ from veyntora_api.settings import Settings
 from veyntora_api.storage import ObjectStore
 from veyntora_providers.secrets import OpenBaoReader
 
+from veyntora_workers.connectors.connected import close as close_reader
+from veyntora_workers.connectors.connected import reader_for
 from veyntora_workers.connectors.sync import client_for, settings_of, stamp_test
 from veyntora_workers.ingest import Ingestor
 
@@ -68,6 +70,20 @@ async def run_due_schedules(now: datetime | None = None) -> int:
     return queued
 
 
+async def _check(ing: Ingestor, source: DataSource) -> str:
+    if source.type is SourceType.SHAREPOINT:
+        client = await client_for(ing, source)
+        try:
+            return await client.check(settings_of(source).site_url)
+        finally:
+            await client.close()
+    connected = await reader_for(ing, source)
+    try:
+        return await connected.check()
+    finally:
+        await close_reader(connected)
+
+
 async def run_queued_source_tests(settings: Settings, limit: int = 5) -> int:
     redis = Redis.from_url(settings.redis_url, decode_responses=True)
     reader = OpenBaoReader(settings.openbao_url, Path(settings.openbao_token_file))
@@ -79,15 +95,11 @@ async def run_queued_source_tests(settings: Settings, limit: int = 5) -> int:
                 break
             async with get_sessionmaker()() as db:
                 source = await db.get(DataSource, UUID(str(raw)))
-                if source is None or source.type is not SourceType.SHAREPOINT:
+                if source is None or source.type is SourceType.UPLOAD:
                     continue
                 ing = Ingestor(db, settings, ObjectStore(settings), reader)
                 try:
-                    client = await client_for(ing, source)
-                    try:
-                        detail = await client.check(settings_of(source).site_url)
-                    finally:
-                        await client.close()
+                    detail = await _check(ing, source)
                     stamp_test(source, True, detail)
                     if source.status is SourceStatus.ERROR:
                         source.status = SourceStatus.ACTIVE

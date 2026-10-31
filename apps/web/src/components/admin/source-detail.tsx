@@ -9,12 +9,19 @@ import type { components } from "@/lib/api/schema";
 import { api, CSRF_HEADERS } from "@/lib/chat";
 
 import {
+  FolderRules,
   GroupPicker,
+  S3Fields,
+  ScheduleSelect,
   SharePointFields,
+  WebsiteFields,
+  foldersFrom,
   inputClass,
   labelClass,
+  s3From,
   sharePointFrom,
   useAction,
+  websiteFrom,
   type GroupOption,
   type SharePointSettings,
 } from "./source-forms";
@@ -68,7 +75,7 @@ export function SourceActions({ source, canEdit }: { source: Source; canEdit: bo
         >
           {t("syncNow")}
         </Button>
-        {source.type === "sharepoint" ? (
+        {source.type !== "upload" ? (
           <Button
             disabled={busy}
             onClick={() =>
@@ -173,13 +180,49 @@ export function SharePointSettingsForm({
       router.refresh();
     });
   }
+  return (
+    <div className="flex flex-col gap-5">
+      <form onSubmit={save} className="flex flex-col gap-3">
+        <SharePointFields groups={groups} value={settings} schedule={source.schedule} />
+        <div>
+          <Button type="submit" disabled={busy}>
+            {t("saveSettings")}
+          </Button>
+        </div>
+      </form>
+      <SecretForm sourceId={source.id} meta={sp} label={t("newSecret")} />
+      <Feedback error={error} done={done} />
+    </div>
+  );
+}
+
+type SecretMeta = {
+  has_secret: boolean;
+  secret_last4: string | null;
+  secret_expires_at: string | null;
+};
+
+/** Replace the connector's secret (write-only: only the last 4 and expiry are shown). */
+function SecretForm({
+  sourceId,
+  meta,
+  label,
+}: {
+  sourceId: string;
+  meta: SecretMeta;
+  label: string;
+}) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
   function secret(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formEl = event.currentTarget;
     const form = new FormData(formEl);
     const expires = String(form.get("expires") || "");
     void run(async () => {
-      await api(`/v1/admin/sources/${source.id}/secret`, {
+      await api(`/v1/admin/sources/${sourceId}/secret`, {
         method: "PUT",
         body: JSON.stringify({
           secret: String(form.get("secret")),
@@ -192,45 +235,94 @@ export function SharePointSettingsForm({
     });
   }
   return (
+    <form onSubmit={secret} className="flex flex-col gap-2 border-t border-divider pt-4">
+      <p className="m-0 text-sm text-fg-secondary">
+        {meta.has_secret
+          ? t("secretSet", {
+              last4: meta.secret_last4 ?? "····",
+              expiry: meta.secret_expires_at?.slice(0, 10) ?? t("noExpiry"),
+            })
+          : t("noSecret")}
+      </p>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className={`${labelClass} min-w-56 flex-1`}>
+          {label}
+          <input name="secret" type="password" autoComplete="off" required className={inputClass} />
+        </label>
+        <label className={labelClass}>
+          {t("expires")}
+          <input name="expires" type="date" className={inputClass} />
+        </label>
+        <Button type="submit" disabled={busy}>
+          {t("replaceSecret")}
+        </Button>
+      </div>
+      <Feedback error={error} done={done} />
+    </form>
+  );
+}
+
+/** S3 or website settings, folder readers and the sync schedule. */
+export function ConnectionSettingsForm({
+  source,
+  groups,
+}: {
+  source: Source;
+  groups: GroupOption[];
+}) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
+  const c = source.connection!;
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    void run(async () => {
+      await api(`/v1/admin/sources/${source.id}`, {
+        method: "PATCH",
+        headers: { "If-Match": String(source.version) },
+        body: JSON.stringify({ schedule: String(form.get("schedule") || "") || null }),
+      });
+      await api(`/v1/admin/sources/${source.id}/connection`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          s3: source.type === "s3" ? s3From(form) : null,
+          website: source.type === "website" ? websiteFrom(form) : null,
+          folders: foldersFrom(form),
+        }),
+      });
+      setDone(t("settingsSaved"));
+      router.refresh();
+    });
+  }
+  return (
     <div className="flex flex-col gap-5">
       <form onSubmit={save} className="flex flex-col gap-3">
-        <SharePointFields groups={groups} value={settings} schedule={source.schedule} />
+        {c.s3 ? (
+          <S3Fields
+            value={{
+              ...c.s3,
+              endpoint_url: c.s3.endpoint_url ?? null,
+              prefixes: c.s3.prefixes ?? [],
+            }}
+          />
+        ) : null}
+        {c.website ? (
+          <WebsiteFields value={{ ...c.website, include_paths: c.website.include_paths ?? [] }} />
+        ) : null}
+        <ScheduleSelect value={source.schedule} />
+        <FolderRules groups={groups} value={c.folders} />
         <div>
           <Button type="submit" disabled={busy}>
             {t("saveSettings")}
           </Button>
         </div>
+        <Feedback error={error} done={done} />
       </form>
-      <form onSubmit={secret} className="flex flex-col gap-2 border-t border-divider pt-4">
-        <p className="m-0 text-sm text-fg-secondary">
-          {sp.has_secret
-            ? t("secretSet", {
-                last4: sp.secret_last4 ?? "····",
-                expiry: sp.secret_expires_at?.slice(0, 10) ?? t("noExpiry"),
-              })
-            : t("noSecret")}
-        </p>
-        <div className="flex flex-wrap items-end gap-2">
-          <label className={`${labelClass} min-w-56 flex-1`}>
-            {t("newSecret")}
-            <input
-              name="secret"
-              type="password"
-              autoComplete="off"
-              required
-              className={inputClass}
-            />
-          </label>
-          <label className={labelClass}>
-            {t("expires")}
-            <input name="expires" type="date" className={inputClass} />
-          </label>
-          <Button type="submit" disabled={busy}>
-            {t("replaceSecret")}
-          </Button>
-        </div>
-      </form>
-      <Feedback error={error} done={done} />
+      {source.type === "s3" ? (
+        <SecretForm sourceId={source.id} meta={c} label={t("secretAccessKey")} />
+      ) : null}
     </div>
   );
 }

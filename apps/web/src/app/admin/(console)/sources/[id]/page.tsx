@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import {
+  ConnectionSettingsForm,
   DocumentActions,
   ReadersForm,
   SharePointSettingsForm,
@@ -56,13 +57,17 @@ export default async function SourceDetailPage({ params }: { params: Promise<{ i
   ]);
   const canEdit = access.level === "editor";
   const sp = source.sharepoint;
+  const conn = source.connection;
   const when = (iso: string | null | undefined) =>
     iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : t("never");
 
   return (
     <div className="flex flex-col gap-5">
       <nav aria-label="Breadcrumb" className="text-sm text-fg-muted">
-        <Link href="/admin/sources" className="underline">{t("title")}</Link> / {source.name}
+        <Link href="/admin/sources" className="underline">
+          {t("title")}
+        </Link>{" "}
+        / {source.name}
       </nav>
       <PageHeader
         title={source.name}
@@ -144,11 +149,30 @@ export default async function SourceDetailPage({ params }: { params: Promise<{ i
           </Panel>
         </div>
         <div className="flex flex-col gap-5">
-          {source.type === "upload" ? (
+          {source.acl ? (
             <Panel title={t("readersTitle")}>
               <p className="m-0 text-sm text-fg-muted">{t("readersHint")}</p>
               {canEdit ? (
                 <ReadersForm source={source} groups={(groups ?? []) as GroupOption[]} />
+              ) : null}
+            </Panel>
+          ) : null}
+          {conn ? (
+            <Panel title={t("connectionTitle")}>
+              {conn.last_test ? (
+                <p
+                  role="status"
+                  className={`m-0 rounded-md px-3 py-2 text-sm ${conn.last_test.ok ? "bg-green-soft text-green" : "bg-red-soft text-red"}`}
+                >
+                  {conn.last_test.ok
+                    ? t("testOk", { detail: String(conn.last_test.detail) })
+                    : t("testFailed", { detail: String(conn.last_test.detail) })}
+                </p>
+              ) : (
+                <p className="m-0 text-sm text-fg-muted">{t("notTested")}</p>
+              )}
+              {canEdit ? (
+                <ConnectionSettingsForm source={source} groups={(groups ?? []) as GroupOption[]} />
               ) : null}
             </Panel>
           ) : null}

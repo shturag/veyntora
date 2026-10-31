@@ -885,7 +885,9 @@
     "type": "Art der Quelle",
     "typeHints": {
       "upload": "Dateien, die du hier hochlädst; du wählst, wer sie lesen darf",
-      "sharepoint": "Websites und Bibliotheken, mit ihren Berechtigungen"
+      "sharepoint": "Websites und Bibliotheken, mit ihren Berechtigungen",
+      "s3": "Buckets bei AWS oder im eigenen S3-Speicher; Sie wählen, wer lesen darf",
+      "website": "Intranet- oder öffentliche Website crawlen; Sie wählen, wer lesen darf"
     },
     "laterConnector": "Dieser Connector kommt in Phase {phase}.",
     "step2": "2. Einstellungen",
@@ -966,7 +968,24 @@
     "notTested": "Noch nicht getestet.",
     "unmappedTitle": "Nicht zugeordnete Berechtigungen",
     "unmappedNone": "Alle bisher gesehenen Berechtigungen sind zugeordnet.",
-    "unmappedHint": "Diese SharePoint-Berechtigungen wurden verworfen. Ordne sie oben zu, um ihren Mitgliedern Zugriff zu geben."
+    "unmappedHint": "Diese SharePoint-Berechtigungen wurden verworfen. Ordne sie oben zu, um ihren Mitgliedern Zugriff zu geben.",
+    "bucket": "Bucket",
+    "region": "Region",
+    "endpoint": "Endpunkt (eigene Speicher)",
+    "endpointHint": "Leer für AWS. MinIO, SeaweedFS oder Ceph: deren S3-Adresse.",
+    "accessKeyId": "Access-Key-ID",
+    "prefixes": "Zu lesende Präfixe (eines pro Zeile; leer: der ganze Bucket)",
+    "secretAccessKey": "Secret Access Key",
+    "startUrls": "Startseiten (eine pro Zeile)",
+    "startUrlsHint": "Nur diese Hosts werden verfolgt; robots.txt wird beachtet.",
+    "webPaths": "Nur Seiten unterhalb von (eine pro Zeile; leer: die ganze Website)",
+    "maxPages": "Höchstens Seiten",
+    "maxDepth": "Höchstens Link-Tiefe",
+    "folders": "Lesende pro Ordner",
+    "foldersHint": "Optional. Eine Ordnerregel ersetzt die Lesenden oben für alles unterhalb dieses Ordners (S3-Präfix oder Website-Pfad); der längste Treffer gilt.",
+    "folderPath": "Ordner",
+    "addFolder": "Ordnerregel hinzufügen",
+    "websiteNote": "Seiten werden ohne Anmeldung gelesen. Wählen Sie in Veyntora, wer sie lesen darf; Ordnerregeln können das einschränken."
   },
   "myFiles": {
     "title": "Meine Dateien",

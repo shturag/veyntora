@@ -3506,6 +3506,223 @@
         "title": "ConditionTestInput",
         "type": "object"
       },
+      "ConnectedSourceInput": {
+        "additionalProperties": false,
+        "properties": {
+          "acl": {
+            "$ref": "#/components/schemas/SourceAcl"
+          },
+          "folders": {
+            "items": {
+              "$ref": "#/components/schemas/FolderReaders"
+            },
+            "maxItems": 100,
+            "title": "Folders",
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "s3": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/S3Settings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule"
+          },
+          "secret": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "type": {
+            "enum": [
+              "s3",
+              "website"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebsiteSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "acl"
+        ],
+        "title": "ConnectedSourceInput",
+        "type": "object"
+      },
+      "ConnectedUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "folders": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FolderReaders"
+                },
+                "maxItems": 100,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folders"
+          },
+          "s3": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/S3Settings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "website": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebsiteSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ConnectedUpdate",
+        "type": "object"
+      },
+      "ConnectionOut": {
+        "description": "S3 or website settings without the secret; folder readers and the last test.",
+        "properties": {
+          "folders": {
+            "items": {
+              "$ref": "#/components/schemas/FolderReaders"
+            },
+            "title": "Folders",
+            "type": "array"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "last_test": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Test"
+          },
+          "s3": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/S3Settings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebsiteSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "s3",
+          "website",
+          "folders",
+          "has_secret",
+          "secret_last4",
+          "secret_expires_at",
+          "last_test"
+        ],
+        "title": "ConnectionOut",
+        "type": "object"
+      },
       "ConversationOut": {
         "properties": {
           "chatbot_id": {
@@ -4794,6 +5011,34 @@
           }
         },
         "title": "FlowSpec",
+        "type": "object"
+      },
+      "FolderReaders": {
+        "additionalProperties": false,
+        "description": "Readers for one folder (S3 prefix or website path).",
+        "properties": {
+          "groups": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Groups",
+            "type": "array"
+          },
+          "path": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "groups"
+        ],
+        "title": "FolderReaders",
         "type": "object"
       },
       "FrameConfig": {
@@ -10874,6 +11119,59 @@
         "title": "RunToolCall",
         "type": "object"
       },
+      "S3Settings": {
+        "additionalProperties": false,
+        "properties": {
+          "access_key_id": {
+            "maxLength": 128,
+            "minLength": 3,
+            "title": "Access Key Id",
+            "type": "string"
+          },
+          "bucket": {
+            "maxLength": 63,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9.-]+[a-z0-9]$",
+            "title": "Bucket",
+            "type": "string"
+          },
+          "endpoint_url": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint Url"
+          },
+          "prefixes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Prefixes",
+            "type": "array"
+          },
+          "region": {
+            "default": "us-east-1",
+            "maxLength": 64,
+            "minLength": 2,
+            "pattern": "^[a-z0-9-]+$",
+            "title": "Region",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bucket",
+          "access_key_id"
+        ],
+        "title": "S3Settings",
+        "type": "object"
+      },
       "Safety-Input": {
         "additionalProperties": false,
         "properties": {
@@ -12551,6 +12849,16 @@
               }
             ]
           },
+          "connection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConnectionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "documents": {
             "title": "Documents",
             "type": "integer"
@@ -12615,6 +12923,7 @@
           "status",
           "acl",
           "sharepoint",
+          "connection",
           "schedule",
           "documents",
           "version",
@@ -14044,6 +14353,47 @@
           "once_per"
         ],
         "title": "WatcherTrigger",
+        "type": "object"
+      },
+      "WebsiteSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "max_depth": {
+            "default": 3,
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Max Depth",
+            "type": "integer"
+          },
+          "max_pages": {
+            "default": 500,
+            "maximum": 5000.0,
+            "minimum": 1.0,
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "start_urls": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Start Urls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "start_urls"
+        ],
+        "title": "WebsiteSettings",
         "type": "object"
       },
       "WidgetConfig": {
@@ -20356,6 +20706,47 @@
         ]
       }
     },
+    "/v1/admin/sources/connected": {
+      "post": {
+        "operationId": "create_connected_v1_admin_sources_connected_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectedSourceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Connect an S3 bucket or a website",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
     "/v1/admin/sources/groups": {
       "get": {
         "operationId": "groups_v1_admin_sources_groups_get",
@@ -20527,6 +20918,75 @@
           }
         },
         "summary": "Rename, pause or change who may read",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/connection": {
+      "patch": {
+        "operationId": "change_connection_v1_admin_sources__source_id__connection_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectedUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change S3 or website settings, folder readers",
         "tags": [
           "admin: sources"
         ]

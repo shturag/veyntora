@@ -41,6 +41,7 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge import clamd as scan
 from veyntora_api.knowledge import vocabulary
+from veyntora_api.knowledge.connectors import CONNECTED
 from veyntora_api.knowledge.profiles import profiles_for_source
 from veyntora_api.knowledge.service import principals_of, source_acl
 from veyntora_api.providers.runtime import Adapters, ProviderUnavailableError
@@ -60,6 +61,9 @@ from veyntora_workers.chunking import (
     fixed_chunks,
     semantic_chunks,
 )
+from veyntora_workers.connectors.connected import close as close_reader
+from veyntora_workers.connectors.connected import reader_for
+from veyntora_workers.connectors.listing import resync_readers, sync_listing
 from veyntora_workers.connectors.sync import resync_sharepoint_acl, sync_sharepoint
 
 log = structlog.get_logger()
@@ -164,6 +168,12 @@ class Ingestor:
             source = await self.db.get(DataSource, job.source_id)
             if source is not None and source.type is SourceType.SHAREPOINT:
                 stats = await sync_sharepoint(self, source)
+            elif source is not None and source.type in CONNECTED:
+                reader = await reader_for(self, source)
+                try:
+                    stats = await sync_listing(self, source, reader.listing())
+                finally:
+                    await close_reader(reader)
             else:
                 stats = await self.sync_source(job.source_id)
         elif job.kind is IngestJobKind.ACL_SYNC:
@@ -430,6 +440,8 @@ class Ingestor:
             return {"skipped": "source deleted"}
         if source.type is SourceType.SHAREPOINT:
             docs = await resync_sharepoint_acl(self, source)
+        elif source.type in CONNECTED:
+            docs = await resync_readers(self, source)
         elif source.type is SourceType.UPLOAD:
             acl = source_acl(source).model_dump(mode="json")
             docs = list(

@@ -1736,6 +1736,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/sources/connected": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Connect an S3 bucket or a website */
+        post: operations["create_connected_v1_admin_sources_connected_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/sources/groups": {
         parameters: {
             query?: never;
@@ -1786,6 +1803,23 @@ export interface paths {
         head?: never;
         /** Rename, pause or change who may read */
         patch: operations["change_source_v1_admin_sources__source_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change S3 or website settings, folder readers */
+        patch: operations["change_connection_v1_admin_sources__source_id__connection_patch"];
         trace?: never;
     };
     "/v1/admin/sources/{source_id}/documents": {
@@ -4279,6 +4313,54 @@ export interface components {
             /** Rules */
             rules: components["schemas"]["AutomationRule-Input"][];
         };
+        /** ConnectedSourceInput */
+        ConnectedSourceInput: {
+            acl: components["schemas"]["SourceAcl"];
+            /** Folders */
+            folders?: components["schemas"]["FolderReaders"][];
+            /** Name */
+            name: string;
+            s3?: components["schemas"]["S3Settings"] | null;
+            /** Schedule */
+            schedule?: string | null;
+            /** Secret */
+            secret?: string | null;
+            /** Secret Expires At */
+            secret_expires_at?: string | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "s3" | "website";
+            website?: components["schemas"]["WebsiteSettings"] | null;
+        };
+        /** ConnectedUpdate */
+        ConnectedUpdate: {
+            /** Folders */
+            folders?: components["schemas"]["FolderReaders"][] | null;
+            s3?: components["schemas"]["S3Settings"] | null;
+            website?: components["schemas"]["WebsiteSettings"] | null;
+        };
+        /**
+         * ConnectionOut
+         * @description S3 or website settings without the secret; folder readers and the last test.
+         */
+        ConnectionOut: {
+            /** Folders */
+            folders: components["schemas"]["FolderReaders"][];
+            /** Has Secret */
+            has_secret: boolean;
+            /** Last Test */
+            last_test: {
+                [key: string]: unknown;
+            } | null;
+            s3: components["schemas"]["S3Settings"] | null;
+            /** Secret Expires At */
+            secret_expires_at: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            website: components["schemas"]["WebsiteSettings"] | null;
+        };
         /** ConversationOut */
         ConversationOut: {
             /**
@@ -4780,6 +4862,16 @@ export interface components {
             edges?: components["schemas"]["FlowEdge"][];
             /** Nodes */
             nodes?: components["schemas"]["FlowNode"][];
+        };
+        /**
+         * FolderReaders
+         * @description Readers for one folder (S3 prefix or website path).
+         */
+        FolderReaders: {
+            /** Groups */
+            groups: string[];
+            /** Path */
+            path: string;
         };
         /** FrameConfig */
         FrameConfig: {
@@ -7127,6 +7219,22 @@ export interface components {
             /** Tool */
             tool: string | null;
         };
+        /** S3Settings */
+        S3Settings: {
+            /** Access Key Id */
+            access_key_id: string;
+            /** Bucket */
+            bucket: string;
+            /** Endpoint Url */
+            endpoint_url?: string | null;
+            /** Prefixes */
+            prefixes?: string[];
+            /**
+             * Region
+             * @default us-east-1
+             */
+            region: string;
+        };
         /** Safety */
         "Safety-Input": {
             /**
@@ -7705,6 +7813,7 @@ export interface components {
         /** SourceOut */
         SourceOut: {
             acl: components["schemas"]["SourceAcl"] | null;
+            connection: components["schemas"]["ConnectionOut"] | null;
             /** Documents */
             documents: number;
             /**
@@ -8249,6 +8358,23 @@ export interface components {
              * @enum {string}
              */
             type: "watcher";
+        };
+        /** WebsiteSettings */
+        WebsiteSettings: {
+            /** Include Paths */
+            include_paths?: string[];
+            /**
+             * Max Depth
+             * @default 3
+             */
+            max_depth: number;
+            /**
+             * Max Pages
+             * @default 500
+             */
+            max_pages: number;
+            /** Start Urls */
+            start_urls: string[];
         };
         /** WidgetConfig */
         WidgetConfig: {
@@ -12268,6 +12394,39 @@ export interface operations {
             };
         };
     };
+    create_connected_v1_admin_sources_connected_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectedSourceInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     groups_v1_admin_sources_groups_get: {
         parameters: {
             query?: never;
@@ -12366,6 +12525,43 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["SourceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_connection_v1_admin_sources__source_id__connection_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectedUpdate"];
             };
         };
         responses: {
