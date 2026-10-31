@@ -90,6 +90,169 @@
         "title": "AgentToolBinding",
         "type": "object"
       },
+      "ApprovalDecision": {
+        "enum": [
+          "pending",
+          "approved",
+          "rejected",
+          "expired"
+        ],
+        "title": "ApprovalDecision",
+        "type": "string"
+      },
+      "ApprovalOut": {
+        "properties": {
+          "access": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolAccess"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "title": "Arguments",
+            "type": "object"
+          },
+          "can_decide": {
+            "title": "Can Decide",
+            "type": "boolean"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/ApprovalDecision"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mine": {
+            "title": "Mine",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "requested_by": {
+            "title": "Requested By",
+            "type": "string"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "server": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Server"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "summary",
+          "tool",
+          "server",
+          "access",
+          "arguments",
+          "chatbot",
+          "requested_by",
+          "mine",
+          "can_decide",
+          "decision",
+          "note",
+          "decided_by",
+          "created_at",
+          "expires_at",
+          "decided_at"
+        ],
+        "title": "ApprovalOut",
+        "type": "object"
+      },
       "Attachment": {
         "additionalProperties": false,
         "properties": {
@@ -937,6 +1100,31 @@
         "title": "ConversationOut",
         "type": "object"
       },
+      "DecisionIn": {
+        "properties": {
+          "approve": {
+            "title": "Approve",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "approve"
+        ],
+        "title": "DecisionIn",
+        "type": "object"
+      },
       "DocumentOut": {
         "properties": {
           "chunk_count": {
@@ -1429,6 +1617,14 @@
             "title": "Allowed External Instance Ids",
             "type": "array"
           },
+          "allowed_external_mcp_server_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Allowed External Mcp Server Ids",
+            "type": "array"
+          },
           "chat_retention_days": {
             "default": 90,
             "maximum": 3650.0,
@@ -1466,6 +1662,14 @@
               "type": "string"
             },
             "title": "Allowed External Instance Ids",
+            "type": "array"
+          },
+          "allowed_external_mcp_server_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Allowed External Mcp Server Ids",
             "type": "array"
           },
           "chat_retention_days": {
@@ -3198,6 +3402,281 @@
           }
         },
         "title": "RouterSpec",
+        "type": "object"
+      },
+      "RunApproval": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/ApprovalDecision"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "summary",
+          "decision",
+          "note",
+          "decided_by",
+          "created_at",
+          "decided_at"
+        ],
+        "title": "RunApproval",
+        "type": "object"
+      },
+      "RunKind": {
+        "enum": [
+          "chat_agent",
+          "automation"
+        ],
+        "title": "RunKind",
+        "type": "string"
+      },
+      "RunOut": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/RunApproval"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "groundedness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groundedness"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/RunKind"
+          },
+          "started_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started By"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "tokens_in": {
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "title": "Tokens Out",
+            "type": "integer"
+          },
+          "tool_calls": {
+            "items": {
+              "$ref": "#/components/schemas/RunToolCall"
+            },
+            "title": "Tool Calls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "chatbot",
+          "started_by",
+          "created_at",
+          "finished_at",
+          "error",
+          "steps",
+          "approvals",
+          "tool_calls",
+          "tokens_in",
+          "tokens_out",
+          "answer",
+          "groundedness"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "waiting_approval",
+          "succeeded",
+          "failed",
+          "cancelled"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
+      "RunToolCall": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "ms": {
+            "title": "Ms",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool"
+          }
+        },
+        "required": [
+          "tool",
+          "at",
+          "ms",
+          "ok",
+          "summary",
+          "error"
+        ],
+        "title": "RunToolCall",
         "type": "object"
       },
       "ScanStatus": {
@@ -5756,6 +6235,49 @@
         ]
       }
     },
+    "/v1/admin/runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_v1_admin_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One run with its steps, tool calls and approvals",
+        "tags": [
+          "admin: runs"
+        ]
+      }
+    },
     "/v1/admin/sources": {
       "get": {
         "operationId": "list_sources_v1_admin_sources_get",
@@ -6833,6 +7355,164 @@
         "summary": "Classify, enable and set the policy of a tool",
         "tags": [
           "admin: tools"
+        ]
+      }
+    },
+    "/v1/approvals": {
+      "get": {
+        "operationId": "list_approvals_v1_approvals_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "scope",
+            "required": false,
+            "schema": {
+              "default": "to_decide",
+              "enum": [
+                "to_decide",
+                "mine",
+                "decided"
+              ],
+              "title": "Scope",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalOut"
+                  },
+                  "title": "Response List Approvals V1 Approvals Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Requests to decide and the caller's own requests",
+        "tags": [
+          "approvals"
+        ]
+      }
+    },
+    "/v1/approvals/{approval_id}": {
+      "get": {
+        "operationId": "get_approval_v1_approvals__approval_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approval_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Approval Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One request (its asker or someone who may decide it)",
+        "tags": [
+          "approvals"
+        ]
+      }
+    },
+    "/v1/approvals/{approval_id}/decision": {
+      "post": {
+        "operationId": "decide_v1_approvals__approval_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approval_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Approval Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve or reject a request",
+        "tags": [
+          "approvals"
         ]
       }
     },

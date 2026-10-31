@@ -88,6 +88,9 @@ async def record(
     *,
     requested: RequestedMode,
     trace_id: str | None,
+    used: UsedMode = UsedMode.FAST,
+    route_reason: str | None = None,
+    run_id: UUID | None = None,
 ) -> UUID:
     db.add(
         Message(
@@ -102,8 +105,10 @@ async def record(
         role=MessageRole.ASSISTANT,
         content=result.text,
         mode_requested=requested,
-        mode_used=UsedMode.FAST,
-        route_reason=result.warning or (result.outcome if result.outcome != "answered" else None),
+        mode_used=used,
+        route_reason=route_reason
+        or result.warning
+        or (result.outcome if result.outcome != "answered" else None),
         pipeline_version_id=ctx.version_id,
         tokens_in=result.usage.prompt_tokens,
         tokens_out=result.usage.completion_tokens,
@@ -111,6 +116,7 @@ async def record(
         groundedness=result.groundedness,
         external_egress=result.external_egress,
         trace_id=trace_id,
+        run_id=run_id,
     )
     db.add(msg)
     await db.flush()

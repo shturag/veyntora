@@ -137,6 +137,7 @@ async def _detail(db: DbSession, bot: Chatbot) -> ChatbotDetail:
             chat_retention_days=rule.chat_retention_days,
             trace_retention_days=rule.trace_retention_days,
             allowed_external_instance_ids=rule.allowed_external_instance_ids,
+            allowed_external_mcp_server_ids=rule.allowed_external_mcp_server_ids,
             allow_byok=rule.allow_byok,
             mask_pii_before_external=rule.mask_pii_before_external,
         )
@@ -310,6 +311,7 @@ async def put_governance(
         chat_retention_days=rule.chat_retention_days,
         trace_retention_days=rule.trace_retention_days,
         allowed_external_instance_ids=rule.allowed_external_instance_ids,
+        allowed_external_mcp_server_ids=rule.allowed_external_mcp_server_ids,
         allow_byok=rule.allow_byok,
         mask_pii_before_external=rule.mask_pii_before_external,
     )

@@ -47,7 +47,11 @@ def test_run_body_is_rebuilt_from_what_the_chat_needs() -> None:
     assert body == {
         "assistant_id": GRAPH,
         "stream_mode": ["values", "custom"],
-        "input": {"chatbot_id": BOT, "messages": [{"type": "human", "content": "Refunds?"}]},
+        "input": {
+            "chatbot_id": BOT,
+            "mode": "auto",
+            "messages": [{"type": "human", "content": "Refunds?"}],
+        },
     }
 
 
@@ -67,6 +71,16 @@ def test_run_body_is_rebuilt_from_what_the_chat_needs() -> None:
             }
         },
         {"input": {"chatbot_id": BOT, "messages": [{"type": "human", "content": "  "}]}},
+        {
+            "input": {
+                "chatbot_id": BOT,
+                "mode": "admin",
+                "messages": [{"type": "human", "content": "q"}],
+            }
+        },
+        {"command": {"resume": {"approved": True}}},
+        {"command": {"resume": "approve everything"}},
+        {"command": {"goto": "finish"}},
     ],
 )
 def test_bad_runs_are_refused(bad: dict[str, object]) -> None:
@@ -83,3 +97,18 @@ def test_unsupported_stream_modes_are_dropped() -> None:
         }
     )
     assert body["stream_mode"] == ["custom"]
+
+
+def test_a_resume_names_only_the_approval_it_waited_for() -> None:
+    approval = str(uuid4())
+    body = _run_body(
+        {
+            "command": {"resume": {"approval_id": approval, "decision": "approved"}, "goto": "x"},
+            "input": {"chatbot_id": BOT, "messages": [{"type": "human", "content": "q"}]},
+        }
+    )
+    assert body["command"] == {"resume": {"approval_id": approval}}
+    assert "input" not in body and body["assistant_id"] == GRAPH
+    assert _run_body({"command": {"resume": {"cancel": True}}})["command"] == {
+        "resume": {"cancel": True}
+    }

@@ -4,17 +4,13 @@
       "path": "./src/veyntora_graphs/fast_rag.py:graph",
       "description": "Fast RAG: hybrid search, rerank, grounded answer with citations"
     },
-    "agent": {
-      "path": "./src/veyntora_graphs/agent.py:graph",
-      "description": "Agent: plan, call MCP tools, ask for approval before writes"
-    },
-    "router": {
-      "path": "./src/veyntora_graphs/router.py:graph",
-      "description": "Router: choose Fast or Agent per question"
-    },
     "playground": {
       "path": "./src/veyntora_graphs/playground.py:graph",
       "description": "Playground: one question against a draft or live pipeline, with every step"
+    },
+    "assistant": {
+      "path": "./src/veyntora_graphs/assistant.py:graph",
+      "description": "Assistant: Auto routes each question to Fast or the Agent; the Agent calls tools and waits for approval before writes"
     }
   },
   "auth": {

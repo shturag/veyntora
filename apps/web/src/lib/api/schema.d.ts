@@ -352,6 +352,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One run with its steps, tool calls and approvals */
+        get: operations["get_run_v1_admin_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/sources": {
         parameters: {
             query?: never;
@@ -678,6 +695,57 @@ export interface paths {
         head?: never;
         /** Classify, enable and set the policy of a tool */
         patch: operations["update_tool_v1_admin_tools__tool_id__patch"];
+        trace?: never;
+    };
+    "/v1/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requests to decide and the caller's own requests */
+        get: operations["list_approvals_v1_approvals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/approvals/{approval_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One request (its asker or someone who may decide it) */
+        get: operations["get_approval_v1_approvals__approval_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/approvals/{approval_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve or reject a request */
+        post: operations["decide_v1_approvals__approval_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/chat/conversations": {
@@ -1054,6 +1122,57 @@ export interface components {
              */
             tool_id: string;
         };
+        /**
+         * ApprovalDecision
+         * @enum {string}
+         */
+        ApprovalDecision: "pending" | "approved" | "rejected" | "expired";
+        /** ApprovalOut */
+        ApprovalOut: {
+            access: components["schemas"]["ToolAccess"] | null;
+            /** Arguments */
+            arguments: {
+                [key: string]: unknown;
+            };
+            /** Can Decide */
+            can_decide: boolean;
+            /** Chatbot */
+            chatbot: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decided By */
+            decided_by: string | null;
+            decision: components["schemas"]["ApprovalDecision"];
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mine */
+            mine: boolean;
+            /** Note */
+            note: string | null;
+            /** Requested By */
+            requested_by: string;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Server */
+            server: string | null;
+            /** Summary */
+            summary: string;
+            /** Tool */
+            tool: string | null;
+        };
         /** Attachment */
         Attachment: {
             /**
@@ -1369,6 +1488,13 @@ export interface components {
              */
             updated_at: string;
         };
+        /** DecisionIn */
+        DecisionIn: {
+            /** Approve */
+            approve: boolean;
+            /** Note */
+            note?: string | null;
+        };
         /** DocumentOut */
         DocumentOut: {
             /** Chunk Count */
@@ -1559,6 +1685,8 @@ export interface components {
             allow_byok: boolean;
             /** Allowed External Instance Ids */
             allowed_external_instance_ids?: string[];
+            /** Allowed External Mcp Server Ids */
+            allowed_external_mcp_server_ids?: string[];
             /**
              * Chat Retention Days
              * @default 90
@@ -1584,6 +1712,8 @@ export interface components {
             allow_byok: boolean;
             /** Allowed External Instance Ids */
             allowed_external_instance_ids?: string[];
+            /** Allowed External Mcp Server Ids */
+            allowed_external_mcp_server_ids?: string[];
             /**
              * Chat Retention Days
              * @default 90
@@ -2275,6 +2405,95 @@ export interface components {
             instructions: string;
             /** Router Instance Id */
             router_instance_id?: string | null;
+        };
+        /** RunApproval */
+        RunApproval: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decided At */
+            decided_at: string | null;
+            /** Decided By */
+            decided_by: string | null;
+            decision: components["schemas"]["ApprovalDecision"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string | null;
+            /** Summary */
+            summary: string;
+        };
+        /**
+         * RunKind
+         * @enum {string}
+         */
+        RunKind: "chat_agent" | "automation";
+        /** RunOut */
+        RunOut: {
+            /** Answer */
+            answer: string | null;
+            /** Approvals */
+            approvals: components["schemas"]["RunApproval"][];
+            /** Chatbot */
+            chatbot: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Groundedness */
+            groundedness: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["RunKind"];
+            /** Started By */
+            started_by: string | null;
+            status: components["schemas"]["RunStatus"];
+            /** Steps */
+            steps: {
+                [key: string]: unknown;
+            }[];
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Tool Calls */
+            tool_calls: components["schemas"]["RunToolCall"][];
+        };
+        /**
+         * RunStatus
+         * @enum {string}
+         */
+        RunStatus: "queued" | "running" | "waiting_approval" | "succeeded" | "failed" | "cancelled";
+        /** RunToolCall */
+        RunToolCall: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Error */
+            error: string | null;
+            /** Ms */
+            ms: number;
+            /** Ok */
+            ok: boolean;
+            /** Summary */
+            summary: string;
+            /** Tool */
+            tool: string | null;
         };
         /**
          * ScanStatus
@@ -3481,6 +3700,37 @@ export interface operations {
             };
         };
     };
+    get_run_v1_admin_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_sources_v1_admin_sources_get: {
         parameters: {
             query?: never;
@@ -4198,6 +4448,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ToolOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_approvals_v1_approvals_get: {
+        parameters: {
+            query?: {
+                scope?: "to_decide" | "mine" | "decided";
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_approval_v1_approvals__approval_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_v1_approvals__approval_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalOut"];
                 };
             };
             /** @description Validation Error */

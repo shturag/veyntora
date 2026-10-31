@@ -135,6 +135,12 @@ def _message(m: ChatMessage) -> dict[str, Any]:
         out["tool_call_id"] = m.tool_call_id
     if m.name:
         out["name"] = m.name
+    if m.tool_calls:
+        out["content"] = m.content or None
+        out["tool_calls"] = [
+            {"id": c.id, "type": "function", "function": {"name": c.name, "arguments": c.arguments}}
+            for c in m.tool_calls
+        ]
     return out
 
 

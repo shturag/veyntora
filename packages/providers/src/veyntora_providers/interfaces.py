@@ -41,6 +41,8 @@ class ChatMessage:
     content: str
     tool_call_id: str | None = None
     name: str | None = None
+    # The tool calls an assistant turn made; the next "tool" messages answer them.
+    tool_calls: tuple[ToolCall, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

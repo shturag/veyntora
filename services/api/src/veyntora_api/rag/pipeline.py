@@ -291,6 +291,9 @@ async def _context(
             spec.rerank.reranker_instance_id if spec.rerank.enabled else None,
             spec.rerank.fallback_instance_id if spec.rerank.enabled else None,
             spec.generation.llm_instance_id,
+            # Agent and router models: data rules apply to every model a run may use.
+            spec.agent.llm_instance_id,
+            spec.router.router_instance_id,
             *guard_instances(spec),
         )
         if i is not None

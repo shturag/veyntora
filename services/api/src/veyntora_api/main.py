@@ -27,8 +27,10 @@ from veyntora_api.routers import (
     admin_chatbots,
     admin_playground,
     admin_providers,
+    admin_runs,
     admin_sources,
     admin_tools,
+    approvals,
     auth,
     chat,
     me,
@@ -176,8 +178,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(me_settings.router)
     app.include_router(chat.router)
     app.include_router(admin_providers.router)
+    app.include_router(admin_runs.router)
     app.include_router(admin_chatbots.router)
     app.include_router(admin_playground.router)
     app.include_router(admin_sources.router)
     app.include_router(admin_tools.router)
+    app.include_router(approvals.router)
     return app

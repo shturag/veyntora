@@ -44,6 +44,10 @@ class GovernanceRule(IdMixin, TimestampMixin, VersionedMixin, Base):
     allowed_external_instance_ids: Mapped[list[UUID]] = mapped_column(
         ARRAY(sa.Uuid), server_default="{}", default=list
     )
+    # External MCP servers whose tools this chatbot's agent may call. Empty means none.
+    allowed_external_mcp_server_ids: Mapped[list[UUID]] = mapped_column(
+        ARRAY(sa.Uuid), server_default="{}", default=list
+    )
     allow_byok: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     mask_pii_before_external: Mapped[bool] = mapped_column(server_default=sa.true(), default=True)
 

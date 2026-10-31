@@ -37,7 +37,7 @@ from veyntora_api.storage import ObjectStore
 
 router = APIRouter(prefix="/v1/chat", tags=["chat"])
 
-GRAPH = "fast_rag"
+GRAPH = "assistant"
 _ID = r"[0-9a-f-]{36}"
 # (method, path) pairs the chat client may call on the graph server.
 _ALLOWED: list[tuple[str, re.Pattern[str]]] = [
@@ -51,13 +51,46 @@ _ALLOWED: list[tuple[str, re.Pattern[str]]] = [
     ("GET", re.compile(rf"threads/{_ID}/runs/{_ID}/stream")),
     ("POST", re.compile(rf"threads/{_ID}/runs/{_ID}/cancel")),
 ]
-_RUN_KEYS = {"input", "stream_mode", "on_disconnect", "multitask_strategy", "stream_resumable"}
+_RUN_KEYS = {
+    "input",
+    "command",
+    "stream_mode",
+    "on_disconnect",
+    "multitask_strategy",
+    "stream_resumable",
+}
+_MODES = {"auto", "fast", "agent"}
 _STREAM_MODES = {"values", "updates", "custom", "messages-tuple"}
 _SEARCH_KEYS = {"limit", "offset", "sort_by", "sort_order", "status"}
 
 
+def _resume(command: Any) -> dict[str, Any]:
+    resume = command.get("resume") if isinstance(command, dict) else None
+    if isinstance(resume, dict) and resume.get("cancel") is True and len(resume) == 1:
+        return {"resume": {"cancel": True}}
+    try:
+        approval_id = str(UUID(str((resume or {}).get("approval_id"))))
+    except (ValueError, AttributeError) as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown resume") from exc
+    return {"resume": {"approval_id": approval_id}}
+
+
+def _modes(out: dict[str, Any]) -> dict[str, Any]:
+    modes = out.get("stream_mode") or ["values"]
+    modes = [modes] if isinstance(modes, str) else modes
+    # The client asks for the modes it tracks; anything else (debug, events) is dropped.
+    out["stream_mode"] = [m for m in modes if m in _STREAM_MODES] or ["values"]
+    out["assistant_id"] = GRAPH
+    return out
+
+
 def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     out = {k: v for k, v in body.items() if k in _RUN_KEYS}
+    if "command" in out:
+        # Resuming after an approval: no new input, and nothing but the approval id.
+        out.pop("input", None)
+        out["command"] = _resume(out["command"])
+        return _modes(out)
     data = out.get("input")
     if not isinstance(data, dict):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "input is required")
@@ -79,13 +112,15 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(
             status.HTTP_422_UNPROCESSABLE_CONTENT, "chatbot_id is required"
         ) from exc
-    out["input"] = {"chatbot_id": chatbot_id, "messages": [{"type": "human", "content": content}]}
-    modes = out.get("stream_mode") or ["values"]
-    modes = [modes] if isinstance(modes, str) else modes
-    # The client asks for the modes it tracks; anything else (debug, events) is dropped.
-    out["stream_mode"] = [m for m in modes if m in _STREAM_MODES] or ["values"]
-    out["assistant_id"] = GRAPH
-    return out
+    mode = str(data.get("mode") or "auto")
+    if mode not in _MODES:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown mode")
+    out["input"] = {
+        "chatbot_id": chatbot_id,
+        "mode": mode,
+        "messages": [{"type": "human", "content": content}],
+    }
+    return _modes(out)
 
 
 @router.api_route("/lg/{path:path}", methods=["GET", "POST"], include_in_schema=False)
@@ -102,11 +137,14 @@ async def graph_proxy(
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "JSON object expected")
         if path.endswith("/runs/stream"):
             body = _run_body(raw)
-            allowed = await state.require_authz().check(
-                principal.fga, "can_chat", f"chatbot:{body['input']['chatbot_id']}"
-            )
-            if not allowed:
-                raise HTTPException(status.HTTP_403_FORBIDDEN, "No access to this assistant")
+            # A resume continues the user's own thread (the graph server checks the owner,
+            # and the graph checks access again at every step).
+            if "input" in body:
+                allowed = await state.require_authz().check(
+                    principal.fga, "can_chat", f"chatbot:{body['input']['chatbot_id']}"
+                )
+                if not allowed:
+                    raise HTTPException(status.HTTP_403_FORBIDDEN, "No access to this assistant")
         elif path == "threads":
             body = {}  # threads carry no client metadata; the owner is set by the server
         elif path == "threads/search":

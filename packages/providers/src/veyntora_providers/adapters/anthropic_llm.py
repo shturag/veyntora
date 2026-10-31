@@ -65,18 +65,22 @@ class AnthropicLLM:
             if m.role == "system":
                 continue
             if m.role == "tool":
-                convo.append(
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "tool_result",
-                                "tool_use_id": m.tool_call_id,
-                                "content": m.content,
-                            }
-                        ],
-                    }
+                block = {"type": "tool_result", "tool_use_id": m.tool_call_id, "content": m.content}
+                last = convo[-1] if convo else None
+                # All results of one turn go in one user message, right after the calls.
+                if last and last["role"] == "user" and isinstance(last["content"], list):
+                    last["content"].append(block)
+                else:
+                    convo.append({"role": "user", "content": [block]})
+            elif m.role == "assistant" and m.tool_calls:
+                content: list[dict[str, Any]] = (
+                    [{"type": "text", "text": m.content}] if m.content else []
                 )
+                content += [
+                    {"type": "tool_use", "id": c.id, "name": c.name, "input": _args(c.arguments)}
+                    for c in m.tool_calls
+                ]
+                convo.append({"role": "assistant", "content": content})
             else:
                 convo.append({"role": m.role, "content": m.content})
         return system, convo
@@ -148,6 +152,17 @@ class AnthropicLLM:
         except Exception as exc:
             return HealthResult(False, (time.perf_counter() - start) * 1000, type(exc).__name__)
         return HealthResult(True, (time.perf_counter() - start) * 1000)
+
+
+def _args(arguments: str) -> dict[str, Any]:
+    """Tool call arguments (a JSON object string) as the API's `input`."""
+    import json  # noqa: PLC0415
+
+    try:
+        value = json.loads(arguments or "{}")
+    except ValueError:
+        return {}
+    return value if isinstance(value, dict) else {}
 
 
 def _json(value: object) -> str:

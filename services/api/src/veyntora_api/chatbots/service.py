@@ -28,6 +28,7 @@ from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import Group, User
 from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAttachment
 from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.tools import McpServer, McpServerStatus, Tool, ToolAccess
 from veyntora_api.knowledge.service import enqueue
 from veyntora_api.providers.service import with_fallbacks
 
@@ -73,6 +74,7 @@ class GovernanceInput(BaseModel):
     chat_retention_days: int = Field(90, ge=1, le=3650)
     trace_retention_days: int = Field(30, ge=1, le=3650)
     allowed_external_instance_ids: list[UUID] = Field(default_factory=list)
+    allowed_external_mcp_server_ids: list[UUID] = Field(default_factory=list)
     allow_byok: bool = False
     mask_pii_before_external: bool = True
 
@@ -234,6 +236,41 @@ async def external_problems(
     return problems
 
 
+async def tool_problems(db: AsyncSession, bot: Chatbot, spec: PipelineSpec) -> list[str]:
+    """Bound tools must be usable; an external MCP server needs the chatbot's data rule."""
+    bound = [b.tool_id for b in spec.agent.tools if b.enabled]
+    if not bound:
+        return []
+    rows = {
+        t.id: (t, server)
+        for t, server in (
+            await db.execute(
+                sa.select(Tool, McpServer)
+                .join(McpServer, McpServer.id == Tool.server_id)
+                .where(Tool.id.in_(bound))
+            )
+        ).all()
+    }
+    rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
+    allowed = set(rule.allowed_external_mcp_server_ids) if rule else set()
+    problems = []
+    for tool_id in bound:
+        found = rows.get(tool_id)
+        if found is None:
+            problems.append(f"agent tool {tool_id} no longer exists")
+            continue
+        tool, server = found
+        if not tool.enabled or tool.access is ToolAccess.DESTRUCTIVE:
+            problems.append(f"agent tool {tool.name} is not enabled")
+        elif server.status is not McpServerStatus.ACTIVE:
+            problems.append(f"agent tool {tool.name}: server {server.name} is not active")
+        elif server.hosting == "external" and server.id not in allowed:
+            problems.append(
+                f"{server.name} is an external MCP server; allow it in this chatbot's data rules"
+            )
+    return problems
+
+
 async def save_draft(
     db: AsyncSession,
     ctx: RequestContext,
@@ -280,7 +317,12 @@ async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
     spec = PipelineSpec.model_validate(draft.spec)
     problems = spec.publish_problems()
     ref_problems, rows = await reference_problems(db, spec)
-    return problems + ref_problems + await external_problems(db, bot, rows, spec)
+    return (
+        problems
+        + ref_problems
+        + await external_problems(db, bot, rows, spec)
+        + await tool_problems(db, bot, spec)
+    )
 
 
 async def publish(
@@ -446,8 +488,18 @@ async def set_governance(
                 raise ChatbotError(f"unknown provider {i}")
             if row.hosting is not Hosting.EXTERNAL:
                 raise ChatbotError(f"{row.name} is self-hosted; only external providers are listed")
+    servers = set(data.allowed_external_mcp_server_ids)
+    for server_id in servers:
+        server = await db.get(McpServer, server_id)
+        if server is None:
+            raise ChatbotError(f"unknown MCP server {server_id}")
+        if server.hosting != "external":
+            raise ChatbotError(
+                f"{server.name} runs inside the network; only external ones are listed"
+            )
     values: dict[str, Any] = data.model_dump()
     values["allowed_external_instance_ids"] = sorted(ids, key=str)
+    values["allowed_external_mcp_server_ids"] = sorted(servers, key=str)
     svc = ConfigService(db, ctx)
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     if rule is None:

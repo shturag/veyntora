@@ -76,6 +76,8 @@ class Message(IdMixin, Base):
     # True when any external (non self-hosted) provider handled part of this request.
     external_egress: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     trace_id: Mapped[str | None] = mapped_column(sa.String(64), index=True)
+    # The agent run behind this answer (Agent mode).
+    run_id: Mapped[UUID | None] = mapped_column(sa.ForeignKey("runs.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
 
 
