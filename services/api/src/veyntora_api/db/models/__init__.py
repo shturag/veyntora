@@ -51,7 +51,15 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.models.notifications import Delivery, Notification
 from veyntora_api.db.models.platform import PlatformSettings, StatusNotice
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance, ProviderInstanceChatbot
-from veyntora_api.db.models.quality import Budget, EvalCase, EvalRun, EvalSet, UsageRecord
+from veyntora_api.db.models.quality import (
+    Budget,
+    EvalCase,
+    EvalGeneration,
+    EvalResult,
+    EvalRun,
+    EvalSet,
+    UsageRecord,
+)
 from veyntora_api.db.models.tools import McpServer, Tool, ToolCall, ToolPolicy
 
 __all__ = [
@@ -78,6 +86,8 @@ __all__ = [
     "Document",
     "DocumentIndex",
     "EvalCase",
+    "EvalGeneration",
+    "EvalResult",
     "EvalRun",
     "EvalSet",
     "Feedback",

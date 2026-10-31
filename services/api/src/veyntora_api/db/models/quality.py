@@ -59,6 +59,9 @@ class EvalCase(IdMixin, TimestampMixin, Base):
     feedback_id: Mapped[UUID | None] = mapped_column(
         sa.ForeignKey("feedback.id", ondelete="SET NULL")
     )
+    # Generated or taken from feedback: a person checks it before it counts.
+    needs_review: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
+    reviewed_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
 
 
 class EvalRun(IdMixin, Base):
@@ -79,6 +82,61 @@ class EvalRun(IdMixin, Base):
     gate_detail: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     report_key: Mapped[str | None] = mapped_column(sa.String(1024))
     started_by: Mapped[UUID | None] = mapped_column(sa.ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # The exact pipeline it tested (a later edit of the draft needs a new run).
+    spec_hash: Mapped[str | None] = mapped_column(sa.String(64))
+    judge_instance_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("provider_instances.id", ondelete="SET NULL")
+    )
+    cases_total: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+    cases_done: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+    error: Mapped[str | None] = mapped_column(sa.Text)
+
+
+class EvalResult(IdMixin, Base):
+    """One case of a run: the answer, its scores and why it passed or failed."""
+
+    __tablename__ = "eval_results"
+
+    run_id: Mapped[UUID] = mapped_column(
+        sa.ForeignKey("eval_runs.id", ondelete="CASCADE"), index=True
+    )
+    case_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("eval_cases.id", ondelete="SET NULL")
+    )
+    question: Mapped[str] = mapped_column(sa.Text)
+    outcome: Mapped[str] = mapped_column(sa.String(16))
+    answer: Mapped[str] = mapped_column(sa.Text, default="", server_default="")
+    # {"faithfulness": 0.9, "answer_relevance": 0.8, ...}; missing metrics were not applicable.
+    metrics: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
+    called_tools: Mapped[list[Any]] = mapped_column(server_default="[]", default=list)
+    cited: Mapped[list[Any]] = mapped_column(server_default="[]", default=list)
+    passed: Mapped[bool] = mapped_column(default=False)
+    reason: Mapped[str] = mapped_column(sa.Text, default="", server_default="")
+    latency_ms: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+
+
+class EvalGeneration(IdMixin, Base):
+    """Draft cases written by a model from a source's documents, for review."""
+
+    __tablename__ = "eval_generations"
+
+    eval_set_id: Mapped[UUID] = mapped_column(sa.ForeignKey("eval_sets.id", ondelete="CASCADE"))
+    source_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("data_sources.id", ondelete="SET NULL")
+    )
+    count: Mapped[int] = mapped_column(sa.Integer)
+    # mixed | simple | multi_step
+    question_types: Mapped[str] = mapped_column(
+        sa.String(16), default="mixed", server_default="mixed"
+    )
+    status: Mapped[JobStatus] = mapped_column(str_enum(JobStatus, "eval_generation_status"))
+    made: Mapped[int] = mapped_column(sa.Integer, default=0, server_default="0")
+    error: Mapped[str | None] = mapped_column(sa.Text)
+    requested_by: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("users.id", ondelete="SET NULL")
+    )
     created_at: Mapped[datetime] = utcnow_col(nullable=False)
     finished_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
 

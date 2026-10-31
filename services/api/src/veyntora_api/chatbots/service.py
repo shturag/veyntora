@@ -29,6 +29,7 @@ from veyntora_api.db.models.identity import Group, User
 from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAttachment
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.models.tools import McpServer, McpServerStatus, Tool, ToolAccess
+from veyntora_api.evaluation import service as evaluation
 from veyntora_api.knowledge.service import enqueue
 from veyntora_api.providers.service import with_fallbacks
 
@@ -377,6 +378,7 @@ async def publish_problems(db: AsyncSession, bot: Chatbot) -> list[str]:
         + await external_problems(db, bot, rows, spec)
         + await tool_problems(db, bot, spec)
         + await flow_approval_problems(db, spec)
+        + await evaluation.gate_problems(db, bot)
     )
 
 

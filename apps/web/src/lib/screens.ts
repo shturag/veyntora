@@ -470,6 +470,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/evaluation",
     shell: "admin",
     phase: 6,
+    built: true,
     area: "evaluation",
   },
   {
@@ -478,6 +479,7 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/evaluation/sets",
     shell: "admin",
     phase: 6,
+    built: true,
     area: "evaluation",
   },
   {

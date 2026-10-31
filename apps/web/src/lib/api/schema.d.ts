@@ -752,6 +752,213 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scores by version, the gate and recent runs */
+        get: operations["overview_v1_admin_evaluation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/cases/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit a case (saving reviews it) */
+        put: operations["edit_case_v1_admin_evaluation_cases__case_id__put"];
+        post?: never;
+        /** Delete a case */
+        delete: operations["delete_case_v1_admin_evaluation_cases__case_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/gate/{chatbot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The chatbot's publish gate (owners) */
+        put: operations["put_gate_v1_admin_evaluation_gate__chatbot_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/judge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The judge model for evaluations */
+        put: operations["put_judge_v1_admin_evaluation_judge_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an evaluation run */
+        post: operations["start_run_v1_admin_evaluation_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One run with every case */
+        get: operations["get_run_v1_admin_evaluation_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Eval sets */
+        get: operations["list_sets_v1_admin_evaluation_sets_get"];
+        put?: never;
+        /** Create an eval set */
+        post: operations["create_set_v1_admin_evaluation_sets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/sets/{set_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One eval set with its cases */
+        get: operations["get_set_v1_admin_evaluation_sets__set_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete an eval set */
+        delete: operations["delete_set_v1_admin_evaluation_sets__set_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/sets/{set_id}/cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a case */
+        post: operations["add_case_v1_admin_evaluation_sets__set_id__cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/sets/{set_id}/from-feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add thumbs-down answers as cases to review */
+        post: operations["add_from_feedback_v1_admin_evaluation_sets__set_id__from_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/sets/{set_id}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate cases from documents */
+        post: operations["generate_cases_v1_admin_evaluation_sets__set_id__generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/evaluation/sets/{set_id}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import cases from CSV */
+        post: operations["import_cases_v1_admin_evaluation_sets__set_id__import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/groups": {
         parameters: {
             query?: never;
@@ -3097,6 +3304,11 @@ export interface components {
             /** Server */
             server: string;
         };
+        /** Body_import_cases_v1_admin_evaluation_sets__set_id__import_post */
+        Body_import_cases_v1_admin_evaluation_sets__set_id__import_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_documents_v1_admin_sources__source_id__documents_post */
         Body_upload_documents_v1_admin_sources__source_id__documents_post: {
             /** Files */
@@ -3265,6 +3477,50 @@ export interface components {
          * @enum {string}
          */
         Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail";
+        /** CaseIdOut */
+        CaseIdOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /** CaseInput */
+        CaseInput: {
+            /** Expected Answer */
+            expected_answer?: string | null;
+            /** Expected Sources */
+            expected_sources?: string[];
+            /** Expected Tools */
+            expected_tools?: string[];
+            /** Question */
+            question: string;
+            /** Tags */
+            tags?: string[];
+        };
+        /** CaseOut */
+        CaseOut: {
+            /** Expected Answer */
+            expected_answer: string | null;
+            /** Expected Sources */
+            expected_sources: unknown[];
+            /** Expected Tools */
+            expected_tools: unknown[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Passed */
+            last_passed: boolean | null;
+            /** Needs Review */
+            needs_review: boolean;
+            origin: components["schemas"]["EvalCaseOrigin"];
+            /** Question */
+            question: string;
+            /** Tags */
+            tags: string[];
+        };
         /** ChatbotDetail */
         ChatbotDetail: {
             /** Answer Language */
@@ -3725,6 +3981,37 @@ export interface components {
             slug: string;
         };
         /**
+         * EvalCaseOrigin
+         * @enum {string}
+         */
+        EvalCaseOrigin: "manual" | "imported" | "generated" | "feedback";
+        /** EvaluationOut */
+        EvaluationOut: {
+            /** Can Edit */
+            can_edit: boolean;
+            /** Can Publish */
+            can_publish: boolean;
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /** Chatbots */
+            chatbots: components["schemas"]["SetRef"][];
+            /** Failing */
+            failing: components["schemas"]["FailingCase"][];
+            gate: components["schemas"]["GateSettings-Output"];
+            /** Judge Instance Id */
+            judge_instance_id: string | null;
+            /** Judges */
+            judges: components["schemas"]["JudgeOption"][];
+            /** Runs */
+            runs: components["schemas"]["veyntora_api__routers__admin_evaluation__RunOut"][];
+            /** Set Id */
+            set_id: string | null;
+            /** Sets */
+            sets: components["schemas"]["SetRef"][];
+            /** Versions */
+            versions: components["schemas"]["VersionScores"][];
+        };
+        /**
          * EventTrigger
          * @description A signed webhook from another app (Jira, a calendar, any system).
          */
@@ -3814,8 +4101,19 @@ export interface components {
             /** Teams */
             teams: components["schemas"]["GroupRef"][];
         };
+        /** FailingCase */
+        FailingCase: {
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Question */
+            question: string;
+            /** Reason */
+            reason: string;
+        };
         /** FeedbackInput */
-        FeedbackInput: {
+        "FeedbackInput-Output": {
             /** Comment */
             comment?: string | null;
             rating: components["schemas"]["Rating"];
@@ -3978,6 +4276,80 @@ export interface components {
             name: string;
             /** Theme */
             theme: string;
+        };
+        /** GateSettings */
+        "GateSettings-Input": {
+            /**
+             * Max Drop
+             * @default 0.02
+             */
+            max_drop: number;
+            /**
+             * Min Answer Relevance
+             * @default 0.8
+             */
+            min_answer_relevance: number;
+            /**
+             * Min Faithfulness
+             * @default 0.85
+             */
+            min_faithfulness: number;
+            /** Set Ids */
+            set_ids?: string[];
+        };
+        /** GateSettings */
+        "GateSettings-Output": {
+            /**
+             * Max Drop
+             * @default 0.02
+             */
+            max_drop: number;
+            /**
+             * Min Answer Relevance
+             * @default 0.8
+             */
+            min_answer_relevance: number;
+            /**
+             * Min Faithfulness
+             * @default 0.85
+             */
+            min_faithfulness: number;
+            /** Set Ids */
+            set_ids: string[];
+        };
+        /** GenerateInput */
+        GenerateInput: {
+            /**
+             * Count
+             * @default 20
+             */
+            count: number;
+            /**
+             * Question Types
+             * @default mixed
+             * @enum {string}
+             */
+            question_types: "mixed" | "simple" | "multi_step";
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+        };
+        /** GenerationOut */
+        GenerationOut: {
+            /** Count */
+            count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Made */
+            made: number;
+            status: components["schemas"]["JobStatus"];
         };
         /** GenerationSpec */
         GenerationSpec: {
@@ -4534,6 +4906,13 @@ export interface components {
             /** Suspended */
             suspended: boolean;
         };
+        /** ImportOut */
+        ImportOut: {
+            /** Imported */
+            imported: number;
+            /** Skipped */
+            skipped: number;
+        };
         /**
          * IngestJobKind
          * @enum {string}
@@ -4679,6 +5058,11 @@ export interface components {
          * @enum {string}
          */
         Join: "and" | "or";
+        /** JudgeInput */
+        JudgeInput: {
+            /** Judge Instance Id */
+            judge_instance_id: string | null;
+        };
         /** JudgeOption */
         JudgeOption: {
             /** Hosting */
@@ -5236,6 +5620,11 @@ export interface components {
              */
             schema_version: 1;
         };
+        /**
+         * PipelineStatus
+         * @enum {string}
+         */
+        PipelineStatus: "draft" | "canary" | "live" | "archived";
         /** PlaygroundResult */
         PlaygroundResult: {
             /**
@@ -5579,6 +5968,29 @@ export interface components {
             /** Number */
             number: number;
         };
+        /** ResultOut */
+        ResultOut: {
+            /** Answer */
+            answer: string;
+            /** Called Tools */
+            called_tools: unknown[];
+            /** Cited */
+            cited: unknown[];
+            /** Latency Ms */
+            latency_ms: number;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Outcome */
+            outcome: string;
+            /** Passed */
+            passed: boolean;
+            /** Question */
+            question: string;
+            /** Reason */
+            reason: string;
+        };
         /** ResumeIn */
         ResumeIn: {
             /** Approval Id */
@@ -5742,6 +6154,65 @@ export interface components {
             /** Via */
             via: string;
         };
+        /** RunDetail */
+        RunDetail: {
+            /** Cases Done */
+            cases_done: number;
+            /** Cases Total */
+            cases_total: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Gate Detail */
+            gate_detail: {
+                [key: string]: unknown;
+            };
+            /** Gate Passed */
+            gate_passed: boolean | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Results */
+            results: components["schemas"]["ResultOut"][];
+            /** Scores */
+            scores: {
+                [key: string]: unknown;
+            };
+            /** Set Name */
+            set_name: string;
+            status: components["schemas"]["JobStatus"];
+            /** Version */
+            version: number | null;
+        };
+        /** RunInput */
+        RunInput: {
+            /**
+             * Chatbot Id
+             * Format: uuid
+             */
+            chatbot_id: string;
+            /**
+             * Eval Set Id
+             * Format: uuid
+             */
+            eval_set_id: string;
+            /** Judge Instance Id */
+            judge_instance_id?: string | null;
+            /**
+             * Which
+             * @default draft
+             * @enum {string}
+             */
+            which: "draft" | "live";
+        };
         /**
          * RunKind
          * @enum {string}
@@ -5758,79 +6229,6 @@ export interface components {
             event?: {
                 [key: string]: unknown;
             };
-        };
-        /** RunOut */
-        RunOut: {
-            /** Answer */
-            answer: string | null;
-            /** Approvals */
-            approvals: components["schemas"]["RunApproval"][];
-            /** Automation */
-            automation?: string | null;
-            /** Automation Id */
-            automation_id?: string | null;
-            /** Automation Version */
-            automation_version?: number | null;
-            /** Chatbot */
-            chatbot: string | null;
-            /**
-             * Cost
-             * @default 0
-             */
-            cost: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Deliveries
-             * @default []
-             */
-            deliveries: components["schemas"]["RunDelivery"][];
-            /**
-             * Dry Run
-             * @default false
-             */
-            dry_run: boolean;
-            /** Error */
-            error: string | null;
-            /**
-             * Event
-             * @default {}
-             */
-            event: {
-                [key: string]: unknown;
-            };
-            /** Finished At */
-            finished_at: string | null;
-            /** Groundedness */
-            groundedness: number | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            kind: components["schemas"]["RunKind"];
-            /** Runs As */
-            runs_as?: string | null;
-            /** Started By */
-            started_by: string | null;
-            status: components["schemas"]["RunStatus"];
-            /** Steps */
-            steps: {
-                [key: string]: unknown;
-            }[];
-            /** Summary */
-            summary?: string | null;
-            /** Tokens In */
-            tokens_in: number;
-            /** Tokens Out */
-            tokens_out: number;
-            /** Tool Calls */
-            tool_calls: components["schemas"]["RunToolCall"][];
-            /** Trigger */
-            trigger?: string | null;
         };
         /** RunRow */
         RunRow: {
@@ -6224,6 +6622,64 @@ export interface components {
         SessionInfo: {
             /** Signed In */
             signed_in: boolean;
+        };
+        /** SetDetail */
+        SetDetail: {
+            /** Can Edit */
+            can_edit: boolean;
+            /** Cases */
+            cases: components["schemas"]["CaseOut"][];
+            /** Chatbot */
+            chatbot: string | null;
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /** Description */
+            description: string;
+            /** Generations */
+            generations: components["schemas"]["GenerationOut"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** In Gate */
+            in_gate: boolean;
+            last_run: components["schemas"]["veyntora_api__routers__admin_evaluation__RunOut"] | null;
+            /** Name */
+            name: string;
+            /** Sources */
+            sources: components["schemas"]["SetRef"][];
+        };
+        /** SetInput */
+        SetInput: {
+            /** Chatbot Id */
+            chatbot_id?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * From Feedback
+             * @default false
+             */
+            from_feedback: boolean;
+            /** Name */
+            name: string;
+        };
+        /** SetRef */
+        SetRef: {
+            /** Cases */
+            cases: number;
+            /** Chatbot Id */
+            chatbot_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** SettingsOut */
         SettingsOut: {
@@ -6701,6 +7157,26 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** VersionScores */
+        VersionScores: {
+            /** Gate Passed */
+            gate_passed: boolean | null;
+            /** Run Id */
+            run_id: string | null;
+            /** Scores */
+            scores: {
+                [key: string]: unknown;
+            };
+            /** Spec Matches */
+            spec_matches: boolean;
+            status: components["schemas"]["PipelineStatus"];
+            /** Version */
+            version: number;
+            /** Vs Live */
+            vs_live: {
+                [key: string]: number;
+            };
+        };
         /**
          * WatchEvery
          * @enum {string}
@@ -6839,6 +7315,47 @@ export interface components {
              */
             run_id: string;
         };
+        /** FeedbackInput */
+        veyntora_api__routers__admin_evaluation__FeedbackInput: {
+            /** Feedback Ids */
+            feedback_ids: string[];
+        };
+        /** RunOut */
+        veyntora_api__routers__admin_evaluation__RunOut: {
+            /** Cases Done */
+            cases_done: number;
+            /** Cases Total */
+            cases_total: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Gate Detail */
+            gate_detail: {
+                [key: string]: unknown;
+            };
+            /** Gate Passed */
+            gate_passed: boolean | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Scores */
+            scores: {
+                [key: string]: unknown;
+            };
+            /** Set Name */
+            set_name: string;
+            status: components["schemas"]["JobStatus"];
+            /** Version */
+            version: number | null;
+        };
         /** Started */
         veyntora_api__routers__admin_knowledge_health__Started: {
             /**
@@ -6863,6 +7380,79 @@ export interface components {
              */
             secret: string;
         };
+        /** RunOut */
+        veyntora_api__routers__admin_runs__RunOut: {
+            /** Answer */
+            answer: string | null;
+            /** Approvals */
+            approvals: components["schemas"]["RunApproval"][];
+            /** Automation */
+            automation?: string | null;
+            /** Automation Id */
+            automation_id?: string | null;
+            /** Automation Version */
+            automation_version?: number | null;
+            /** Chatbot */
+            chatbot: string | null;
+            /**
+             * Cost
+             * @default 0
+             */
+            cost: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Deliveries
+             * @default []
+             */
+            deliveries: components["schemas"]["RunDelivery"][];
+            /**
+             * Dry Run
+             * @default false
+             */
+            dry_run: boolean;
+            /** Error */
+            error: string | null;
+            /**
+             * Event
+             * @default {}
+             */
+            event: {
+                [key: string]: unknown;
+            };
+            /** Finished At */
+            finished_at: string | null;
+            /** Groundedness */
+            groundedness: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["RunKind"];
+            /** Runs As */
+            runs_as?: string | null;
+            /** Started By */
+            started_by: string | null;
+            status: components["schemas"]["RunStatus"];
+            /** Steps */
+            steps: {
+                [key: string]: unknown;
+            }[];
+            /** Summary */
+            summary?: string | null;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+            /** Tool Calls */
+            tool_calls: components["schemas"]["RunToolCall"][];
+            /** Trigger */
+            trigger?: string | null;
+        };
         /** SecretInput */
         veyntora_api__routers__admin_sources__SecretInput: {
             /** Expires At */
@@ -6872,6 +7462,14 @@ export interface components {
              * Format: password
              */
             secret: string;
+        };
+        /** FeedbackInput */
+        veyntora_api__routers__chat__FeedbackInput: {
+            /** Comment */
+            comment?: string | null;
+            rating: components["schemas"]["Rating"];
+            /** Reason */
+            reason?: ("wrong" | "outdated" | "incomplete" | "not_relevant" | "other") | null;
         };
         /** SaveInput */
         veyntora_api__routers__me_saved__SaveInput: {
@@ -8480,6 +9078,489 @@ export interface operations {
             };
         };
     };
+    overview_v1_admin_evaluation_get: {
+        parameters: {
+            query?: {
+                chatbot_id?: string | null;
+                set_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_case_v1_admin_evaluation_cases__case_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseIdOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_case_v1_admin_evaluation_cases__case_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_gate_v1_admin_evaluation_gate__chatbot_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                chatbot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GateSettings-Input"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GateSettings-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_judge_v1_admin_evaluation_judge_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JudgeInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JudgeInput"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_run_v1_admin_evaluation_runs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_evaluation__RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_run_v1_admin_evaluation_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sets_v1_admin_evaluation_sets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetRef"][];
+                };
+            };
+        };
+    };
+    create_set_v1_admin_evaluation_sets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetRef"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_set_v1_admin_evaluation_sets__set_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_set_v1_admin_evaluation_sets__set_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_case_v1_admin_evaluation_sets__set_id__cases_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaseInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseIdOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_from_feedback_v1_admin_evaluation_sets__set_id__from_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__routers__admin_evaluation__FeedbackInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_cases_v1_admin_evaluation_sets__set_id__generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_cases_v1_admin_evaluation_sets__set_id__import_post: {
+        parameters: {
+            query?: {
+                skip_duplicates?: boolean;
+            };
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_cases_v1_admin_evaluation_sets__set_id__import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_groups_v1_admin_groups_get: {
         parameters: {
             query?: never;
@@ -9468,7 +10549,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RunOut"];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_runs__RunOut"];
                 };
             };
             /** @description Validation Error */
@@ -10709,7 +11790,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["FeedbackInput"];
+                "application/json": components["schemas"]["veyntora_api__routers__chat__FeedbackInput"];
             };
         };
         responses: {
@@ -10719,7 +11800,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["FeedbackInput"];
+                    "application/json": components["schemas"]["FeedbackInput-Output"];
                 };
             };
             /** @description Validation Error */

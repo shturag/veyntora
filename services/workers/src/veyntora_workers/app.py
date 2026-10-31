@@ -26,7 +26,7 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.people.service import refresh_groups
 from veyntora_api.settings import get_settings
 
-from veyntora_workers import automations, knowledge_health, saved_answers
+from veyntora_workers import automations, evaluations, knowledge_health, saved_answers
 from veyntora_workers.ingest import requeue_stuck, run_pending
 from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
@@ -68,6 +68,11 @@ app.conf.update(
             "task": "veyntora.knowledge_scan",
             "schedule": timedelta(minutes=1),
             "options": {"expires": 60},
+        },
+        "eval-runs": {
+            "task": "veyntora.eval_runs",
+            "schedule": timedelta(seconds=10),
+            "options": {"expires": 10},
         },
         "saved-answers": {
             "task": "veyntora.saved_answers",
@@ -216,3 +221,11 @@ def knowledge_scan() -> str | None:
 @app.task(name="veyntora.saved_answers")
 def saved_answers_check() -> int:
     return _run(_with_http(saved_answers.check))
+
+
+@app.task(name="veyntora.eval_runs")
+def eval_runs() -> list[str | None]:
+    async def go() -> list[str | None]:
+        return [await evaluations.generate_next(settings), await evaluations.run_next(settings)]
+
+    return _run(go())

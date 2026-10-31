@@ -46,6 +46,13 @@ class Chatbot(IdMixin, TimestampMixin, VersionedMixin, Base):
         sa.ForeignKey("pipeline_versions.id", use_alter=True, ondelete="SET NULL")
     )
     canary_percent: Mapped[int] = mapped_column(sa.SmallInteger, default=0, server_default="0")
+    canary_started_at: Mapped[datetime | None] = mapped_column(sa.DateTime(timezone=True))
+    # Publish gate (owners only): {"set_ids": [...], "min_faithfulness": 0.85,
+    # "min_answer_relevance": 0.8, "max_drop": 0.02}.
+    eval_gate: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
+    # Canary guard: {"auto_rollback": true, "max_error_rate": 0.02,
+    # "max_thumbs_down_increase": 0.05, "min_answers": 30}.
+    canary_guard: Mapped[dict[str, Any]] = mapped_column(server_default="{}", default=dict)
     status: Mapped[ChatbotStatus] = mapped_column(str_enum(ChatbotStatus, "chatbot_status"))
     # BCP-47 tag, or "auto" to answer in the language of the question.
     answer_language: Mapped[str] = mapped_column(

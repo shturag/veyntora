@@ -1768,6 +1768,20 @@
         "title": "AvailableTool",
         "type": "object"
       },
+      "Body_import_cases_v1_admin_evaluation_sets__set_id__import_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_cases_v1_admin_evaluation_sets__set_id__import_post",
+        "type": "object"
+      },
       "Body_upload_documents_v1_admin_sources__source_id__documents_post": {
         "properties": {
           "files": {
@@ -2274,6 +2288,144 @@
         ],
         "title": "Capability",
         "type": "string"
+      },
+      "CaseIdOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "CaseIdOut",
+        "type": "object"
+      },
+      "CaseInput": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_answer": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Answer"
+          },
+          "expected_sources": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Expected Sources",
+            "type": "array"
+          },
+          "expected_tools": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Expected Tools",
+            "type": "array"
+          },
+          "question": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "CaseInput",
+        "type": "object"
+      },
+      "CaseOut": {
+        "properties": {
+          "expected_answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Answer"
+          },
+          "expected_sources": {
+            "items": {},
+            "title": "Expected Sources",
+            "type": "array"
+          },
+          "expected_tools": {
+            "items": {},
+            "title": "Expected Tools",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Passed"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/EvalCaseOrigin"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "expected_answer",
+          "expected_sources",
+          "expected_tools",
+          "tags",
+          "origin",
+          "needs_review",
+          "last_passed"
+        ],
+        "title": "CaseOut",
+        "type": "object"
       },
       "ChatbotDetail": {
         "properties": {
@@ -3574,6 +3726,125 @@
         "title": "DuplicateIn",
         "type": "object"
       },
+      "EvalCaseOrigin": {
+        "enum": [
+          "manual",
+          "imported",
+          "generated",
+          "feedback"
+        ],
+        "title": "EvalCaseOrigin",
+        "type": "string"
+      },
+      "EvaluationOut": {
+        "properties": {
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
+          "can_publish": {
+            "title": "Can Publish",
+            "type": "boolean"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "chatbots": {
+            "items": {
+              "$ref": "#/components/schemas/SetRef"
+            },
+            "title": "Chatbots",
+            "type": "array"
+          },
+          "failing": {
+            "items": {
+              "$ref": "#/components/schemas/FailingCase"
+            },
+            "title": "Failing",
+            "type": "array"
+          },
+          "gate": {
+            "$ref": "#/components/schemas/GateSettings-Output"
+          },
+          "judge_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Instance Id"
+          },
+          "judges": {
+            "items": {
+              "$ref": "#/components/schemas/JudgeOption"
+            },
+            "title": "Judges",
+            "type": "array"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_api__routers__admin_evaluation__RunOut"
+            },
+            "title": "Runs",
+            "type": "array"
+          },
+          "set_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Set Id"
+          },
+          "sets": {
+            "items": {
+              "$ref": "#/components/schemas/SetRef"
+            },
+            "title": "Sets",
+            "type": "array"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/VersionScores"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chatbots",
+          "chatbot_id",
+          "sets",
+          "set_id",
+          "gate",
+          "versions",
+          "failing",
+          "runs",
+          "judge_instance_id",
+          "judges",
+          "can_edit",
+          "can_publish"
+        ],
+        "title": "EvaluationOut",
+        "type": "object"
+      },
       "EventTrigger-Input": {
         "additionalProperties": false,
         "description": "A signed webhook from another app (Jira, a calendar, any system).",
@@ -3779,7 +4050,31 @@
         "title": "ExpertsOut",
         "type": "object"
       },
-      "FeedbackInput": {
+      "FailingCase": {
+        "properties": {
+          "metrics": {
+            "additionalProperties": true,
+            "title": "Metrics",
+            "type": "object"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "reason",
+          "metrics"
+        ],
+        "title": "FailingCase",
+        "type": "object"
+      },
+      "FeedbackInput-Output": {
         "properties": {
           "comment": {
             "anyOf": [
@@ -4152,6 +4447,158 @@
           "theme"
         ],
         "title": "FrameConfig",
+        "type": "object"
+      },
+      "GateSettings-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "max_drop": {
+            "default": 0.02,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Drop",
+            "type": "number"
+          },
+          "min_answer_relevance": {
+            "default": 0.8,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Answer Relevance",
+            "type": "number"
+          },
+          "min_faithfulness": {
+            "default": 0.85,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Faithfulness",
+            "type": "number"
+          },
+          "set_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Set Ids",
+            "type": "array"
+          }
+        },
+        "title": "GateSettings",
+        "type": "object"
+      },
+      "GateSettings-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "max_drop": {
+            "default": 0.02,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Drop",
+            "type": "number"
+          },
+          "min_answer_relevance": {
+            "default": 0.8,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Answer Relevance",
+            "type": "number"
+          },
+          "min_faithfulness": {
+            "default": 0.85,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min Faithfulness",
+            "type": "number"
+          },
+          "set_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Set Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "set_ids",
+          "min_faithfulness",
+          "min_answer_relevance",
+          "max_drop"
+        ],
+        "title": "GateSettings",
+        "type": "object"
+      },
+      "GenerateInput": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "default": 20,
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "question_types": {
+            "default": "mixed",
+            "enum": [
+              "mixed",
+              "simple",
+              "multi_step"
+            ],
+            "title": "Question Types",
+            "type": "string"
+          },
+          "source_id": {
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id"
+        ],
+        "title": "GenerateInput",
+        "type": "object"
+      },
+      "GenerationOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "made": {
+            "title": "Made",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          }
+        },
+        "required": [
+          "status",
+          "made",
+          "count",
+          "error",
+          "created_at"
+        ],
+        "title": "GenerationOut",
         "type": "object"
       },
       "GenerationSpec": {
@@ -5521,6 +5968,24 @@
         "title": "Identity",
         "type": "object"
       },
+      "ImportOut": {
+        "properties": {
+          "imported": {
+            "title": "Imported",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "imported",
+          "skipped"
+        ],
+        "title": "ImportOut",
+        "type": "object"
+      },
       "IngestJobKind": {
         "enum": [
           "sync",
@@ -5874,6 +6339,28 @@
         ],
         "title": "Join",
         "type": "string"
+      },
+      "JudgeInput": {
+        "additionalProperties": false,
+        "properties": {
+          "judge_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Instance Id"
+          }
+        },
+        "required": [
+          "judge_instance_id"
+        ],
+        "title": "JudgeInput",
+        "type": "object"
       },
       "JudgeOption": {
         "properties": {
@@ -7333,6 +7820,16 @@
         "title": "PipelineSpec",
         "type": "object"
       },
+      "PipelineStatus": {
+        "enum": [
+          "draft",
+          "canary",
+          "live",
+          "archived"
+        ],
+        "title": "PipelineStatus",
+        "type": "string"
+      },
       "PlaygroundResult": {
         "properties": {
           "external_egress": {
@@ -8282,6 +8779,62 @@
         "title": "RestoreInput",
         "type": "object"
       },
+      "ResultOut": {
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "called_tools": {
+            "items": {},
+            "title": "Called Tools",
+            "type": "array"
+          },
+          "cited": {
+            "items": {},
+            "title": "Cited",
+            "type": "array"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "title": "Metrics",
+            "type": "object"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "outcome",
+          "answer",
+          "metrics",
+          "called_tools",
+          "cited",
+          "passed",
+          "reason",
+          "latency_ms"
+        ],
+        "title": "ResultOut",
+        "type": "object"
+      },
       "ResumeIn": {
         "properties": {
           "approval_id": {
@@ -8659,6 +9212,156 @@
         "title": "RunDelivery",
         "type": "object"
       },
+      "RunDetail": {
+        "properties": {
+          "cases_done": {
+            "title": "Cases Done",
+            "type": "integer"
+          },
+          "cases_total": {
+            "title": "Cases Total",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "gate_detail": {
+            "additionalProperties": true,
+            "title": "Gate Detail",
+            "type": "object"
+          },
+          "gate_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gate Passed"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ResultOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "scores": {
+            "additionalProperties": true,
+            "title": "Scores",
+            "type": "object"
+          },
+          "set_name": {
+            "title": "Set Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "set_name",
+          "version",
+          "cases_total",
+          "cases_done",
+          "scores",
+          "gate_passed",
+          "gate_detail",
+          "error",
+          "created_at",
+          "finished_at",
+          "results"
+        ],
+        "title": "RunDetail",
+        "type": "object"
+      },
+      "RunInput": {
+        "additionalProperties": false,
+        "properties": {
+          "chatbot_id": {
+            "format": "uuid",
+            "title": "Chatbot Id",
+            "type": "string"
+          },
+          "eval_set_id": {
+            "format": "uuid",
+            "title": "Eval Set Id",
+            "type": "string"
+          },
+          "judge_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Instance Id"
+          },
+          "which": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "live"
+            ],
+            "title": "Which",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chatbot_id",
+          "eval_set_id"
+        ],
+        "title": "RunInput",
+        "type": "object"
+      },
       "RunKind": {
         "enum": [
           "chat_agent",
@@ -8682,233 +9385,6 @@
           }
         },
         "title": "RunNowInput",
-        "type": "object"
-      },
-      "RunOut": {
-        "properties": {
-          "answer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Answer"
-          },
-          "approvals": {
-            "items": {
-              "$ref": "#/components/schemas/RunApproval"
-            },
-            "title": "Approvals",
-            "type": "array"
-          },
-          "automation": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Automation"
-          },
-          "automation_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Automation Id"
-          },
-          "automation_version": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Automation Version"
-          },
-          "chatbot": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Chatbot"
-          },
-          "cost": {
-            "default": "0",
-            "title": "Cost",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "deliveries": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/RunDelivery"
-            },
-            "title": "Deliveries",
-            "type": "array"
-          },
-          "dry_run": {
-            "default": false,
-            "title": "Dry Run",
-            "type": "boolean"
-          },
-          "error": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Error"
-          },
-          "event": {
-            "additionalProperties": true,
-            "default": {},
-            "title": "Event",
-            "type": "object"
-          },
-          "finished_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Finished At"
-          },
-          "groundedness": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Groundedness"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "kind": {
-            "$ref": "#/components/schemas/RunKind"
-          },
-          "runs_as": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Runs As"
-          },
-          "started_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Started By"
-          },
-          "status": {
-            "$ref": "#/components/schemas/RunStatus"
-          },
-          "steps": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "title": "Steps",
-            "type": "array"
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
-          },
-          "tokens_in": {
-            "title": "Tokens In",
-            "type": "integer"
-          },
-          "tokens_out": {
-            "title": "Tokens Out",
-            "type": "integer"
-          },
-          "tool_calls": {
-            "items": {
-              "$ref": "#/components/schemas/RunToolCall"
-            },
-            "title": "Tool Calls",
-            "type": "array"
-          },
-          "trigger": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trigger"
-          }
-        },
-        "required": [
-          "id",
-          "kind",
-          "status",
-          "chatbot",
-          "started_by",
-          "created_at",
-          "finished_at",
-          "error",
-          "steps",
-          "approvals",
-          "tool_calls",
-          "tokens_in",
-          "tokens_out",
-          "answer",
-          "groundedness"
-        ],
-        "title": "RunOut",
         "type": "object"
       },
       "RunRow": {
@@ -10066,6 +10542,176 @@
           "signed_in"
         ],
         "title": "SessionInfo",
+        "type": "object"
+      },
+      "SetDetail": {
+        "properties": {
+          "can_edit": {
+            "title": "Can Edit",
+            "type": "boolean"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/CaseOut"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "generations": {
+            "items": {
+              "$ref": "#/components/schemas/GenerationOut"
+            },
+            "title": "Generations",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "in_gate": {
+            "title": "In Gate",
+            "type": "boolean"
+          },
+          "last_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_evaluation__RunOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SetRef"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "chatbot_id",
+          "chatbot",
+          "in_gate",
+          "cases",
+          "last_run",
+          "generations",
+          "sources",
+          "can_edit"
+        ],
+        "title": "SetDetail",
+        "type": "object"
+      },
+      "SetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "from_feedback": {
+            "default": false,
+            "title": "From Feedback",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SetInput",
+        "type": "object"
+      },
+      "SetRef": {
+        "properties": {
+          "cases": {
+            "title": "Cases",
+            "type": "integer"
+          },
+          "chatbot_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "cases",
+          "chatbot_id"
+        ],
+        "title": "SetRef",
         "type": "object"
       },
       "SettingsOut": {
@@ -11418,6 +12064,67 @@
         "title": "VersionOut",
         "type": "object"
       },
+      "VersionScores": {
+        "properties": {
+          "gate_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gate Passed"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "scores": {
+            "additionalProperties": true,
+            "title": "Scores",
+            "type": "object"
+          },
+          "spec_matches": {
+            "title": "Spec Matches",
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PipelineStatus"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "vs_live": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Vs Live",
+            "type": "object"
+          }
+        },
+        "required": [
+          "version",
+          "status",
+          "run_id",
+          "scores",
+          "vs_live",
+          "gate_passed",
+          "spec_matches"
+        ],
+        "title": "VersionScores",
+        "type": "object"
+      },
       "WatchEvery": {
         "enum": [
           "hour",
@@ -11730,6 +12437,126 @@
         "title": "Started",
         "type": "object"
       },
+      "veyntora_api__routers__admin_evaluation__FeedbackInput": {
+        "additionalProperties": false,
+        "properties": {
+          "feedback_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Feedback Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "feedback_ids"
+        ],
+        "title": "FeedbackInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_evaluation__RunOut": {
+        "properties": {
+          "cases_done": {
+            "title": "Cases Done",
+            "type": "integer"
+          },
+          "cases_total": {
+            "title": "Cases Total",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "gate_detail": {
+            "additionalProperties": true,
+            "title": "Gate Detail",
+            "type": "object"
+          },
+          "gate_passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gate Passed"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "scores": {
+            "additionalProperties": true,
+            "title": "Scores",
+            "type": "object"
+          },
+          "set_name": {
+            "title": "Set Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "set_name",
+          "version",
+          "cases_total",
+          "cases_done",
+          "scores",
+          "gate_passed",
+          "gate_detail",
+          "error",
+          "created_at",
+          "finished_at"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_knowledge_health__Started": {
         "properties": {
           "scan_id": {
@@ -11782,6 +12609,233 @@
         "title": "SecretInput",
         "type": "object"
       },
+      "veyntora_api__routers__admin_runs__RunOut": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/RunApproval"
+            },
+            "title": "Approvals",
+            "type": "array"
+          },
+          "automation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation"
+          },
+          "automation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation Id"
+          },
+          "automation_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Automation Version"
+          },
+          "chatbot": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chatbot"
+          },
+          "cost": {
+            "default": "0",
+            "title": "Cost",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deliveries": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RunDelivery"
+            },
+            "title": "Deliveries",
+            "type": "array"
+          },
+          "dry_run": {
+            "default": false,
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "event": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Event",
+            "type": "object"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "groundedness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Groundedness"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/RunKind"
+          },
+          "runs_as": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runs As"
+          },
+          "started_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started By"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "tokens_in": {
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "title": "Tokens Out",
+            "type": "integer"
+          },
+          "tool_calls": {
+            "items": {
+              "$ref": "#/components/schemas/RunToolCall"
+            },
+            "title": "Tool Calls",
+            "type": "array"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "chatbot",
+          "started_by",
+          "created_at",
+          "finished_at",
+          "error",
+          "steps",
+          "approvals",
+          "tool_calls",
+          "tokens_in",
+          "tokens_out",
+          "answer",
+          "groundedness"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_sources__SecretInput": {
         "properties": {
           "expires_at": {
@@ -11807,6 +12861,48 @@
           "secret"
         ],
         "title": "SecretInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__chat__FeedbackInput": {
+        "properties": {
+          "comment": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/Rating"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "wrong",
+                  "outdated",
+                  "incomplete",
+                  "not_relevant",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "FeedbackInput",
         "type": "object"
       },
       "veyntora_api__routers__me_saved__SaveInput": {
@@ -14196,6 +15292,701 @@
         ]
       }
     },
+    "/v1/admin/evaluation": {
+      "get": {
+        "operationId": "overview_v1_admin_evaluation_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "chatbot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Chatbot Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "set_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Set Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Scores by version, the gate and recent runs",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/cases/{case_id}": {
+      "delete": {
+        "operationId": "delete_case_v1_admin_evaluation_cases__case_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a case",
+        "tags": [
+          "admin: evaluation"
+        ]
+      },
+      "put": {
+        "operationId": "edit_case_v1_admin_evaluation_cases__case_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseIdOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a case (saving reviews it)",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/gate/{chatbot_id}": {
+      "put": {
+        "operationId": "put_gate_v1_admin_evaluation_gate__chatbot_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "chatbot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Chatbot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GateSettings-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GateSettings-Output"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The chatbot's publish gate (owners)",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/judge": {
+      "put": {
+        "operationId": "put_judge_v1_admin_evaluation_judge_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JudgeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JudgeInput"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The judge model for evaluations",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/runs": {
+      "post": {
+        "operationId": "start_run_v1_admin_evaluation_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_evaluation__RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start an evaluation run",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/runs/{run_id}": {
+      "get": {
+        "operationId": "get_run_v1_admin_evaluation_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One run with every case",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/sets": {
+      "get": {
+        "operationId": "list_sets_v1_admin_evaluation_sets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SetRef"
+                  },
+                  "title": "Response List Sets V1 Admin Evaluation Sets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Eval sets",
+        "tags": [
+          "admin: evaluation"
+        ]
+      },
+      "post": {
+        "operationId": "create_set_v1_admin_evaluation_sets_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetRef"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create an eval set",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/sets/{set_id}": {
+      "delete": {
+        "operationId": "delete_set_v1_admin_evaluation_sets__set_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Set Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete an eval set",
+        "tags": [
+          "admin: evaluation"
+        ]
+      },
+      "get": {
+        "operationId": "get_set_v1_admin_evaluation_sets__set_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Set Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One eval set with its cases",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/sets/{set_id}/cases": {
+      "post": {
+        "operationId": "add_case_v1_admin_evaluation_sets__set_id__cases_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Set Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseIdOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a case",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/sets/{set_id}/from-feedback": {
+      "post": {
+        "operationId": "add_from_feedback_v1_admin_evaluation_sets__set_id__from_feedback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Set Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_evaluation__FeedbackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add thumbs-down answers as cases to review",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/sets/{set_id}/generate": {
+      "post": {
+        "operationId": "generate_cases_v1_admin_evaluation_sets__set_id__generate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Set Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate cases from documents",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
+    "/v1/admin/evaluation/sets/{set_id}/import": {
+      "post": {
+        "operationId": "import_cases_v1_admin_evaluation_sets__set_id__import_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "set_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Set Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "skip_duplicates",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Skip Duplicates",
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_cases_v1_admin_evaluation_sets__set_id__import_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import cases from CSV",
+        "tags": [
+          "admin: evaluation"
+        ]
+      }
+    },
     "/v1/admin/groups": {
       "get": {
         "operationId": "list_groups_v1_admin_groups_get",
@@ -15588,7 +17379,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RunOut"
+                  "$ref": "#/components/schemas/veyntora_api__routers__admin_runs__RunOut"
                 }
               }
             },
@@ -17434,7 +19225,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FeedbackInput"
+                "$ref": "#/components/schemas/veyntora_api__routers__chat__FeedbackInput"
               }
             }
           },
@@ -17445,7 +19236,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FeedbackInput"
+                  "$ref": "#/components/schemas/FeedbackInput-Output"
                 }
               }
             },
