@@ -31,6 +31,7 @@ x-app-env: &app-env
   VEY_QDRANT_URL: http://qdrant:6333
   VEY_LITELLM_URL: http://litellm:4000
   VEY_GRAPHS_URL: http://graphs:2026
+  VEY_API_INTERNAL_URL: http://api:8000
   VEY_DOCLING_URL: http://docling:5001
   VEY_CLAMAV_ADDRESS: clamav:3310
   # Set to false only on machines that cannot run ClamAV; documents then show "not scanned".

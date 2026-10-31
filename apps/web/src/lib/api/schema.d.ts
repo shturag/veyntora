@@ -6133,6 +6133,8 @@ export interface components {
         };
         /** ServerInput */
         ServerInput: {
+            /** Audience */
+            audience?: string | null;
             /** @default none */
             auth: components["schemas"]["McpAuth"];
             /** Client Id */

@@ -9,7 +9,7 @@ import { api } from "@/lib/chat";
 
 const field = "flex flex-col gap-1 text-[13px] font-medium";
 const control = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
-type Auth = "none" | "bearer" | "oauth_client";
+type Auth = "none" | "bearer" | "oauth_client" | "delegated";
 
 /** Step 1 of registering: connect. Discovery runs next; tools are reviewed on the server page. */
 export function RegisterServerForm() {
@@ -37,7 +37,8 @@ export function RegisterServerForm() {
           token_url: auth === "oauth_client" ? text("token_url") : null,
           client_id: auth === "oauth_client" ? text("client_id") : null,
           scopes: auth === "oauth_client" ? text("scopes") : null,
-          secret: auth === "none" ? null : text("secret"),
+          audience: auth === "delegated" ? text("audience") : null,
+          secret: auth === "none" || auth === "delegated" ? null : text("secret"),
         }),
       });
       router.push(`/admin/tools/${server.id}`);
@@ -80,7 +81,7 @@ export function RegisterServerForm() {
       </div>
       <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
         <legend className="mb-1 p-0 text-[13px] font-medium">{t("authentication")}</legend>
-        {(["bearer", "oauth_client", "none"] as const).map((a) => (
+        {(["bearer", "oauth_client", "delegated", "none"] as const).map((a) => (
           <label key={a} className="flex items-center gap-2 text-sm">
             <input
               type="radio"
@@ -92,14 +93,19 @@ export function RegisterServerForm() {
             {t(`auths.${a}`)}
           </label>
         ))}
-        <label
-          className="flex items-center gap-2 text-sm text-fg-muted"
-          title={t("later", { phase: 5 })}
-        >
-          <input type="radio" name="auth" disabled />
-          {t("auths.delegated")} · {t("later", { phase: 5 })}
-        </label>
       </fieldset>
+      {auth === "delegated" ? (
+        <label className={field}>
+          {t("audience")}
+          <input
+            name="audience"
+            required
+            pattern="[A-Za-z0-9._:/\-]+"
+            className={`${control} font-mono`}
+          />
+          <span className="text-xs font-normal text-fg-muted">{t("audienceNote")}</span>
+        </label>
+      ) : null}
       {auth === "oauth_client" ? (
         <div className="grid grid-cols-2 gap-4 max-[640px]:grid-cols-1">
           <label className={field}>
@@ -116,7 +122,7 @@ export function RegisterServerForm() {
           </label>
         </div>
       ) : null}
-      {auth !== "none" ? (
+      {auth === "bearer" || auth === "oauth_client" ? (
         <label className={field}>
           {auth === "bearer" ? t("apiKey") : t("clientSecret")}
           <input name="secret" type="password" autoComplete="off" required className={control} />

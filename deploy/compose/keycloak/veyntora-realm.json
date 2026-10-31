@@ -36,6 +36,7 @@
       "webOrigins": ["${VEY_PUBLIC_BASE_URL}"],
       "attributes": {
         "pkce.code.challenge.method": "S256",
+        "standard.token.exchange.enabled": "true",
         "post.logout.redirect.uris": "${VEY_PUBLIC_BASE_URL}/*"
       },
       "defaultClientScopes": ["profile", "email", "roles", "web-origins", "basic"],

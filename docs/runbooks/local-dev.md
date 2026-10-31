@@ -68,3 +68,13 @@ It prints PASS/FAIL per question and a summary (citations, no-answer, permission
 ## Traces
 
 Answers are traced in Langfuse at http://localhost:3001 (sign in as `admin@veyntora.local`; the password is `VEY_LANGFUSE_ADMIN_PASSWORD` from `.env`). The trace id is stored with each answer.
+
+## Tools that act as the person (delegated MCP auth)
+
+A server registered with "Pass the user's token through" gets, for each call, a token exchanged from the asking person's Veyntora sign-in (Keycloak standard token exchange, ADR 0021). The dev realm enables standard token exchange on the `veyntora` client. For each such tool:
+
+1. In Keycloak, create a client for the tool (for example `mcp-hr`); the tool validates tokens with this audience.
+2. Make the audience available to `veyntora`: under **Clients → veyntora → Client scopes → veyntora-dedicated**, add an *Audience* mapper with *Included Client Audience* `mcp-hr` (access token only).
+3. Register the server in Veyntora with authentication *Pass the user's token through* and audience `mcp-hr`.
+
+Without step 2 the exchange is refused and the tool tells the person that an admin must allow its audience. Automations and app keys never get these tools; Teams and Slack users only while they are signed in to Veyntora on the web.

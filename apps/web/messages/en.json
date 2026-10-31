@@ -1384,9 +1384,8 @@
     "expiresOn": "expires {date}",
     "leavesCompany": "sends data outside the company",
     "oldKeyUntil": "The old key is still tried until {until}.",
-    "useForChats": "My chats",
+    "useForChats": "My chats (Fast and Agent answers)",
     "useForNone": "Not used",
-    "useForAgent": "Agent tasks",
     "useFor": "Use for",
     "rotate": "Rotate",
     "remove": "Remove",
@@ -1523,7 +1522,9 @@
     "rateLimit": "Calls per minute per user",
     "acknowledge": "I read the flagged description",
     "save": "Save",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "audience": "Audience (the tool's client id in Keycloak)",
+    "audienceNote": "Each call uses a token for the person asking, exchanged from their Veyntora sign-in (no key is stored). An admin must allow this audience for Veyntora in Keycloak. Automations and app keys cannot use such tools."
   },
   "approvals": {
     "title": "Approvals",

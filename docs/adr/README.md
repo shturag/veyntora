@@ -17,3 +17,9 @@
 | [0013](0013-hosted-providers-and-sharepoint.md) | Hosted model APIs locally, Providers page, SharePoint connector |
 | [0014](0014-my-files-traces-evaluation.md) | My files, answer traces, evaluation runner (Phase 1) |
 | [0015](0015-pipeline-editor-and-guardrails.md) | Pipeline editor, retrieval settings, guardrails (Phase 2) |
+| [0016](0016-playground-and-provider-resilience.md) | Playground and provider resilience (Phase 2) |
+| [0017](0017-own-models-and-settings.md) | Own models (BYOK) and settings (Phase 2) |
+| [0018](0018-german-compound-splitting.md) | German compound splitting (Phase 3) |
+| [0019](0019-agent-approvals-router.md) | Agent, approvals and the Auto router (Phase 3) |
+| [0020](0020-people-chatbots-channels-flows.md) | Users & groups, chatbot management, channels, custom flows (Phase 4) |
+| [0021](0021-automations-knowledge-answers.md) | Automations, knowledge health, saved answers, hand-offs, delegated tools (Phase 5) |

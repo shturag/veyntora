@@ -54,6 +54,8 @@ class ServerInput(BaseModel):
     token_url: str | None = Field(default=None, max_length=1024)
     client_id: str | None = Field(default=None, max_length=255)
     scopes: str | None = Field(default=None, max_length=1024)
+    # delegated: the tool's client id at the identity provider (the token exchange audience).
+    audience: str | None = Field(default=None, max_length=255, pattern=r"^[A-Za-z0-9._:/-]+$")
     # Write-only: an API key (bearer) or the OAuth client secret.
     secret: SecretStr | None = None
 
@@ -79,6 +81,10 @@ class ToolUpdate(BaseModel):
 
 
 def _auth_config(data: ServerInput) -> dict[str, Any]:
+    if data.auth is McpAuth.DELEGATED:
+        if not data.audience:
+            raise ToolsError("enter the tool's audience (its client id at the identity provider)")
+        return {"audience": data.audience}
     if data.auth is McpAuth.OAUTH_CLIENT:
         if not data.token_url or not data.client_id:
             raise ToolsError("OAuth needs a token URL and a client id")
@@ -93,8 +99,6 @@ async def register_server(
     data: ServerInput,
     owner_id: UUID,
 ) -> McpServer:
-    if data.auth is McpAuth.DELEGATED:
-        raise ToolsError("passing the user's token through arrives in Phase 5")
     if await db.scalar(sa.select(McpServer.id).where(McpServer.name == data.name)):
         raise ToolsError(f"a server named {data.name!r} already exists")
     needs_key = data.auth in {McpAuth.BEARER, McpAuth.OAUTH_CLIENT}

@@ -43,7 +43,10 @@ class McpTarget:
     auth: Auth = "none"
     secret_ref: str | None = None
     # oauth_client: {"token_url": ..., "client_id": ..., "scopes": "a b"}
+    # delegated: {"audience": "<the tool's client id at the identity provider>"}
     auth_config: Mapping[str, Any] = field(default_factory=dict)
+    # delegated: the person's exchanged token for this one call (never stored).
+    delegated_token: str | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,7 +84,9 @@ async def _headers(target: McpTarget, secrets: SecretReader) -> dict[str, str]:
     if target.auth == "none":
         return {}
     if target.auth == "delegated":
-        raise McpError("passing the user's token through is not available yet")
+        if not target.delegated_token:
+            raise McpError("this tool acts as the person asking, and no token was passed")
+        return {"Authorization": f"Bearer {target.delegated_token}"}
     if not target.secret_ref:
         raise McpError("this server needs a key, and none is stored")
     secret = await secrets.read(target.secret_ref)

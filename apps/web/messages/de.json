@@ -1384,9 +1384,8 @@
     "expiresOn": "läuft ab {date}",
     "leavesCompany": "sendet Daten aus dem Unternehmen",
     "oldKeyUntil": "Der alte Schlüssel wird bis {until} noch versucht.",
-    "useForChats": "Meine Chats",
+    "useForChats": "Meine Chats (Fast- und Agent-Antworten)",
     "useForNone": "Nicht verwendet",
-    "useForAgent": "Agentenaufgaben",
     "useFor": "Verwenden für",
     "rotate": "Erneuern",
     "remove": "Entfernen",
@@ -1523,7 +1522,9 @@
     "rateLimit": "Aufrufe pro Minute und Person",
     "acknowledge": "Ich habe die markierte Beschreibung gelesen",
     "save": "Speichern",
-    "saved": "Gespeichert."
+    "saved": "Gespeichert.",
+    "audience": "Audience (Client-ID des Tools in Keycloak)",
+    "audienceNote": "Jeder Aufruf nutzt ein Token der fragenden Person, getauscht aus ihrer Veyntora-Anmeldung (kein Schlüssel wird gespeichert). Ein Admin muss diese Audience für Veyntora in Keycloak erlauben. Automatisierungen und App-Schlüssel können solche Tools nicht nutzen."
   },
   "approvals": {
     "title": "Genehmigungen",

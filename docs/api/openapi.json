@@ -9756,6 +9756,19 @@
       "ServerInput": {
         "additionalProperties": false,
         "properties": {
+          "audience": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "pattern": "^[A-Za-z0-9._:/-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audience"
+          },
           "auth": {
             "$ref": "#/components/schemas/McpAuth",
             "default": "none"

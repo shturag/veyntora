@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     litellm_url: str = "http://localhost:4000"
     graphs_url: str = "http://localhost:2026"
+    # How runtime services reach the API inside the network (delegated tool tokens).
+    api_internal_url: str = "http://localhost:8000"
     docling_url: str = "http://localhost:5001"
     tei_embed_url: str = ""
     tei_rerank_url: str = ""

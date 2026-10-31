@@ -27,10 +27,20 @@ from veyntora_providers.scrub import scrub
 from veyntora_providers.secrets import SecretReader
 
 from veyntora_api.db.models.governance import GovernanceRule
-from veyntora_api.db.models.tools import McpServer, McpServerStatus, Tool, ToolAccess, ToolCall
+from veyntora_api.db.models.identity import User
+from veyntora_api.db.models.tools import (
+    McpAuth,
+    McpServer,
+    McpServerStatus,
+    Tool,
+    ToolAccess,
+    ToolCall,
+)
 from veyntora_api.rag.pipeline import RunContext
+from veyntora_api.settings import get_settings
+from veyntora_api.tools import delegation
 from veyntora_api.tools.service import policy_of
-from veyntora_api.tools.targets import target_of
+from veyntora_api.tools.targets import audience_of, target_of
 
 SEARCH = "search_documents"
 _NAME = re.compile(r"[^a-zA-Z0-9_-]")
@@ -103,8 +113,12 @@ async def offered_tools(db: AsyncSession, ctx: RunContext, group_ids: set[str]) 
     ).all()
     taken: set[str] = set()
     out = []
+    asker = await db.get(User, ctx.user_id)
+    service = bool(asker and asker.is_service)
     for tool, server in rows:
         external = server.hosting == "external"
+        if service and server.auth is McpAuth.DELEGATED:
+            continue  # service identities have no person to act as
         if external and server.id not in allowed_external:
             continue
         policy = await policy_of(db, tool.id)
@@ -169,6 +183,16 @@ async def rate_limited(db: AsyncSession, tool: BoundTool, user_id: UUID) -> bool
     return int(count or 0) >= tool.rate_limit_per_minute
 
 
+async def _delegated(db: AsyncSession, server: McpServer, user_id: UUID) -> str | None:
+    """For a server that acts as the person: their exchanged token (else None)."""
+    if server.auth is not McpAuth.DELEGATED:
+        return None
+    user = await db.get(User, user_id)
+    if user is None or user.is_service:
+        raise delegation.DelegationError("this tool acts as a person, not a service identity")
+    return await delegation.token_for(get_settings(), user.keycloak_sub, audience_of(server))
+
+
 async def call_mcp(
     db: AsyncSession,
     tool: BoundTool,
@@ -189,8 +213,12 @@ async def call_mcp(
         error = "server not active"
     else:
         try:
-            async with connect(target_of(server), secrets) as client:
+            token = await _delegated(db, server, user_id)
+            async with connect(target_of(server, token), secrets) as client:
                 outcome = await mcp_client.call_tool(client, tool.tool_name, args)
+        except delegation.DelegationError as exc:
+            outcome = mcp_client.ToolOutcome(str(exc), is_error=True)
+            error = "no delegated token"
         except mcp_client.McpError as exc:
             outcome = mcp_client.ToolOutcome(f"The tool failed: {exc}", is_error=True)
             error = str(exc)[:500]

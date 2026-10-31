@@ -118,6 +118,19 @@ class OidcClient:
             }
         )
 
+    async def exchange_token(self, subject_token: str, audience: str) -> TokenSet:
+        """Standard token exchange (RFC 8693): a token for `audience` that still names the
+        person (their own identity and roles), never a service account's."""
+        return await self._token_request(
+            {
+                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+                "subject_token": subject_token,
+                "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                "audience": audience,
+            }
+        )
+
     async def refresh(self, refresh_token: str) -> TokenSet:
         return await self._token_request(
             {"grant_type": "refresh_token", "refresh_token": refresh_token}

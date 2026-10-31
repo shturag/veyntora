@@ -240,9 +240,6 @@ export function OwnModels({ initial }: { initial: Keys }) {
               <select name="use_for" defaultValue="chats" className={control}>
                 <option value="chats">{t("useForChats")}</option>
                 <option value="none">{t("useForNone")}</option>
-                <option value="agent" disabled>
-                  {t("useForAgent")} · {t("later", { phase: 3 })}
-                </option>
               </select>
             </label>
           </div>

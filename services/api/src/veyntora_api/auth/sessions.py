@@ -11,6 +11,8 @@ from dataclasses import asdict, dataclass
 from redis.asyncio import Redis
 
 _PREFIX = "vey:session:"
+# Per person: the (hashed) keys of their sessions, for delegated tool tokens.
+_USER_PREFIX = "vey:user-sessions:"
 _STATE_PREFIX = "vey:oidc-state:"
 _STATE_TTL = 600
 
@@ -49,7 +51,31 @@ class SessionStore:
     async def create(self, session: Session, ttl: int | None = None) -> str:
         session_id = secrets.token_urlsafe(32)
         await self._r.set(_key(session_id), json.dumps(asdict(session)), ex=ttl or self._idle)
+        await self._index(session.user_id, _key(session_id), ttl)
         return session_id
+
+    async def _index(self, user_id: str, key: str, ttl: int | None) -> None:
+        index = _USER_PREFIX + user_id
+        await self._r.sadd(index, key)
+        await self._r.expire(index, max(ttl or self._idle, self._idle))
+
+    async def latest_for_user(self, user_id: str) -> tuple[str, Session] | None:
+        """The person's most recent live session (its stored key and the session)."""
+        best: tuple[str, Session] | None = None
+        for raw_key in await self._r.smembers(_USER_PREFIX + user_id):
+            key = raw_key.decode() if isinstance(raw_key, bytes) else str(raw_key)
+            raw = await self._r.get(key)
+            if raw is None:
+                await self._r.srem(_USER_PREFIX + user_id, key)
+                continue
+            session = Session(**json.loads(raw))
+            if best is None or session.created_at > best[1].created_at:
+                best = (key, session)
+        return best
+
+    async def save_key(self, key: str, session: Session) -> None:
+        """Update a session found through `latest_for_user` (keeps its time to live)."""
+        await self._r.set(key, json.dumps(asdict(session)), keepttl=True)
 
     async def get(self, session_id: str) -> Session | None:
         raw = await self._r.get(_key(session_id))

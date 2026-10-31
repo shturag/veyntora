@@ -97,3 +97,42 @@ def verify_widget(secret: str, token: str) -> dict[str, object]:
     except jwt.PyJWTError as exc:
         raise InternalTokenError("invalid widget token") from exc
     return claims
+
+
+# ---------------------------------------------------------------- delegated tool tokens
+
+DELEGATION_AUDIENCE = "veyntora-delegation"
+
+
+def mint_delegation(secret: str, sub: str, audience: str) -> str:
+    """A runtime service (graph server, workers) asks the API for a token that lets an MCP
+    tool act as this person; 60 seconds, one person, one tool audience."""
+    if len(secret) < _MIN_SECRET:
+        raise InternalTokenError("VEY_INTERNAL_TOKEN_SECRET must be at least 32 characters")
+    now = int(time.time())
+    claims = {
+        "iss": ISSUER,
+        "aud": DELEGATION_AUDIENCE,
+        "sub": sub,
+        "tool_audience": audience,
+        "iat": now,
+        "exp": now + 60,
+    }
+    return jwt.encode(claims, secret, algorithm="HS256")
+
+
+def verify_delegation(secret: str, token: str) -> dict[str, object]:
+    if len(secret) < _MIN_SECRET:
+        raise InternalTokenError("internal tokens are not configured")
+    try:
+        claims: dict[str, object] = jwt.decode(
+            token,
+            secret,
+            algorithms=["HS256"],
+            audience=DELEGATION_AUDIENCE,
+            issuer=ISSUER,
+            options={"require": ["exp", "iat", "iss", "sub", "aud", "tool_audience"]},
+        )
+    except jwt.PyJWTError as exc:
+        raise InternalTokenError("invalid delegation request") from exc
+    return claims
