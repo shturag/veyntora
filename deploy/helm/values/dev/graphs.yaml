@@ -6,3 +6,8 @@ image:
 replicas: 1
 port: 2026
 healthPath: /health
+envFromSecrets: [veyntora-api-env]
+# Read-only OpenBao role: reads provider, connector and own-model keys at use.
+openbao:
+  enabled: true
+  role: veyntora-runtime

@@ -10,3 +10,9 @@ allowIngressFrom: [ingress-nginx]
 runAsUser: 1000
 env:
   API_INTERNAL_URL: http://api:8000
+# Public entry; set host to the installation's name. TLS from cert-manager.
+ingress:
+  enabled: true
+  host: veyntora.dev.example.com
+  tlsSecret: veyntora-web-tls
+  clusterIssuer: letsencrypt

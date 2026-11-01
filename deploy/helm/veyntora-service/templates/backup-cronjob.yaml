@@ -1,0 +1,56 @@
+{{- if .Values.backup.enabled }}
+# Nightly pg_dump (custom format, compressed) to a volume; dumps older than keepDays are
+# removed. Restore: docs/runbooks/deploy.md.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "svc.name" . }}-backup
+  labels: {{- include "svc.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels: {{- include "svc.labels" . | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext: { fsGroup: 70 }
+          containers:
+            - name: pg-dump
+              image: {{ .Values.backup.image }}
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 70
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: { drop: [ALL] }
+                seccompProfile: { type: RuntimeDefault }
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.backup.databaseUrlSecret.name }}
+                      key: {{ .Values.backup.databaseUrlSecret.key }}
+                - name: KEEP_DAYS
+                  value: {{ .Values.backup.keepDays | quote }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  file="/backups/veyntora-$(date -u +%Y%m%dT%H%M%SZ).dump"
+                  # The URL may be SQLAlchemy's (postgresql+asyncpg://); libpq wants postgresql://.
+                  url=$(echo "$DATABASE_URL" | sed 's/+asyncpg//')
+                  pg_dump --format=custom --no-owner --dbname="$url" --file="$file.part"
+                  mv "$file.part" "$file"
+                  find /backups -name 'veyntora-*.dump' -mtime +"$KEEP_DAYS" -delete
+                  echo "backup written: $file"
+              volumeMounts:
+                - { name: backups, mountPath: /backups }
+          volumes:
+            - name: backups
+              persistentVolumeClaim: { claimName: {{ .Values.backup.claimName }} }
+{{- end }}

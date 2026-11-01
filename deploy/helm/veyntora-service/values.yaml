@@ -23,3 +23,40 @@ service:
 migrationJob:
   enabled: false
   command: ["veyntora-api", "bootstrap"]
+  # Secrets with the owner's database URL (default: envFromSecrets).
+  envFromSecrets: []
+# Extra pod annotations.
+podAnnotations: {}
+# OpenBao Agent Injector with Kubernetes auth: the agent signs in with the pod's service
+# account and writes the service's OpenBao token to tokenPath (VEY_OPENBAO_TOKEN_FILE).
+# The API's role may only write secrets; the workers' and graph server's may only read.
+openbao:
+  enabled: false
+  role: ""
+  tokenPath: /vault/secrets/token
+# Kubernetes Secrets filled from OpenBao by the External Secrets Operator (infrastructure
+# credentials only: database URLs, OIDC client secret, internal token secret).
+externalSecrets: []
+#  - name: veyntora-api-env
+#    store: { name: openbao, kind: ClusterSecretStore }
+#    refreshInterval: 1h
+#    data:
+#      VEY_DATABASE_URL: { key: infra/veyntora, property: runtime_database_url }
+# Public entry (web only): TLS from cert-manager, HSTS.
+ingress:
+  enabled: false
+  className: nginx
+  host: ""
+  tlsSecret: ""
+  clusterIssuer: ""
+  annotations: {}
+# Nightly PostgreSQL dump (custom format) to a volume; restore steps in
+# docs/runbooks/deploy.md. Managed databases with point-in-time recovery may not need it.
+backup:
+  enabled: false
+  schedule: "15 1 * * *"
+  image: postgres:16.15-alpine
+  # A Secret key with a libpq URL of the owner role (pg_dump reads every table).
+  databaseUrlSecret: { name: veyntora-backup-env, key: DATABASE_URL }
+  claimName: veyntora-backups
+  keepDays: 14

@@ -10,3 +10,7 @@ command: ["celery", "-A", "veyntora_workers.app", "worker", "--loglevel=INFO"]
 envFromSecrets: [veyntora-api-env]
 service:
   enabled: false
+# Read-only OpenBao role: reads provider, connector and own-model keys at use.
+openbao:
+  enabled: true
+  role: veyntora-runtime

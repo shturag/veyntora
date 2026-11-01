@@ -10,9 +10,20 @@ spec:
   template:
     metadata:
       labels: {{- include "svc.labels" . | nindent 8 }}
+      {{- if or .Values.podAnnotations .Values.openbao.enabled }}
+      annotations:
+        {{- with .Values.podAnnotations }}{{ toYaml . | nindent 8 }}{{- end }}
+        {{- if .Values.openbao.enabled }}
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-token: "true"
+        vault.hashicorp.com/role: {{ required "openbao.role is required" .Values.openbao.role | quote }}
+        vault.hashicorp.com/agent-pre-populate-only: "false"
+        {{- end }}
+      {{- end }}
     spec:
       serviceAccountName: {{ include "svc.name" . }}
-      automountServiceAccountToken: false
+      # Only the OpenBao agent needs the service account token (Kubernetes auth).
+      automountServiceAccountToken: {{ .Values.openbao.enabled }}
       securityContext:
         fsGroup: {{ .Values.runAsUser }}
       containers:
@@ -23,7 +34,12 @@ spec:
           command: {{- toYaml . | nindent 12 }}
           {{- end }}
           securityContext: {{- include "svc.securityContext" . | nindent 12 }}
-          env: {{- include "svc.env" . | nindent 12 }}
+          env:
+            {{- include "svc.env" . | nindent 12 }}
+            {{- if .Values.openbao.enabled }}
+            - name: VEY_OPENBAO_TOKEN_FILE
+              value: {{ .Values.openbao.tokenPath | quote }}
+            {{- end }}
           {{- with .Values.envFromSecrets }}
           envFrom:
             {{- range . }}

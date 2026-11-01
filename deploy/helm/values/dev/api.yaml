@@ -11,3 +11,26 @@ allowIngressFrom: [veyntora-web]
 envFromSecrets: [veyntora-api-env]
 migrationJob:
   enabled: true
+  envFromSecrets: [veyntora-migrate-env]
+externalSecrets:
+  # Infrastructure credentials from OpenBao (kv: infra/veyntora); model and user keys never.
+  - name: veyntora-api-env
+    store: { name: openbao, kind: ClusterSecretStore }
+    data:
+      VEY_DATABASE_URL: { key: infra/veyntora, property: runtime_database_url }
+      VEY_OIDC_CLIENT_SECRET: { key: infra/veyntora, property: oidc_client_secret }
+      VEY_KEYCLOAK_SYNC_CLIENT_SECRET: { key: infra/veyntora, property: keycloak_sync_client_secret }
+      VEY_S3_ACCESS_KEY: { key: infra/veyntora, property: s3_access_key }
+      VEY_S3_SECRET_KEY: { key: infra/veyntora, property: s3_secret_key }
+      VEY_LANGFUSE_SECRET_KEY: { key: infra/veyntora, property: langfuse_secret_key }
+      VEY_INTERNAL_TOKEN_SECRET: { key: infra/veyntora, property: internal_token_secret }
+  - name: veyntora-migrate-env
+    store: { name: openbao, kind: ClusterSecretStore }
+    data:
+      VEY_DATABASE_URL: { key: infra/veyntora, property: owner_database_url }
+# The API's OpenBao role may only write secrets (it never reads them back).
+openbao:
+  enabled: true
+  role: veyntora-api
+env:
+  VEY_TRUSTED_PROXIES: "10.0.0.0/8"   # the cluster's pod network: the web app

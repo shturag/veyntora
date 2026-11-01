@@ -1,6 +1,7 @@
 {{- if .Values.migrationJob.enabled }}
 # Runs `veyntora-api bootstrap` (Alembic + OpenFGA model + bootstrap tuples) before every
-# Argo CD sync; the sync stops if it fails.
+# Argo CD sync; the sync stops if it fails. It connects as the database owner
+# (migrationJob.envFromSecrets); the services use the runtime role.
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -24,7 +25,7 @@ spec:
           command: {{- toYaml .Values.migrationJob.command | nindent 12 }}
           securityContext: {{- include "svc.securityContext" . | nindent 12 }}
           env: {{- include "svc.env" . | nindent 12 }}
-          {{- with .Values.envFromSecrets }}
+          {{- with (.Values.migrationJob.envFromSecrets | default .Values.envFromSecrets) }}
           envFrom:
             {{- range . }}
             - secretRef: { name: {{ . }} }
