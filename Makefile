@@ -101,3 +101,7 @@ e2e: ## Playwright end-to-end tests against the running stack
 
 .PHONY: ci
 ci: lint typecheck test fga-test ## Everything CI runs before building images
+
+.PHONY: docs-flows
+docs-flows: ## Redraw the flowcharts in docs/flows from docs/flows/diagrams.py
+	$(UV) run --no-sync python docs/flows/diagrams.py

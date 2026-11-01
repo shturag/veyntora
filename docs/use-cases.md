@@ -39,32 +39,6 @@ Every use case the app supports today, by actor. Each one names who does it, wha
 
 ![Actors and the areas they use](flows/use-case-map.svg)
 
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart LR
-    user(["User"]) --> chat["Ask and get answers<br/>U-01 to U-13"]
-    user --> own["Files, settings, own models<br/>U-14 to U-24"]
-    app(["App"]) --> api["Ask through the API<br/>U-25"]
-    approver(["Approver"]) --> decide["Decide agent actions<br/>E-01, E-02"]
-    expert(["Expert"]) --> handoff["Answer hand-offs<br/>E-03 to E-05"]
-    editor(["Editor"]) --> build["Build and test a chatbot<br/>C-01 to C-08"]
-    owner(["Owner"]) --> build
-    owner --> release["Gate, publish, canary, roll back<br/>C-09 to C-14"]
-    kadmin(["Knowledge admin"]) --> sources["Data sources and health<br/>A-01 to A-04"]
-    padmin(["Platform admin"]) --> platform["Providers, tools, channels,<br/>automations, people, budgets<br/>A-05 to A-14"]
-    secrev(["Security reviewer"]) --> platform
-    legal(["Legal"]) --> gov["Governance<br/>G-01 to G-09"]
-    dpo(["DPO"]) --> gov
-    auditor(["Auditor"]) --> gov
-    system(["System"]) --> auto["Nightly and periodic jobs<br/>S-01 to S-06"]
-    classDef actor fill:#eef2ff,stroke:#4f46e5,color:#111
-    class user,app,approver,expert,editor,owner,kadmin,padmin,secrev,legal,dpo,auditor,system actor
-```
-
-</details>
-
 ## Catalogue
 
 | ID | Use case | Actor |

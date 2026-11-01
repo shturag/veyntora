@@ -9,8 +9,7 @@ Flows that branch or change hands are drawn; straight runs are step tables.
 >
 > Every use case, with its actors and exceptions, is listed in [use-cases.md](use-cases.md).
 >
-> The flowcharts are SVG images in [`docs/flows/`](flows/), so they show in any Markdown viewer. Each one's Mermaid source sits below it. After editing a source, re-render it, for example:
-> `npx -y @mermaid-js/mermaid-cli@11.4.2 -i chart.mmd -o docs/flows/<name>.svg -b white` with `"htmlLabels": false` in the config.
+> The flowcharts are SVG images in [`docs/flows/`](flows/), drawn by [`docs/flows/diagrams.py`](flows/diagrams.py). To change one, edit it there and run `make docs-flows`.
 
 ## Contents
 
@@ -32,31 +31,6 @@ Flows that branch or change hands are drawn; straight runs are step tables.
 Admins prepare a chatbot on the left; people use it on the right.
 
 ![Overview map flowchart](flows/map.svg)
-
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart LR
-    sources["Data sources"] --> draft["Chatbot draft"]
-    providers["Providers and keys"] --> draft
-    tools["Tools (MCP)"] --> draft
-    draft --> gate{"Eval gate"} --> canary["Canary"] --> live["Live chatbot"]
-    signin["Sign in"] --> ask["Ask a question"]
-    files["My files"] --> ask
-    live --> ask
-    ask --> answer["Answer with citations"] --> saved["Save and share"]
-    ask --> expert["Ask an expert"]
-    ask -. "write actions" .-> approvals["Approvals"]
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    classDef admin fill:#eef2ff,stroke:#4f46e5,color:#111
-    class answer,live good
-    class gate decision
-    class sources,providers,tools,draft,canary admin
-```
-
-</details>
 
 Governance covers both sides: retention and masking, legal holds, data subject requests and the audit log.
 
@@ -100,33 +74,6 @@ Platform admins come from the bootstrap group in Keycloak. They grant the Legal 
 
 ![Asking a question flowchart](flows/asking-a-question.svg)
 
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    ask["Ask a question<br/>in the web app or any channel"] --> budget{"Budgets and<br/>limits OK?"}
-    budget -- "limit reached" --> refused["Refused, reason shown<br/>or Fast only, or a smaller model"]
-    budget -- ok --> mode{"Which mode?<br/>Auto: the router picks"}
-    mode -- Fast --> fast["Fast: one search<br/>only documents they may open"]
-    mode -- Agent --> agent["Agent: plan, search, use tools<br/>write tools wait for an approver"]
-    fast -. "weak, in Auto" .-> agent
-    fast --> grounded{"Grounded in<br/>its sources?"}
-    agent --> grounded
-    grounded -- yes --> answer["Answer with citations<br/>each source opens in the viewer"]
-    grounded -- no --> none["No answer found<br/>nothing unsupported is shown"]
-    none -- "Ask an expert" --> expert["Expert group answers<br/>reply in chat, Teams or e-mail"]
-    expert -. "owner accepts" .-> kb["Saved as expert answer<br/>readable by chosen groups only"]
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef stop fill:#fdecea,stroke:#c62828,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class answer,kb good
-    class refused,none stop
-    class budget,mode,grounded decision
-```
-
-</details>
-
 - Every step loads the person's access again.
 - In **Auto**, a weak Fast answer is handed to the agent.
 - An expert may offer the reply to the knowledge base. Once an owner accepts it, the assistant can use it next time, for the chosen groups only.
@@ -138,28 +85,6 @@ flowchart TD
 
 ![Agent actions that need approval flowchart](flows/agent-approval.svg)
 
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    wants["Agent wants to act<br/>a write or destructive tool"] --> request["Approval request<br/>listed on the Approvals page"]
-    request --> approvers["Approvers are told<br/>never the person who asked"]
-    approvers --> decision{"Decision?"}
-    decision -- yes --> runs["Tool runs<br/>recorded in the audit log"]
-    decision -- no --> without["Agent goes on without it<br/>no reply in 24 h counts as no"]
-    runs --> finish["Agent finishes the answer<br/>the person sees each step"]
-    without --> finish
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef stop fill:#fdecea,stroke:#c62828,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class runs,finish good
-    class without stop
-    class decision decision
-```
-
-</details>
-
 - **Who approves:** the tool policy's approver group, or platform admins when the policy names none. A delegate named until a date may decide for them.
 - The agent reads the decision from the database when it resumes, so no client message can approve anything.
 - The person who asked can cancel the run while it waits.
@@ -170,27 +95,6 @@ flowchart TD
 > A file is searchable only after a clean virus scan, and only by its owner. Admins cannot read it either.
 
 ![My files flowchart](flows/my-files.svg)
-
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    choose["Choose files<br/>My files, or the chat composer"] --> limits{"Size and<br/>storage limit"}
-    limits -- over --> refused["Refused, reason shown<br/>nothing is stored"]
-    limits -- "within limit" --> scan{"Virus scan:<br/>clean?"}
-    scan -- no --> virus["Virus found<br/>never indexed"]
-    scan -- yes --> index["Parsed and indexed<br/>a parse error shows as Failed"]
-    index --> ready["Ready<br/>only the owner's chats search it"]
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef stop fill:#fdecea,stroke:#c62828,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class ready good
-    class refused,virus stop
-    class limits,scan decision
-```
-
-</details>
 
 - Up to **200 files** per upload.
 - Removing a file queues a delete job that takes it out of every index.
@@ -278,31 +182,6 @@ flowchart TD
 
 ![A chatbot's life flowchart](flows/chatbot-life.svg)
 
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    subgraph wizard["New chatbot wizard"]
-        direction LR
-        w1["1 Basics<br/>and template"] --> w2["2 Knowledge<br/>data sources"] --> w3["3 Pipeline<br/>retrieval, model"] --> w4["4 Access<br/>roles, data rule"] --> w5["5 Test<br/>and publish"]
-    end
-    w5 --> eval["Evaluation runs<br/>required sets, against live"]
-    eval --> gate{"Gate passed?"}
-    gate -- "no: fix the draft" --> w3
-    gate -- yes --> canary["Canary: 10% of people<br/>a stable share per person"]
-    canary --> fifty["50% of people<br/>still compared with live"]
-    fifty -- promote --> live["Live for everyone<br/>old live one click away"]
-    live -- "roll back" --> earlier["Earlier version live<br/>with a reason, audited"]
-    fifty -. "stop, or the guard finds the canary clearly worse" .-> earlier
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class live good
-    class gate decision
-```
-
-</details>
-
 | Who | Can do |
 | --- | --- |
 | Editors | Change the draft (pipeline editor, guardrails, router) and try it in the **Playground** |
@@ -319,28 +198,6 @@ flowchart TD
 > **Permission-aware retrieval.** Every document carries its readers from the first sync. A document whose readers cannot be mapped is visible to nobody.
 
 ![Data sources flowchart](flows/data-sources.svg)
-
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    type["Connect source<br/>pick one of seven types"] --> settings["Settings and secret<br/>secret goes to OpenBao"]
-    settings --> test{"Test OK?"}
-    test -- "no: fix and test again" --> settings
-    test -- yes --> sync["Sync<br/>on schedule, or Sync now"]
-    sync --> perms{"Source has<br/>permissions?"}
-    perms -- yes --> mapped["Permissions mapped<br/>unmapped readers are dropped"]
-    perms -- no --> chosen["Readers you choose<br/>per source, or per database row"]
-    mapped --> searchable["Searchable by its readers<br/>checked on every question"]
-    chosen --> searchable
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class searchable good
-    class test,perms decision
-```
-
-</details>
 
 | Type | Readers come from |
 | --- | --- |
@@ -431,30 +288,6 @@ Admin › Users & groups.
 
 ![Usage and budgets flowchart](flows/usage-and-budgets.svg)
 
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    question["Question asked<br/>a person or an app key"] --> person["Per-person limits<br/>questions, Agent runs, storage"]
-    person --> budgets["Budgets that apply<br/>chatbot, groups, cost centre"]
-    budgets --> limit{"Any at<br/>its limit?"}
-    limit -- no --> usual["Answer as usual<br/>tokens and spend recorded"]
-    limit -- yes --> strictest["Strictest action wins"]
-    strictest --> block["Block<br/>refused, reason shown"]
-    strictest --> fastonly["Fast only<br/>Agent mode off"]
-    strictest --> smaller["Smaller model<br/>the budget's fallback"]
-    strictest --> notify["Notify<br/>nothing changes"]
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef stop fill:#fdecea,stroke:#c62828,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class usual good
-    class block stop
-    class person,limit decision
-```
-
-</details>
-
 | Per-person limit | Over the limit |
 | --- | --- |
 | Questions per hour | The question is refused |
@@ -491,30 +324,6 @@ Groups can get a multiple of these limits. Automations are limited by budgets on
 > Nothing is erased or exported without a second person: a DPO who is not the requester.
 
 ![Data subject requests flowchart](flows/data-subject-requests.svg)
-
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart TD
-    recorded["Request recorded<br/>by a Governance editor or DPO"] --> held["What is held<br/>shown on the request page"]
-    held --> identity["Identity verified<br/>marked by the handler"]
-    identity --> dpo["DPO approves<br/>never the requester"]
-    dpo --> hold{"Legal hold?"}
-    hold -- yes --> blocked["Blocked<br/>until Legal lifts the hold"]
-    hold -- "no, erasure" --> erasure["Erasure<br/>chats, saved answers, own keys deleted<br/>uploads removed from every index<br/>audit name becomes a pseudonym"]
-    hold -- "no, export" --> export["Export<br/>a ZIP of profile, chats, saved answers,<br/>feedback and uploads<br/>download is audited"]
-    erasure --> report["Signed report<br/>HMAC-signed; hash in the audit log"]
-    export --> report
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef stop fill:#fdecea,stroke:#c62828,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class report good
-    class blocked stop
-    class hold decision
-```
-
-</details>
 
 **Erasure also:**
 
@@ -553,29 +362,6 @@ Each night the purge removes what is older. Chats with a saved answer and anythi
 ## Access reviews
 
 ![Access reviews flowchart](flows/access-reviews.svg)
-
-<details>
-<summary>Mermaid source</summary>
-
-```mermaid
-flowchart LR
-    start["Round starts<br/>every 90 days or by hand"] --> owners["Owners review<br/>chatbot roles, manual memberships"]
-    owners --> keep{"Keep or<br/>revoke?"}
-    keep -- keep --> kept["Access stays"]
-    keep -- revoke --> revoked["Access removed<br/>audited"]
-    owners -. "nobody decides" .-> overdue["Access stays<br/>round shows overdue"]
-    kept --> close["Platform admin<br/>closes the round"]
-    revoked --> close
-    overdue --> close
-    classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
-    classDef stop fill:#fdecea,stroke:#c62828,color:#111
-    classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
-    class kept good
-    class revoked stop
-    class keep decision
-```
-
-</details>
 
 - Chatbot owners review every chatbot role; group owners review every manual group membership.
 - Items without an owner go to platform admins. Keycloak and rule-based memberships are not reviewed.
