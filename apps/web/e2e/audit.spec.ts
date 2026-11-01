@@ -11,10 +11,11 @@ test.describe("audit log as a platform admin", () => {
     await expect(page.getByText("Chain intact")).toBeVisible();
     await expectNoA11yViolations(page);
 
-    await page.getByLabel("Category").selectOption("governance");
+    // Sign-ins are always recorded (category "Other"), even on an empty install.
+    await page.getByLabel("Category").selectOption("other");
     await page.getByLabel("Date range").selectOption("all");
     await page.getByRole("button", { name: "Apply" }).click();
-    await page.waitForURL(/category=governance/);
+    await page.waitForURL(/category=other/);
     const detail = page.getByRole("article", { name: "Change detail" });
     await expect(detail).toBeVisible();
     await expect(detail.getByText("Key values are never recorded")).toBeVisible();

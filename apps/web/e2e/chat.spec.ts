@@ -62,8 +62,13 @@ test.describe("my files", () => {
       mimeType: "text/markdown",
       buffer: Buffer.from("# Notes\n\nPrivate notes for the end-to-end test.\n"),
     });
+    const uploaded = page.waitForResponse(
+      (r) => r.url().endsWith("/api/v1/me/files") && r.request().method() === "POST",
+    );
     await panel.getByRole("button", { name: "Upload" }).click();
-    await expect(panel.getByText("e2e-notes.md", { exact: true })).toBeVisible();
+    // The first write to a fresh object store can take seconds (it allocates storage).
+    expect((await uploaded).status()).toBe(202);
+    await expect(panel.getByText("e2e-notes.md", { exact: true })).toBeVisible({ timeout: 15_000 });
     // Another user cannot see it: the API lists only the caller's own files.
     const mine = (await (await page.request.get("/api/v1/me/files")).json()) as { name: string }[];
     expect(mine.map((f) => f.name)).toContain("e2e-notes.md");

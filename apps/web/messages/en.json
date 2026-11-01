@@ -2929,7 +2929,8 @@
     "toolsPrefix": "tool:",
     "failed": "Did not work: {reason}",
     "close": "Close",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "noChatbots": "No chatbot yet. Create one first; its versions are evaluated here."
   },
   "versions": {
     "rollout": "Rollout",

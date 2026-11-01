@@ -39,6 +39,13 @@ export default async function EvaluationPage({
   if (!data)
     return response.status === 403 ? (
       <Forbidden />
+    ) : response.status === 404 ? (
+      <div className="flex flex-col gap-5">
+        <PageHeader title={t("title")} />
+        <p className="m-0 rounded-lg border border-line bg-surface p-5 text-sm text-fg-secondary">
+          {t("noChatbots")}
+        </p>
+      </div>
     ) : (
       <p className="m-0 text-sm text-red">{t("unavailable")}</p>
     );

@@ -47,6 +47,8 @@ test.describe("evaluation as a platform admin", () => {
   test("the evaluation page shows the gate and the judge settings", async ({ page }) => {
     await page.goto("/admin/evaluation");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Evaluation");
+    if (await page.getByText("No chatbot yet.").count())
+      test.skip(true, "no chatbot in this database");
     await expect(page.getByRole("form", { name: "Publish gate" })).toBeVisible();
     await expectNoA11yViolations(page);
     await page.getByRole("button", { name: "Settings" }).click();

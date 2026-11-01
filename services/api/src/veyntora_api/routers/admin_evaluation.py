@@ -165,6 +165,9 @@ async def overview(
         if await authz.check(principal.fga, "can_view_admin", f"chatbot:{b.id}")
     ]
     if not bots:
+        # An empty install is not a permission problem for people who may see the area.
+        if await authz.check(principal.fga, "viewer", "admin_area:evaluation"):
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Create a chatbot first")
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Not allowed")
     bot = next((b for b in bots if b.id == chatbot_id), bots[0])
     sets = list(
