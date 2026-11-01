@@ -110,3 +110,29 @@ Screens built in later phases show their real title and summary plus a "This scr
 
 - **S3 and Website** have their own fields, readers chosen in Veyntora, and optional readers per folder.
 - **File share (SMB)** stays disabled until its library is approved. Confluence and Database are labelled Phase 7.
+
+## Governance, GDPR request, Audit log (Phase 7)
+
+- **Governance:**
+  - Retention adds an audit-log period (at least a year) and the access-review interval.
+  - "Chatbots that may use external providers" lists every chatbot with its data rule (set per chatbot on its Access page).
+  - The page adds **Platform roles** (Legal and Data protection officer are new) and a link to **Access reviews**.
+- **Legal hold:** only the Legal role places or lifts a hold, by people's e-mail addresses and by chatbot.
+- **GDPR request:**
+  - The checks are real steps: mark identity verified, then approval by a DPO who is not the requester.
+  - Personal memory is not listed, because Veyntora has none.
+  - The confirmation report is signed JSON, not a PDF.
+  - Traces are counted when the request is carried out.
+- **Audit log:**
+  - Categories add knowledge and governance.
+  - "Revert to v7" is not on this page: versions are restored with a reason on the chatbot's Versions page, which "Open" links to.
+  - Export also offers JSON lines with hashes. The chain status and the write-once archive are shown.
+- **Access reviews** have their own page (`/admin/access-reviews`); the prototype has no screen for them.
+- **Settings › Privacy:**
+  - "Let the assistant remember my preferences" is removed, because there is no personal memory.
+  - "Keep chat history" off deletes chats after a day.
+
+## Connect data source (Phase 7)
+
+- **Confluence, Database and File share (SMB)** are built, each with its own fields.
+- Confluence and file shares map their own permissions (group map, SID map); databases use readers chosen in Veyntora, or a group column.

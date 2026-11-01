@@ -24,3 +24,4 @@
 | [0020](0020-people-chatbots-channels-flows.md) | Users & groups, chatbot management, channels, custom flows (Phase 4) |
 | [0021](0021-automations-knowledge-answers.md) | Automations, knowledge health, saved answers, hand-offs, delegated tools (Phase 5) |
 | [0022](0022-evaluation-rollout-usage-operate.md) | Evaluation, canary roll-out, usage and budgets, operating screens, S3 and website connectors (Phase 6) |
+| [0023](0023-governance-audit-connectors-hardening.md) | Governance, data subject requests, audit archive, access reviews, Confluence/database/file-share connectors, hardening (Phase 7) |
