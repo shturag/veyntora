@@ -2,7 +2,7 @@
 nameOverride: scheduler
 image:
   repository: ghcr.io/shturag/veyntora-api
-  tag: "7e7ee244f66e0cc892c7f0ecfefa6e0d79d2e7a1"
+  tag: "c1367db1a0c287054400df8de9dc3b394ee66c8c"
 replicas: 1  # beat must be a singleton
 port: 8000
 healthPath: /
