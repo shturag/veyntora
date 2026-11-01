@@ -111,7 +111,11 @@ services:
            "actions": ["Read:langfuse", "Write:langfuse", "List:langfuse"]}
         ]}
         EOF
-        exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/s3.json -volume.max=0
+        # Each bucket needs its own volumes. A fixed number of small (1 GB, grown on
+        # demand) volumes works on small disks too; "-volume.max=0" sizes the count from
+        # free disk / 30 GB, which leaves one volume on a CI runner and fails the second bucket.
+        exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/s3.json \
+          -volume.max=64 -master.volumeSizeLimitMB=1024
     environment:
       VEY_S3_ACCESS_KEY: ${VEY_S3_ACCESS_KEY:-dev-veyntora-s3}
       VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY:-dev-veyntora-s3-secret}
