@@ -208,7 +208,13 @@ jobs:
       - name: Server errors (on failure)
         if: failure()
         # The services' tracebacks, shown here so a failure explains itself.
-        run: grep -n -A40 "Traceback" compose.log | tail -300 || echo "no tracebacks in compose.log"
+        # Each traceback in full, down to the line that names the error.
+        run: |
+          awk '/Traceback \(most recent call last\)/ {p=1}
+               p {print}
+               p && /\| [A-Za-z_.]+(Error|Exception|Exit)[A-Za-z_]*(: |$)/ {p=0; print "----"}' \
+            compose.log | tail -400
+          grep -q "Traceback" compose.log || echo "no tracebacks in compose.log"
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
