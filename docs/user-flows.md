@@ -6,6 +6,9 @@ Flows that branch or change hands are drawn; straight runs are step tables.
 > [!NOTE]
 > The same content, with editable diagrams, is in the shared doc "Veyntora user and admin flows".
 > When a flow changes, update both.
+>
+> The flowcharts are SVG images in [`docs/flows/`](flows/), so they show in any Markdown viewer. Each one's Mermaid source sits below it. After editing a source, re-render it, for example:
+> `npx -y @mermaid-js/mermaid-cli@11.4.2 -i chart.mmd -o docs/flows/<name>.svg -b white` with `"htmlLabels": false` in the config.
 
 ## Contents
 
@@ -24,33 +27,36 @@ Flows that branch or change hands are drawn; straight runs are step tables.
 
 ## The map
 
+Admins prepare a chatbot on the left; people use it on the right.
+
+![Overview map flowchart](flows/map.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart LR
-    subgraph users["People who use assistants"]
-        signin["Sign in"] --> home["Home: pick an assistant"] --> ask["Ask a question"]
-        ask --> answer["Answer with citations"]
-        ask --> expert["Ask an expert"]
-        answer --> saved["Save and share"]
-        files["My files"] --> ask
-    end
-    subgraph admins["Admins"]
-        sources["Data sources"] --> draft["Chatbot draft"] --> gate{"Eval gate"} --> canary["Canary"] --> live["Live"]
-        providers["Providers and keys"] --> draft
-        tools["Tools (MCP)"] --> draft
-    end
-    subgraph governance["Governance"]
-        settings["Retention and masking"]
-        holds["Legal holds"]
-        dsr["Data subject requests"]
-        audit["Audit log"]
-    end
+    sources["Data sources"] --> draft["Chatbot draft"]
+    providers["Providers and keys"] --> draft
+    tools["Tools (MCP)"] --> draft
+    draft --> gate{"Eval gate"} --> canary["Canary"] --> live["Live chatbot"]
+    signin["Sign in"] --> ask["Ask a question"]
+    files["My files"] --> ask
     live --> ask
+    ask --> answer["Answer with citations"] --> saved["Save and share"]
+    ask --> expert["Ask an expert"]
     ask -. "write actions" .-> approvals["Approvals"]
     classDef good fill:#e6f4ea,stroke:#2e7d32,color:#111
     classDef decision fill:#fff8e1,stroke:#b7791f,color:#111
+    classDef admin fill:#eef2ff,stroke:#4f46e5,color:#111
     class answer,live good
     class gate decision
+    class sources,providers,tools,draft,canary admin
 ```
+
+</details>
+
+Governance covers both sides: retention and masking, legal holds, data subject requests and the audit log.
 
 **How to read the flowcharts**
 
@@ -90,9 +96,14 @@ Platform admins come from the bootstrap group in Keycloak. They grant the Legal 
 > [!IMPORTANT]
 > **Grounded or silent.** An answer is shown only when its cited sources support it, and only from documents the person may open.
 
+![Asking a question flowchart](flows/asking-a-question.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart TD
-    ask["Ask a question<br/>in the web app or any channel"] --> budget{"Budgets and limits<br/>checked when the run starts"}
+    ask["Ask a question<br/>in the web app or any channel"] --> budget{"Budgets and<br/>limits OK?"}
     budget -- "limit reached" --> refused["Refused, reason shown<br/>or Fast only, or a smaller model"]
     budget -- ok --> mode{"Which mode?<br/>Auto: the router picks"}
     mode -- Fast --> fast["Fast: one search<br/>only documents they may open"]
@@ -112,6 +123,8 @@ flowchart TD
     class budget,mode,grounded decision
 ```
 
+</details>
+
 - Every step loads the person's access again.
 - In **Auto**, a weak Fast answer is handed to the agent.
 - An expert may offer the reply to the knowledge base. Once an owner accepts it, the assistant can use it next time, for the chosen groups only.
@@ -120,6 +133,11 @@ flowchart TD
 
 > [!IMPORTANT]
 > **No write without approval.** The agent changes nothing until an approver says yes, and the approver is never the person who asked.
+
+![Agent actions that need approval flowchart](flows/agent-approval.svg)
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 flowchart TD
@@ -138,6 +156,8 @@ flowchart TD
     class decision decision
 ```
 
+</details>
+
 - **Who approves:** the tool policy's approver group, or platform admins when the policy names none. A delegate named until a date may decide for them.
 - The agent reads the decision from the database when it resumes, so no client message can approve anything.
 - The person who asked can cancel the run while it waits.
@@ -146,6 +166,11 @@ flowchart TD
 
 > [!IMPORTANT]
 > A file is searchable only after a clean virus scan, and only by its owner. Admins cannot read it either.
+
+![My files flowchart](flows/my-files.svg)
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 flowchart TD
@@ -162,6 +187,8 @@ flowchart TD
     class refused,virus stop
     class limits,scan decision
 ```
+
+</details>
 
 - Up to **200 files** per upload.
 - Removing a file queues a delete job that takes it out of every index.
@@ -247,6 +274,11 @@ flowchart TD
 > [!IMPORTANT]
 > A draft reaches everyone only through the eval gate and a canary, and the old live version stays one click away.
 
+![A chatbot's life flowchart](flows/chatbot-life.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart TD
     subgraph wizard["New chatbot wizard"]
@@ -267,6 +299,8 @@ flowchart TD
     class gate decision
 ```
 
+</details>
+
 | Who | Can do |
 | --- | --- |
 | Editors | Change the draft (pipeline editor, guardrails, router) and try it in the **Playground** |
@@ -281,6 +315,11 @@ flowchart TD
 
 > [!IMPORTANT]
 > **Permission-aware retrieval.** Every document carries its readers from the first sync. A document whose readers cannot be mapped is visible to nobody.
+
+![Data sources flowchart](flows/data-sources.svg)
+
+<details>
+<summary>Mermaid source</summary>
 
 ```mermaid
 flowchart TD
@@ -298,6 +337,8 @@ flowchart TD
     class searchable good
     class test,perms decision
 ```
+
+</details>
 
 | Type | Readers come from |
 | --- | --- |
@@ -386,9 +427,14 @@ Admin › Users & groups.
 > [!IMPORTANT]
 > When several budgets are at their limit, the **strictest** action wins.
 
+![Usage and budgets flowchart](flows/usage-and-budgets.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart TD
-    question["Question asked<br/>a person or an app key"] --> person{"Per-person limits<br/>questions, Agent runs, storage"}
+    question["Question asked<br/>a person or an app key"] --> person["Per-person limits<br/>questions, Agent runs, storage"]
     person --> budgets["Budgets that apply<br/>chatbot, groups, cost centre"]
     budgets --> limit{"Any at<br/>its limit?"}
     limit -- no --> usual["Answer as usual<br/>tokens and spend recorded"]
@@ -404,6 +450,8 @@ flowchart TD
     class block stop
     class person,limit decision
 ```
+
+</details>
 
 | Per-person limit | Over the limit |
 | --- | --- |
@@ -440,6 +488,11 @@ Groups can get a multiple of these limits. Automations are limited by budgets on
 > [!IMPORTANT]
 > Nothing is erased or exported without a second person: a DPO who is not the requester.
 
+![Data subject requests flowchart](flows/data-subject-requests.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart TD
     recorded["Request recorded<br/>by a Governance editor or DPO"] --> held["What is held<br/>shown on the request page"]
@@ -458,6 +511,8 @@ flowchart TD
     class blocked stop
     class hold decision
 ```
+
+</details>
 
 **Erasure also:**
 
@@ -495,6 +550,11 @@ Each night the purge removes what is older. Chats with a saved answer and anythi
 
 ## Access reviews
 
+![Access reviews flowchart](flows/access-reviews.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 flowchart LR
     start["Round starts<br/>every 90 days or by hand"] --> owners["Owners review<br/>chatbot roles, manual memberships"]
@@ -512,6 +572,8 @@ flowchart LR
     class revoked stop
     class keep decision
 ```
+
+</details>
 
 - Chatbot owners review every chatbot role; group owners review every manual group membership.
 - Items without an owner go to platform admins. Keycloak and rule-based memberships are not reviewed.
