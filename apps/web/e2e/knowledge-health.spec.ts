@@ -37,7 +37,8 @@ test.describe("knowledge health as a platform admin", () => {
     await expect(dialog.getByText("Saved.")).toBeVisible();
     await page.keyboard.press("Escape");
     const scan = page.getByRole("button", { name: "Scan now" });
-    if (await scan.isEnabled()) {
+    // While a scan is queued or running the button reads differently and is disabled.
+    if ((await scan.count()) && (await scan.isEnabled())) {
       await scan.click();
       await expect(page.getByText("Scan queued; it starts within a minute.")).toBeVisible();
     }

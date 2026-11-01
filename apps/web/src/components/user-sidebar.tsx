@@ -56,7 +56,7 @@ export function UserSidebar({
             {unread ? (
               <span
                 aria-label={t("nav.unread", { count: unread })}
-                className="rounded-full bg-accent px-2 text-xs font-semibold text-white"
+                className="rounded-full bg-accent px-2 text-xs font-semibold text-on-accent"
               >
                 {unread}
               </span>
