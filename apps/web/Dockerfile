@@ -20,6 +20,10 @@ COPY apps/web apps/web
 RUN pnpm --filter @veyntora/web build
 
 FROM node:24.22.2-alpine3.24
+# The server needs node only. The package managers bundled with the base image (npm,
+# corepack, yarn) are removed: unused, and their own dependencies carry CVEs.
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
+      /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-*
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
