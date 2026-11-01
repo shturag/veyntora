@@ -1484,7 +1484,6 @@
     "removeText": "Assistenten, die deinen Schlüssel genutzt haben, verwenden wieder ihr eigenes Modell.",
     "privacy": "Datenschutz und Daten",
     "keepHistory": "Chatverlauf behalten",
-    "rememberPreferences": "Den Assistenten meine Vorlieben über Chats hinweg merken lassen",
     "export": "Meine Daten exportieren",
     "deleteChats": "Alle Chats löschen",
     "chatsDeleted": "Alle Chats entfernt.",
@@ -1493,7 +1492,10 @@
     "linkedAccounts": "Verknüpfte Teams- und Slack-Konten",
     "linkedIntro": "Diese Konten erhalten Antworten mit deinem Zugriff. Entferne eines, das du nicht mehr nutzt.",
     "noLinks": "Keine verknüpften Konten.",
-    "unlink": "Trennen"
+    "unlink": "Trennen",
+    "keepHistoryHint": "Aus: Ihre Chats werden nach einem Tag gelöscht. Gespeicherte Antworten bleiben.",
+    "historyOn": "Der Chatverlauf wird behalten.",
+    "historyOff": "Chats werden nach einem Tag gelöscht."
   },
   "tools": {
     "title": "Tools (MCP)",

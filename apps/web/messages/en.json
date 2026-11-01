@@ -1484,7 +1484,6 @@
     "removeText": "Assistants that used your key go back to their own model.",
     "privacy": "Privacy and data",
     "keepHistory": "Keep chat history",
-    "rememberPreferences": "Let the assistant remember my preferences across chats",
     "export": "Export my data",
     "deleteChats": "Delete all chats",
     "chatsDeleted": "All chats removed.",
@@ -1493,7 +1492,10 @@
     "linkedAccounts": "Linked Teams and Slack accounts",
     "linkedIntro": "These accounts answer with your access. Remove one you don't use any more.",
     "noLinks": "No linked accounts.",
-    "unlink": "Unlink"
+    "unlink": "Unlink",
+    "keepHistoryHint": "Off: your chats are deleted after a day. Saved answers stay.",
+    "historyOn": "Chat history is kept.",
+    "historyOff": "Chats will be deleted after a day."
   },
   "tools": {
     "title": "Tools (MCP)",

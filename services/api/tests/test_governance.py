@@ -243,3 +243,14 @@ async def test_trace_purge_keeps_held_people() -> None:
     ) as http:
         n = await purge_traces(http, datetime.now(UTC), {"held"})
     assert n == 1 and deleted == ["t1"]
+
+
+async def test_without_history_chats_go_after_a_day(rag: Rag) -> None:
+    db = rag.w.db
+    rag.w.user.preferences = {**(rag.w.user.preferences or {}), "keep_history": False}
+    await db.flush()
+    yesterday = await _chat(rag, 2)
+    today = await _chat(rag, 0)
+    assert await retention.purge_chats(db) == 1
+    assert await db.get(Conversation, yesterday.id) is None
+    assert await db.get(Conversation, today.id) is not None

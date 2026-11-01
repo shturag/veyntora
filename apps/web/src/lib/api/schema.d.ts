@@ -2993,6 +2993,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download everything Veyntora holds about me (ZIP; audited) */
+        get: operations["export_mine_v1_me_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/files": {
         parameters: {
             query?: never;
@@ -7238,6 +7255,11 @@ export interface components {
              * @enum {string}
              */
             default_mode: "auto" | "fast" | "agent";
+            /**
+             * Keep History
+             * @default true
+             */
+            keep_history: boolean;
             /**
              * Notify Email
              * @default true
@@ -15761,6 +15783,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_mine_v1_me_export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": unknown;
                 };
             };
         };

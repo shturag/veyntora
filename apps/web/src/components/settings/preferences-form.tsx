@@ -40,6 +40,8 @@ export function PreferencesForm({
           suggest_follow_ups: form.get("suggest_follow_ups") === "on",
           notify_teams: form.get("notify_teams") === "on",
           notify_email: form.get("notify_email") === "on",
+          // Set under Privacy; kept as it is here.
+          keep_history: initial.keep_history ?? true,
         }),
       });
       setMessage({ ok: true, text: t("saved") });

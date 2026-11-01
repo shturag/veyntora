@@ -20,9 +20,11 @@ from veyntora_api.db.models.conversations import Conversation
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.providers import ByokKey
+from veyntora_api.governance.export import export_zip
 from veyntora_api.people import service as people
 from veyntora_api.providers import byok
 from veyntora_api.providers.service import ProviderError
+from veyntora_api.storage import ObjectStore
 
 router = APIRouter(prefix="/v1/me", tags=["me"])
 
@@ -43,6 +45,8 @@ class Preferences(BaseModel):
     # Where notifications go besides Veyntora itself (approvals, hand-offs, reports).
     notify_teams: bool = True
     notify_email: bool = True
+    # Off: the person's chats are deleted after a day by the nightly purge.
+    keep_history: bool = True
 
 
 async def _user(db: DbSession, principal: CurrentPrincipal) -> User:
@@ -50,6 +54,27 @@ async def _user(db: DbSession, principal: CurrentPrincipal) -> User:
     if user is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
     return user
+
+
+@router.get(
+    "/export",
+    summary="Download everything Veyntora holds about me (ZIP; audited)",
+    response_class=Response,
+    responses={200: {"content": {"application/zip": {}}}},
+)
+async def export_mine(
+    principal: CurrentPrincipal, ctx: Ctx, db: DbSession, state: State
+) -> Response:
+    data = await export_zip(db, ObjectStore(state.settings), principal.user_id)
+    await audit.record(
+        db, ctx, action="me.export", target_type="user", target_id=str(principal.user_id)
+    )
+    await db.commit()
+    return Response(
+        data,
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="my-veyntora-data.zip"'},
+    )
 
 
 @router.get("/preferences", summary="The user's answer preferences")

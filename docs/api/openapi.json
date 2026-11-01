@@ -10394,6 +10394,11 @@
             "title": "Default Mode",
             "type": "string"
           },
+          "keep_history": {
+            "default": true,
+            "title": "Keep History",
+            "type": "boolean"
+          },
           "notify_email": {
             "default": true,
             "title": "Notify Email",
@@ -26007,6 +26012,23 @@
           }
         },
         "summary": "Name a delegate for my approvals until a date, or none",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/export": {
+      "get": {
+        "operationId": "export_mine_v1_me_export_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/zip": {}
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Download everything Veyntora holds about me (ZIP; audited)",
         "tags": [
           "me"
         ]

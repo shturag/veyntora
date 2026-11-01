@@ -36,7 +36,14 @@ test.describe("settings as an employee", () => {
     }
 
     const privacy = page.getByRole("region", { name: "Privacy and data" });
-    await expect(privacy.getByRole("button", { name: "Export my data" })).toBeDisabled();
+    const download = page.waitForEvent("download");
+    await privacy.getByRole("link", { name: "Export my data" }).click();
+    expect((await download).suggestedFilename()).toBe("my-veyntora-data.zip");
+    const keep = privacy.getByLabel(/Keep chat history/);
+    await keep.uncheck();
+    await expect(privacy.getByText("Chats will be deleted after a day.")).toBeVisible();
+    await keep.check();
+    await expect(privacy.getByText("Chat history is kept.")).toBeVisible();
     await privacy.getByRole("button", { name: "Delete all chats" }).click();
     const dialog = page.getByRole("dialog", { name: "Delete all your chats?" });
     await expect(dialog).toBeVisible();

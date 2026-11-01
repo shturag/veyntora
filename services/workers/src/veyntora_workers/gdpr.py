@@ -4,9 +4,6 @@ the access export, then sign the report and complete the request."""
 
 from __future__ import annotations
 
-import io
-import json
-import zipfile
 from typing import Any
 from uuid import UUID
 
@@ -14,19 +11,15 @@ import httpx
 import sqlalchemy as sa
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
-from veyntora_api.db.models.conversations import Conversation, Feedback, Message, SavedAnswer
 from veyntora_api.db.models.governance import GdprKind, GdprRequest, GdprStatus
-from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.knowledge import (
-    DataSource,
-    Document,
-    DocumentStatus,
     IngestJob,
     IngestJobKind,
     JobStatus,
 )
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.governance import requests
+from veyntora_api.governance.export import export_zip
 from veyntora_api.settings import Settings
 from veyntora_api.storage import ObjectStore
 
@@ -68,77 +61,6 @@ async def _files_gone(db: AsyncSession, req: GdprRequest) -> bool:
         )
     )
     return not waiting
-
-
-async def export_zip(db: AsyncSession, store: Any, user_id: UUID) -> bytes:
-    """Everything Veyntora holds about a person, as a ZIP."""
-    buf = io.BytesIO()
-    user = await db.get(User, user_id)
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-
-        def put(name: str, value: Any) -> None:
-            z.writestr(name, json.dumps(value, default=str, ensure_ascii=False, indent=2))
-
-        put(
-            "profile.json",
-            {
-                "id": str(user_id),
-                "email": user.email if user else None,
-                "name": user.display_name if user else None,
-                "preferences": user.preferences if user else {},
-            },
-        )
-        convs = (
-            await db.execute(sa.select(Conversation).where(Conversation.user_id == user_id))
-        ).scalars()
-        for c in convs:
-            msgs = (
-                await db.execute(
-                    sa.select(Message)
-                    .where(Message.conversation_id == c.id)
-                    .order_by(Message.created_at)
-                )
-            ).scalars()
-            put(
-                f"chats/{c.id}.json",
-                {
-                    "title": c.title,
-                    "created_at": c.created_at,
-                    "messages": [
-                        {"role": m.role.value, "at": m.created_at, "text": m.content} for m in msgs
-                    ],
-                },
-            )
-        saved = (
-            await db.execute(sa.select(SavedAnswer).where(SavedAnswer.user_id == user_id))
-        ).scalars()
-        put("saved_answers.json", [{"title": s.title, "at": s.created_at} for s in saved])
-        fb = (await db.execute(sa.select(Feedback).where(Feedback.user_id == user_id))).scalars()
-        put(
-            "feedback.json",
-            [
-                {
-                    "rating": f.rating.value,
-                    "reason": f.reason,
-                    "comment": f.comment,
-                    "at": f.created_at,
-                }
-                for f in fb
-            ],
-        )
-        docs = (
-            await db.execute(
-                sa.select(Document)
-                .join(DataSource, DataSource.id == Document.source_id)
-                .where(DataSource.uploaded_by == user_id, Document.status != DocumentStatus.DELETED)
-            )
-        ).scalars()
-        for d in docs:
-            if d.object_key:
-                z.writestr(
-                    f"uploads/{d.id}-{d.path.rsplit('/', 1)[-1]}", await store.get(d.object_key)
-                )
-    return buf.getvalue()
 
 
 async def tick(settings: Settings) -> int:

@@ -28,7 +28,8 @@ from veyntora_api.db.models.governance import ActorType, GdprKind, GdprStatus
 from veyntora_api.db.models.identity import User
 from veyntora_api.governance import requests as dsr
 from veyntora_api.governance import service as gov
-from veyntora_workers.gdpr import delete_traces, export_zip
+from veyntora_api.governance.export import export_zip
+from veyntora_workers.gdpr import delete_traces
 
 from tests.test_fast_rag import CTX
 from tests.test_ingestion import FakeObjects, World, _bot_with_source

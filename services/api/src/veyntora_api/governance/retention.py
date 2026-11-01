@@ -1,8 +1,9 @@
 """Retention: the nightly purge (workers) of chats, uploads and traces past their time.
 
 - Chats: by the chatbot's data rule, else the platform default, counted from the last
-  message. Chats with a saved answer are kept while the answer is saved (people chose to
-  keep it). Deleting a conversation removes its messages, citations and feedback.
+  message; after a day for people who switched "Keep chat history" off. Chats with a
+  saved answer are kept while the answer is saved (people chose to keep it). Deleting a
+  conversation removes its messages, citations and feedback.
 - Uploads ("My files"): by the platform setting; documents are removed from every index
   by the usual delete job.
 - Traces: in Langfuse, by the platform setting (veyntora_workers.retention).
@@ -21,6 +22,7 @@ from veyntora_api.core import audit
 from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.conversations import Conversation, Message, SavedAnswer
 from veyntora_api.db.models.governance import GovernanceRule
+from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.knowledge import DataSource, Document, DocumentStatus, IngestJobKind
 from veyntora_api.governance import service as governance
 from veyntora_api.knowledge.service import enqueue
@@ -44,6 +46,13 @@ async def purge_chats(db: AsyncSession, now: datetime | None = None) -> int:
     saved = sa.select(Message.conversation_id).join(
         SavedAnswer, SavedAnswer.message_id == Message.id
     )
+    no_history = set(
+        (
+            await db.execute(
+                sa.select(User.id).where(User.preferences["keep_history"].as_boolean().is_(False))
+            )
+        ).scalars()
+    )
     rows = (
         await db.execute(
             sa.select(Conversation.id, Conversation.chatbot_id, Conversation.user_id, last.c.at)
@@ -55,7 +64,7 @@ async def purge_chats(db: AsyncSession, now: datetime | None = None) -> int:
     for conv_id, bot_id, user_id, at in rows:
         if user_id in held_users or bot_id in held_bots:
             continue
-        days = rules.get(bot_id, settings.chat_retention_days)
+        days = 1 if user_id in no_history else rules.get(bot_id, settings.chat_retention_days)
         if (at or now) < now - timedelta(days=days):
             doomed.append(conv_id)
     if doomed:

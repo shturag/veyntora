@@ -34,6 +34,7 @@ export default async function SettingsPage() {
             suggest_follow_ups: true,
             notify_teams: true,
             notify_email: true,
+            keep_history: true,
           }
         }
         assistants={(bots ?? []).map((b) => ({ id: b.id, name: b.name }))}
@@ -41,7 +42,7 @@ export default async function SettingsPage() {
       <Appearance />
       <OwnModels initial={keys ?? { allowed: false, chatbots: [], keys: [] }} />
       <LinkedAccounts links={links ?? []} />
-      <Privacy />
+      <Privacy prefs={prefs ?? null} />
     </div>
   );
 }

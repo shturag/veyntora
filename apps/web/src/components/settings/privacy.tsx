@@ -1,22 +1,44 @@
 "use client";
 
-import { Button, Dialog, PhaseGatedButton } from "@veyntora/ui";
+import { Button, Dialog } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
 
 import { Section } from "./section";
 
-/** Privacy & data. History and export controls arrive with GDPR requests (Phase 7). */
-export function Privacy() {
+type Preferences = components["schemas"]["Preferences"];
+
+/** Privacy & data: chat history, export of everything held about me, delete my chats. */
+export function Privacy({ prefs }: { prefs: Preferences | null }) {
   const t = useTranslations("settings");
   const router = useRouter();
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
-  const later = t("later", { phase: 7 });
+  const [keep, setKeep] = useState(prefs?.keep_history ?? true);
+
+  async function saveHistory(on: boolean) {
+    if (!prefs) return;
+    setKeep(on);
+    try {
+      await api("/v1/me/preferences", {
+        method: "PUT",
+        body: JSON.stringify({ ...prefs, keep_history: on }),
+      });
+      setMessage({ ok: true, text: on ? t("historyOn") : t("historyOff") });
+      router.refresh();
+    } catch (e) {
+      setKeep(!on);
+      setMessage({
+        ok: false,
+        text: t("failed", { reason: e instanceof Error ? e.message : "?" }),
+      });
+    }
+  }
 
   async function deleteAll() {
     setBusy(true);
@@ -37,23 +59,25 @@ export function Privacy() {
 
   return (
     <Section id="privacy" title={t("privacy")}>
-      <div className="flex flex-col gap-2">
-        {(["keepHistory", "rememberPreferences"] as const).map((k) => (
-          <label key={k} title={later} className="flex items-center gap-2 text-sm text-fg-muted">
-            <input
-              type="checkbox"
-              disabled
-              defaultChecked={k === "keepHistory"}
-              className="size-4"
-            />
-            {t(k)} · {later}
-          </label>
-        ))}
-      </div>
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={keep}
+          disabled={!prefs}
+          onChange={(e) => void saveHistory(e.target.checked)}
+          className="mt-0.5 size-4"
+        />
+        <span>
+          {t("keepHistory")}
+          <span className="block text-xs text-fg-muted">{t("keepHistoryHint")}</span>
+        </span>
+      </label>
       <div className="flex flex-wrap items-center gap-2">
-        <PhaseGatedButton phase={7} label={later}>
-          {t("export")}
-        </PhaseGatedButton>
+        <Button asChild>
+          <a href="/api/v1/me/export" download>
+            {t("export")}
+          </a>
+        </Button>
         <Button variant="danger" onClick={() => setConfirm(true)}>
           {t("deleteChats")}
         </Button>
