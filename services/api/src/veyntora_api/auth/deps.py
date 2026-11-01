@@ -59,11 +59,9 @@ class Principal:
 
 
 def client_ip(request: Request) -> str | None:
-    # The web app is the only ingress for browsers and sets X-Forwarded-For; in Kubernetes
-    # the ingress controller does. Take the left-most (original client) address.
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip() or None
+    """The caller's address. Uvicorn has already resolved X-Forwarded-For, trusting it only
+    from `trusted_proxies` (the web app, the ingress); a header sent by anyone else is
+    ignored, so it cannot be used to forge the address in the audit log."""
     return request.client.host if request.client else None
 
 

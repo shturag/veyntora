@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     # Write-once audit archive: a bucket with S3 Object Lock on the same store. Empty: no
     # archive, and audit entries are never removed.
     audit_archive_bucket: str = ""
+    # Addresses or networks (comma-separated) whose X-Forwarded-For/-Proto is trusted:
+    # the web app and the ingress. Anyone else's forwarded headers are ignored.
+    trusted_proxies: str = "127.0.0.1,::1"
 
     # Uploads: virus scan with clamd (host:port). Scanning is required unless switched off
     # explicitly; documents then show "not scanned" in the admin console.

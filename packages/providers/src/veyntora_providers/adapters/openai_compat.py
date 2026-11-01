@@ -24,6 +24,7 @@ from veyntora_providers.interfaces import (
     ToolSpec,
     Usage,
 )
+from veyntora_providers.netguard import PinnedPublicTransport
 from veyntora_providers.registry import register
 from veyntora_providers.secrets import SecretReader
 
@@ -35,6 +36,12 @@ class OpenAICompatLLM:
         self._config = config
         self._secrets = secrets
         self._base = config.endpoint.rstrip("/")
+        # Endpoints typed by users (own models) are reached only at checked public addresses.
+        self._public_only = bool(config.options.get("public_only"))
+
+    def _http(self, timeout: httpx.Timeout | float) -> httpx.AsyncClient:
+        transport = PinnedPublicTransport() if self._public_only else None
+        return httpx.AsyncClient(timeout=timeout, transport=transport)
 
     async def _headers(self) -> dict[str, str]:
         if not self._config.secret_ref:
@@ -74,7 +81,7 @@ class OpenAICompatLLM:
         usage: Usage | None = None
         timeout = httpx.Timeout(60.0, connect=5.0)
         async with (
-            httpx.AsyncClient(timeout=timeout) as http,
+            self._http(timeout) as http,
             http.stream(
                 "POST", f"{self._base}/chat/completions", json=body, headers=await self._headers()
             ) as res,
@@ -120,7 +127,7 @@ class OpenAICompatLLM:
     async def health(self) -> HealthResult:
         start = time.perf_counter()
         try:
-            async with httpx.AsyncClient(timeout=5.0) as http:
+            async with self._http(5.0) as http:
                 res = await http.get(f"{self._base}/models", headers=await self._headers())
             ok = res.status_code == 200
             detail = "" if ok else f"HTTP {res.status_code}"

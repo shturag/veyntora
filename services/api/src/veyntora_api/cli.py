@@ -269,7 +269,8 @@ def main() -> None:
             port=args.port,
             reload=args.reload,
             proxy_headers=True,
-            forwarded_allow_ips="*",
+            # Only the web app and the ingress may say who the client is.
+            forwarded_allow_ips=settings.trusted_proxies,
             log_config=None,
         )
     elif args.cmd == "migrate":

@@ -77,17 +77,23 @@ def config_of(row: ByokKey, *, secret_ref: str | None = None) -> ProviderInstanc
         name=row.label or "Own model",
         endpoint=row.endpoint,
         model=row.model,
-        options={},
+        # Typed by a user: reached only at checked public addresses (netguard).
+        options={"public_only": True},
         secret_ref=secret_ref or row.secret_ref,
         hosting=Hosting.EXTERNAL,
     )
 
 
 async def check_endpoint(adapter: str, endpoint: str | None) -> None:
+    if adapter == "anthropic":
+        # Only Anthropic's own API: its client cannot be pinned to checked addresses.
+        if endpoint is not None:
+            raise ProviderError(
+                "Anthropic own models use Anthropic's API; leave the endpoint empty"
+            )
+        return
     if endpoint is None:
-        if adapter != "anthropic":
-            raise ProviderError("an endpoint is needed for OpenAI-compatible models")
-        return  # Anthropic's own API
+        raise ProviderError("an endpoint is needed for OpenAI-compatible models")
     try:
         await check_public_https(endpoint)
     except EndpointNotAllowedError as exc:

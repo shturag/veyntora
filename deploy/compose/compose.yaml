@@ -12,7 +12,8 @@ x-app-env: &app-env
   VEY_ENVIRONMENT: local
   VEY_LOG_LEVEL: ${VEY_LOG_LEVEL:-INFO}
   VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
-  VEY_DATABASE_URL: postgresql+asyncpg://veyntora:${VEY_DB_PASSWORD:-dev-veyntora-db}@postgres:5432/veyntora
+  # Services connect as the runtime role (rows only); migrations use the owner (migrate).
+  VEY_DATABASE_URL: postgresql+asyncpg://veyntora_runtime:${VEY_RUNTIME_DB_PASSWORD:-dev-veyntora-runtime}@postgres:5432/veyntora
   VEY_REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/0
   VEY_OIDC_ISSUER: http://localhost:8080/realms/veyntora
   VEY_OIDC_INTERNAL_BASE: http://keycloak:8080/realms/veyntora
@@ -29,6 +30,8 @@ x-app-env: &app-env
   VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY:-dev-veyntora-s3-secret}
   VEY_S3_BUCKET: veyntora
   VEY_AUDIT_ARCHIVE_BUCKET: veyntora-audit
+  # The web app reaches the API over the compose network (private addresses).
+  VEY_TRUSTED_PROXIES: "127.0.0.1,::1,172.16.0.0/12,192.168.0.0/16,10.0.0.0/8"
   VEY_QDRANT_URL: http://qdrant:6333
   VEY_LITELLM_URL: http://litellm:4000
   VEY_GRAPHS_URL: http://graphs:2026
@@ -464,6 +467,29 @@ services:
     depends_on: [prometheus, loki]
 
   # ------------------------------------------------------------------ Veyntora
+  # The runtime role (no ownership) the services use; idempotent on every start.
+  postgres-roles:
+    image: postgres:16.15-alpine
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${VEY_PG_SUPERUSER_PASSWORD:-dev-postgres}
+      RUNTIME_PASSWORD: ${VEY_RUNTIME_DB_PASSWORD:-dev-veyntora-runtime}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        psql -v ON_ERROR_STOP=1 -d veyntora -v pw="$$RUNTIME_PASSWORD" <<'SQL'
+        SELECT format('CREATE ROLE veyntora_runtime LOGIN PASSWORD %L', :'pw')
+          WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'veyntora_runtime') \gexec
+        SELECT format('ALTER ROLE veyntora_runtime LOGIN PASSWORD %L', :'pw') \gexec
+        GRANT CONNECT ON DATABASE veyntora TO veyntora_runtime;
+        -- Table privileges and defaults are granted by the owner in migration 0020.
+        SQL
+    restart: "no"
+
   migrate:
     build: &python-build
       context: ../..
@@ -473,9 +499,11 @@ services:
     environment:
       <<: *app-env
       VEY_LOG_LEVEL: INFO
+      VEY_DATABASE_URL: postgresql+asyncpg://veyntora:${VEY_DB_PASSWORD:-dev-veyntora-db}@postgres:5432/veyntora
     volumes:
       - openbao-api-token:/run/openbao:ro
     depends_on:
+      postgres-roles: { condition: service_completed_successfully }
       postgres: { condition: service_healthy }
       keycloak: { condition: service_healthy }
       openfga: { condition: service_healthy }
