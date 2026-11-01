@@ -7,6 +7,8 @@ Flows that branch or change hands are drawn; straight runs are step tables.
 > The same content, with editable diagrams, is in the shared doc "Veyntora user and admin flows".
 > When a flow changes, update both.
 >
+> Every use case, with its actors and exceptions, is listed in [use-cases.md](use-cases.md).
+>
 > The flowcharts are SVG images in [`docs/flows/`](flows/), so they show in any Markdown viewer. Each one's Mermaid source sits below it. After editing a source, re-render it, for example:
 > `npx -y @mermaid-js/mermaid-cli@11.4.2 -i chart.mmd -o docs/flows/<name>.svg -b white` with `"htmlLabels": false` in the config.
 

@@ -29,7 +29,7 @@ Give Docker at least 16 GB of memory. More in [docs/runbooks/local-dev.md](docs/
 | `deploy/helm`, `deploy/argocd` | Kubernetes chart, values per environment, app-of-apps |
 | `deploy/openfga` | Authorization model, tests, bootstrap mapping |
 | `design/prototype` | UI reference (read-only) |
-| `docs` | ADRs, runbooks, API reference, prototype differences, [user and admin flows](docs/user-flows.md) |
+| `docs` | ADRs, runbooks, API reference, prototype differences, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md) |
 
 ## Development
 
