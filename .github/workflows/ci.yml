@@ -205,6 +205,10 @@ jobs:
           pnpm --filter @veyntora/web exec playwright test
       - if: failure()
         run: docker compose logs --no-color > compose.log
+      - name: Server errors (on failure)
+        if: failure()
+        # The services' tracebacks, shown here so a failure explains itself.
+        run: grep -n -A40 "Traceback" compose.log | tail -300 || echo "no tracebacks in compose.log"
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
