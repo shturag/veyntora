@@ -2071,7 +2071,18 @@
     "deleteTitle": "{name} endgültig löschen",
     "deleteBody": "Das löscht den Chatbot mit allen Chats, Kanälen, App-Schlüsseln und seiner Datenregel. Das lässt sich nicht rückgängig machen. Seine Datenquellen bleiben, und das Audit-Log behält den Eintrag. Es wird abgelehnt, solange eine Aufbewahrungspflicht (Legal Hold) seine Chats erfasst oder eine Automatisierung ihn nutzt.",
     "deleteType": "Zum Bestätigen {name} eingeben",
-    "deleteForGood": "Endgültig löschen"
+    "deleteForGood": "Endgültig löschen",
+    "chatFeatures": "Chat-Funktionen",
+    "chatFeaturesNone": "Keine Schalter für Personen",
+    "chatFeaturesHint": "Was Personen im Chat schalten können: Modelle, Denken, Websuche, Code-Interpreter, Anhänge.",
+    "chatFeaturesDraft": "Enthält unveröffentlichte Änderungen: Veröffentliche die Pipeline, damit Personen sie bekommen.",
+    "offers": {
+      "models": "{count} Modelle zur Wahl",
+      "thinking": "Denken",
+      "webSearch": "Websuche",
+      "code": "Code-Interpreter",
+      "attachments": "Anhänge"
+    }
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",

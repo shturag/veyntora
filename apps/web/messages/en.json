@@ -2071,7 +2071,18 @@
     "deleteTitle": "Delete {name} for good",
     "deleteBody": "This deletes the chatbot with all of its chats, channels, app keys and its data rule. It cannot be undone. Its data sources stay, and the audit log keeps the record. It is refused while a legal hold covers its chats or an automation uses it.",
     "deleteType": "Type {name} to confirm",
-    "deleteForGood": "Delete for good"
+    "deleteForGood": "Delete for good",
+    "chatFeatures": "Chat features",
+    "chatFeaturesNone": "No switches for people",
+    "chatFeaturesHint": "What people can switch in the chat: models, thinking, web search, code interpreter, attachments.",
+    "chatFeaturesDraft": "Includes unpublished changes: publish the pipeline to give them to people.",
+    "offers": {
+      "models": "{count} models to choose",
+      "thinking": "Thinking",
+      "webSearch": "Web search",
+      "code": "Code interpreter",
+      "attachments": "Attachments"
+    }
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",

@@ -25,6 +25,16 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
   ]);
   if (response.status === 403) return <Forbidden />;
   if (!o || !bot) notFound();
+  // What people may switch in the chat (the draft: what the next publish gives them).
+  const chat = (bot.draft.spec as { chat?: Record<string, unknown> }).chat ?? {};
+  const models = Array.isArray(chat.llm_instance_ids) ? chat.llm_instance_ids.length : 0;
+  const offered = [
+    models ? t("offers.models", { count: models + 1 }) : null,
+    chat.thinking ? t("offers.thinking") : null,
+    chat.web_search_instance_id ? t("offers.webSearch") : null,
+    chat.code_instance_id ? t("offers.code") : null,
+    chat.attachments !== false ? t("offers.attachments") : null,
+  ].filter((x): x is string => x !== null);
   const tile = "flex flex-col rounded-lg border border-line bg-surface px-4 py-3";
   const card = "flex flex-col gap-1 rounded-lg border border-line bg-surface p-4";
   return (
@@ -61,6 +71,15 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
             {o.live_version ? t("liveVersion", { version: o.live_version }) : t("notLive")}
             {o.draft_version ? ` · ${t("draft", { version: o.draft_version })}` : ""}
             {o.canary_percent ? ` · ${t("canary", { percent: o.canary_percent })}` : ""}
+          </p>
+        </section>
+        <section className={card} aria-labelledby="ov-chat">
+          <h2 id="ov-chat" className="m-0 text-sm font-semibold">
+            <Link href={`/admin/pipelines/${o.id}/chat`}>{t("chatFeatures")}</Link>
+          </h2>
+          <p className="m-0 text-sm">{offered.join(" · ") || t("chatFeaturesNone")}</p>
+          <p className="m-0 text-xs text-fg-muted">
+            {o.draft_version ? t("chatFeaturesDraft") : t("chatFeaturesHint")}
           </p>
         </section>
         <section className={card} aria-labelledby="ov-knowledge">
