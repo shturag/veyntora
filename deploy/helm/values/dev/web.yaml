@@ -2,7 +2,7 @@
 nameOverride: web
 image:
   repository: ghcr.io/shturag/veyntora-web
-  tag: "2b6a468ebec262d408d300485796b43bdf1204f2"
+  tag: "e7528c8cdecb90ff29f333d235c6bf8b9529a0fa"
 replicas: 1
 port: 3000
 healthPath: /sign-in
