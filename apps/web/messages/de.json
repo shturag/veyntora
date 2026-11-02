@@ -29,7 +29,10 @@
     "recent": "Zuletzt",
     "notifications": "Benachrichtigungen",
     "unread": "{count} ungelesen",
-    "handoffs": "Fragen an Fachleute"
+    "handoffs": "Fragen an Fachleute",
+    "menu": "Menü",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen"
   },
   "adminNav": {
     "label": "Administration",

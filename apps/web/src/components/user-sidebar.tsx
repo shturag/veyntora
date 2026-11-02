@@ -1,3 +1,14 @@
+import {
+  Bell,
+  BookOpen,
+  CircleCheck,
+  CircleHelp,
+  House,
+  MessageSquare,
+  Settings,
+  UserRoundCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -7,17 +18,30 @@ import { initialsOf } from "@/lib/initials";
 import { AccountMenu } from "./account-menu";
 import { BrandLogo } from "./brand";
 import { NavLink } from "./nav-link";
+import { NavSection, SidebarFrame } from "./sidebar";
 
 type Recent = { id: string; thread_id: string | null; title: string };
 
 const link =
-  "rounded-md px-3 py-2.5 text-sm text-fg-secondary no-underline hover:bg-sunken hover:text-fg";
+  "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-fg-secondary no-underline hover:bg-sunken hover:text-fg";
 const active =
   "bg-accent-soft font-medium text-fg relative before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-[image:var(--vey-brand-gradient)]";
+const recentLink =
+  "flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] text-fg-secondary no-underline hover:bg-sunken hover:text-fg";
+
+const MENU: { href: string; key: string; icon: LucideIcon }[] = [
+  { href: "/home", key: "home", icon: House },
+  { href: "/library", key: "library", icon: BookOpen },
+  { href: "/approvals", key: "approvals", icon: CircleCheck },
+  { href: "/notifications", key: "notifications", icon: Bell },
+  { href: "/handoff", key: "handoffs", icon: UserRoundCheck },
+  { href: "/settings", key: "settings", icon: Settings },
+  { href: "/help", key: "help", icon: CircleHelp },
+];
 
 /**
- * The user app's left sidebar (prototype: Home.html) with the most recent chats, and the
- * number of unread notifications.
+ * The user app's left sidebar (prototype: Home.html): the menu and the most recent chats in
+ * sections that fold, scrolling between the new-chat button and the account.
  */
 export function UserSidebar({
   me,
@@ -30,30 +54,43 @@ export function UserSidebar({
 }) {
   const t = useTranslations();
   return (
-    <aside className="flex flex-col gap-[18px] border-line bg-surface px-4 py-5 max-[900px]:basis-full max-[900px]:border-b min-[901px]:sticky min-[901px]:top-0 min-[901px]:h-screen min-[901px]:w-[280px] min-[901px]:shrink-0 min-[901px]:overflow-y-auto min-[901px]:border-r">
-      <div className="flex items-center gap-2.5">
-        <BrandLogo height={32} />
-      </div>
+    <SidebarFrame
+      label={t("nav.main")}
+      menuLabel={t("nav.openMenu")}
+      closeLabel={t("nav.closeMenu")}
+      className="border-line bg-surface min-[901px]:w-[272px] min-[901px]:border-r"
+      top={
+        <>
+          <BrandLogo height={30} />
+          <Link
+            href="/home"
+            className="flex h-10 items-center justify-center gap-2 rounded-md border border-line-strong bg-surface text-sm font-medium text-fg no-underline hover:bg-sunken hover:text-fg max-[900px]:hidden"
+          >
+            {t("common.newChat")}
+          </Link>
+        </>
+      }
+      bottom={
+        <AccountMenu
+          name={me.name || me.email || ""}
+          detail={me.email ?? ""}
+          initials={initialsOf(me.name, me.email ?? "")}
+          canOpenAdmin={me.can_open_admin}
+        />
+      }
+    >
       <Link
         href="/home"
-        className="flex h-11 items-center justify-center rounded-md border border-line-strong bg-surface text-sm font-medium text-fg no-underline hover:bg-sunken hover:text-fg"
+        className="mb-1 flex h-10 items-center justify-center gap-2 rounded-md border border-line-strong text-sm font-medium text-fg no-underline hover:bg-sunken min-[901px]:hidden"
       >
         {t("common.newChat")}
       </Link>
-      <nav aria-label={t("nav.main")} className="flex flex-col gap-0.5">
-        <NavLink href="/home" className={link} activeClassName={active}>
-          {t("nav.home")}
-        </NavLink>
-        <NavLink href="/library" className={link} activeClassName={active}>
-          {t("nav.library")}
-        </NavLink>
-        <NavLink href="/approvals" className={link} activeClassName={active}>
-          {t("nav.approvals")}
-        </NavLink>
-        <NavLink href="/notifications" className={link} activeClassName={active}>
-          <span className="flex w-full items-center justify-between gap-2">
-            {t("nav.notifications")}
-            {unread ? (
+      <NavSection id="user-menu" title={t("nav.menu")}>
+        {MENU.map(({ href, key, icon: Icon }) => (
+          <NavLink key={href} href={href} className={link} activeClassName={active}>
+            <Icon aria-hidden className="size-4 shrink-0 text-fg-muted" />
+            <span className="flex-1 truncate">{t(`nav.${key}` as "nav.home")}</span>
+            {key === "notifications" && unread ? (
               <span
                 aria-label={t("nav.unread", { count: unread })}
                 className="rounded-full bg-accent px-2 text-xs font-semibold text-on-accent"
@@ -61,43 +98,24 @@ export function UserSidebar({
                 {unread}
               </span>
             ) : null}
-          </span>
-        </NavLink>
-        <NavLink href="/handoff" className={link} activeClassName={active}>
-          {t("nav.handoffs")}
-        </NavLink>
-        <NavLink href="/settings" className={link} activeClassName={active}>
-          {t("nav.settings")}
-        </NavLink>
-        <NavLink href="/help" className={link} activeClassName={active}>
-          {t("nav.help")}
-        </NavLink>
-      </nav>
+          </NavLink>
+        ))}
+      </NavSection>
       {recent.length > 0 ? (
-        <nav aria-label={t("nav.recent")} className="flex flex-col gap-0.5">
-          <div className="px-2 pb-1.5 text-[11px] font-semibold tracking-[0.06em] text-fg-muted uppercase">
-            {t("nav.recent")}
-          </div>
+        <NavSection id="user-recent" title={t("nav.recent")}>
           {recent.map((c) => (
             <NavLink
               key={c.id}
               href={`/chat/${c.thread_id}`}
-              className={`${link} truncate`}
+              className={recentLink}
               activeClassName={active}
             >
-              {c.title || t("library.untitled")}
+              <MessageSquare aria-hidden className="size-3.5 shrink-0 text-fg-muted" />
+              <span className="truncate">{c.title || t("library.untitled")}</span>
             </NavLink>
           ))}
-        </nav>
+        </NavSection>
       ) : null}
-      <div className="mt-auto border-t border-divider pt-2">
-        <AccountMenu
-          name={me.name || me.email || ""}
-          detail={me.email ?? ""}
-          initials={initialsOf(me.name, me.email ?? "")}
-          canOpenAdmin={me.can_open_admin}
-        />
-      </div>
-    </aside>
+    </SidebarFrame>
   );
 }

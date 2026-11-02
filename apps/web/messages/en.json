@@ -29,7 +29,10 @@
     "recent": "Recent",
     "notifications": "Notifications",
     "unread": "{count} unread",
-    "handoffs": "Expert questions"
+    "handoffs": "Expert questions",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "adminNav": {
     "label": "Admin",

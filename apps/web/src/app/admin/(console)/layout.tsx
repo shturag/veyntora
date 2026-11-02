@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     );
   }
   return (
-    <div className="flex min-h-screen flex-wrap bg-ground min-[901px]:flex-nowrap">
+    <div className="flex min-h-screen flex-wrap content-start bg-ground min-[901px]:flex-nowrap">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
         {t("skipToContent")}
       </a>

@@ -84,3 +84,18 @@ body {
   font-size: 11px;
   font-weight: 500;
 }
+
+/* Sidebars: a thin scrollbar that stays out of the way until it is needed. */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  scrollbar-gutter: stable;
+}
+.sidebar-scroll:hover,
+.sidebar-scroll:focus-within {
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+.sidebar-scroll-dark:hover,
+.sidebar-scroll-dark:focus-within {
+  scrollbar-color: var(--color-nav-active) transparent;
+}
