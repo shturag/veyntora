@@ -23,7 +23,10 @@ from veyntora_api.authz.fga import PLATFORM, Authz, Tuple
 from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService, VersionConflictError
 from veyntora_api.core.context import RequestContext
+from veyntora_api.db.models.automations import Automation
+from veyntora_api.db.models.channels import Channel
 from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineStatus, PipelineVersion
+from veyntora_api.db.models.conversations import Conversation
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import Group, User
 from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAttachment
@@ -33,6 +36,7 @@ from veyntora_api.evaluation import service as evaluation
 from veyntora_api.governance import service as governance
 from veyntora_api.knowledge.service import enqueue
 from veyntora_api.providers.service import with_fallbacks
+from veyntora_api.secrets.openbao import SecretWriter
 
 Role = Literal["owner", "editor", "approver", "user"]
 ROLES: tuple[Role, ...] = ("owner", "editor", "approver", "user")
@@ -152,6 +156,88 @@ async def update_chatbot(
     return await ConfigService(db, ctx).update(
         bot, data, expected_version=expected_version, action="chatbot.update"
     )
+
+
+async def delete_chatbot(
+    db: AsyncSession,
+    ctx: RequestContext,
+    authz: Authz,
+    secrets: SecretWriter | None,
+    bot: Chatbot,
+) -> int:
+    """Delete an archived chatbot for good: its chats, channels, data rule and settings.
+
+    Refused while a legal hold covers the chatbot or anyone who chatted with it, and while
+    an automation still uses it. Audit entries stay (they are the record that it existed).
+    Returns the number of chats deleted.
+    """
+    if bot.status is not ChatbotStatus.ARCHIVED:
+        raise ChatbotError("archive the chatbot first; only archived chatbots can be deleted")
+    held_users, held_bots = await governance.held(db)
+    if bot.id in held_bots:
+        raise ChatbotError("a legal hold covers this chatbot")
+    chatters = set(
+        (
+            await db.execute(
+                sa.select(Conversation.user_id).where(Conversation.chatbot_id == bot.id).distinct()
+            )
+        ).scalars()
+    )
+    if chatters & held_users:
+        raise ChatbotError("a legal hold covers chats of people who used this chatbot")
+    text = str(bot.id)
+    automations = (
+        (
+            await db.execute(
+                sa.select(Automation.name)
+                .where(
+                    sa.or_(
+                        Automation.chatbot_id == bot.id,
+                        sa.cast(Automation.spec, sa.Text).contains(text),
+                    )
+                )
+                .order_by(Automation.name)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if automations:
+        raise ChatbotError(f"used by the automations {', '.join(automations)}: change them first")
+    chats = await db.scalar(
+        sa.select(sa.func.count())
+        .select_from(Conversation)
+        .where(Conversation.chatbot_id == bot.id)
+    )
+    # Teams and Slack channels keep their app secrets in OpenBao; those go with them.
+    keyed = list(
+        (
+            await db.execute(
+                sa.select(Channel.id).where(
+                    Channel.chatbot_id == bot.id, Channel.secret_ref.is_not(None)
+                )
+            )
+        ).scalars()
+    )
+    if keyed and secrets is None:
+        raise ChatbotError("the secret store is not available")
+    await ConfigService(db, ctx).delete(bot, action="chatbot.delete")
+    for channel_id in keyed:
+        await secrets.delete(f"channels/{channel_id}")  # type: ignore[union-attr]
+    # Permissions last, before the caller commits: if this fails the transaction rolls
+    # back and the chatbot stays, archived.
+    tuples = await authz.read(f"chatbot:{bot.id}")
+    if tuples:
+        await authz.write(deletes=tuples)
+    await audit.record(
+        db,
+        ctx,
+        action="chatbot.chats_deleted",
+        target_type="chatbot",
+        target_id=str(bot.id),
+        after={"chats": int(chats or 0)},
+    )
+    return int(chats or 0)
 
 
 async def draft_of(db: AsyncSession, bot: Chatbot) -> PipelineVersion:

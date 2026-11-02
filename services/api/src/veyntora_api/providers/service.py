@@ -196,21 +196,56 @@ async def with_fallbacks(
     return out
 
 
-async def pipelines_using(db: AsyncSession, instance_id: UUID) -> list[str]:
-    """Chatbot names whose draft or live/canary pipeline uses the instance."""
+async def pipelines_using(
+    db: AsyncSession, instance_id: UUID, *, any_version: bool = False
+) -> list[str]:
+    """Chatbot names whose draft or live/canary pipeline uses the instance; with
+    `any_version`, also older versions that a rollback could bring back."""
+    statuses = [PipelineStatus.DRAFT, PipelineStatus.LIVE, PipelineStatus.CANARY]
     rows = await db.execute(
         sa.select(Chatbot.name)
         .join(PipelineVersion, PipelineVersion.chatbot_id == Chatbot.id)
         .where(
-            PipelineVersion.status.in_(
-                [PipelineStatus.DRAFT, PipelineStatus.LIVE, PipelineStatus.CANARY]
-            ),
+            sa.true() if any_version else PipelineVersion.status.in_(statuses),
             sa.cast(PipelineVersion.spec, sa.Text).contains(str(instance_id)),
         )
         .distinct()
         .order_by(Chatbot.name)
     )
     return list(rows.scalars())
+
+
+async def delete_provider(
+    db: AsyncSession, ctx: RequestContext, secrets: SecretWriter | None, row: ProviderInstance
+) -> None:
+    """Delete an instance nothing can use any more, with every version of its key.
+
+    Refused while any pipeline version (rollbacks included) names it or another provider
+    falls back to it. History (usage, evaluations) keeps its rows without the link.
+    """
+    if users := await pipelines_using(db, row.id, any_version=True):
+        raise ProviderError(
+            f"used by the pipelines of {', '.join(users)} (including older versions a "
+            "rollback could restore): switch them to another provider first"
+        )
+    standing_in = (
+        (
+            await db.execute(
+                sa.select(ProviderInstance.name).where(
+                    ProviderInstance.fallback_instance_id == row.id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if standing_in:
+        raise ProviderError(f"it is the fallback of {', '.join(standing_in)}: change that first")
+    if row.secret_ref is not None or row.previous_secret_ref is not None:
+        if secrets is None:
+            raise ProviderError("the secret store is not available")
+        await secrets.delete(f"providers/{row.id}")
+    await ConfigService(db, ctx).delete(row, action="provider.delete")
 
 
 async def _check_disable(db: AsyncSession, row: ProviderInstance, fallback_id: UUID | None) -> None:

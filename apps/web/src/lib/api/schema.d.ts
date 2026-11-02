@@ -602,7 +602,8 @@ export interface paths {
         get: operations["get_chatbot_v1_admin_chatbots__bot_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete an archived chatbot and its chats for good */
+        delete: operations["delete_chatbot_v1_admin_chatbots__bot_id__delete"];
         options?: never;
         head?: never;
         /** Change name, texts or status */
@@ -2054,7 +2055,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete an unused provider instance and its key */
+        delete: operations["remove_provider_v1_admin_providers__provider_id__delete"];
         options?: never;
         head?: never;
         /** Change a provider instance */
@@ -5024,6 +5026,11 @@ export interface components {
             delegate_id: string | null;
             /** Until */
             until?: string | null;
+        };
+        /** DeletedOut */
+        DeletedOut: {
+            /** Chats Deleted */
+            chats_deleted: number;
         };
         /**
          * DestinationKind
@@ -11064,6 +11071,40 @@ export interface operations {
             };
         };
     };
+    delete_chatbot_v1_admin_chatbots__bot_id__delete: {
+        parameters: {
+            query: {
+                /** @description The chatbot's name, as typed by the person */
+                confirm: string;
+            };
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     change_chatbot_v1_admin_chatbots__bot_id__patch: {
         parameters: {
             query?: never;
@@ -14117,6 +14158,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UsageOut"][];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_provider_v1_admin_providers__provider_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

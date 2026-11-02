@@ -9,7 +9,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("bots");
 
-const STATUSES = ["live", "draft", "paused"] as const;
+const STATUSES = ["live", "draft", "paused", "archived"] as const;
 
 /** Chatbots (prototype: Bots.html): each with its pipeline, data and audience. */
 export default async function BotsPage({

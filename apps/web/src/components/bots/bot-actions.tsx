@@ -19,7 +19,7 @@ function slugOf(name: string): string {
     .slice(0, 60);
 }
 
-/** Open as a user, duplicate as a draft, pause or resume. */
+/** Open as a user, duplicate as a draft, pause or resume, archive, restore or delete. */
 export function BotActions({ bot }: { bot: { id: string; name: string; status: string } }) {
   const t = useTranslations("bots");
   const router = useRouter();
@@ -27,7 +27,25 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function setStatus(status: "live" | "paused") {
+  const [deleting, setDeleting] = useState(false);
+  const [typed, setTyped] = useState("");
+
+  async function remove(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/v1/admin/chatbots/${bot.id}?confirm=${encodeURIComponent(typed)}`, {
+        method: "DELETE",
+      });
+      router.push("/admin/chatbots");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "?");
+      setBusy(false);
+    }
+  }
+
+  async function setStatus(status: "live" | "paused" | "archived") {
     setBusy(true);
     setError(null);
     try {
@@ -84,12 +102,69 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
             {t("resume")}
           </Button>
         ) : null}
+        {bot.status === "archived" ? (
+          <>
+            <Button disabled={busy} onClick={() => setStatus("paused")}>
+              {t("restore")}
+            </Button>
+            <Button variant="danger" disabled={busy} onClick={() => setDeleting(true)}>
+              {t("delete")}
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="ghost"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm(t("archiveConfirm", { name: bot.name })))
+                void setStatus("archived");
+            }}
+          >
+            {t("archive")}
+          </Button>
+        )}
       </div>
-      {error && !open ? (
+      {error && !open && !deleting ? (
         <span role="alert" className="text-sm text-red">
           {t("failed", { reason: error })}
         </span>
       ) : null}
+      <Dialog
+        open={deleting}
+        onOpenChange={(v) => {
+          setDeleting(v);
+          setTyped("");
+          setError(null);
+        }}
+        title={t("deleteTitle", { name: bot.name })}
+        closeLabel={t("close")}
+      >
+        <form onSubmit={remove} className="flex flex-col gap-3">
+          <p className="m-0 text-sm">{t("deleteBody")}</p>
+          <label className="flex flex-col gap-1 text-[13px] font-medium">
+            {t("deleteType", { name: bot.name })}
+            <input
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              autoComplete="off"
+              className={control}
+            />
+          </label>
+          {error ? (
+            <p role="alert" className="m-0 text-sm text-red">
+              {t("failed", { reason: error })}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-2">
+            <Button type="button" onClick={() => setDeleting(false)}>
+              {t("cancel")}
+            </Button>
+            <Button type="submit" variant="danger" disabled={busy || typed.trim() !== bot.name}>
+              {t("deleteForGood")}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
       <Dialog
         open={open}
         onOpenChange={setOpen}

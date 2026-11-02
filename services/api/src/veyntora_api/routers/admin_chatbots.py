@@ -11,7 +11,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 import sqlalchemy as sa
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from veyntora_spec.pipeline import PipelineSpec
 
@@ -212,6 +212,30 @@ async def change_chatbot(
     detail = await _detail(db, bot)
     await db.commit()
     return detail
+
+
+class DeletedOut(BaseModel):
+    chats_deleted: int
+
+
+@router.delete("/{bot_id}", summary="Delete an archived chatbot and its chats for good")
+async def delete_chatbot(
+    bot_id: UUID,
+    principal: CurrentPrincipal,
+    ctx: Ctx,
+    db: DbSession,
+    state: State,
+    confirm: Annotated[str, Query(description="The chatbot's name, as typed by the person")],
+) -> DeletedOut:
+    bot = await _guarded(db, state, principal, bot_id, "can_publish")
+    if confirm.strip() != bot.name:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Type the chatbot's name")
+    try:
+        chats = await svc.delete_chatbot(db, ctx, state.require_authz(), state.secrets, bot)
+    except svc.ChatbotError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    await db.commit()
+    return DeletedOut(chats_deleted=chats)
 
 
 class DraftInput(BaseModel):

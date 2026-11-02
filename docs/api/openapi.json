@@ -4550,6 +4550,19 @@
         "title": "DelegateIn",
         "type": "object"
       },
+      "DeletedOut": {
+        "properties": {
+          "chats_deleted": {
+            "title": "Chats Deleted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chats_deleted"
+        ],
+        "title": "DeletedOut",
+        "type": "object"
+      },
       "DestinationKind": {
         "enum": [
           "teams_channel",
@@ -19231,6 +19244,58 @@
       }
     },
     "/v1/admin/chatbots/{bot_id}": {
+      "delete": {
+        "operationId": "delete_chatbot_v1_admin_chatbots__bot_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The chatbot's name, as typed by the person",
+            "in": "query",
+            "name": "confirm",
+            "required": true,
+            "schema": {
+              "description": "The chatbot's name, as typed by the person",
+              "title": "Confirm",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete an archived chatbot and its chats for good",
+        "tags": [
+          "admin: chatbots"
+        ]
+      },
       "get": {
         "operationId": "get_chatbot_v1_admin_chatbots__bot_id__get",
         "parameters": [
@@ -23771,6 +23836,40 @@
       }
     },
     "/v1/admin/providers/{provider_id}": {
+      "delete": {
+        "operationId": "remove_provider_v1_admin_providers__provider_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Provider Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete an unused provider instance and its key",
+        "tags": [
+          "admin: providers"
+        ]
+      },
       "patch": {
         "operationId": "change_provider_v1_admin_providers__provider_id__patch",
         "parameters": [

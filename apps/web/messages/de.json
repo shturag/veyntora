@@ -839,7 +839,10 @@
     "endpointHint": "Die Basis-URL, zum Beispiel https://api.example.com/v1, ohne /chat/completions oder /embeddings: Diese ergänzt Veyntora.",
     "hostingHint": "Extern, wenn die Adresse außerhalb deines Netzwerks liegt, etwa eine Cloud-API: Daten verlassen dann dein Netzwerk, und Chatbots dürfen sie nur nutzen, wenn ihre Datenregel es erlaubt.",
     "region": "Region",
-    "regionPlaceholder": "z. B. eu-central"
+    "regionPlaceholder": "z. B. eu-central",
+    "delete": "Löschen",
+    "deleteConfirm": "{name} und seinen Schlüssel löschen? Nur möglich, wenn keine Chatbot-Pipeline (auch ältere Versionen) und kein anderer Anbieter ihn nutzt. Das lässt sich nicht rückgängig machen.",
+    "deleted": "Gelöscht."
   },
   "sources": {
     "title": "Datenquellen",
@@ -1991,7 +1994,15 @@
       "save": "Speichern",
       "saved": "Gespeichert.",
       "failed": "Hat nicht funktioniert: {reason}"
-    }
+    },
+    "archive": "Archivieren",
+    "archiveConfirm": "{name} archivieren? Er antwortet nicht mehr und ist für Menschen ausgeblendet. Nichts geht verloren, und du kannst ihn wiederherstellen.",
+    "restore": "Wiederherstellen",
+    "delete": "Löschen…",
+    "deleteTitle": "{name} endgültig löschen",
+    "deleteBody": "Das löscht den Chatbot mit allen Chats, Kanälen, App-Schlüsseln und seiner Datenregel. Das lässt sich nicht rückgängig machen. Seine Datenquellen bleiben, und das Audit-Log behält den Eintrag. Es wird abgelehnt, solange eine Aufbewahrungspflicht (Legal Hold) seine Chats erfasst oder eine Automatisierung ihn nutzt.",
+    "deleteType": "Zum Bestätigen {name} eingeben",
+    "deleteForGood": "Endgültig löschen"
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",

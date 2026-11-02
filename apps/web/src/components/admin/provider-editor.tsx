@@ -278,6 +278,20 @@ export function ProviderEditor({
             >
               {provider.enabled ? t("disable") : t("enable")}
             </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => {
+                if (!window.confirm(t("deleteConfirm", { name: provider.name }))) return;
+                void run(async () => {
+                  await api(`/v1/admin/providers/${provider.id}`, { method: "DELETE" });
+                  router.push("/admin/providers");
+                }, t("deleted"));
+              }}
+            >
+              {t("delete")}
+            </Button>
           </div>
         ) : null}
       </form>

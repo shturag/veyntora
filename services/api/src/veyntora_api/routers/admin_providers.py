@@ -20,6 +20,7 @@ from veyntora_api.providers.service import (
     ProviderInput,
     ProviderUpdate,
     create_provider,
+    delete_provider,
     set_secret,
     update_provider,
 )
@@ -172,6 +173,21 @@ async def change_provider(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
     await db.commit()
     return ProviderOut.of(row)
+
+
+@router.delete(
+    "/{provider_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an unused provider instance and its key",
+)
+async def remove_provider(
+    provider_id: UUID, _: Editor, ctx: Ctx, db: DbSession, state: State
+) -> None:
+    try:
+        await delete_provider(db, ctx, state.secrets, await _get(db, provider_id))
+    except ProviderError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    await db.commit()
 
 
 class SecretInput(BaseModel):

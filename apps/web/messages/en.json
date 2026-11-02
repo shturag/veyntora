@@ -839,7 +839,10 @@
     "endpointHint": "The base URL, for example https://api.example.com/v1, without /chat/completions or /embeddings: Veyntora adds those.",
     "hostingHint": "External when the address is outside your network, such as a cloud API: data then leaves your network, and chatbots may use it only when their data rule allows it.",
     "region": "Region",
-    "regionPlaceholder": "e.g. eu-central"
+    "regionPlaceholder": "e.g. eu-central",
+    "delete": "Delete",
+    "deleteConfirm": "Delete {name} and its key? Only possible when no chatbot pipeline (including older versions) and no other provider uses it. This cannot be undone.",
+    "deleted": "Deleted."
   },
   "sources": {
     "title": "Data sources",
@@ -1991,7 +1994,15 @@
       "save": "Save",
       "saved": "Saved.",
       "failed": "Did not work: {reason}"
-    }
+    },
+    "archive": "Archive",
+    "archiveConfirm": "Archive {name}? It stops answering and is hidden from people. Nothing is lost, and you can restore it.",
+    "restore": "Restore",
+    "delete": "Delete…",
+    "deleteTitle": "Delete {name} for good",
+    "deleteBody": "This deletes the chatbot with all of its chats, channels, app keys and its data rule. It cannot be undone. Its data sources stay, and the audit log keeps the record. It is refused while a legal hold covers its chats or an automation uses it.",
+    "deleteType": "Type {name} to confirm",
+    "deleteForGood": "Delete for good"
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
