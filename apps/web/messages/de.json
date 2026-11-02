@@ -891,7 +891,9 @@
     "thinkingNone": "Keiner (Standard des Modells)",
     "thinkingFlag": "enable_thinking-Flag (SiliconFlow, DashScope)",
     "thinkingTemplate": "chat_template_kwargs (vLLM, SGLang)",
-    "thinkingHint": "Wie dieser Server das Nachdenken eines Modells an- und ausschaltet, damit Chatbots Menschen einen Denk-Schalter anbieten können. Nur für Modelle, die nachdenken können (z. B. Qwen3)."
+    "thinkingHint": "Wie dieser Server das Nachdenken eines Modells an- und ausschaltet, damit Chatbots Menschen einen Denk-Schalter anbieten können. Nur für Modelle, die nachdenken können (z. B. Qwen3).",
+    "usageNotPriced": "Nutzung und Preise werden nur für Sprachmodelle gezählt. Aufrufe dieser Art von Anbieter (z. B. Einbetten von Dokumenten beim Indexieren) werden noch nicht gezählt oder bepreist.",
+    "noUsageCounted": "Für diese Art von Anbieter nicht gezählt."
   },
   "sources": {
     "title": "Datenquellen",

@@ -400,9 +400,11 @@ export function ProviderEditor({
             ))}
           </dl>
         ) : (
-          <p className="m-0 text-sm text-fg-secondary">{t("noUsage")}</p>
+          <p className="m-0 text-sm text-fg-secondary">
+            {priced ? t("noUsage") : t("noUsageCounted")}
+          </p>
         )}
-        <p className="m-0 text-xs text-fg-muted">{t("usageHint")}</p>
+        <p className="m-0 text-xs text-fg-muted">{priced ? t("usageHint") : t("usageNotPriced")}</p>
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-divider pt-4">
         <Badge

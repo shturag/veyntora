@@ -891,7 +891,9 @@
     "thinkingNone": "None (the model's default)",
     "thinkingFlag": "enable_thinking flag (SiliconFlow, DashScope)",
     "thinkingTemplate": "chat_template_kwargs (vLLM, SGLang)",
-    "thinkingHint": "How this server turns a model's thinking on and off, so chatbots can offer people a Thinking switch. Only for models that can think (e.g. Qwen3)."
+    "thinkingHint": "How this server turns a model's thinking on and off, so chatbots can offer people a Thinking switch. Only for models that can think (e.g. Qwen3).",
+    "usageNotPriced": "Usage and prices are counted for language models only. Calls to this kind of provider (e.g. embedding documents while indexing) are not counted or priced yet.",
+    "noUsageCounted": "Not counted for this kind of provider."
   },
   "sources": {
     "title": "Data sources",
