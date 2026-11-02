@@ -58,21 +58,30 @@ export async function PipelinePage({
             </Badge>
           </div>
         </div>
-        {canEdit ? (
-          <div className="flex items-start gap-2">
-            <Link
-              href={`/admin/playground?bot=${bot.id}`}
-              className={buttonVariants({ variant: "secondary" })}
-            >
-              {t("testInPlayground")}
-            </Link>
-            <PublishButton
-              botId={bot.id}
-              draft={bot.draft.number}
-              blocked={bot.publish_problems.length > 0}
-            />
-          </div>
-        ) : null}
+        <div className="flex items-start gap-2">
+          {/* The same draft as a picture: steps and connections. */}
+          <Link
+            href={`/admin/chatbots/${bot.id}/flow`}
+            className={buttonVariants({ variant: "secondary" })}
+          >
+            {t("visualEditor")}
+          </Link>
+          {canEdit ? (
+            <>
+              <Link
+                href={`/admin/playground?bot=${bot.id}`}
+                className={buttonVariants({ variant: "secondary" })}
+              >
+                {t("testInPlayground")}
+              </Link>
+              <PublishButton
+                botId={bot.id}
+                draft={bot.draft.number}
+                blocked={bot.publish_problems.length > 0}
+              />
+            </>
+          ) : null}
+        </div>
       </div>
       <div className="grid grid-cols-[220px_minmax(0,1fr)_280px] items-start gap-5 max-[1200px]:grid-cols-[200px_minmax(0,1fr)] max-[760px]:grid-cols-1">
         <nav aria-label={t("steps")}>

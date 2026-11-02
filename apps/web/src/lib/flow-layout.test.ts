@@ -90,6 +90,12 @@ describe("publish checks in people's words", () => {
       kind: "flow",
       href: "/admin/chatbots/b/flow",
     });
+    expect(
+      describeProblem(
+        "Cloud embeddings is an external provider; allow it in this chatbot's data rules first",
+        "b",
+      ),
+    ).toEqual({ kind: "dataRule", name: "Cloud embeddings", href: "/admin/chatbots/b/access" });
     expect(describeProblem("something new", "b")).toEqual({ kind: "other", text: "something new" });
   });
 });

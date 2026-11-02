@@ -9,6 +9,7 @@ export type Problem =
   | { kind: "missing"; section: SectionKey; field: string; href: string }
   | { kind: "known"; key: KnownProblem; section: SectionKey; href: string }
   | { kind: "flow"; text: string; href: string }
+  | { kind: "dataRule"; name: string; href: string }
   | { kind: "other"; text: string };
 
 export type KnownProblem = "systemPrompt" | "sameEmbedding" | "outputCheck" | "inputCheck";
@@ -41,6 +42,10 @@ export function describeProblem(raw: string, botId: string): Problem {
     const section = m[1] as SectionKey;
     return { kind: "missing", section, field: m[2]!, href: href(section) };
   }
+  // "<provider or MCP server> is an external …; allow it in this chatbot's data rules"
+  const rule =
+    /^(.+) is an external (?:provider|MCP server); allow it in this chatbot's data rules/.exec(raw);
+  if (rule) return { kind: "dataRule", name: rule[1]!, href: `/admin/chatbots/${botId}/access` };
   const known = KNOWN[raw];
   if (known) return { kind: "known", ...known, href: href(known.section) };
   // Flow checks name the step first ("Generate: this step leads nowhere").

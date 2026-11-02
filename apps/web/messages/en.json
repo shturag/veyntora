@@ -1353,7 +1353,8 @@
     },
     "testInPlayground": "Test in Playground",
     "noTools": "No tools are enabled yet. Register an MCP server under Tools (MCP) and enable its tools.",
-    "toolGone": "not available any more (publishing names it)"
+    "toolGone": "not available any more (publishing names it)",
+    "visualEditor": "Visual editor"
   },
   "playground": {
     "title": "Playground",
@@ -3729,6 +3730,7 @@
       "sameEmbedding": "Retrieval: use the same embedding model as Ingestion",
       "outputCheck": "Guardrails: choose an output safety check (needed for \"no promises\")",
       "inputCheck": "Guardrails: choose an input safety check (needed for blocked topics)"
-    }
+    },
+    "dataRule": "Data rule: allow the external provider {name} (Access page)"
   }
 }

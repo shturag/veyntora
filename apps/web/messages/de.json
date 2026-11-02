@@ -1353,7 +1353,8 @@
     },
     "testInPlayground": "Im Playground testen",
     "noTools": "Noch keine Tools aktiv. Registriere einen MCP-Server unter Tools (MCP) und aktiviere seine Tools.",
-    "toolGone": "nicht mehr verfügbar (beim Veröffentlichen genannt)"
+    "toolGone": "nicht mehr verfügbar (beim Veröffentlichen genannt)",
+    "visualEditor": "Visueller Editor"
   },
   "playground": {
     "title": "Playground",
@@ -3729,6 +3730,7 @@
       "sameEmbedding": "Abruf: dasselbe Embedding-Modell wie bei der Aufnahme nutzen",
       "outputCheck": "Guardrails: eine Ausgabe-Sicherheitsprüfung wählen (nötig für „keine Versprechen“)",
       "inputCheck": "Guardrails: eine Eingabe-Sicherheitsprüfung wählen (nötig für gesperrte Themen)"
-    }
+    },
+    "dataRule": "Datenregel: den externen Anbieter {name} erlauben (Seite Zugriff)"
   }
 }

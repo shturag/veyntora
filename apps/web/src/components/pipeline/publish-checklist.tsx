@@ -61,6 +61,9 @@ export function PublishChecklist({
           } else if (p.kind === "known") {
             text = t(`known.${p.key}`);
             href = p.href;
+          } else if (p.kind === "dataRule") {
+            text = t("dataRule", { name: p.name });
+            href = p.href;
           } else if (p.kind === "flow") {
             text = t("flow", { problem: p.text });
             href = p.href;
