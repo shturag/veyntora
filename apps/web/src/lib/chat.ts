@@ -9,6 +9,8 @@ export type Outcome = "answered" | "no_answer" | "blocked" | "refused";
 export type CitationMeta = {
   n: number;
   document_id: string;
+  /** A web page found by web search. */
+  url?: string | null;
   chunk_id: string;
   title: string;
   section: string;
@@ -92,6 +94,8 @@ export type ChatFeatures = {
   ai_notice?: string | null;
   /** File endings that may be attached to a question; empty when attachments are off. */
   attachments?: string[];
+  /** People may switch web search on for a question. */
+  web_search?: boolean;
 };
 
 export const CSRF_HEADERS = { "x-veyntora-csrf": "1" } as const;

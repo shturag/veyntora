@@ -53,6 +53,7 @@ def test_run_body_is_rebuilt_from_what_the_chat_needs() -> None:
             "messages": [{"type": "human", "content": "Refunds?"}],
             "model": "",
             "thinking": None,
+            "web_search": None,
             "attachments": [],
         },
     }

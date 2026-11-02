@@ -152,6 +152,11 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     thinking = data.get("thinking")
     if thinking is not None and not isinstance(thinking, bool):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "thinking must be true or false")
+    web_search = data.get("web_search")
+    if web_search is not None and not isinstance(web_search, bool):
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "web_search must be true or false"
+        )
     files = data.get("attachments") or []
     if not isinstance(files, list) or len(files) > attachments.MAX_PER_QUESTION:
         raise HTTPException(
@@ -168,6 +173,7 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
         "messages": [{"type": "human", "content": content}],
         "model": model,
         "thinking": thinking,
+        "web_search": web_search,
         "attachments": files,
     }
     return _modes(out)
@@ -381,7 +387,7 @@ async def export_chat(thread_id: str, principal: CurrentPrincipal, db: DbSession
                 )
             ).all()
             for c, d, file in cites:
-                name = (d.title or d.path) if d else f"{file} (attached)" if file else ""
+                name = (d.title or d.path) if d else f"{file} (attached)" if file else (c.url or "")
                 lines.append(f"- [{c.ordinal}] {name}")
             lines.append("")
     return Response(
@@ -397,6 +403,8 @@ async def export_chat(thread_id: str, principal: CurrentPrincipal, db: DbSession
 class CitationOut(BaseModel):
     n: int
     document_id: UUID | None
+    # A web page found by web search (ADR 0029).
+    url: str | None = None
     quote: str
     page: int | None
     # A file the asker attached (ADR 0028), instead of a document.
@@ -422,10 +430,17 @@ async def citations(
     # are the asker's own (and gone with their conversation).
     return [
         CitationOut(
-            n=c.ordinal, document_id=c.document_id, quote=c.quote, page=c.page, attachment=file
+            n=c.ordinal,
+            document_id=c.document_id,
+            quote=c.quote,
+            page=c.page,
+            attachment=file,
+            url=c.url,
         )
         for c, doc, file in rows
-        if (doc is not None and may_read(principals, doc)) or file is not None
+        if (doc is not None and may_read(principals, doc))
+        or c.attachment_id is not None
+        or c.url is not None
     ]
 
 

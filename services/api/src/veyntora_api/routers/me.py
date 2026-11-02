@@ -161,6 +161,8 @@ class ChatFeatures(BaseModel):
     ai_notice: str | None = None
     # File endings people may attach to a question; empty when attachments are off.
     attachments: list[str] = []
+    # People may switch web search on for a question (ADR 0029).
+    web_search: bool = False
 
 
 # Servers that switch thinking per request (see the openai_compatible adapter's options).
@@ -214,4 +216,13 @@ async def chat_features(
         attachments=attachments.accepted(parser=await parser_ready(db, spec))
         if spec.chat.attachments
         else [],
+        web_search=spec.chat.web_search_instance_id is not None
+        and bool(
+            await db.scalar(
+                sa.select(ProviderInstance.id).where(
+                    ProviderInstance.id == spec.chat.web_search_instance_id,
+                    ProviderInstance.enabled.is_(True),
+                )
+            )
+        ),
     )

@@ -51,6 +51,7 @@ from veyntora_providers.interfaces import (
     KeyRejectedError,
     Scored,
     Usage,
+    WebResult,
 )
 from veyntora_spec.pipeline import SearchType
 
@@ -870,3 +871,47 @@ async def test_files_belong_to_their_asker_and_conversation(rag: Rag) -> None:
     assert not await attachments.for_run(
         db, user_id=rag.w.user.id, chatbot_id=rag.bot.id, thread_id="t-2", ids=[str(row.id)]
     )
+
+
+class FakeSearch:
+    def __init__(self) -> None:
+        self.queries: list[str] = []
+
+    async def search(
+        self, query: str, *, max_results: int = 5, language: str | None = None
+    ) -> list[WebResult]:
+        self.queries.append(query)
+        return [
+            WebResult(
+                "Acme Supplies news",
+                "https://news.example/acme",
+                "Acme Supplies opened a new warehouse in Leipzig in October.",
+            )
+        ]
+
+
+async def test_web_search_goes_with_the_question_when_switched_on(rag: Rag) -> None:
+    search_id = uuid4()
+    search = FakeSearch()
+    adapters = rag.adapters()
+    adapters.by_id[search_id] = search
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.retrieval.enabled = False
+    ctx = dataclasses.replace(ctx, no_documents_allowed=True)
+    # Not offered: the switch does nothing.
+    assert not pipeline.with_choices(ctx, None, None, True).web_search
+
+    ctx.spec.chat.web_search_instance_id = search_id
+    off = pipeline.with_choices(ctx, None, None, False)
+    rag.llm.reply = "No idea."
+    await answer(rag.w.db, adapters, off, "Where did Acme Supplies open a warehouse?")
+    assert search.queries == []
+
+    on = pipeline.with_choices(ctx, None, None, True)
+    rag.llm.reply = "Acme Supplies opened a new warehouse in Leipzig in October [1]."
+    result = await answer(rag.w.db, adapters, on, "Where did Acme Supplies open a warehouse?")
+    assert search.queries == ["Where did Acme Supplies open a warehouse?"]
+    [(n, source)] = result.cited
+    assert n == 1 and source.url == "https://news.example/acme" and not result.no_sources
+    system, user = rag.llm.calls[-1][0], rag.llm.calls[-1][-1]
+    assert "web search results" in system.content and "news.example" in user.content

@@ -26,6 +26,7 @@ export type LlmInstanceIds =
   | [string, string, string, string, string, string, string, string, string, string, string]
   | [string, string, string, string, string, string, string, string, string, string, string, string];
 export type Thinking = boolean;
+export type WebSearchInstanceId = string | null;
 export type Custom = boolean;
 export type Label = string;
 export type Source = string;
@@ -142,6 +143,7 @@ export interface ChatSpec {
   attachments?: Attachments;
   llm_instance_ids?: LlmInstanceIds;
   thinking?: Thinking;
+  web_search_instance_id?: WebSearchInstanceId;
 }
 export interface FlowSpec {
   custom?: Custom;

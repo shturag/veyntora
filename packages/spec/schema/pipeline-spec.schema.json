@@ -90,6 +90,19 @@
           "default": false,
           "title": "Thinking",
           "type": "boolean"
+        },
+        "web_search_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Web Search Instance Id"
         }
       },
       "title": "ChatSpec",

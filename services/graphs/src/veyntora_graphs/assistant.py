@@ -59,7 +59,7 @@ from veyntora_api.rag.pipeline import (
     with_choices,
 )
 from veyntora_api.rag.record import conversation_for, record
-from veyntora_api.rag.tracing import new_trace
+from veyntora_api.rag.tracing import Trace, new_trace
 from veyntora_providers import mcp_client
 from veyntora_providers.interfaces import ChatMessage
 
@@ -83,6 +83,7 @@ class State(TypedDict, total=False):
     # The asker's choices for this question (chatbots that offer them, ChatSpec).
     model: str
     thinking: bool | None
+    web_search: bool | None
     # Files attached to this conversation's questions (ADR 0028).
     attachments: Annotated[list[str], _add_files]
     route: dict[str, Any]
@@ -125,7 +126,12 @@ async def _open(state: State, config: RunnableConfig, db: AsyncSession) -> _Turn
         app_key_id=_app_key(config),
     )
     thinking = state.get("thinking")
-    ctx = with_choices(ctx, state.get("model"), thinking if isinstance(thinking, bool) else None)
+    ctx = with_choices(
+        ctx,
+        state.get("model"),
+        thinking if isinstance(thinking, bool) else None,
+        state.get("web_search") is True,
+    )
     files = state.get("attachments") or []
     if files and ctx.spec.chat.attachments:
         rows = await attachments.for_run(
@@ -546,10 +552,22 @@ async def agent_start_node(state: State, config: RunnableConfig) -> Command[Any]
                     ChatMessage(m.role, masker.mask(m.content, spans))
                     for m, spans in zip(history, found, strict=True)
                 ]
-            attached = pipeline.attached_sources(turn.ctx)
-            if attached and stop is None:
-                # The files go with the question, numbered as the first sources.
-                block = pipeline.sources_block(attached)
+            given: list[pipeline.Source] = []
+            if stop is None:
+                attached = pipeline.attached_sources(turn.ctx)
+                web = await pipeline.web_sources(
+                    turn.adapters,
+                    turn.ctx,
+                    run_,
+                    guarded if need_mask else question,
+                    language=language,
+                    tr=Trace(None),
+                    start=len(attached),
+                )
+                given = [*attached, *web]
+            if given:
+                # Files and web results go with the question, numbered as the first sources.
+                block = pipeline.sources_block(given)
                 if need_mask:
                     block = masker.mask(block, (await find_pii(pii, [block], language))[0])
                 guarded = f"{block}\n\nQuestion: {guarded}"
@@ -587,6 +605,7 @@ async def agent_start_node(state: State, config: RunnableConfig) -> Command[Any]
             language=language,
             masker=masker,
             need_mask=need_mask,
+            given=given,
         )
         if run_.warning:
             st["warning"] = run_.warning

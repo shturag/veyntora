@@ -47,6 +47,15 @@ function CitationChip({
             <Link href={href} className="text-[13px] font-medium">
               {t("openDocument")}
             </Link>
+          ) : citation.url ? (
+            <a
+              href={citation.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="text-[13px] font-medium break-all"
+            >
+              {t("openPage")} ↗
+            </a>
           ) : (
             <span className="text-[13px] text-fg-muted">{t("fromAttachedFile")}</span>
           )}
@@ -269,8 +278,9 @@ export function AnswerBlock({
   }
   const cited = meta.citations ?? [];
   const documents = new Set(cited.filter((c) => c.document_id).map((c) => c.document_id)).size;
-  // Attached files are cited too (ADR 0028); they are not documents.
-  const files = cited.filter((c) => !c.document_id).length;
+  // Attached files and web pages are cited too (ADR 0028, 0029); they are not documents.
+  const files = cited.filter((c) => !c.document_id && !c.url).length;
+  const pages = cited.filter((c) => c.url).length;
   const seconds = meta.latency_ms ? (meta.latency_ms / 1000).toFixed(1) : null;
   const answered = meta.outcome === "answered";
   return (
@@ -283,9 +293,11 @@ export function AnswerBlock({
           {meta.no_sources
             ? t("noSources")
             : answered
-              ? documents || !files
+              ? documents || !(files || pages)
                 ? t("answeredFrom", { count: documents })
-                : t("answeredFromFiles", { count: files })
+                : files
+                  ? t("answeredFromFiles", { count: files })
+                  : t("answeredFromWeb", { count: pages })
               : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
         </span>

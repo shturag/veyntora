@@ -17,7 +17,7 @@ effect at the next step.
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Any, TypedDict
 from uuid import UUID
@@ -38,7 +38,6 @@ from veyntora_api.rag.pipeline import (
     Source,
     _adapter,
     _llm,
-    attached_sources,
     rerank,
     retrieve,
     system_prompt,
@@ -130,6 +129,7 @@ def start(
     language: str,
     masker: Masker,
     need_mask: bool,
+    given: Sequence[Source] = (),
 ) -> AgentState:
     """The run's first state. `guarded` and `history` are what the model may see (masked
     when needed); `question` is kept for the checks at the end."""
@@ -144,7 +144,7 @@ def start(
         "question": question,
         "language": language,
         "transcript": transcript,
-        # The asker's attached files are the first sources (the question carries them).
+        # Attached files and web results are the first sources (the question carries them).
         "sources": [
             {
                 "n": n,
@@ -155,8 +155,9 @@ def start(
                 "text": src.text,
                 "page": None,
                 "score": src.score,
+                "url": src.url,
             }
-            for n, src in enumerate(attached_sources(ctx), 1)
+            for n, src in enumerate(given, 1)
         ],
         "steps": [],
         "pending": [],
@@ -422,6 +423,7 @@ async def finish(env: Env, st: AgentState) -> Answer:
             text=s["text"],
             page=s.get("page"),
             score=float(s.get("score") or 0.0),
+            url=str(s.get("url") or ""),
         )
         for s in st.get("sources", [])
     ]

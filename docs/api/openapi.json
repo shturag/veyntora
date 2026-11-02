@@ -2834,7 +2834,8 @@
           "reranker",
           "vector_store",
           "parser",
-          "guardrail"
+          "guardrail",
+          "web_search"
         ],
         "title": "Capability",
         "type": "string"
@@ -3064,6 +3065,11 @@
           "thinking": {
             "title": "Thinking",
             "type": "boolean"
+          },
+          "web_search": {
+            "default": false,
+            "title": "Web Search",
+            "type": "boolean"
           }
         },
         "required": [
@@ -3095,6 +3101,18 @@
             "default": false,
             "title": "Thinking",
             "type": "boolean"
+          },
+          "web_search_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web Search Instance Id"
           }
         },
         "title": "ChatSpec",
@@ -3545,6 +3563,17 @@
           "quote": {
             "title": "Quote",
             "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
           }
         },
         "required": [

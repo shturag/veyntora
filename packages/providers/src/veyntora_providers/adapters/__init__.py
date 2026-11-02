@@ -8,4 +8,5 @@ from veyntora_providers.adapters import (  # noqa: F401
     openai_compat,
     qdrant_store,
     tei,
+    websearch,
 )

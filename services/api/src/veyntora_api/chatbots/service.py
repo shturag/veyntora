@@ -278,6 +278,7 @@ _EXPECTED: dict[str, Capability] = {
     "guardrails.pii_instance_id": Capability.GUARDRAIL,
     # Lists: each entry is checked as "chat.llm_instance_ids[0]", "[1]", ...
     "chat.llm_instance_ids": Capability.LLM,
+    "chat.web_search_instance_id": Capability.WEB_SEARCH,
 }
 
 

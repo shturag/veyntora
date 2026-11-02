@@ -4533,7 +4533,7 @@ export interface components {
          * Capability
          * @enum {string}
          */
-        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail";
+        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail" | "web_search";
         /** CaseIdOut */
         CaseIdOut: {
             /**
@@ -4622,6 +4622,11 @@ export interface components {
             models: components["schemas"]["ModelChoice"][];
             /** Thinking */
             thinking: boolean;
+            /**
+             * Web Search
+             * @default false
+             */
+            web_search: boolean;
         };
         /**
          * ChatSpec
@@ -4640,6 +4645,8 @@ export interface components {
              * @default false
              */
             thinking: boolean;
+            /** Web Search Instance Id */
+            web_search_instance_id?: string | null;
         };
         /** ChatbotDetail */
         ChatbotDetail: {
@@ -4788,6 +4795,8 @@ export interface components {
             page: number | null;
             /** Quote */
             quote: string;
+            /** Url */
+            url?: string | null;
         };
         /**
          * CitationPolicy

@@ -721,7 +721,13 @@
     "attachRemove": "Remove {name}",
     "attachTooMany": "Attach at most {max} files to a question.",
     "fromAttachedFile": "From a file attached in this chat",
-    "answeredFromFiles": "{count, plural, one {Answered from your attached file} other {Answered from # attached files}}"
+    "answeredFromFiles": "{count, plural, one {Answered from your attached file} other {Answered from # attached files}}",
+    "integrations": "Integrations",
+    "webSearch": "Web search",
+    "webSearchHint": "Search the web for this question and cite the pages.",
+    "openPage": "Open page",
+    "integrationsOn": "{count, plural, one {# on} other {# on}}",
+    "answeredFromWeb": "{count, plural, one {Answered from # web page} other {Answered from # web pages}}"
   },
   "source": {
     "updated": "updated {date}",
@@ -778,7 +784,8 @@
       "reranker": "Reranker",
       "vector_store": "Vector store",
       "parser": "Document parser",
-      "guardrail": "Guardrail"
+      "guardrail": "Guardrail",
+      "web_search": "Web search"
     },
     "adapters": {
       "anthropic": "Anthropic (Claude)",
@@ -790,7 +797,10 @@
       "docling": "Docling",
       "azure_pii": "Azure AI Language (PII)",
       "llama_guard": "Llama Guard",
-      "presidio": "Presidio"
+      "presidio": "Presidio",
+      "searxng": "SearXNG",
+      "brave": "Brave Search",
+      "tavily": "Tavily"
     },
     "health": {
       "unknown": "Not tested",
@@ -1357,6 +1367,10 @@
       "attachments": {
         "label": "Attachments",
         "hint": "People can attach files to a question; their text goes with the conversation to the answer model. Plain text is always read; PDF, Office and images need the ingestion parser. The data rule and masking apply as for the question."
+      },
+      "web_search_instance_id": {
+        "label": "Web search",
+        "hint": "People can switch web search on for a question: the question is searched with this provider and the results go with it as cited sources. An external search provider needs this chatbot's data rule."
       }
     },
     "o": {

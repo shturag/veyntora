@@ -108,6 +108,7 @@ def _payload(
             {
                 "n": n,
                 "document_id": s.document_id,
+                "url": s.url or None,
                 "chunk_id": s.chunk_id,
                 "title": s.title,
                 "section": s.section,

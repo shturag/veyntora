@@ -222,6 +222,9 @@ class ChatSpec(_Spec):
     # People may attach files to a question; their text goes with it to the answer model
     # (read in-house: plain text directly, other formats by the ingestion parser).
     attachments: bool = True
+    # People may switch web search on for a question: this provider searches with the
+    # question, and the results go with it as sources (ADR 0029). None: no web search.
+    web_search_instance_id: InstanceRef | None = None
 
     @field_validator("llm_instance_ids")
     @classmethod

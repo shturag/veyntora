@@ -30,3 +30,4 @@
 | [0026](0026-presidio-self-hosted-pii.md) | Presidio as a personal-data detector you connect |
 | [0027](0027-chat-model-choice-and-thinking.md) | Model choice and thinking in the chat |
 | [0028](0028-chat-attachments.md) | Files attached to a chat question |
+| [0029](0029-web-search.md) | Web search in the chat |

@@ -99,6 +99,8 @@ class Citation(IdMixin, Base):
     quote: Mapped[str] = mapped_column(sa.Text)
     score: Mapped[float | None] = mapped_column(sa.Float)
     page: Mapped[int | None] = mapped_column(sa.Integer)
+    # A web page found by web search (ADR 0029), instead of a document.
+    url: Mapped[str | None] = mapped_column(sa.String(2048))
     # A file attached to the question instead of a document.
     attachment_id: Mapped[UUID | None] = mapped_column(
         sa.ForeignKey("chat_attachments.id", ondelete="SET NULL"), index=True

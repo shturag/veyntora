@@ -183,6 +183,12 @@ export const SECTIONS: readonly Section[] = [
       { name: "llm_instance_ids", kind: "instances", capability: "llm" },
       { name: "thinking", kind: "toggle" },
       { name: "attachments", kind: "toggle" },
+      {
+        name: "web_search_instance_id",
+        kind: "instance",
+        capability: "web_search",
+        optional: true,
+      },
     ],
   },
 ];

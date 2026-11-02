@@ -131,7 +131,8 @@ async def record(
         db.add(
             Citation(
                 message_id=msg.id,
-                document_id=None if attached else UUID(source.document_id),
+                document_id=UUID(source.document_id) if source.document_id else None,
+                url=source.url[:2048] or None,
                 attachment_id=UUID(source.chunk_id.removeprefix(ATTACHMENT)) if attached else None,
                 chunk_id=source.chunk_id,
                 ordinal=n,

@@ -25,6 +25,7 @@ class Capability(StrEnum):
     VECTOR_STORE = "vector_store"
     PARSER = "parser"
     GUARDRAIL = "guardrail"
+    WEB_SEARCH = "web_search"
 
 
 class Hosting(StrEnum):
@@ -291,3 +292,21 @@ class HealthResult:
 
 class SupportsHealth(Protocol):
     async def health(self) -> HealthResult: ...
+
+
+# ---------------------------------------------------------------- web search
+
+
+@dataclass(frozen=True, slots=True)
+class WebResult:
+    title: str
+    url: str
+    # The search engine's excerpt of the page (pages are not fetched).
+    snippet: str
+
+
+@runtime_checkable
+class WebSearcher(Protocol):
+    async def search(
+        self, query: str, *, max_results: int = 5, language: str | None = None
+    ) -> list[WebResult]: ...

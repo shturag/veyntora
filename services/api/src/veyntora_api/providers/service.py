@@ -29,7 +29,8 @@ from veyntora_api.db.models.providers import ByokKey, HealthStatus, ProviderInst
 from veyntora_api.secrets.openbao import SecretWriter
 
 # Adapters that call a vendor outside the network: they must be marked external.
-EXTERNAL_ADAPTERS = frozenset({"anthropic", "voyage", "azure_pii"})
+# Web search is external wherever the engine runs: SearXNG forwards queries to public engines.
+EXTERNAL_ADAPTERS = frozenset({"anthropic", "voyage", "azure_pii", "brave", "tavily", "searxng"})
 
 
 # Adapters add the operation themselves; a pasted operation URL would be doubled (HTTP 404).

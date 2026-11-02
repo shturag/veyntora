@@ -17,6 +17,7 @@ const CAPABILITIES = [
   "vector_store",
   "parser",
   "guardrail",
+  "web_search",
 ] as const;
 
 type Props = { searchParams: Promise<{ cap?: string; id?: string }> };

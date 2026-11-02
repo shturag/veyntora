@@ -721,7 +721,13 @@
     "attachRemove": "{name} entfernen",
     "attachTooMany": "Hänge höchstens {max} Dateien an eine Frage an.",
     "fromAttachedFile": "Aus einer in diesem Chat angehängten Datei",
-    "answeredFromFiles": "{count, plural, one {Beantwortet aus deiner angehängten Datei} other {Beantwortet aus # angehängten Dateien}}"
+    "answeredFromFiles": "{count, plural, one {Beantwortet aus deiner angehängten Datei} other {Beantwortet aus # angehängten Dateien}}",
+    "integrations": "Integrationen",
+    "webSearch": "Websuche",
+    "webSearchHint": "Für diese Frage im Web suchen und die Seiten zitieren.",
+    "openPage": "Seite öffnen",
+    "integrationsOn": "{count, plural, one {# an} other {# an}}",
+    "answeredFromWeb": "{count, plural, one {Beantwortet aus # Webseite} other {Beantwortet aus # Webseiten}}"
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -778,7 +784,8 @@
       "reranker": "Reranker",
       "vector_store": "Vektorspeicher",
       "parser": "Dokumentparser",
-      "guardrail": "Guardrail"
+      "guardrail": "Guardrail",
+      "web_search": "Websuche"
     },
     "adapters": {
       "anthropic": "Anthropic (Claude)",
@@ -790,7 +797,10 @@
       "docling": "Docling",
       "azure_pii": "Azure AI Language (PII)",
       "llama_guard": "Llama Guard",
-      "presidio": "Presidio"
+      "presidio": "Presidio",
+      "searxng": "SearXNG",
+      "brave": "Brave Search",
+      "tavily": "Tavily"
     },
     "health": {
       "unknown": "Nicht getestet",
@@ -1357,6 +1367,10 @@
       "attachments": {
         "label": "Anhänge",
         "hint": "Personen können Dateien an eine Frage anhängen; ihr Text geht mit dem Gespräch an das Antwortmodell. Reiner Text wird immer gelesen; PDF, Office und Bilder brauchen den Parser der Aufnahme. Datenregel und Maskierung gelten wie für die Frage."
+      },
+      "web_search_instance_id": {
+        "label": "Websuche",
+        "hint": "Personen können die Websuche für eine Frage einschalten: Die Frage wird mit diesem Anbieter gesucht, und die Treffer gehen als zitierte Quellen mit. Ein externer Suchanbieter braucht die Datenregel dieses Chatbots."
       }
     },
     "o": {

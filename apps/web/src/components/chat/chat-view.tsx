@@ -68,6 +68,7 @@ function Thread({
   // The chatbot's own notice once known (null: none); until then the platform's.
   const notice = features.ai_notice === undefined ? aiNotice : features.ai_notice;
   const [thinking, setThinking] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
   const started = useRef(false);
 
   useEffect(() => {
@@ -124,6 +125,7 @@ function Thread({
         ...(files.length ? { attachments: files.map((f) => f.id) } : {}),
         ...(model ? { model } : {}),
         ...(features.thinking ? { thinking } : {}),
+        ...(features.web_search ? { web_search: webSearch } : {}),
       },
       {
         streamMode: STREAM_MODES,
@@ -281,6 +283,8 @@ function Thread({
               onModel={setModel}
               thinking={thinking}
               onThinking={setThinking}
+              webSearch={webSearch}
+              onWebSearch={setWebSearch}
             />
           }
         />

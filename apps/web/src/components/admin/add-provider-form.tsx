@@ -16,7 +16,16 @@ const DEFAULT_ENDPOINT: Record<string, string> = {
   "embedding/tei": "http://tei-embed:80",
   "reranker/tei": "http://tei-rerank:80",
 };
-const ENDPOINT_OPTIONAL = new Set(["llm/anthropic", "embedding/voyage", "reranker/voyage"]);
+const ENDPOINT_OPTIONAL = new Set([
+  "llm/anthropic",
+  "embedding/voyage",
+  "reranker/voyage",
+  "web_search/brave",
+  "web_search/tavily",
+]);
+
+// External services that work without a key (a gateway in front may still want one).
+const KEY_OPTIONAL = new Set(["web_search/searxng"]);
 
 const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
 const label = "flex flex-col gap-1 text-[13px] font-medium";
@@ -176,7 +185,7 @@ export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
                 name="secret"
                 type="password"
                 autoComplete="off"
-                required={current.external_only}
+                required={current.external_only && !KEY_OPTIONAL.has(key)}
                 className={input}
               />
             </label>
