@@ -229,6 +229,8 @@ class Answer:
     reasoning: str = ""
     # Code the model ran in the sandbox, with its output and charts (ADR 0030).
     code_runs: list[dict[str, Any]] = field(default_factory=list)
+    # The answer stopped at the length limit (generation.max_answer_tokens).
+    cut_off: bool = False
 
 
 # ---------------------------------------------------------------- context
@@ -908,12 +910,14 @@ async def _complete(
     reveal: Callable[[str], str] | None = None,
     tools: Sequence[ToolSpec] | None = None,
     calls: list[ToolCall] | None = None,
+    ends: list[str] | None = None,
 ) -> tuple[str, Usage]:
     """The answer text; the model's reasoning (when it returns any) goes to `reasoning`.
 
     While the answer is held back (`emit` is None, e.g. masked), `held` still shows the
     reasoning so far, with personal data put back by `reveal`, at most twice a second.
-    Tool calls the model makes (when `tools` are offered) go to `calls`."""
+    Tool calls the model makes (when `tools` are offered) go to `calls`; why the model
+    stopped (e.g. "length") goes to `ends`."""
     text: list[str] = []
     shown = 0.0
     usage = Usage(0, 0)
@@ -942,6 +946,8 @@ async def _complete(
                 emit({"type": "token", "text": chunk.delta})
         if chunk.usage is not None:
             usage = chunk.usage
+        if chunk.finish_reason and ends is not None:
+            ends.append(chunk.finish_reason)
     return "".join(text), usage
 
 
@@ -1022,6 +1028,7 @@ class _Run:
     calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
     reasoning: list[str] = field(default_factory=list)
     code_runs: list[dict[str, Any]] = field(default_factory=list)
+    cut_off: bool = False
 
     def call(
         self, adapters: AdapterSource, instance_id: UUID | None, usage: Usage, own: Any = None
@@ -1048,6 +1055,7 @@ class _Run:
         result.latency_ms = round((time.perf_counter() - self.started) * 1000)
         result.reasoning = result.reasoning or "".join(self.reasoning).strip()
         result.code_runs = result.code_runs or self.code_runs
+        result.cut_off = result.cut_off or self.cut_off
         return result
 
 
@@ -1415,6 +1423,7 @@ async def _generate(
         # With the code interpreter the model may run Python, see the output and go on.
         for turn in range(MAX_CODE_RUNS + 1):
             calls: list[ToolCall] = []
+            ends: list[str] = []
             text, used = await _complete(
                 llm,
                 messages,
@@ -1426,7 +1435,10 @@ async def _generate(
                 reveal=masker.unmask if masker is not None else None,
                 tools=[RUN_PYTHON] if ctx.code else None,
                 calls=calls,
+                ends=ends,
             )
+            # The model stopped at the answer's length limit (OpenAI-style or Anthropic).
+            run.cut_off = bool(ends) and ends[-1] in {"length", "max_tokens"}
             u = _add(u, used)
             if not calls or turn == MAX_CODE_RUNS:
                 break

@@ -102,6 +102,7 @@ def _payload(
         "no_sources": result.no_sources,
         "reasoning": result.reasoning or None,
         "code_runs": result.code_runs or None,
+        "cut_off": result.cut_off,
         "latency_ms": result.latency_ms,
         "handoff_available": result.outcome != "answered" and experts,
         "follow_ups": result.follow_ups,

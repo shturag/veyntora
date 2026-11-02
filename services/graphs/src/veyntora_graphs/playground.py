@@ -60,6 +60,7 @@ def result_of(
         "no_sources": result.no_sources,
         "reasoning": result.reasoning or None,
         "code_runs": result.code_runs or None,
+        "cut_off": result.cut_off,
         "latency_ms": result.latency_ms,
         "tokens_in": result.usage.prompt_tokens,
         "tokens_out": result.usage.completion_tokens,

@@ -40,6 +40,8 @@ export type AnswerMeta = {
   reasoning?: string | null;
   /** Code the model ran in the sandbox (code interpreter), with output and charts. */
   code_runs?: CodeRun[] | null;
+  /** The answer stopped at the chatbot's length limit. */
+  cut_off?: boolean;
   latency_ms?: number;
   handoff_available?: boolean;
   citations?: CitationMeta[];
@@ -178,11 +180,118 @@ export async function newThread(): Promise<string> {
   return body.thread_id;
 }
 
-/** Answer text split into paragraphs of text, bold runs and citation markers. */
+/** Answer text split into paragraphs of text, bold runs, code and citation markers. */
 export type Inline =
-  { kind: "text"; text: string } | { kind: "bold"; text: string } | { kind: "cite"; n: number };
+  | { kind: "text"; text: string }
+  | { kind: "bold"; text: string }
+  | { kind: "italic"; text: string }
+  | { kind: "code"; text: string }
+  | { kind: "cite"; n: number };
 
-const TOKEN = /(\*\*[^*]+\*\*|\[\d{1,2}(?:\s*,\s*\d{1,2})*\])/g;
+const TOKEN =
+  /(\*\*[^*]+\*\*|(?<![*\w])\*[^*\s][^*\n]*\*(?![*\w])|`[^`\n]+`|\[\d{1,2}(?:\s*,\s*\d{1,2})*\])/g;
+
+function inlines(text: string): Inline[] {
+  const out: Inline[] = [];
+  for (const piece of text.split(TOKEN)) {
+    if (!piece) continue;
+    if (piece.startsWith("**") && piece.endsWith("**") && piece.length > 4) {
+      out.push({ kind: "bold", text: piece.slice(2, -2) });
+    } else if (piece.startsWith("*") && piece.endsWith("*") && piece.length > 2) {
+      out.push({ kind: "italic", text: piece.slice(1, -1) });
+    } else if (piece.startsWith("`") && piece.endsWith("`") && piece.length > 2) {
+      out.push({ kind: "code", text: piece.slice(1, -1) });
+    } else if (/^\[\d/.test(piece)) {
+      for (const n of piece.slice(1, -1).split(","))
+        out.push({ kind: "cite", n: Number(n.trim()) });
+    } else {
+      out.push({ kind: "text", text: piece });
+    }
+  }
+  return out;
+}
+
+/**
+ * The Markdown models write, as blocks: headings, lists, code, tables and paragraphs (single
+ * line breaks kept). Everything stays text: nothing is ever turned into HTML.
+ */
+export type Block =
+  | { kind: "heading"; level: number; text: Inline[] }
+  | { kind: "list"; ordered: boolean; items: Inline[][] }
+  | { kind: "code"; text: string }
+  | { kind: "table"; head: Inline[][]; rows: Inline[][][] }
+  | { kind: "paragraph"; lines: Inline[][] };
+
+const BULLET = /^\s*(?:[-*+•]|(\d{1,3})[.)])\s+(.*)$/;
+const cells = (line: string) =>
+  line
+    .trim()
+    .replace(/^\||\|$/g, "")
+    .split("|")
+    .map((c) => inlines(c.trim()));
+
+export function parseBlocks(text: string): Block[] {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const out: Block[] = [];
+  let para: Inline[][] = [];
+  const flush = () => {
+    if (para.length) out.push({ kind: "paragraph", lines: para });
+    para = [];
+  };
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i]!;
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flush();
+      continue;
+    }
+    if (trimmed.startsWith("```")) {
+      flush();
+      const code: string[] = [];
+      for (i += 1; i < lines.length && !lines[i]!.trim().startsWith("```"); i += 1) {
+        code.push(lines[i]!);
+      }
+      out.push({ kind: "code", text: code.join("\n") });
+      continue;
+    }
+    const heading = /^(#{1,6})\s+(.*)$/.exec(trimmed);
+    if (heading) {
+      flush();
+      out.push({ kind: "heading", level: heading[1]!.length, text: inlines(heading[2]!) });
+      continue;
+    }
+    const next = lines[i + 1]?.trim() ?? "";
+    if (trimmed.startsWith("|") && /^\|?\s*:?-{2,}/.test(next)) {
+      flush();
+      const head = cells(trimmed);
+      const rows: Inline[][][] = [];
+      for (i += 2; i < lines.length && lines[i]!.trim().startsWith("|"); i += 1) {
+        rows.push(cells(lines[i]!));
+      }
+      i -= 1;
+      out.push({ kind: "table", head, rows });
+      continue;
+    }
+    const item = BULLET.exec(line);
+    if (item) {
+      flush();
+      const ordered = item[1] !== undefined;
+      const last = out[out.length - 1];
+      if (last?.kind === "list" && last.ordered === ordered) last.items.push(inlines(item[2]!));
+      else out.push({ kind: "list", ordered, items: [inlines(item[2]!)] });
+      continue;
+    }
+    const last = out[out.length - 1];
+    if (!para.length && last?.kind === "list" && /^\s{2,}/.test(line)) {
+      // An indented line continues the list item above it.
+      last.items[last.items.length - 1]!.push({ kind: "text", text: ` ${trimmed}` });
+      continue;
+    }
+    para.push(inlines(trimmed));
+  }
+  flush();
+  return out;
+}
 
 export function parseAnswer(text: string): Inline[][] {
   return text
@@ -190,18 +299,6 @@ export function parseAnswer(text: string): Inline[][] {
     .map((p) => p.trim())
     .filter(Boolean)
     .map((paragraph) => {
-      const out: Inline[] = [];
-      for (const piece of paragraph.split(TOKEN)) {
-        if (!piece) continue;
-        if (piece.startsWith("**") && piece.endsWith("**") && piece.length > 4) {
-          out.push({ kind: "bold", text: piece.slice(2, -2) });
-        } else if (/^\[\d/.test(piece)) {
-          for (const n of piece.slice(1, -1).split(","))
-            out.push({ kind: "cite", n: Number(n.trim()) });
-        } else {
-          out.push({ kind: "text", text: piece });
-        }
-      }
-      return out;
+      return inlines(paragraph);
     });
 }

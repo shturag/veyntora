@@ -1026,3 +1026,18 @@ async def test_a_failing_personal_data_check_refuses_with_a_reason() -> None:
 
     with pytest.raises(RunRefusedError, match="personal-data check"):
         await find_pii(Broken(), ["Mira Lang"], "en")
+
+
+async def test_an_answer_cut_at_the_length_limit_says_so(rag: Rag) -> None:
+    class Long:
+        async def chat(self, messages: Any, **opts: Any) -> AsyncIterator[ChatChunk]:
+            yield ChatChunk(delta="Mission 1 is about banking, Mission 2 is about")
+            yield ChatChunk(finish_reason="length", usage=Usage(10, 800))
+
+    adapters = rag.adapters()
+    adapters.by_id[rag.w.llm] = Long()
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.retrieval.enabled = False
+    ctx = dataclasses.replace(ctx, no_documents_allowed=True)
+    result = await answer(rag.w.db, adapters, ctx, "Summarize the strategy.")
+    assert result.cut_off and result.text.endswith("about")

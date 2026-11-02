@@ -9,7 +9,8 @@ import { Fragment, useState } from "react";
 
 import {
   api,
-  parseAnswer,
+  parseBlocks,
+  type Inline,
   type AgentStep,
   type AnswerMeta,
   type CitationMeta,
@@ -74,21 +75,102 @@ function CitationChip({
 
 function AnswerText({ text, meta }: { text: string; meta: AnswerMeta }) {
   const byN = new Map((meta.citations ?? []).map((c) => [c.n, c]));
+  const line = (parts: Inline[]) =>
+    parts.map((part, j) => (
+      <Fragment key={j}>
+        {part.kind === "text" ? part.text : null}
+        {part.kind === "bold" ? <strong>{part.text}</strong> : null}
+        {part.kind === "italic" ? <em>{part.text}</em> : null}
+        {part.kind === "code" ? (
+          <code className="rounded bg-sunken px-1 py-0.5 font-mono text-[0.9em]">{part.text}</code>
+        ) : null}
+        {part.kind === "cite" ? (
+          <CitationChip n={part.n} citation={byN.get(part.n)} messageId={meta.message_id} />
+        ) : null}
+      </Fragment>
+    ));
   return (
-    <div className="text-base leading-[1.7]">
-      {parseAnswer(text).map((paragraph, i) => (
-        <p key={i} className="m-0 mb-3 last:mb-0">
-          {paragraph.map((part, j) => (
-            <Fragment key={j}>
-              {part.kind === "text" ? part.text : null}
-              {part.kind === "bold" ? <strong>{part.text}</strong> : null}
-              {part.kind === "cite" ? (
-                <CitationChip n={part.n} citation={byN.get(part.n)} messageId={meta.message_id} />
-              ) : null}
-            </Fragment>
-          ))}
-        </p>
-      ))}
+    <div className="flex flex-col gap-3 text-base leading-[1.7]">
+      {parseBlocks(text).map((block, i) => {
+        switch (block.kind) {
+          case "heading": {
+            const size = block.level <= 2 ? "text-lg" : "text-base";
+            return (
+              <p
+                key={i}
+                role="heading"
+                aria-level={Math.min(block.level + 2, 6)}
+                className={`m-0 mt-1 font-semibold ${size}`}
+              >
+                {line(block.text)}
+              </p>
+            );
+          }
+          case "list": {
+            const List = block.ordered ? "ol" : "ul";
+            return (
+              <List
+                key={i}
+                className={`m-0 flex flex-col gap-1 pl-6 ${block.ordered ? "list-decimal" : "list-disc"}`}
+              >
+                {block.items.map((item, j) => (
+                  <li key={j}>{line(item)}</li>
+                ))}
+              </List>
+            );
+          }
+          case "code":
+            return (
+              <pre
+                key={i}
+                className="m-0 overflow-x-auto rounded-md bg-sunken p-3 font-mono text-[13px] leading-relaxed"
+              >
+                {block.text}
+              </pre>
+            );
+          case "table":
+            return (
+              <div key={i} className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      {block.head.map((cell, j) => (
+                        <th
+                          key={j}
+                          className="border-b border-line-strong px-2 py-1.5 text-left font-semibold"
+                        >
+                          {line(cell)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {block.rows.map((row, j) => (
+                      <tr key={j}>
+                        {row.map((cell, k) => (
+                          <td key={k} className="border-b border-line px-2 py-1.5">
+                            {line(cell)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          default:
+            return (
+              <p key={i} className="m-0">
+                {block.lines.map((l, j) => (
+                  <Fragment key={j}>
+                    {j ? <br /> : null}
+                    {line(l)}
+                  </Fragment>
+                ))}
+              </p>
+            );
+        }
+      })}
     </div>
   );
 }
@@ -332,7 +414,14 @@ export function AnswerBlock({
       ) : null}
       {meta.code_runs?.length ? <CodeRuns runs={meta.code_runs} /> : null}
       {answered ? (
-        <AnswerText text={text} meta={meta} />
+        <>
+          <AnswerText text={text} meta={meta} />
+          {meta.cut_off ? (
+            <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
+              {t("cutOff")}
+            </p>
+          ) : null}
+        </>
       ) : (
         <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
           <p className="m-0 text-[15px]">{text}</p>

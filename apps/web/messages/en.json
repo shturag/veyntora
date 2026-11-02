@@ -734,7 +734,8 @@
     "codeRun": "Code run {n}",
     "codeTimedOut": "stopped: took too long",
     "codeFailed": "ended with an error",
-    "chart": "Chart: {name}"
+    "chart": "Chart: {name}",
+    "cutOff": "This answer reached its length limit and stops early. Ask “continue” for the rest. An admin can raise the limit under Pipelines → Generation → Max answer tokens."
   },
   "source": {
     "updated": "updated {date}",
