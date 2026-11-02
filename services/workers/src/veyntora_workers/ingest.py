@@ -43,7 +43,7 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge import clamd as scan
 from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.connectors import CONNECTED
-from veyntora_api.knowledge.profiles import profiles_for_source
+from veyntora_api.knowledge.profiles import index_plan
 from veyntora_api.knowledge.service import principals_of, source_acl
 from veyntora_api.providers.runtime import Adapters, ProviderUnavailableError
 from veyntora_api.settings import Settings
@@ -259,13 +259,11 @@ class Ingestor:
             # Keep the scan result even if indexing fails below and the job is retried.
             await self.commit()
             await self.db.refresh(doc, with_for_update=True)
-        profiles = await profiles_for_source(self.db, doc.source_id)
+        profiles, why = await index_plan(self.db, doc.source_id)
         if not profiles:
-            doc.error = None
-            return {
-                "profiles": 0,
-                "waiting": "no chatbot with a complete pipeline uses this source",
-            }
+            # Shown with the document: why it waits, and what would let it be indexed.
+            doc.error = f"Waiting: {why}"[:2000] if why else None
+            return {"profiles": 0, "waiting": why or "no index"}
         existing = {
             i.profile_key: i
             for i in (

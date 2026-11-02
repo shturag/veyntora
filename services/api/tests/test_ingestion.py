@@ -35,7 +35,7 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge import clamd
 from veyntora_api.knowledge import service as knowledge
-from veyntora_api.knowledge.profiles import profiles_for_source
+from veyntora_api.knowledge.profiles import index_plan, profiles_for_source
 from veyntora_api.settings import Settings
 from veyntora_providers.interfaces import (
     Capability,
@@ -511,6 +511,7 @@ async def test_source_without_chatbot_waits(world: World) -> None:
     doc = await _upload(world, source)
     stats = await world.ingestor().index_document(doc, force=False)
     assert stats["profiles"] == 0 and doc.status is DocumentStatus.PENDING
+    assert doc.error is not None and "no chatbot uses this source" in doc.error
 
 
 async def test_infected_upload_is_removed_and_audited(
@@ -650,11 +651,15 @@ async def test_documents_reach_an_external_embedder_only_with_the_data_rule(
     spec.retrieval.embedding_instance_id = external
     await bots.save_draft(world.db, CTX, bot, spec, expected_version=None)
     assert await profiles_for_source(world.db, source.id) == [], "no rule: nothing is sent"
+    _, why = await index_plan(world.db, source.id)
+    assert why is not None and "does not allow the external provider" in why
 
     await bots.set_governance(
         world.db, CTX, bot, bots.GovernanceInput(allowed_external_instance_ids=[external])
     )
     assert await profiles_for_source(world.db, source.id) == [], "PII masking still required"
+    _, why = await index_plan(world.db, source.id)
+    assert why is not None and "masks personal data" in why and "self-hosted" in why
 
     await bots.set_governance(
         world.db,

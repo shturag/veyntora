@@ -44,7 +44,21 @@ def may_send(rule: GovernanceRule | None, provider: ProviderInstance | None) -> 
 
 
 async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexProfile]:
-    """Profiles the source must be indexed into.
+    return (await index_plan(db, source_id))[0]
+
+
+def _blocked(rule: GovernanceRule | None, provider: ProviderInstance) -> str:
+    if rule is not None and provider.id in rule.allowed_external_instance_ids:
+        return (
+            f"{provider.name} is external and the data rule masks personal data before "
+            "external providers, which documents cannot be (they are embedded as they are): "
+            "use a self-hosted model, or switch that masking off"
+        )
+    return f"the data rule does not allow the external provider {provider.name}"
+
+
+async def index_plan(db: AsyncSession, source_id: UUID) -> tuple[list[IndexProfile], str | None]:
+    """Profiles the source must be indexed into, and why there are none (for people).
 
     A profile whose parser, embedding or vector store is an external provider is only used if
     the chatbot's data rule allows that provider: documents are sent to it during indexing,
@@ -52,7 +66,7 @@ async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexPr
     """
     source = await db.get(DataSource, source_id)
     if source is None:
-        return []
+        return [], "the source no longer exists"
     personal = source.uploaded_by is not None
     if personal:
         # "My files" are searched by every chat of their owner: index them for the live
@@ -70,7 +84,8 @@ async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexPr
         )
     bots = (await db.execute(query)).scalars().all()
     if not bots:
-        return []
+        return [], "no chatbot uses this source: attach it under a chatbot's Knowledge"
+    names = {b.id: b.name for b in bots}
     bot_ids = [b.id for b in bots]
     published = {v for b in bots for v in (b.live_version_id, b.canary_version_id) if v}
     drafts = sa.false() if personal else PipelineVersion.status == PipelineStatus.DRAFT
@@ -110,6 +125,7 @@ async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexPr
         ).scalars()
     }
     profiles: dict[str, IndexProfile] = {}
+    reasons: list[str] = []
     for chatbot_id, profile in candidates:
         rule = rules.get(chatbot_id)
         used = (
@@ -119,6 +135,19 @@ async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexPr
         )
         if all(may_send(rule, providers.get(i)) for i in used):
             profiles.setdefault(profile.key, profile)
-        else:
-            log.info("profile.skipped_egress", chatbot_id=str(chatbot_id), profile=profile.key)
-    return list(profiles.values())
+            continue
+        log.info("profile.skipped_egress", chatbot_id=str(chatbot_id), profile=profile.key)
+        blocked = [
+            _blocked(rule, row)
+            for i in used
+            if (row := providers.get(i)) is not None and not may_send(rule, row)
+        ]
+        reasons += [f"{names[chatbot_id]}: {b}" for b in blocked or ["a provider is missing"]]
+    if profiles:
+        return list(profiles.values()), None
+    if not candidates:
+        return [], (
+            f"the pipeline of {', '.join(sorted(names.values()))} has no document parser, "
+            "embedding model or vector store yet"
+        )
+    return [], "; ".join(dict.fromkeys(reasons))

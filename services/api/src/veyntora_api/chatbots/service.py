@@ -715,10 +715,14 @@ async def set_governance(
     svc = ConfigService(db, ctx)
     rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
     if rule is None:
-        return await svc.create(
+        rule = await svc.create(
             GovernanceRule(chatbot_id=bot.id, **values), action="governance.create"
         )
-    return await svc.update(rule, values, action="governance.update")
+    else:
+        rule = await svc.update(rule, values, action="governance.update")
+    # The rule decides which providers may receive documents: index what it now allows.
+    await _sync_attached_sources(db, bot.id, None)
+    return rule
 
 
 # ---------------------------------------------------------------- access
