@@ -102,11 +102,22 @@ class Masker:
         return len(self.by_value)
 
 
+class RunRefusedError(Exception):
+    """The run cannot go on; the message is shown to the user as is."""
+
+
 async def find_pii(pii: Any | None, texts: Sequence[str], language: str) -> list[list[Span]]:
-    """Rule spans plus the PII provider's entities (when configured), per text."""
+    """Rule spans plus the PII provider's entities (when configured), per text. When the
+    provider fails nothing is sent on unmasked: the run is refused with the reason."""
     found = [rule_spans(t) for t in texts]
     if pii is not None:
-        entities = await pii.detect(list(texts), language)
+        try:
+            entities = await pii.detect(list(texts), language)
+        except Exception as exc:
+            raise RunRefusedError(
+                "The personal-data check is not available right now, so nothing was sent to "
+                "the model. Try again later; if it keeps happening, tell your admin."
+            ) from exc
         for i, ents in enumerate(entities):
             found[i] += [Span(e.offset, e.offset + e.length, e.category) for e in ents]
     return found

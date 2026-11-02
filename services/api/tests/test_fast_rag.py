@@ -795,7 +795,7 @@ async def test_the_asker_chooses_among_offered_models_and_thinking(rag: Rag) -> 
     ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
     other = uuid4()
     # Nothing offered: only the default model, and the thinking switch is ignored.
-    assert pipeline.with_choices(ctx, None, True).thinking is None
+    assert pipeline.with_choices(ctx, None, True).thinking is False
     with pytest.raises(RunRefusedError, match="does not offer"):
         pipeline.with_choices(ctx, str(other), None)
 
@@ -1015,3 +1015,14 @@ async def test_the_code_interpreter_runs_code_and_answers_with_its_output(rag: R
     assert llm.turns[-1][-1].role == "tool" and "5050" in llm.turns[-1][-1].content
     assert llm.tools[0][0].name == "run_python"
     assert "run_python tool" in llm.turns[0][0].content
+
+
+async def test_a_failing_personal_data_check_refuses_with_a_reason() -> None:
+    from veyntora_api.rag.guard import find_pii  # noqa: PLC0415
+
+    class Broken:
+        async def detect(self, texts: Any, language: str) -> Any:
+            raise RuntimeError("HTTP 422")
+
+    with pytest.raises(RunRefusedError, match="personal-data check"):
+        await find_pii(Broken(), ["Mira Lang"], "en")

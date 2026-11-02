@@ -180,3 +180,14 @@ async def test_presidio_wrappers_that_wrap_the_findings_work_too() -> None:
     guard = registry.create(_cfg("presidio", PRESIDIO), Secret())
     [found] = await guard.detect(["To jane@ex.com"], "en")
     assert [(e.category, e.text) for e in found] == [("EMAIL_ADDRESS", "jane@ex.com")]
+
+
+def test_long_texts_go_to_presidio_in_pieces_cut_between_words() -> None:
+    from veyntora_providers.adapters.guardrails import _pieces  # noqa: PLC0415
+
+    text = "Mira Lang lives in Dhaka. " * 1000
+    parts = _pieces(text)
+    assert all(len(p) <= 5000 for _, p in parts) and len(parts) > 1
+    assert "".join(p for _, p in parts) == text
+    assert all(text[o : o + len(p)] == p for o, p in parts)
+    assert all(p.endswith(" ") for _, p in parts[:-1])

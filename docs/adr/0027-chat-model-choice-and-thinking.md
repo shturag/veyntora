@@ -15,7 +15,7 @@ Status: accepted · 2026-11-02
 
 ## Thinking
 
-- **Off unless switched on:** where the switch is offered, no choice means off. Elsewhere the model's own default applies.
+- **Off unless switched on:** thinking is on only when the chatbot offers the switch and the person turns it on. Otherwise it is off, even for models that think by default (revised the same day; first the model's default applied).
 - **How a provider switches it:**
   - **Anthropic:** adaptive thinking, with summarized reasoning.
   - **OpenAI-compatible:** the admin sets **Thinking switch** on the provider:

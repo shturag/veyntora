@@ -255,24 +255,31 @@ export function SpecForm({
         const chosen = (v as string[] | undefined) ?? [];
         const options = providers.filter((p) => p.capability === f.capability && p.enabled);
         return (
-          <fieldset key={f.name} className="m-0 flex flex-col gap-1.5 border-0 p-0">
+          // A list of providers: the whole row, so long names do not run into the next field.
+          <fieldset
+            key={f.name}
+            className="col-span-full m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0"
+          >
             <legend className="mb-1 text-[13px] font-medium">{title}</legend>
             {options.length === 0 ? (
               <p className="m-0 text-sm text-fg-muted">{t("none")}</p>
             ) : (
               options.map((p) => (
-                <label key={p.id} className="flex items-center gap-2 text-sm">
+                <label key={p.id} className="flex min-w-0 items-start gap-2 text-sm">
                   <input
                     type="checkbox"
                     name={f.name}
                     value={p.id}
                     defaultChecked={chosen.includes(p.id)}
                     disabled={disabled}
+                    className="mt-1"
                   />
-                  {p.name}
-                  {p.hosting === "external" ? (
-                    <span className="text-xs text-fg-muted">· {t("external")}</span>
-                  ) : null}
+                  <span className="min-w-0 break-words">
+                    {p.name}
+                    {p.hosting === "external" ? (
+                      <span className="text-xs text-fg-muted"> · {t("external")}</span>
+                    ) : null}
+                  </span>
                 </label>
               ))
             )}

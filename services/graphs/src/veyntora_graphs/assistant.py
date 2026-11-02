@@ -573,6 +573,8 @@ async def agent_start_node(state: State, config: RunnableConfig) -> Command[Any]
                 if need_mask:
                     block = masker.mask(block, (await find_pii(pii, [block], language))[0])
                 guarded = f"{block}\n\nQuestion: {guarded}"
+        except RunRefusedError as exc:
+            return Command(goto=END, update={"messages": [_refusal(str(exc))]})
         finally:
             await turn.adapters.close()
         if stop is not None:

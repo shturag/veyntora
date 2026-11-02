@@ -19,7 +19,7 @@ from __future__ import annotations
 import asyncio
 import time
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Literal
 
 import httpx
@@ -268,6 +268,25 @@ _PRESIDIO_LANGUAGES = frozenset({"en", "de"})
 _PRESIDIO_PARALLEL = 4
 
 
+_PRESIDIO_CHARS = 5000
+
+
+def _pieces(text: str, size: int = _PRESIDIO_CHARS) -> list[tuple[int, str]]:
+    """(offset, piece) of at most `size` characters, cut after a line break or space where
+    there is one, so a name is not split between two pieces."""
+    out: list[tuple[int, str]] = []
+    start = 0
+    while start < len(text):
+        end = min(start + size, len(text))
+        if end < len(text):
+            cut = max(text.rfind("\n", start, end), text.rfind(" ", start, end))
+            if cut > start + size // 2:
+                end = cut + 1
+        out.append((start, text[start:end]))
+        start = end
+    return out
+
+
 class Presidio(_Base):
     """`detect` only: Presidio finds personal data; it is not a safety check."""
 
@@ -312,11 +331,17 @@ class Presidio(_Base):
         key = await self._key()
         async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=5.0)) as http:
 
+            async def piece(start: int, text: str) -> list[Entity]:
+                async with gate:
+                    found = await self._analyze(http, text, language, key)
+                return [replace(e, offset=e.offset + start) for e in found]
+
             async def one(text: str) -> list[Entity]:
                 if not text.strip():
                     return []
-                async with gate:
-                    return await self._analyze(http, text, language, key)
+                # Long texts (attached files) go in pieces: servers limit the request size.
+                parts = await asyncio.gather(*(piece(i, t) for i, t in _pieces(text)))
+                return [e for part in parts for e in part]
 
             return list(await asyncio.gather(*(one(t) for t in texts)))
 

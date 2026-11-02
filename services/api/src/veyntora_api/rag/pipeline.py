@@ -83,6 +83,7 @@ from veyntora_api.rag.guard import (
     find_pii,
     guard_instances,
 )
+from veyntora_api.rag.guard import RunRefusedError as RunRefusedError  # noqa: PLC0414 - re-exported
 from veyntora_api.rag.tracing import Trace
 from veyntora_api.usage import budgets, limits
 
@@ -108,10 +109,6 @@ def language_of(text: str) -> str:
 
 
 OWN_MODEL_FAILED = "Your own model did not answer; the assistant's model answered instead."
-
-
-class RunRefusedError(Exception):
-    """The run cannot start; the message is shown to the user as is."""
 
 
 class Authorizer(Protocol):
@@ -481,8 +478,9 @@ def with_choices(
     on or off where the chatbot allows the switch, and web search and the code interpreter
     where it offers them."""
     spec = ctx.spec
-    # Where people may switch thinking, no choice means off; elsewhere the model decides.
-    choose_thinking = bool(thinking) if spec.chat.thinking else None
+    # Thinking only when the chatbot offers the switch and the asker turned it on: some
+    # models (e.g. Qwen) think by default, which people could not see or turn off.
+    choose_thinking = bool(thinking) and spec.chat.thinking
     web = bool(web_search) and spec.chat.web_search_instance_id is not None
     ctx = dataclasses.replace(
         ctx, web_search=web, code=bool(code) and spec.chat.code_instance_id is not None
