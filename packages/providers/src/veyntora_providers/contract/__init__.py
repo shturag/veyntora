@@ -20,6 +20,7 @@ from veyntora_providers.interfaces import (
     HybridQuery,
     RerankerProvider,
     VectorStore,
+    WebSearcher,
 )
 
 
@@ -62,6 +63,14 @@ async def _vector_store_empty_acl_matches_nothing(store: VectorStore) -> None:
         raise AssertionError("a search with an empty ACL filter must return zero hits")
 
 
+async def _web_search_returns_links(searcher: WebSearcher) -> None:
+    found = await searcher.search("Wikipedia", max_results=3)
+    if not found:
+        raise AssertionError("the search returned no results")
+    if not all(r.url.startswith(("https://", "http://")) for r in found):
+        raise AssertionError("a result has no web link")
+
+
 CHECKS: dict[Capability, list[tuple[str, Check]]] = {
     Capability.EMBEDDING: [("returns dense vectors", _embedding_returns_vectors)],
     Capability.RERANKER: [("orders by score", _reranker_orders_by_score)],
@@ -71,6 +80,7 @@ CHECKS: dict[Capability, list[tuple[str, Check]]] = {
     Capability.LLM: [],
     Capability.PARSER: [],
     Capability.GUARDRAIL: [],
+    Capability.WEB_SEARCH: [("returns results with links", _web_search_returns_links)],
 }
 
 

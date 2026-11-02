@@ -89,3 +89,10 @@ async def test_contract_reports_failures_instead_of_raising() -> None:
 async def test_contract_passes_for_conforming_adapter() -> None:
     results = await run_contract(Capability.EMBEDDING, _GoodEmbedder())
     assert all(r.ok for r in results)
+
+
+def test_every_capability_has_contract_checks() -> None:
+    # "Test connection" runs them; a capability without an entry would crash the worker.
+    from veyntora_providers.contract import CHECKS  # noqa: PLC0415
+
+    assert set(CHECKS) == set(Capability)
