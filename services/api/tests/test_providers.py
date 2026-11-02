@@ -245,3 +245,27 @@ async def test_hosting_can_be_corrected_but_vendor_apis_stay_external(db: AsyncS
     claude = await create_provider(db, CTX, None, _input())
     with pytest.raises(ProviderError, match="must stay external"):
         await update_provider(db, CTX, claude, ProviderUpdate(hosting=Hosting.SELF_HOSTED), None)
+
+
+async def test_the_pii_slot_takes_only_a_personal_data_detector(db: AsyncSession) -> None:
+    from veyntora_api.chatbots.service import reference_problems  # noqa: PLC0415
+    from veyntora_spec.pipeline import PipelineSpec  # noqa: PLC0415
+
+    guard = await create_provider(
+        db,
+        CTX,
+        None,
+        _input(
+            capability=Capability.GUARDRAIL,
+            adapter="llama_guard",
+            name="Llama Guard",
+            endpoint="https://guard.example.com/v1",
+            model="meta-llama/Llama-Guard-4-12B",
+        ),
+    )
+    spec = PipelineSpec()
+    spec.guardrails.input_guardrail_instance_id = guard.id
+    assert (await reference_problems(db, spec))[0] == []
+    spec.guardrails.pii_instance_id = guard.id
+    [problem] = (await reference_problems(db, spec))[0]
+    assert "personal-data detector" in problem and "Llama Guard" in problem

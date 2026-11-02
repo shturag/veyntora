@@ -10,6 +10,7 @@ export type Problem =
   | { kind: "known"; key: KnownProblem; section: SectionKey; href: string }
   | { kind: "flow"; text: string; href: string }
   | { kind: "dataRule"; name: string; href: string }
+  | { kind: "slot"; section: SectionKey; field: string; text: string; href: string }
   | { kind: "other"; text: string };
 
 export type KnownProblem =
@@ -67,6 +68,12 @@ export function describeProblem(raw: string, botId: string): Problem {
       section: "retrieval",
       href: `/admin/chatbots/${botId}/flow`,
     };
+  }
+  // "<section>.<field> needs …": a provider in the wrong kind of slot.
+  const slot = /^(\w+)\.(\w+) (needs .+)$/.exec(raw);
+  if (slot && SECTIONS.some((s) => s.key === slot[1])) {
+    const section = slot[1] as SectionKey;
+    return { kind: "slot", section, field: slot[2]!, text: slot[3]!, href: href(section) };
   }
   const known = KNOWN[raw];
   if (known) return { kind: "known", ...known, href: href(known.section) };

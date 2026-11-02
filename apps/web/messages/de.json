@@ -1358,7 +1358,8 @@
     "testInPlayground": "Im Playground testen",
     "noTools": "Noch keine Tools aktiv. Registriere einen MCP-Server unter Tools (MCP) und aktiviere seine Tools.",
     "toolGone": "nicht mehr verfügbar (beim Veröffentlichen genannt)",
-    "visualEditor": "Visueller Editor"
+    "visualEditor": "Visueller Editor",
+    "wrongKind": "{name} (hier nicht nutzbar: einen anderen wählen)"
   },
   "playground": {
     "title": "Playground",
@@ -3740,7 +3741,8 @@
       "noDocumentsRule": "Datenregel: Antworten ohne Dokumente erlauben (Seite Zugriff)",
       "noDocumentsFlow": "Ohne Dokumente läuft die Standard-Pipeline: den eigenen Ablauf ausschalten"
     },
-    "dataRule": "Datenregel: den externen Anbieter {name} erlauben (Seite Zugriff)"
+    "dataRule": "Datenregel: den externen Anbieter {name} erlauben (Seite Zugriff)",
+    "slot": "{section} · {field}: {problem}"
   },
   "guided": {
     "title": "Was soll dieser Chatbot tun?",

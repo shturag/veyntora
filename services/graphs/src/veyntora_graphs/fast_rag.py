@@ -163,6 +163,9 @@ async def answer_node(state: State, config: RunnableConfig) -> dict[str, Any]:
                     language_hint=language_of(question),
                     trace=trace,
                 )
+            except RunRefusedError as exc:
+                # Refused while answering (a data rule, a misconfigured provider): say why.
+                return {"messages": [_refusal(str(exc))]}
             finally:
                 await adapters.close()
             trace.set(

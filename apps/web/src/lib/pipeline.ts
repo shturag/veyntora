@@ -9,7 +9,14 @@ export type SectionKey =
   "ingestion" | "retrieval" | "rerank" | "generation" | "agent" | "router" | "guardrails";
 
 export type Field =
-  | { name: string; kind: "instance"; capability: string; optional?: boolean }
+  | {
+      name: string;
+      kind: "instance";
+      capability: string;
+      optional?: boolean;
+      /** Only these adapters can fill the slot (e.g. a PII detector, not a safety check). */
+      adapters?: readonly string[];
+    }
   | { name: string; kind: "select"; options: readonly string[] }
   | { name: string; kind: "number"; min: number; max: number; step?: number; optional?: boolean }
   | { name: string; kind: "toggle" }
@@ -146,7 +153,13 @@ export const SECTIONS: readonly Section[] = [
         capability: "guardrail",
         optional: true,
       },
-      { name: "pii_instance_id", kind: "instance", capability: "guardrail", optional: true },
+      {
+        name: "pii_instance_id",
+        kind: "instance",
+        capability: "guardrail",
+        optional: true,
+        adapters: ["azure_pii"],
+      },
       { name: "pii", kind: "select", options: ["mask", "block", "off"] },
       { name: "injection", kind: "select", options: ["block", "warn"] },
       { name: "blocked_topics", kind: "list" },

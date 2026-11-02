@@ -103,7 +103,9 @@ function Thread({
   useEffect(() => {
     if (initialQuestion && !started.current) {
       started.current = true;
-      router.replace(`/chat/${threadId}`, { scroll: false });
+      // Keep the chatbot in the address: if the first answer fails, no conversation is stored
+      // yet and the page still has to know which chatbot it is.
+      router.replace(`/chat/${threadId}?bot=${chatbotId}`, { scroll: false });
       ask(initialQuestion);
     }
     // Runs once for the question typed on Home.

@@ -849,6 +849,12 @@ async def _guard_input(
     llm_external = _llm_external(ctx)
     need_mask = llm_external and (ctx.mask_external or g.pii is PiiAction.MASK)
     pii = await _adapter(adapters, g.pii_instance_id)
+    if pii is not None and not hasattr(pii, "detect"):
+        # A safety check in the PII slot (published before publishing refused it).
+        raise RunRefusedError(
+            "This assistant's personal-data detector is set up wrongly; an admin needs to "
+            "choose one on the Guardrails page."
+        )
     masker = Masker()
     spans: list[Span] = []
     if g.pii is PiiAction.BLOCK or need_mask:

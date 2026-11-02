@@ -61,6 +61,13 @@ export function PublishChecklist({
           } else if (p.kind === "known") {
             text = t(`known.${p.key}`);
             href = p.href;
+          } else if (p.kind === "slot") {
+            text = t("slot", {
+              section: tp(`sections.${p.section}`),
+              field: tp.has(`f.${p.field}.label`) ? tp(`f.${p.field}.label`) : p.field,
+              problem: p.text,
+            });
+            href = p.href;
           } else if (p.kind === "dataRule") {
             text = t("dataRule", { name: p.name });
             href = p.href;

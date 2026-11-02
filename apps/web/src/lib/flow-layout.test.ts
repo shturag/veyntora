@@ -96,6 +96,12 @@ describe("publish checks in people's words", () => {
         "b",
       ),
     ).toEqual({ kind: "dataRule", name: "Cloud embeddings", href: "/admin/chatbots/b/access" });
+    expect(
+      describeProblem(
+        "guardrails.pii_instance_id needs a personal-data detector (Azure AI Language PII); Guard is a safety check",
+        "b",
+      ),
+    ).toMatchObject({ kind: "slot", section: "guardrails", field: "pii_instance_id" });
     expect(describeProblem("something new", "b")).toEqual({ kind: "other", text: "something new" });
   });
 });

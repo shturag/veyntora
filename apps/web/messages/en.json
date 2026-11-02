@@ -1358,7 +1358,8 @@
     "testInPlayground": "Test in Playground",
     "noTools": "No tools are enabled yet. Register an MCP server under Tools (MCP) and enable its tools.",
     "toolGone": "not available any more (publishing names it)",
-    "visualEditor": "Visual editor"
+    "visualEditor": "Visual editor",
+    "wrongKind": "{name} (not usable here: choose another)"
   },
   "playground": {
     "title": "Playground",
@@ -3740,7 +3741,8 @@
       "noDocumentsRule": "Data rule: allow answers without documents (Access page)",
       "noDocumentsFlow": "Without documents the chatbot runs the standard pipeline: switch off the custom flow"
     },
-    "dataRule": "Data rule: allow the external provider {name} (Access page)"
+    "dataRule": "Data rule: allow the external provider {name} (Access page)",
+    "slot": "{section} · {field}: {problem}"
   },
   "guided": {
     "title": "What should this chatbot do?",

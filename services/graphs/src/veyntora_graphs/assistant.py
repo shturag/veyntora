@@ -451,6 +451,9 @@ async def fast_node(state: State, config: RunnableConfig) -> Command[Any]:
                     language_hint=language_of(question),
                     trace=trace,
                 )
+        except RunRefusedError as exc:
+            # Refused while answering (e.g. a data rule or a misconfigured provider): say why.
+            return Command(goto=END, update={"messages": [_refusal(str(exc))]})
         finally:
             await turn.adapters.close()
         fast_route = auto.Route(

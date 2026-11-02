@@ -15,6 +15,7 @@ export type ProviderOption = {
   id: string;
   name: string;
   capability: string;
+  adapter: string;
   hosting: string;
   enabled: boolean;
 };
@@ -125,7 +126,11 @@ export function SpecForm({
           </label>
         );
       case "instance": {
-        const options = providers.filter((p) => p.capability === f.capability);
+        const fits = (p: ProviderOption) =>
+          p.capability === f.capability && (!f.adapters || f.adapters.includes(p.adapter));
+        const options = providers.filter(fits);
+        // One chosen before the slot was checked stays visible, marked, so it can be replaced.
+        const wrong = providers.find((p) => p.id === v && !fits(p));
         return (
           <label key={f.name} htmlFor={id} className={label}>
             {title}
@@ -137,6 +142,9 @@ export function SpecForm({
               className={input}
             >
               <option value="">{f.optional ? t("none") : t("choose")}</option>
+              {wrong ? (
+                <option value={wrong.id}>{t("wrongKind", { name: wrong.name })}</option>
+              ) : null}
               {options.map((p) => (
                 <option key={p.id} value={p.id} disabled={!p.enabled}>
                   {p.name}
