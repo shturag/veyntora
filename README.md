@@ -1,3 +1,5 @@
+<p align="center"><img src="apps/web/public/brand/veyntora-logo.png" alt="Veyntora" width="360"></p>
+
 # Veyntora
 
 Self-hosted enterprise knowledge platform. Employees ask questions and get answers with sources, or hand an agent a task that it carries out with their approval. Admins configure every step in a web console.

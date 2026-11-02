@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
-import { BrandMark } from "@/components/brand";
+import { BrandLogo } from "@/components/brand";
 import { getPublicInfo } from "@/lib/public-info";
 
 export const dynamic = "force-dynamic";
@@ -16,14 +16,12 @@ const SECTIONS = ["modes", "checking", "files", "access", "privacy"] as const;
 /** Help (prototype: Help.html). Describes only what the product does today. */
 export default async function HelpPage() {
   const t = await getTranslations("helpPage");
-  const brand = (await getTranslations("common"))("brand");
   const info = await getPublicInfo();
   return (
     <div className="flex min-h-screen flex-col bg-ground">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-7 py-4">
         <Link href="/home" className="flex items-center gap-2.5 text-fg no-underline hover:text-fg">
-          <BrandMark />
-          <span className="text-[15px] font-semibold">{brand}</span>
+          <BrandLogo height={30} />
         </Link>
         <Link href="/home" className="text-sm font-medium">
           {t("back")}

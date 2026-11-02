@@ -1,6 +1,7 @@
 {
   "realm": "veyntora",
   "displayName": "Veyntora",
+  "displayNameHtml": "<img src=\"${VEY_PUBLIC_BASE_URL}/brand/veyntora-logo-dark.png\" alt=\"Veyntora\" style=\"height:56px;width:auto\">",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": false,

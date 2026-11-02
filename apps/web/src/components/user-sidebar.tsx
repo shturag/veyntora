@@ -5,7 +5,7 @@ import type { Me } from "@/lib/session";
 import { initialsOf } from "@/lib/initials";
 
 import { AccountMenu } from "./account-menu";
-import { BrandMark } from "./brand";
+import { BrandLogo } from "./brand";
 import { NavLink } from "./nav-link";
 
 type Recent = { id: string; thread_id: string | null; title: string };
@@ -31,8 +31,7 @@ export function UserSidebar({
   return (
     <aside className="flex flex-col gap-[18px] border-line bg-surface px-4 py-5 max-[900px]:basis-full max-[900px]:border-b min-[901px]:sticky min-[901px]:top-0 min-[901px]:h-screen min-[901px]:w-[280px] min-[901px]:shrink-0 min-[901px]:overflow-y-auto min-[901px]:border-r">
       <div className="flex items-center gap-2.5">
-        <BrandMark />
-        <div className="text-[15px] font-semibold">{t("common.brand")}</div>
+        <BrandLogo height={32} />
       </div>
       <Link
         href="/home"

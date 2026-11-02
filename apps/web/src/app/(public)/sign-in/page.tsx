@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { BrandMark } from "@/components/brand";
+import { BrandLogo } from "@/components/brand";
 import { LanguageSelect } from "@/components/language-select";
 import { getPublicInfo } from "@/lib/public-info";
 import { getMe } from "@/lib/session";
@@ -30,7 +30,6 @@ export default async function SignInPage({
   if (!params.error && !params.signed_out && (await getMe().catch(() => null))) redirect(returnTo);
 
   const t = await getTranslations("signIn");
-  const brand = (await getTranslations("common"))("brand");
   const locale = await getLocale();
   const info = await getPublicInfo();
   const days = info?.chat_retention_days ?? 90;
@@ -50,8 +49,9 @@ export default async function SignInPage({
       <main id="main" className="flex flex-1 items-center justify-center p-6">
         <div className="box-border flex w-full max-w-[420px] flex-col gap-6 rounded-[18px] border border-line bg-surface px-9 py-10 shadow-[0_8px_30px_rgba(27,27,31,0.06)]">
           <div className="flex flex-col items-center gap-3.5 text-center">
-            <BrandMark className="size-[52px] rounded-[14px] text-[22px]" />
-            <h1 className="m-0 text-2xl font-bold">{brand}</h1>
+            <h1 className="m-0">
+              <BrandLogo height={56} />
+            </h1>
             <p className="m-0 text-[15px] leading-normal text-fg-muted">{t("tagline")}</p>
           </div>
           {errorKey ? (
