@@ -32,6 +32,25 @@ from veyntora_api.secrets.openbao import SecretWriter
 EXTERNAL_ADAPTERS = frozenset({"anthropic", "voyage", "azure_pii"})
 
 
+# Adapters add the operation themselves; a pasted operation URL would be doubled (HTTP 404).
+_OPERATIONS = ("/chat/completions", "/completions", "/embeddings", "/rerank", "/models")
+
+
+def _check_endpoint(v: str | None) -> str | None:
+    if v is None or v == "":
+        return None
+    if not v.startswith(("http://", "https://")):
+        raise ValueError("endpoint must be an http(s) URL")
+    trimmed = v.rstrip("/")
+    for op in _OPERATIONS:
+        if trimmed.endswith(op):
+            base = trimmed[: -len(op)]
+            raise ValueError(
+                f"enter the base URL ({base}), without {op}: Veyntora adds the operation itself"
+            )
+    return trimmed
+
+
 class ProviderInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -50,10 +69,8 @@ class ProviderInput(BaseModel):
 
     @field_validator("endpoint")
     @classmethod
-    def _http_only(cls, v: str | None) -> str | None:
-        if v is not None and not v.startswith(("http://", "https://")):
-            raise ValueError("endpoint must be an http(s) URL")
-        return v
+    def _endpoint(cls, v: str | None) -> str | None:
+        return _check_endpoint(v)
 
 
 class ProviderUpdate(BaseModel):
@@ -63,9 +80,17 @@ class ProviderUpdate(BaseModel):
     endpoint: str | None = None
     model: str | None = None
     options: dict[str, Any] | None = None
-    region: str | None = None
+    # Declared by the admin: where the service runs. External means data egress, so data
+    # rules then decide which chatbots may use it.
+    hosting: Hosting | None = None
+    region: str | None = Field(default=None, max_length=64)
     fallback_instance_id: UUID | None = None
     enabled: bool | None = None
+
+    @field_validator("endpoint")
+    @classmethod
+    def _endpoint(cls, v: str | None) -> str | None:
+        return _check_endpoint(v)
 
 
 class ProviderError(ValueError):
@@ -116,6 +141,11 @@ async def update_provider(
     expected_version: int | None,
 ) -> ProviderInstance:
     fields = data.model_fields_set
+    if "hosting" in fields:
+        if data.hosting is None:
+            raise ProviderError("hosting must be self_hosted or external")
+        if row.adapter in EXTERNAL_ADAPTERS and data.hosting is not Hosting.EXTERNAL:
+            raise ProviderError(f"{row.adapter} is an external service and must stay external")
     fallback_id = (
         data.fallback_instance_id
         if "fallback_instance_id" in fields

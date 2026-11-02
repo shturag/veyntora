@@ -213,3 +213,35 @@ async def test_duplicate_names_are_rejected(db: AsyncSession) -> None:
     await create_provider(db, CTX, None, _input(name="Claude C"))
     with pytest.raises(ProviderError, match="already exists"):
         await create_provider(db, CTX, None, _input(name="Claude C"))
+
+
+def test_endpoints_are_base_urls() -> None:
+    with pytest.raises(ValueError, match=r"base URL \(https://api.example.com/v1\)"):
+        _input(adapter="openai_compatible", endpoint="https://api.example.com/v1/chat/completions")
+    with pytest.raises(ValueError, match="without /embeddings"):
+        ProviderUpdate(endpoint="https://api.example.com/v1/embeddings/")
+    assert ProviderUpdate(endpoint="https://api.example.com/v1/").endpoint == (
+        "https://api.example.com/v1"
+    )
+
+
+async def test_hosting_can_be_corrected_but_vendor_apis_stay_external(db: AsyncSession) -> None:
+    row = await create_provider(
+        db,
+        CTX,
+        None,
+        _input(
+            capability=Capability.EMBEDDING,
+            adapter="openai_compatible",
+            name="Cloud embeddings",
+            endpoint="https://api.example.com/v1",
+            hosting=Hosting.SELF_HOSTED,
+        ),
+    )
+    await update_provider(
+        db, CTX, row, ProviderUpdate(hosting=Hosting.EXTERNAL, region="eu-central"), None
+    )
+    assert (row.hosting, row.region) == (Hosting.EXTERNAL, "eu-central")
+    claude = await create_provider(db, CTX, None, _input())
+    with pytest.raises(ProviderError, match="must stay external"):
+        await update_provider(db, CTX, claude, ProviderUpdate(hosting=Hosting.SELF_HOSTED), None)

@@ -7586,6 +7586,7 @@ export interface components {
             endpoint?: string | null;
             /** Fallback Instance Id */
             fallback_instance_id?: string | null;
+            hosting?: components["schemas"]["Hosting"] | null;
             /** Model */
             model?: string | null;
             /** Name */

@@ -153,6 +153,7 @@ export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
               defaultValue={DEFAULT_ENDPOINT[key] ?? ""}
               className={`${input} font-mono`}
             />
+            <span className="text-xs font-normal text-fg-muted">{t("endpointHint")}</span>
           </label>
           {current.external_only ? (
             <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
@@ -165,6 +166,7 @@ export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
                 <option value="self_hosted">{t("hostings.self_hosted")}</option>
                 <option value="external">{t("hostings.external")}</option>
               </select>
+              <span className="text-xs font-normal text-fg-muted">{t("hostingHint")}</span>
             </label>
           )}
           <div className="grid grid-cols-[1fr_auto] gap-3 max-[760px]:grid-cols-1">

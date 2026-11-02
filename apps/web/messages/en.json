@@ -835,7 +835,11 @@
     "tokens": "Tokens",
     "cost": "Cost",
     "noUsage": "No model calls recorded yet.",
-    "usageHint": "Counted from answers and Playground runs, attributed to the provider that served each call. Cost uses the prices above."
+    "usageHint": "Counted from answers and Playground runs, attributed to the provider that served each call. Cost uses the prices above.",
+    "endpointHint": "The base URL, for example https://api.example.com/v1, without /chat/completions or /embeddings: Veyntora adds those.",
+    "hostingHint": "External when the address is outside your network, such as a cloud API: data then leaves your network, and chatbots may use it only when their data rule allows it.",
+    "region": "Region",
+    "regionPlaceholder": "e.g. eu-central"
   },
   "sources": {
     "title": "Data sources",

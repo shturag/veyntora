@@ -15,6 +15,7 @@ export type ProviderRow = {
   endpoint: string | null;
   model: string | null;
   hosting: "self_hosted" | "external";
+  region: string | null;
   enabled: boolean;
   has_secret: boolean;
   secret_last4: string | null;
@@ -31,6 +32,7 @@ export type ProviderRow = {
 export type ProviderUsage = { calls: number; tokens_in: number; tokens_out: number; cost: number };
 
 const GRACE = ["24h", "1h", "7d", "now"] as const;
+const EXTERNAL_ONLY = new Set(["anthropic", "voyage", "azure_pii"]);
 // Prices are kept in the instance's options, in EUR per million tokens (see rag/record.py).
 const PRICE_IN = "price_in_per_mtok_eur";
 const PRICE_OUT = "price_out_per_mtok_eur";
@@ -57,6 +59,9 @@ export function ProviderEditor({
   const router = useRouter();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [hosting, setHosting] = useState(provider.hosting);
+  // Vendor APIs (Anthropic, Voyage, Azure) are always external.
+  const vendorOnly = EXTERNAL_ONLY.has(provider.adapter);
 
   async function run(action: () => Promise<unknown>, done: string) {
     setBusy(true);
@@ -85,6 +90,8 @@ export function ProviderEditor({
             endpoint: String(form.get("endpoint") || "") || null,
             model: String(form.get("model") || "") || null,
             fallback_instance_id: String(form.get("fallback") || "") || null,
+            hosting,
+            region: String(form.get("region") || "").trim() || null,
             ...(priced
               ? {
                   options: {
@@ -130,7 +137,7 @@ export function ProviderEditor({
     );
   }
 
-  const external = provider.hosting === "external";
+  const external = hosting === "external";
   const price = (key: string) => {
     const v = provider.options[key];
     return typeof v === "number" ? String(v) : "";
@@ -167,6 +174,7 @@ export function ProviderEditor({
             disabled={!canEdit}
             className={`${input} font-mono`}
           />
+          <span className="text-xs font-normal text-fg-muted">{t("endpointHint")}</span>
         </label>
         <label className={label}>
           {t("model")}
@@ -177,6 +185,32 @@ export function ProviderEditor({
             className={`${input} font-mono`}
           />
         </label>
+        <div className="grid grid-cols-[1fr_160px] gap-3 max-[760px]:grid-cols-1">
+          <label className={label}>
+            {t("hosting")}
+            <select
+              name="hosting"
+              value={hosting}
+              onChange={(e) => setHosting(e.target.value as ProviderRow["hosting"])}
+              disabled={!canEdit || vendorOnly}
+              className={input}
+            >
+              <option value="self_hosted">{t("hostings.self_hosted")}</option>
+              <option value="external">{t("hostings.external")}</option>
+            </select>
+            <span className="text-xs font-normal text-fg-muted">{t("hostingHint")}</span>
+          </label>
+          <label className={label}>
+            {t("region")}
+            <input
+              name="region"
+              defaultValue={provider.region ?? ""}
+              placeholder={t("regionPlaceholder")}
+              disabled={!canEdit}
+              className={input}
+            />
+          </label>
+        </div>
         <label className={label}>
           {t("fallback")}
           <select

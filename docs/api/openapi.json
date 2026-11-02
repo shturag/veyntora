@@ -11081,6 +11081,16 @@
             ],
             "title": "Fallback Instance Id"
           },
+          "hosting": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Hosting"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "model": {
             "anyOf": [
               {
@@ -11120,6 +11130,7 @@
           "region": {
             "anyOf": [
               {
+                "maxLength": 64,
                 "type": "string"
               },
               {
