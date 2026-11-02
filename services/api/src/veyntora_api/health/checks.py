@@ -57,7 +57,15 @@ def _http(http: httpx.AsyncClient, url: str, ok: tuple[int, ...] = (200,)) -> Pr
     return probe
 
 
-def build_probes(settings: Settings, http: httpx.AsyncClient, redis: Redis) -> dict[str, Probe]:
+def build_probes(
+    settings: Settings,
+    http: httpx.AsyncClient,
+    redis: Redis,
+    *,
+    langfuse_url: str | None = None,
+) -> dict[str, Probe]:
+    """`langfuse_url`: from Integrations; without it Langfuse is not probed."""
+
     async def postgres() -> None:
         async with get_engine().connect() as conn:
             await conn.execute(sa.text("SELECT 1"))
@@ -96,8 +104,9 @@ def build_probes(settings: Settings, http: httpx.AsyncClient, redis: Redis) -> d
         "litellm": _http(http, f"{settings.litellm_url.rstrip('/')}/health/liveliness"),
         "graphs": _http(http, f"{settings.graphs_url.rstrip('/')}/health"),
         "docling": _http(http, f"{settings.docling_url.rstrip('/')}/health"),
-        "langfuse": _http(http, f"{settings.langfuse_url.rstrip('/')}/api/public/health"),
     }
+    if langfuse_url:
+        probes["langfuse"] = _http(http, f"{langfuse_url.rstrip('/')}/api/public/health")
     if settings.clamav_address:
 
         async def clamav() -> None:

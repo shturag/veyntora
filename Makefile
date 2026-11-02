@@ -33,7 +33,7 @@ env: ## Create .env with random secrets (keeps an existing .env)
 # ------------------------------------------------------------------ stack
 
 .PHONY: up
-up: ## Build and start the whole local stack
+up: env ## Build and start the whole local stack
 	docker compose up -d --build
 	@echo "Web: http://localhost:3000  Keycloak: http://localhost:8080  Langfuse: http://localhost:3001  Grafana: http://localhost:3003"
 

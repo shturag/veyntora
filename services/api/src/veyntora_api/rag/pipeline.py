@@ -149,6 +149,8 @@ class RunContext:
     limited: str | None = None
     # Governance: mask personal data in traces.
     mask_traces: bool = True
+    # The data rule allows traces to an external Langfuse (Integrations, ADR 0024).
+    external_traces: bool = False
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -432,6 +434,7 @@ async def _context(
         app_key_id=app_key_id,
         limited=limited,
         mask_traces=(await governance.settings_of(db)).mask_reviews_and_traces,
+        external_traces=bool(rule and rule.allow_external_traces),
         source_paths=paths,
     )
 

@@ -4,7 +4,7 @@ Status: accepted · 2026-10-30 · Phase 0
 
 ## Decision
 
-- Every key (providers, BYOK, MCP servers, sources, channels) is written to **OpenBao KV v2** under fixed path patterns: `providers/{id}`, `users/{user_id}/{provider}`, `mcp/{id}`, `sources/{id}`, `channels/{id}`. Any other path is refused before a request is sent.
+- Every key (providers, BYOK, MCP servers, sources, channels, integrations) is written to **OpenBao KV v2** under fixed path patterns: `providers/{id}`, `users/{user_id}/{provider}`, `mcp/{id}`, `sources/{id}`, `channels/{id}`, `integrations/{langfuse|grafana}`. Any other path is refused before a request is sent.
 - PostgreSQL stores only `secret_ref`, `secret_last4` (only for values of 12 characters or more) and `secret_expires_at`.
 - Write-only is enforced **twice**:
   1. `SecretWriter` has no read method (unit test checks its public surface).

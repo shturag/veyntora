@@ -2,7 +2,8 @@
 
 The trace holds the question, the answer, the steps with their timings, the model and token
 usage, and which sources were used (titles and scores). Chunk text and prompts are not
-copied into traces. Tracing is off unless Langfuse keys are configured.
+copied into traces. Tracing is off unless Langfuse is set up in Integrations (ADR 0024);
+a changed address or key takes effect within a minute, without a restart.
 
 A dedicated TracerProvider is used so the graph server's own OpenTelemetry setup is not
 affected. A trace can also keep its steps in memory (`collect=True`) for the Playground,
@@ -11,22 +12,32 @@ which shows them step by step.
 
 from __future__ import annotations
 
+import asyncio
 import base64
+import hashlib
 import json
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
-from functools import lru_cache
-from typing import Any
+from pathlib import Path
+from typing import Any, Protocol
 
+import structlog
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Span, Tracer
+from veyntora_providers.interfaces import Hosting
+from veyntora_providers.secrets import OpenBaoReader, SecretReader
 
+from veyntora_api.db.models.platform import IntegrationKind
+from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.integrations import runtime as integrations
 from veyntora_api.rag.guard import Masker, rule_spans
-from veyntora_api.settings import Settings, get_settings
+from veyntora_api.settings import get_settings
+
+log = structlog.get_logger()
 
 
 def _value(value: Any, mask: bool = False) -> Any:
@@ -108,25 +119,82 @@ class Trace:
                     self.root.set_attribute(key, _value(value, self.mask))
 
 
-@lru_cache
-def _tracer() -> Tracer | None:
-    s: Settings = get_settings()
-    secret = s.langfuse_secret_key.get_secret_value()
-    if not (s.langfuse_url and s.langfuse_public_key and secret):
-        return None
-    token = base64.b64encode(f"{s.langfuse_public_key}:{secret}".encode()).decode()
+_TTL_SECONDS = 60.0
+
+
+class _Tracers:
+    """The Langfuse tracer for the current settings, looked up at most once a minute."""
+
+    def __init__(self) -> None:
+        self.checked_at = -_TTL_SECONDS
+        self.fingerprint: str | None = None
+        self.provider: TracerProvider | None = None
+        self.tracer: Tracer | None = None
+        self.external = False
+        self.reader: SecretReader | None = None
+        self.lock = asyncio.Lock()
+
+    async def get(self) -> Tracer | None:
+        if time.monotonic() - self.checked_at < _TTL_SECONDS:
+            return self.tracer
+        async with self.lock:
+            if time.monotonic() - self.checked_at >= _TTL_SECONDS:
+                try:
+                    await self._refresh()
+                except Exception as exc:  # a trace is never worth failing an answer
+                    log.warning("tracing.settings_unavailable", error=type(exc).__name__)
+                self.checked_at = time.monotonic()
+        return self.tracer
+
+    async def _refresh(self) -> None:
+        s = get_settings()
+        if self.reader is None:
+            self.reader = OpenBaoReader(s.openbao_url, Path(s.openbao_token_file))
+        async with get_sessionmaker()() as db:
+            conn = await integrations.resolve(db, self.reader, IntegrationKind.LANGFUSE)
+        fingerprint = (
+            hashlib.sha256(f"{conn.url}\0{conn.public_key}\0{conn.secret}".encode()).hexdigest()
+            if conn
+            else None
+        )
+        if fingerprint != self.fingerprint:
+            if self.provider is not None:
+                self.provider.shutdown()  # sends what is still buffered
+            self.provider = _provider(conn) if conn else None
+            self.tracer = self.provider.get_tracer("veyntora.fast_rag") if self.provider else None
+            self.fingerprint = fingerprint
+        self.external = bool(conn and conn.hosting is Hosting.EXTERNAL)
+
+
+def _provider(conn: integrations.Connection) -> TracerProvider:
+    token = base64.b64encode(f"{conn.public_key}:{conn.secret}".encode()).decode()
     provider = TracerProvider(resource=Resource.create({"service.name": "veyntora-graphs"}))
     provider.add_span_processor(
         BatchSpanProcessor(
             OTLPSpanExporter(
-                endpoint=f"{s.langfuse_url.rstrip('/')}/api/public/otel/v1/traces",
+                endpoint=f"{conn.url}/api/public/otel/v1/traces",
                 headers={"Authorization": f"Basic {token}"},
                 timeout=5,
             )
         )
     )
-    return provider.get_tracer("veyntora.fast_rag")
+    return provider
 
 
-def new_trace(*, collect: bool = False, mask: bool = False) -> Trace:
-    return Trace(_tracer(), collect=collect, mask=mask)
+_tracers = _Tracers()
+
+
+class _Rules(Protocol):
+    @property
+    def mask_traces(self) -> bool: ...
+    @property
+    def external_traces(self) -> bool: ...
+
+
+async def new_trace(ctx: _Rules, *, collect: bool = False) -> Trace:
+    """A trace under the run's data rules: an external Langfuse only receives the traces of
+    chatbots whose rule allows it, and always with personal data masked."""
+    tracer = await _tracers.get()
+    if _tracers.external:
+        return Trace(tracer if ctx.external_traces else None, collect=collect, mask=True)
+    return Trace(tracer, collect=collect, mask=ctx.mask_traces)

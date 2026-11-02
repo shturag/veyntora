@@ -607,6 +607,7 @@ export const ADMIN_NAV: readonly {
       { key: "knowledgeHealth", href: "/admin/knowledge-health", area: "knowledge_health" },
       { key: "evaluation", href: "/admin/evaluation", area: "evaluation" },
       { key: "monitoring", href: "/admin/monitoring", area: "monitoring" },
+      { key: "integrations", href: "/admin/integrations", area: "monitoring" },
       { key: "usage", href: "/admin/usage", area: "usage" },
     ],
   },

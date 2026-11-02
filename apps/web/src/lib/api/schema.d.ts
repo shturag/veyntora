@@ -1542,6 +1542,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Langfuse and Grafana settings (never the keys) */
+        get: operations["list_integrations_v1_admin_integrations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/integrations/grafana/dashboards/{uid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One chosen dashboard's panels with data */
+        get: operations["grafana_dashboard_v1_admin_integrations_grafana_dashboards__uid__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/integrations/grafana/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboards the Grafana token can see (to pick from) */
+        get: operations["grafana_search_v1_admin_integrations_grafana_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/integrations/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set up or change Langfuse or Grafana */
+        put: operations["save_integration_v1_admin_integrations__kind__put"];
+        post?: never;
+        /** Remove the settings and key */
+        delete: operations["remove_integration_v1_admin_integrations__kind__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/integrations/{kind}/secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Store or replace the key (write-only) */
+        put: operations["put_secret_v1_admin_integrations__kind__secret_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/integrations/{kind}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check the address and key against the live service (async)
+         * @description Queued for a worker: only runtime services may read the key. Poll for
+         *     `health_checked_at` to see the result.
+         */
+        post: operations["test_integration_v1_admin_integrations__kind__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/knowledge-health": {
         parameters: {
             query?: never;
@@ -4154,6 +4261,11 @@ export interface components {
             /** External */
             external: string[];
             /**
+             * External Traces
+             * @default false
+             */
+            external_traces: boolean;
+            /**
              * Id
              * Format: uuid
              */
@@ -4812,6 +4924,35 @@ export interface components {
             revoked: boolean;
             /** Service User Id */
             service_user_id: string | null;
+        };
+        /** DashboardOut */
+        DashboardOut: {
+            /** End */
+            end: number;
+            /** Panels */
+            panels: components["schemas"]["PanelOut"][];
+            /** Start */
+            start: number;
+            /** Title */
+            title: string;
+            /** Uid */
+            uid: string;
+            /** Url */
+            url: string;
+        };
+        /** DashboardRef */
+        DashboardRef: {
+            /** Title */
+            title: string;
+            /** Uid */
+            uid: string;
+        };
+        /** DashboardRefOut */
+        DashboardRefOut: {
+            /** Title */
+            title: string;
+            /** Uid */
+            uid: string;
         };
         /** DatabaseSettings */
         DatabaseSettings: {
@@ -5514,6 +5655,11 @@ export interface components {
              * @default false
              */
             allow_byok: boolean;
+            /**
+             * Allow External Traces
+             * @default false
+             */
+            allow_external_traces: boolean;
             /** Allowed External Instance Ids */
             allowed_external_instance_ids?: string[];
             /** Allowed External Mcp Server Ids */
@@ -5541,6 +5687,11 @@ export interface components {
              * @default false
              */
             allow_byok: boolean;
+            /**
+             * Allow External Traces
+             * @default false
+             */
+            allow_external_traces: boolean;
             /** Allowed External Instance Ids */
             allowed_external_instance_ids?: string[];
             /** Allowed External Mcp Server Ids */
@@ -5678,6 +5829,22 @@ export interface components {
              * @default 180
              */
             upload_retention_days: number | null;
+        };
+        /** GrafanaDashboardOut */
+        GrafanaDashboardOut: {
+            /** Folder */
+            folder: string;
+            /** Title */
+            title: string;
+            /** Uid */
+            uid: string;
+        };
+        /** GrafanaDashboardRef */
+        GrafanaDashboardRef: {
+            /** Title */
+            title: string;
+            /** Uid */
+            uid: string;
         };
         /** Grant */
         Grant: {
@@ -6346,6 +6513,63 @@ export interface components {
          * @enum {string}
          */
         InjectionAction: "block" | "warn";
+        /** IntegrationInput */
+        IntegrationInput: {
+            /** Browser Url */
+            browser_url?: string | null;
+            /** Dashboards */
+            dashboards?: components["schemas"]["DashboardRef"][] | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** @default self_hosted */
+            hosting: components["schemas"]["Hosting"];
+            /** Public Key */
+            public_key?: string | null;
+            /** Url */
+            url: string;
+        };
+        /**
+         * IntegrationKind
+         * @enum {string}
+         */
+        IntegrationKind: "langfuse" | "grafana";
+        /**
+         * IntegrationOut
+         * @description Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.
+         */
+        IntegrationOut: {
+            /** Browser Url */
+            browser_url: string | null;
+            /** Configured */
+            configured: boolean;
+            /** Dashboards */
+            dashboards: components["schemas"]["DashboardRefOut"][];
+            /** Enabled */
+            enabled: boolean;
+            /** Has Secret */
+            has_secret: boolean;
+            /** Health Checked At */
+            health_checked_at: string | null;
+            /** Health Detail */
+            health_detail: string | null;
+            /** Health Ok */
+            health_ok: boolean | null;
+            hosting: components["schemas"]["Hosting"];
+            kind: components["schemas"]["IntegrationKind"];
+            /** Public Key */
+            public_key: string | null;
+            /** Secret Expires At */
+            secret_expires_at: string | null;
+            /** Secret Last4 */
+            secret_last4: string | null;
+            /** Url */
+            url: string | null;
+            /** Version */
+            version: number | null;
+        };
         /** IssueDocument */
         IssueDocument: {
             /** Excluded */
@@ -6695,6 +6919,8 @@ export interface components {
             failed_runs: number;
             /** Fast */
             fast: number;
+            /** Grafana Dashboards */
+            grafana_dashboards: components["schemas"]["GrafanaDashboardRef"][];
             /** Grafana Url */
             grafana_url: string | null;
             /** Helpful Rate */
@@ -6990,6 +7216,29 @@ export interface components {
             requests: number;
             /** Spend */
             spend: string;
+        };
+        /** PanelOut */
+        PanelOut: {
+            /** Error */
+            error: string | null;
+            /** Id */
+            id: number | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "timeseries" | "stat" | "table" | "unsupported";
+            /** Series */
+            series: components["schemas"]["SeriesOut"][];
+            table: components["schemas"]["TableOut"] | null;
+            /** Title */
+            title: string;
+            /** Type */
+            type: string;
+            /** Unit */
+            unit: string | null;
+            /** Width */
+            width: number;
         };
         /**
          * ParentChunk
@@ -8283,6 +8532,16 @@ export interface components {
          * @enum {string}
          */
         SearchType: "dense" | "sparse" | "hybrid";
+        /** SeriesOut */
+        SeriesOut: {
+            /** Name */
+            name: string;
+            /** Points */
+            points: [
+                number,
+                number | null
+            ][];
+        };
         /** ServerDetail */
         ServerDetail: {
             auth: components["schemas"]["McpAuth"];
@@ -8753,6 +9012,13 @@ export interface components {
         SuspendIn: {
             /** Reason */
             reason?: string | null;
+        };
+        /** TableOut */
+        TableOut: {
+            /** Columns */
+            columns: string[];
+            /** Rows */
+            rows: unknown[][];
         };
         /** TeamsInput */
         TeamsInput: {
@@ -9354,6 +9620,16 @@ export interface components {
             status: components["schemas"]["JobStatus"];
             /** Version */
             version: number | null;
+        };
+        /** SecretInput */
+        veyntora_api__routers__admin_integrations__SecretInput: {
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Secret
+             * Format: password
+             */
+            secret: string;
         };
         /** Started */
         veyntora_api__routers__admin_knowledge_health__Started: {
@@ -12840,6 +13116,222 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GroupRole"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_integrations_v1_admin_integrations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationOut"][];
+                };
+            };
+        };
+    };
+    grafana_dashboard_v1_admin_integrations_grafana_dashboards__uid__get: {
+        parameters: {
+            query?: {
+                range?: "1h" | "6h" | "24h" | "7d";
+            };
+            header?: never;
+            path: {
+                uid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grafana_search_v1_admin_integrations_grafana_search_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrafanaDashboardOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_integration_v1_admin_integrations__kind__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                kind: components["schemas"]["IntegrationKind"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IntegrationInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_integration_v1_admin_integrations__kind__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["IntegrationKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_secret_v1_admin_integrations__kind__secret_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["IntegrationKind"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__routers__admin_integrations__SecretInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_integration_v1_admin_integrations__kind__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: components["schemas"]["IntegrationKind"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationOut"];
                 };
             };
             /** @description Validation Error */

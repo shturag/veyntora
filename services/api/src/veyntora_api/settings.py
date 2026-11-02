@@ -71,14 +71,15 @@ class Settings(BaseSettings):
     docling_url: str = "http://localhost:5001"
     tei_embed_url: str = ""
     tei_rerank_url: str = ""
-    langfuse_url: str = "http://localhost:3001"
-    # Where people's browsers reach Langfuse, for "Open trace" links (empty: no links).
+    # Langfuse and Grafana are configured in the admin console (Integrations, ADR 0024).
+    # These only seed it: `veyntora-api bootstrap` imports them once, when nothing is set
+    # up yet (the bundled services in compose). Later changes are made in the console.
+    langfuse_url: str = ""
     langfuse_browser_url: str = ""
-    # Where people's browsers reach Grafana, for Monitoring's "Open in Grafana".
-    grafana_browser_url: str = ""
-    # Project keys for traces (graphs). Empty keys switch tracing off.
     langfuse_public_key: str = ""
     langfuse_secret_key: SecretStr = SecretStr("")
+    grafana_url: str = ""
+    grafana_browser_url: str = ""
     # Signs the short-lived tokens the API gives the graph server for runs that have no
     # Keycloak token (API app keys, the website widget). Shared by the API and the graphs.
     internal_token_secret: SecretStr = SecretStr("")

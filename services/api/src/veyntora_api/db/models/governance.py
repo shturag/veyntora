@@ -49,6 +49,8 @@ class GovernanceRule(IdMixin, TimestampMixin, VersionedMixin, Base):
         ARRAY(sa.Uuid), server_default="{}", default=list
     )
     allow_byok: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
+    # Traces may go to Langfuse when it is external (Integrations); always masked there.
+    allow_external_traces: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     mask_pii_before_external: Mapped[bool] = mapped_column(server_default=sa.true(), default=True)
 
 

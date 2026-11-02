@@ -88,6 +88,7 @@ export default async function GovernancePage() {
                           mask: b.mask ? t("masked") : t("notMasked"),
                         })
                       : t("selfHostedOnly")}
+                    {b.external_traces ? t("tracesExternal") : null}
                   </span>
                 </li>
               ))}

@@ -41,6 +41,7 @@ from veyntora_workers import (
     saved_answers,
 )
 from veyntora_workers.ingest import requeue_stuck, run_pending
+from veyntora_workers.integration_tests import run_queued_integration_tests
 from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
 from veyntora_workers.sources import run_due_schedules, run_queued_source_tests
@@ -63,6 +64,10 @@ app.conf.update(
         "heartbeat": {"task": "veyntora.heartbeat", "schedule": timedelta(seconds=30)},
         "relay-outbox": {"task": "veyntora.relay_outbox", "schedule": timedelta(seconds=10)},
         "provider-tests": {"task": "veyntora.provider_tests", "schedule": timedelta(seconds=5)},
+        "integration-tests": {
+            "task": "veyntora.integration_tests",
+            "schedule": timedelta(seconds=5),
+        },
         "mcp-discovery": {"task": "veyntora.mcp_discovery", "schedule": timedelta(seconds=5)},
         "groups-refresh": {"task": "veyntora.groups_refresh", "schedule": timedelta(hours=1)},
         # Ticks that wait in the broker longer than the interval are dropped, not piled up.
@@ -165,6 +170,11 @@ def identity_sync() -> None:
 @app.task(name="veyntora.provider_tests")
 def provider_tests() -> int:
     return _run(run_queued_provider_tests(settings))
+
+
+@app.task(name="veyntora.integration_tests")
+def integration_tests() -> int:
+    return _run(run_queued_integration_tests(settings))
 
 
 @app.task(name="veyntora.groups_refresh")

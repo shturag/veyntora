@@ -77,7 +77,7 @@ async def tick(settings: Settings) -> int:
             progress = dict(req.progress or {})
             uid = req.subject_user_id
             if progress.get("traces") == "pending":
-                http = langfuse_client(settings)
+                http = await langfuse_client(db, settings)
                 if http is None:
                     progress["traces"] = "not configured"
                 else:

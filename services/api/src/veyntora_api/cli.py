@@ -29,6 +29,7 @@ from alembic import command
 from alembic.config import Config
 
 from veyntora_api.auth.identity import full_sync
+from veyntora_api.auth.identity_check import check_identity
 from veyntora_api.auth.keycloak_admin import KeycloakAdmin
 from veyntora_api.authz.fga import PLATFORM, Authz, Tuple, bootstrap_tuples, ensure_store_and_model
 from veyntora_api.core.context import Actor, RequestContext
@@ -121,9 +122,15 @@ async def bootstrap(s: Settings) -> None:
                 await db.commit()
 
         await _ensure_bucket(s)
+        await seed_integrations(s)
         # Keycloak can briefly fail right after a database restart; retry with backoff.
         for attempt in range(1, 6):
             try:
+                if problems := await _identity_problems(s):
+                    # A set-up mistake, not a hiccup: say what to fix and stop.
+                    for p in problems:
+                        log.error("bootstrap.identity_problem", problem=p)
+                    raise SystemExit("Keycloak is not set up for Veyntora: " + "; ".join(problems))
                 await sync_identities(s, authz)
                 break
             except httpx.HTTPError as exc:
@@ -145,6 +152,46 @@ async def bootstrap(s: Settings) -> None:
             log.info("bootstrap.admin_group_granted", path=s.bootstrap_admin_group)
     finally:
         await authz.close()
+
+
+async def _identity_problems(s: Settings) -> list[str]:
+    async with httpx.AsyncClient(timeout=15.0) as http:
+        return await check_identity(s, http)
+
+
+async def seed_integrations(s: Settings) -> None:
+    """Import Langfuse and Grafana from the environment once, when not set up yet; from
+    then on they are configuration in the admin console (ADR 0024)."""
+    from pydantic import SecretStr  # noqa: PLC0415
+
+    from veyntora_api.db.models.platform import IntegrationKind  # noqa: PLC0415
+    from veyntora_api.integrations import service  # noqa: PLC0415
+
+    seeds = {
+        IntegrationKind.LANGFUSE: (s.langfuse_url, s.langfuse_browser_url, s.langfuse_public_key),
+        IntegrationKind.GRAFANA: (s.grafana_url, s.grafana_browser_url, None),
+    }
+    secret = s.langfuse_secret_key.get_secret_value()
+    async with get_sessionmaker()() as db:
+        for kind, (url, browser, public_key) in seeds.items():
+            if not url or await service.get(db, kind) is not None:
+                continue
+            data = service.IntegrationInput(
+                url=url, browser_url=browser or None, public_key=public_key or None
+            )
+            row = await service.save(db, _cli_ctx(), kind, data)
+            if kind is IntegrationKind.LANGFUSE and secret:
+                writer = SecretWriter.from_token_file(
+                    s.openbao_url, s.openbao_token_file, s.openbao_kv_mount
+                )
+                try:
+                    await service.set_secret(
+                        db, _cli_ctx(), writer, row, value=SecretStr(secret), expires_at=None
+                    )
+                finally:
+                    await writer.close()
+            await db.commit()
+            log.info("bootstrap.integration_seeded", kind=kind.value, url=url)
 
 
 def _cli_ctx() -> RequestContext:
@@ -234,6 +281,7 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("bootstrap")
     sub.add_parser("migrate")
     sub.add_parser("sync-identities")
+    sub.add_parser("check-identity", help="check that Keycloak is set up for Veyntora")
     openapi = sub.add_parser("openapi")
     openapi.add_argument("output", type=Path)
     prov = sub.add_parser("providers")
@@ -278,6 +326,16 @@ def main() -> None:
     elif args.cmd == "bootstrap":
         migrate()
         asyncio.run(bootstrap(settings))
+    elif args.cmd == "check-identity":
+        try:
+            problems = asyncio.run(_identity_problems(settings))
+        except httpx.HTTPError as exc:
+            base = settings.oidc_backchannel_base
+            problems = [f"Keycloak is not reachable at {base} ({type(exc).__name__})"]
+        for p in problems:
+            sys.stdout.write(f"problem: {p}\n")
+        sys.stdout.write("Keycloak is set up for Veyntora\n" if not problems else "")
+        sys.exit(1 if problems else 0)
     elif args.cmd == "sync-identities":
 
         async def run() -> None:

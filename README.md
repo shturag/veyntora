@@ -7,11 +7,11 @@ Self-hosted enterprise knowledge platform. Employees ask questions and get answe
 ## Quick start
 
 ```bash
-docker compose up -d --build
-open http://localhost:3000        # admin / dev-admin  or  employee / dev-employee
+make up                           # writes .env with random passwords on first run
+open http://localhost:3000        # admin or employee; passwords: grep _PASSWORD .env
 ```
 
-Give Docker at least 16 GB of memory. More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md).
+Give Docker at least 16 GB of memory. More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md). To use your own Keycloak, Langfuse or Grafana, see [docs/runbooks/external-services.md](docs/runbooks/external-services.md).
 
 ## Layout
 

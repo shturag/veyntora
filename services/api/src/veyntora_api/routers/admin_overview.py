@@ -23,12 +23,13 @@ from veyntora_api.db.models.channels import Channel
 from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus
 from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.knowledge import DataSource, Document, DocumentStatus
-from veyntora_api.db.models.platform import NoticeKind, StatusNotice
+from veyntora_api.db.models.platform import IntegrationKind, NoticeKind, StatusNotice
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.models.quality import Budget, BudgetScope
 from veyntora_api.db.models.tools import McpServer
 from veyntora_api.evaluation import service as evaluation
 from veyntora_api.health.checks import Level
+from veyntora_api.integrations import service as integrations
 from veyntora_api.monitoring import stats as mon
 from veyntora_api.routers.status import system_status
 from veyntora_api.usage import budgets, report
@@ -265,6 +266,11 @@ class MonitorAlert(BaseModel):
     text: str
 
 
+class GrafanaDashboardRef(BaseModel):
+    uid: str
+    title: str
+
+
 class MonitoringOut(BaseModel):
     range: mon.Range
     chatbot_id: UUID | None
@@ -286,6 +292,18 @@ class MonitoringOut(BaseModel):
     alerts: list[MonitorAlert]
     grafana_url: str | None
     langfuse_url: str | None
+    # Grafana dashboards chosen in Integrations; their panels load separately.
+    grafana_dashboards: list[GrafanaDashboardRef]
+
+
+async def _grafana_dashboards(db: DbSession) -> list[GrafanaDashboardRef]:
+    row = await integrations.get(db, IntegrationKind.GRAFANA)
+    if row is None or not row.enabled or row.secret_ref is None:
+        return []
+    return [
+        GrafanaDashboardRef(uid=str(d["uid"]), title=str(d["title"]))
+        for d in (row.options or {}).get("dashboards") or []
+    ]
 
 
 @router.get("/monitoring", summary="Requests, latency, quality and providers")
@@ -334,7 +352,6 @@ async def monitoring(
         if c.level in {Level.DEGRADED, Level.DOWN}:
             alerts.append(MonitorAlert(level="warning", text=f"{c.key} is {c.level.value}"))
     bots = (await db.execute(sa.select(Chatbot.id, Chatbot.name).order_by(Chatbot.name))).all()
-    settings = state.settings
     return MonitoringOut(
         range=range,
         chatbot_id=chatbot_id,
@@ -354,8 +371,9 @@ async def monitoring(
         bucket=bucket,
         providers=[ProviderOut(**p.__dict__) for p in s.providers],
         alerts=alerts,
-        grafana_url=settings.grafana_browser_url or None,
-        langfuse_url=settings.langfuse_browser_url or None,
+        grafana_url=await integrations.browser_url(db, IntegrationKind.GRAFANA),
+        langfuse_url=await integrations.browser_url(db, IntegrationKind.LANGFUSE),
+        grafana_dashboards=await _grafana_dashboards(db),
     )
 
 

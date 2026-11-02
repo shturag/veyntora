@@ -32,7 +32,10 @@ test.describe("overview and monitoring as a platform admin", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Monitoring");
     await expect(page.getByRole("img", { name: "Requests per hour by mode" })).toBeVisible();
     await expectNoA11yViolations(page);
-    await page.getByRole("link", { name: "7 days" }).click();
+    await page
+      .getByRole("navigation", { name: "Time range", exact: true })
+      .getByRole("link", { name: "7 days" })
+      .click();
     await expect(page.getByRole("img", { name: "Requests per day by mode" })).toBeVisible();
     await page.emulateMedia({ colorScheme: "dark" });
     await page.reload();

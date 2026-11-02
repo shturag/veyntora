@@ -71,6 +71,8 @@ class BotRule(BaseModel):
     external: list[str]
     mask: bool
     chat_retention_days: int | None
+    # Traces may go to Langfuse when it is external (it receives them only then).
+    external_traces: bool = False
 
 
 class RoleOut(BaseModel):
@@ -142,6 +144,7 @@ async def overview(principal: Viewer, db: DbSession, state: State) -> Governance
                 else [],
                 mask=rules[b.id].mask_pii_before_external if b.id in rules else True,
                 chat_retention_days=rules[b.id].chat_retention_days if b.id in rules else None,
+                external_traces=b.id in rules and rules[b.id].allow_external_traces,
             )
             for b in bots
         ],

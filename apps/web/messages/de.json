@@ -56,7 +56,8 @@
       "usage": "Nutzung & Budgets",
       "users": "Benutzer & Gruppen",
       "governance": "Governance",
-      "audit": "Audit-Log"
+      "audit": "Audit-Log",
+      "integrations": "Integrationen"
     }
   },
   "wizard": {
@@ -3280,7 +3281,31 @@
       "self_hosted": "selbst betrieben",
       "external": "extern"
     },
-    "calls": "{count, plural, one {# Aufruf} other {# Aufrufe}}"
+    "calls": "{count, plural, one {# Aufruf} other {# Aufrufe}}",
+    "grafana": {
+      "title": "Grafana-Dashboards",
+      "range": "Zeitraum der Dashboards",
+      "ranges": {
+        "1h": "1 Stunde",
+        "6h": "6 Stunden",
+        "24h": "24 Stunden",
+        "7d": "7 Tage"
+      },
+      "failed": "{title} konnte nicht geladen werden: {reason}",
+      "setUp": "Grafana-Dashboards hier zeigen: Grafana unter <link>Integrationen</link> einrichten.",
+      "openDashboard": "In Grafana öffnen",
+      "noPanels": "Dieses Dashboard hat keine Panels.",
+      "untitled": "Panel ohne Titel",
+      "panelError": "Grafana: {reason}",
+      "unsupported": "Grafana zeigt dieses Panel ({type}).",
+      "noData": "Keine Daten in diesem Zeitraum.",
+      "asTable": "Als Tabelle zeigen",
+      "series": "Reihe",
+      "latest": "Aktuell",
+      "min": "Min.",
+      "max": "Max.",
+      "time": "Zeit"
+    }
   },
   "governance": {
     "title": "Governance",
@@ -3435,7 +3460,8 @@
       "completed": "Erledigt, Bericht signiert"
     },
     "accessReviews": "Zugriffsprüfungen",
-    "reviewEvery": "Zugriffsprüfung alle (Tage; leer: nur von Hand)"
+    "reviewEvery": "Zugriffsprüfung alle (Tage; leer: nur von Hand)",
+    "tracesExternal": " · Traces an externes Langfuse"
   },
   "audit": {
     "title": "Audit-Log",
@@ -3535,5 +3561,95 @@
     "policy": "Ungeprüfte Zugriffe bleiben; nach dem Fälligkeitsdatum werden Plattform-Admins informiert. Keycloak- und regelbasierte Mitgliedschaften kommen aus ihrer Quelle und werden hier nicht geprüft.",
     "failed": "Hat nicht funktioniert: {reason}",
     "cancel": "Abbrechen"
+  },
+  "integrations": {
+    "title": "Integrationen",
+    "subtitle": "Wohin Veyntora Traces sendet und welche Grafana-Dashboards das Monitoring zeigt. Schlüssel liegen in OpenBao.",
+    "unavailable": "Integrationen konnten nicht geladen werden.",
+    "kinds": {
+      "langfuse": {
+        "title": "Langfuse",
+        "summary": "Ein Trace pro Antwort: Schritte, Zeiten, Modell und Token-Verbrauch.",
+        "urlPlaceholder": "https://langfuse.example.com",
+        "key": "Secret Key",
+        "keyHint": "Der Secret Key des Projekts (sk-lf-…). Nur schreibbar: Er geht direkt in den Secret Store und wird nie wieder angezeigt."
+      },
+      "grafana": {
+        "title": "Grafana",
+        "summary": "Infrastruktur-Dashboards, dargestellt auf der Monitoring-Seite.",
+        "urlPlaceholder": "https://grafana.example.com",
+        "key": "Service-Account-Token",
+        "keyHint": "Ein Grafana-Service-Account-Token mit der Rolle Viewer (glsa_…). Nur schreibbar: Es geht direkt in den Secret Store und wird nie wieder angezeigt."
+      }
+    },
+    "notSetUp": "Nicht eingerichtet",
+    "on": "An",
+    "off": "Aus",
+    "url": "Adresse",
+    "urlHint": "Wie Veyntoras Dienste es in deinem Netzwerk erreichen.",
+    "browserUrl": "Adresse für Browser (optional)",
+    "browserUrlHint": "Für „In … öffnen“-Links, wenn Menschen es unter einer anderen Adresse erreichen.",
+    "publicKey": "Public Key",
+    "hosting": "Wo es läuft",
+    "hostings": {
+      "self_hosted": "Selbst gehostet (in deinem Netzwerk)",
+      "external": "Extern (zum Beispiel Langfuse Cloud)"
+    },
+    "selfHostedNote": "Traces bleiben in deiner Infrastruktur.",
+    "externalNote": "Extern: Traces enthalten Fragen und Antworten, Daten verlassen also dein Netzwerk. Die Traces eines Chatbots gehen nur dorthin, wenn seine Datenregel es erlaubt, und immer mit maskierten personenbezogenen Daten.",
+    "enabled": "Verwenden",
+    "setUp": "Einrichten",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "failed": "Das hat nicht funktioniert: {reason}",
+    "keySet": "Schlüssel endet auf ••••{last4}, läuft ab {expiry}.",
+    "noExpiry": "nie",
+    "noKey": "Noch kein Schlüssel gespeichert.",
+    "newKey": "Neuer Schlüssel",
+    "expires": "Läuft ab",
+    "storeKey": "Schlüssel speichern",
+    "replaceKey": "Schlüssel ersetzen",
+    "keySaved": "Schlüssel gespeichert. Hier bleiben nur die letzten 4 Zeichen.",
+    "dashboards": "Dashboards im Monitoring",
+    "dashboardsHint": "Bis zu {max}, in dieser Reihenfolge. Nur diese lassen sich über Veyntora lesen.",
+    "noDashboards": "Noch keine ausgewählt.",
+    "dashboardsSaved": "Dashboards gespeichert.",
+    "findDashboard": "Dashboard suchen",
+    "search": "Suchen",
+    "noneFound": "Für dieses Token wurden keine Dashboards gefunden.",
+    "show": "Im Monitoring zeigen",
+    "shown": "Wird gezeigt",
+    "removeDashboard": "Entfernen",
+    "moveUp": "{title} nach oben",
+    "moveDown": "{title} nach unten",
+    "notTested": "Nicht getestet",
+    "connected": "Verbunden",
+    "notConnected": "Nicht verbunden",
+    "test": "Verbindung testen",
+    "testQueued": "Test gestartet. Das Ergebnis erscheint hier in wenigen Sekunden (neu laden).",
+    "remove": "Entfernen",
+    "removeConfirm": "Die Einstellungen für {name} entfernen und den Schlüssel löschen?",
+    "removed": "Entfernt."
+  },
+  "dataRules": {
+    "title": "Datenregel",
+    "subtitle": "Was dieser Chatbot außerhalb deines Netzwerks senden darf und wie lange seine Daten bleiben.",
+    "defaults": "Noch keine Datenregel: Es gelten die Plattform-Standards (nichts Externes). Speichern legt eine an.",
+    "chatRetention": "Chats behalten (Tage)",
+    "traceRetention": "Traces behalten (Tage)",
+    "providers": "Externe Anbieter, die er nutzen darf",
+    "noExternalProviders": "Es gibt keine externen Anbieter.",
+    "servers": "Externe MCP-Server, die sein Agent aufrufen darf",
+    "noExternalServers": "Es gibt keine externen MCP-Server.",
+    "cannotList": "{count, plural, =0 {Keine erlaubt} one {# erlaubt} other {# erlaubt}} (du darfst sie hier nicht auflisten).",
+    "externalTraces": "Traces an ein externes Langfuse senden",
+    "externalTracesActive": "Langfuse ist extern: Ohne diese Erlaubnis werden die Antworten dieses Chatbots nicht getraced. Personenbezogene Daten werden dort immer maskiert.",
+    "externalTracesInactive": "Nur wichtig, wenn Langfuse unter Integrationen als extern eingerichtet ist.",
+    "mask": "Personenbezogene Daten maskieren, bevor sie an einen externen Anbieter gehen",
+    "byok": "Menschen dürfen mit diesem Chatbot ihr eigenes Modell und ihren Schlüssel nutzen",
+    "save": "Datenregel speichern",
+    "saved": "Datenregel gespeichert.",
+    "failed": "Das hat nicht funktioniert: {reason}",
+    "readOnly": "Governance-Bearbeiter ändern Datenregeln."
   }
 }

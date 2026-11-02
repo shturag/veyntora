@@ -12,6 +12,12 @@
   --color-sunken: var(--vey-sunken);
   --color-series-1: var(--vey-series-1);
   --color-series-2: var(--vey-series-2);
+  --color-series-3: var(--vey-series-3);
+  --color-series-4: var(--vey-series-4);
+  --color-series-5: var(--vey-series-5);
+  --color-series-6: var(--vey-series-6);
+  --color-series-7: var(--vey-series-7);
+  --color-series-8: var(--vey-series-8);
   --color-line: var(--vey-border);
   --color-line-strong: var(--vey-border-strong);
   --color-divider: var(--vey-divider);

@@ -25,6 +25,12 @@
   /* chart series (categorical, fixed order; validated for colour-vision deficiency) */
   --vey-series-1: #2a78d6;
   --vey-series-2: #eb6834;
+  --vey-series-3: #1baf7a;
+  --vey-series-4: #eda100;
+  --vey-series-5: #e87ba4;
+  --vey-series-6: #008300;
+  --vey-series-7: #6250d6;
+  --vey-series-8: #e34948;
 
   /* text */
   --vey-text: var(--vey-ink);
@@ -94,6 +100,12 @@
 
   --vey-series-1: #3987e5;
   --vey-series-2: #d95926;
+  --vey-series-3: #199e70;
+  --vey-series-4: #c98500;
+  --vey-series-5: #d55181;
+  --vey-series-6: #008300;
+  --vey-series-7: #9085e9;
+  --vey-series-8: #e66767;
 
   --vey-text: #ecebe6;
   --vey-text-secondary: #cfcec8;

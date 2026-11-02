@@ -19,8 +19,10 @@ from veyntora_api.auth.deps import Ctx, CurrentPrincipal, DbSession, Principal, 
 from veyntora_api.conversations import review
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.conversations import Conversation, Feedback, Message, Rating, UsedMode
+from veyntora_api.db.models.platform import IntegrationKind
 from veyntora_api.db.models.quality import EvalSet
 from veyntora_api.evaluation import service as evaluation
+from veyntora_api.integrations import service as integrations
 
 router = APIRouter(prefix="/v1/admin/conversations", tags=["admin: conversations"])
 
@@ -176,7 +178,7 @@ async def get_review(
             .order_by(EvalSet.name)
         )
     ).all()
-    browser = state.settings.langfuse_browser_url.rstrip("/")
+    browser = await integrations.browser_url(db, IntegrationKind.LANGFUSE)
     m = d.message
     out = ReviewDetail(
         feedback_id=row.id,

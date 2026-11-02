@@ -56,7 +56,8 @@
       "usage": "Usage & budgets",
       "users": "Users & groups",
       "governance": "Governance",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "integrations": "Integrations"
     }
   },
   "wizard": {
@@ -3280,7 +3281,31 @@
       "self_hosted": "self-hosted",
       "external": "external"
     },
-    "calls": "{count, plural, one {# call} other {# calls}}"
+    "calls": "{count, plural, one {# call} other {# calls}}",
+    "grafana": {
+      "title": "Grafana dashboards",
+      "range": "Dashboard time range",
+      "ranges": {
+        "1h": "1 hour",
+        "6h": "6 hours",
+        "24h": "24 hours",
+        "7d": "7 days"
+      },
+      "failed": "{title} could not be loaded: {reason}",
+      "setUp": "Show Grafana dashboards here: set up Grafana in <link>Integrations</link>.",
+      "openDashboard": "Open in Grafana",
+      "noPanels": "This dashboard has no panels.",
+      "untitled": "Untitled panel",
+      "panelError": "Grafana: {reason}",
+      "unsupported": "Grafana shows this panel ({type}).",
+      "noData": "No data in this range.",
+      "asTable": "Show as table",
+      "series": "Series",
+      "latest": "Latest",
+      "min": "Min",
+      "max": "Max",
+      "time": "Time"
+    }
   },
   "governance": {
     "title": "Governance",
@@ -3435,7 +3460,8 @@
       "completed": "Completed, report signed"
     },
     "accessReviews": "Access reviews",
-    "reviewEvery": "Access review every (days; empty: by hand only)"
+    "reviewEvery": "Access review every (days; empty: by hand only)",
+    "tracesExternal": " · traces to external Langfuse"
   },
   "audit": {
     "title": "Audit log",
@@ -3535,5 +3561,95 @@
     "policy": "Access nobody reviews stays; after the due date platform admins are told. Keycloak and rule-based memberships come from their source and are not reviewed here.",
     "failed": "Did not work: {reason}",
     "cancel": "Cancel"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "subtitle": "Where Veyntora sends traces and which Grafana dashboards Monitoring shows. Keys live in OpenBao.",
+    "unavailable": "Integrations could not be loaded.",
+    "kinds": {
+      "langfuse": {
+        "title": "Langfuse",
+        "summary": "One trace per answer: steps, timings, model and token use.",
+        "urlPlaceholder": "https://langfuse.example.com",
+        "key": "Secret key",
+        "keyHint": "The project's secret key (sk-lf-…). Write-only: it goes straight to the secret store and is never shown again."
+      },
+      "grafana": {
+        "title": "Grafana",
+        "summary": "Infrastructure dashboards, drawn on the Monitoring page.",
+        "urlPlaceholder": "https://grafana.example.com",
+        "key": "Service-account token",
+        "keyHint": "A Grafana service-account token with the Viewer role (glsa_…). Write-only: it goes straight to the secret store and is never shown again."
+      }
+    },
+    "notSetUp": "Not set up",
+    "on": "On",
+    "off": "Off",
+    "url": "Address",
+    "urlHint": "How Veyntora's services reach it inside your network.",
+    "browserUrl": "Address for browsers (optional)",
+    "browserUrlHint": "For \"Open in …\" links, when people reach it at a different address.",
+    "publicKey": "Public key",
+    "hosting": "Where it runs",
+    "hostings": {
+      "self_hosted": "Self-hosted (inside your network)",
+      "external": "External (for example Langfuse Cloud)"
+    },
+    "selfHostedNote": "Traces stay inside your infrastructure.",
+    "externalNote": "External: traces contain questions and answers, so data leaves your network. A chatbot's traces go there only when its data rule allows it, always with personal data masked.",
+    "enabled": "Use it",
+    "setUp": "Set up",
+    "save": "Save",
+    "saved": "Saved.",
+    "failed": "That did not work: {reason}",
+    "keySet": "Key ending ••••{last4}, expires {expiry}.",
+    "noExpiry": "never",
+    "noKey": "No key stored yet.",
+    "newKey": "New key",
+    "expires": "Expires",
+    "storeKey": "Store key",
+    "replaceKey": "Replace key",
+    "keySaved": "Key stored. Only its last 4 characters are kept here.",
+    "dashboards": "Dashboards on Monitoring",
+    "dashboardsHint": "Up to {max}, in this order. Only these can be read through Veyntora.",
+    "noDashboards": "None chosen yet.",
+    "dashboardsSaved": "Dashboards saved.",
+    "findDashboard": "Find a dashboard",
+    "search": "Search",
+    "noneFound": "No dashboards found for this token.",
+    "show": "Show on Monitoring",
+    "shown": "Shown",
+    "removeDashboard": "Remove",
+    "moveUp": "Move {title} up",
+    "moveDown": "Move {title} down",
+    "notTested": "Not tested",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "test": "Test connection",
+    "testQueued": "Test started. The result appears here in a few seconds (reload).",
+    "remove": "Remove",
+    "removeConfirm": "Remove the {name} settings and delete its key?",
+    "removed": "Removed."
+  },
+  "dataRules": {
+    "title": "Data rule",
+    "subtitle": "What this chatbot may send outside your network, and how long its data is kept.",
+    "defaults": "No data rule yet: the platform defaults apply (nothing external). Saving creates one.",
+    "chatRetention": "Keep chats (days)",
+    "traceRetention": "Keep traces (days)",
+    "providers": "External providers it may use",
+    "noExternalProviders": "There are no external providers.",
+    "servers": "External MCP servers its agent may call",
+    "noExternalServers": "There are no external MCP servers.",
+    "cannotList": "{count, plural, =0 {None allowed} one {# allowed} other {# allowed}} (you may not list them here).",
+    "externalTraces": "Send traces to an external Langfuse",
+    "externalTracesActive": "Langfuse is external: without this, this chatbot's answers are not traced. Personal data is always masked there.",
+    "externalTracesInactive": "Only matters when Langfuse is set up as external in Integrations.",
+    "mask": "Mask personal data before it goes to an external provider",
+    "byok": "People may use their own model and key with this chatbot",
+    "save": "Save data rule",
+    "saved": "Data rule saved.",
+    "failed": "That did not work: {reason}",
+    "readOnly": "Governance editors change data rules."
   }
 }

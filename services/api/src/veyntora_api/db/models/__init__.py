@@ -52,7 +52,7 @@ from veyntora_api.db.models.knowledge import (
     SourceAttachment,
 )
 from veyntora_api.db.models.notifications import Delivery, Notification
-from veyntora_api.db.models.platform import PlatformSettings, StatusNotice
+from veyntora_api.db.models.platform import Integration, PlatformSettings, StatusNotice
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance, ProviderInstanceChatbot
 from veyntora_api.db.models.quality import (
     Budget,
@@ -102,6 +102,7 @@ __all__ = [
     "Group",
     "Handoff",
     "IngestJob",
+    "Integration",
     "KnowledgeIssue",
     "KnowledgeScan",
     "LegalHold",

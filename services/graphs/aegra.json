@@ -31,5 +31,9 @@
   },
   "checkpointer": {
     "durability": "sync"
+  },
+  "http": {
+    "app": "veyntora_graphs.routes:app",
+    "enable_custom_route_auth": true
   }
 }

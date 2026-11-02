@@ -72,7 +72,15 @@ def test_secret_refs_with_a_version_are_parsed_strictly() -> None:
 
 @pytest.mark.parametrize(
     "path",
-    ["providers/../../sys/policy", "providers/not-a-uuid", "sys/mounts", f"users/{uuid4()}", ""],
+    [
+        "providers/../../sys/policy",
+        "providers/not-a-uuid",
+        "sys/mounts",
+        f"users/{uuid4()}",
+        "",
+        "integrations/other",
+        "integrations/langfuse/x",
+    ],
 )
 async def test_put_rejects_paths_outside_allowed_locations(path: str) -> None:
     writer = SecretWriter(BAO, "t")

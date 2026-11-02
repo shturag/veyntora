@@ -19,7 +19,7 @@ exporters:
   otlphttp/loki:
     endpoint: http://loki:3100/otlp
   otlphttp/langfuse:
-    endpoint: http://langfuse:3000/api/public/otel
+    endpoint: ${env:LANGFUSE_OTLP_ENDPOINT}
     headers:
       Authorization: "Basic ${env:LANGFUSE_OTLP_AUTH}"
 

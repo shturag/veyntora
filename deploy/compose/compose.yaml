@@ -15,10 +15,12 @@ x-app-env: &app-env
   # Services connect as the runtime role (rows only); migrations use the owner (migrate).
   VEY_DATABASE_URL: postgresql+asyncpg://veyntora_runtime:${VEY_RUNTIME_DB_PASSWORD:-dev-veyntora-runtime}@postgres:5432/veyntora
   VEY_REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/0
-  VEY_OIDC_ISSUER: http://localhost:8080/realms/veyntora
-  VEY_OIDC_INTERNAL_BASE: http://keycloak:8080/realms/veyntora
+  # Keycloak: the bundled one by default; see docs/runbooks/external-keycloak.md.
+  VEY_OIDC_ISSUER: ${VEY_OIDC_ISSUER:-http://localhost:8080/realms/veyntora}
+  VEY_OIDC_INTERNAL_BASE: ${VEY_OIDC_INTERNAL_BASE-http://keycloak:8080/realms/veyntora}
   VEY_OIDC_CLIENT_SECRET: ${VEY_OIDC_CLIENT_SECRET:-dev-oidc-client-secret}
   VEY_KEYCLOAK_SYNC_CLIENT_SECRET: ${VEY_KEYCLOAK_SYNC_CLIENT_SECRET:-dev-keycloak-sync-secret}
+  VEY_BOOTSTRAP_ADMIN_GROUP: ${VEY_BOOTSTRAP_ADMIN_GROUP:-/platform-admins}
   # API -> graph server tokens for app keys and the widget (ADR 0020).
   VEY_INTERNAL_TOKEN_SECRET: ${VEY_INTERNAL_TOKEN_SECRET:-dev-internal-token-secret-0123456789abcdef}
   VEY_OPENFGA_URL: http://openfga:8080
@@ -43,9 +45,12 @@ x-app-env: &app-env
   # Local model servers are opt-in (profile local-models); set these when you run them.
   VEY_TEI_EMBED_URL: ${VEY_TEI_EMBED_URL:-}
   VEY_TEI_RERANK_URL: ${VEY_TEI_RERANK_URL:-}
-  VEY_LANGFUSE_URL: http://langfuse:3000
-  VEY_LANGFUSE_BROWSER_URL: http://localhost:3001
-  VEY_GRAFANA_BROWSER_URL: http://localhost:3003
+  # Seed for Integrations (ADR 0024): imported once by `bootstrap` when nothing is set up;
+  # afterwards Langfuse and Grafana are changed in the admin console. Empty: not seeded.
+  VEY_LANGFUSE_URL: ${VEY_LANGFUSE_URL-http://langfuse:3000}
+  VEY_LANGFUSE_BROWSER_URL: ${VEY_LANGFUSE_BROWSER_URL-http://localhost:3001}
+  VEY_GRAFANA_URL: ${VEY_GRAFANA_URL-http://grafana:3000}
+  VEY_GRAFANA_BROWSER_URL: ${VEY_GRAFANA_BROWSER_URL-http://localhost:3003}
   VEY_ALEMBIC_INI: /app/services/api/alembic.ini
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
 
@@ -149,6 +154,8 @@ services:
 
   # ------------------------------------------------------------------ identity and secrets
   keycloak:
+    # Leave out with an external Keycloak (COMPOSE_PROFILES without bundled-keycloak).
+    profiles: [bundled-keycloak]
     image: quay.io/keycloak/keycloak:26.8.1
     command: ["start-dev", "--import-realm"]
     environment:
@@ -359,6 +366,7 @@ services:
 
   # ------------------------------------------------------------------ tracing and eval
   clickhouse:
+    profiles: [bundled-langfuse]
     image: clickhouse/clickhouse-server:25.8.33.6
     environment:
       CLICKHOUSE_DB: default
@@ -377,6 +385,8 @@ services:
       retries: 30
 
   langfuse-worker:
+    # Leave out with an external Langfuse (COMPOSE_PROFILES without bundled-langfuse).
+    profiles: [bundled-langfuse]
     image: langfuse/langfuse-worker:3.225.14
     environment: &langfuse-env
       DATABASE_URL: postgresql://langfuse:${VEY_LANGFUSE_DB_PASSWORD:-dev-langfuse-db}@postgres:5432/langfuse?connection_limit=10
@@ -416,6 +426,7 @@ services:
       seaweedfs-init: { condition: service_completed_successfully }
 
   langfuse:
+    profiles: [bundled-langfuse]
     image: langfuse/langfuse:3.225.14
     environment: *langfuse-env
     ports: ["127.0.0.1:3001:3000"]
@@ -436,7 +447,9 @@ services:
     image: otel/opentelemetry-collector-contrib:0.164.0
     command: ["--config=/etc/otelcol/collector.yaml"]
     environment:
-      # base64("<public key>:<secret key>") for Langfuse's OTLP endpoint; `make env` sets it.
+      # The services' own spans (not answers: those follow Integrations) go to the bundled
+      # Langfuse. base64("<public key>:<secret key>"); `make env` sets it.
+      LANGFUSE_OTLP_ENDPOINT: ${VEY_OTLP_TRACES_ENDPOINT:-http://langfuse:3000/api/public/otel}
       LANGFUSE_OTLP_AUTH: ${VEY_LANGFUSE_OTLP_AUTH:-cGstbGYtZGV2OnNrLWxmLWRldg==}
     volumes:
       - ./otel/collector.yaml:/etc/otelcol/collector.yaml:ro
@@ -457,6 +470,8 @@ services:
     ports: ["127.0.0.1:3100:3100"]
 
   grafana:
+    # Leave out with an external Grafana (COMPOSE_PROFILES without bundled-grafana).
+    profiles: [bundled-grafana]
     image: grafana/grafana:13.3.0
     environment:
       GF_SECURITY_ADMIN_USER: admin
@@ -466,6 +481,7 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
       - grafana:/var/lib/grafana
     ports: ["127.0.0.1:3003:3000"]
     depends_on: [prometheus, loki]
@@ -503,13 +519,16 @@ services:
     environment:
       <<: *app-env
       VEY_LOG_LEVEL: INFO
+      # The bundled Langfuse's project keys, seeded into Integrations once (ADR 0024).
+      VEY_LANGFUSE_PUBLIC_KEY: ${VEY_LANGFUSE_PUBLIC_KEY-pk-lf-dev}
+      VEY_LANGFUSE_SECRET_KEY: ${VEY_LANGFUSE_SECRET_KEY-sk-lf-dev}
       VEY_DATABASE_URL: postgresql+asyncpg://veyntora:${VEY_DB_PASSWORD:-dev-veyntora-db}@postgres:5432/veyntora
     volumes:
       - openbao-api-token:/run/openbao:ro
     depends_on:
       postgres-roles: { condition: service_completed_successfully }
       postgres: { condition: service_healthy }
-      keycloak: { condition: service_healthy }
+      keycloak: { condition: service_healthy, required: false }
       openfga: { condition: service_healthy }
       seaweedfs-init: { condition: service_completed_successfully }
       openbao-init: { condition: service_completed_successfully }
@@ -585,17 +604,14 @@ services:
       # Veyntora settings (database, OpenFGA, OpenBao reader) for the graphs; see ADR 0012.
       <<: *app-env
       VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
-      # Traces per answer (ADR 0014); the same project keys Langfuse is initialised with.
-      VEY_LANGFUSE_PUBLIC_KEY: ${VEY_LANGFUSE_PUBLIC_KEY:-pk-lf-dev}
-      VEY_LANGFUSE_SECRET_KEY: ${VEY_LANGFUSE_SECRET_KEY:-sk-lf-dev}
       DATABASE_URL: postgresql://aegra:${VEY_AEGRA_DB_PASSWORD:-dev-aegra-db}@postgres:5432/aegra
       REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/2
       REDIS_BROKER_ENABLED: "true"
       AEGRA_CONFIG: /app/services/graphs/aegra.json
       ENABLE_PROMETHEUS_METRICS: "true"
       ENV_MODE: LOCAL
-      VEY_OIDC_ISSUER: http://localhost:8080/realms/veyntora
-      VEY_OIDC_INTERNAL_BASE: http://keycloak:8080/realms/veyntora
+      VEY_OIDC_ISSUER: ${VEY_OIDC_ISSUER:-http://localhost:8080/realms/veyntora}
+      VEY_OIDC_INTERNAL_BASE: ${VEY_OIDC_INTERNAL_BASE-http://keycloak:8080/realms/veyntora}
       VEY_OIDC_AUDIENCE: veyntora-api
     volumes:
       - openbao-runtime-token:/run/openbao:ro
@@ -604,7 +620,7 @@ services:
       migrate: { condition: service_completed_successfully }
       postgres: { condition: service_healthy }
       valkey: { condition: service_healthy }
-      keycloak: { condition: service_healthy }
+      keycloak: { condition: service_healthy, required: false }
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:2026/health').status==200 else 1)"]
       interval: 5s

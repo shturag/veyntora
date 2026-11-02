@@ -22,7 +22,6 @@ externalSecrets:
       VEY_KEYCLOAK_SYNC_CLIENT_SECRET: { key: infra/veyntora, property: keycloak_sync_client_secret }
       VEY_S3_ACCESS_KEY: { key: infra/veyntora, property: s3_access_key }
       VEY_S3_SECRET_KEY: { key: infra/veyntora, property: s3_secret_key }
-      VEY_LANGFUSE_SECRET_KEY: { key: infra/veyntora, property: langfuse_secret_key }
       VEY_INTERNAL_TOKEN_SECRET: { key: infra/veyntora, property: internal_token_secret }
   - name: veyntora-migrate-env
     store: { name: openbao, kind: ClusterSecretStore }

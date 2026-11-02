@@ -139,7 +139,7 @@ async def answer_node(state: State, config: RunnableConfig) -> dict[str, Any]:
         except RunRefusedError as exc:
             return {"messages": [_refusal(str(exc))]}
         adapters = Adapters(db, reader)
-        trace = new_trace(mask=ctx.mask_traces)
+        trace = await new_trace(ctx)
         with trace.run(
             "fast_rag",
             **{

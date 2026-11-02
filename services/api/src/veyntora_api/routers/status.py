@@ -9,9 +9,15 @@ from pydantic import BaseModel
 
 from veyntora_api.auth.deps import DbSession, State
 from veyntora_api.db.models.channels import Channel, ChannelStatus, ChannelType
-from veyntora_api.db.models.platform import NoticeKind, PlatformSettings, StatusNotice
+from veyntora_api.db.models.platform import (
+    IntegrationKind,
+    NoticeKind,
+    PlatformSettings,
+    StatusNotice,
+)
 from veyntora_api.governance import service as governance
 from veyntora_api.health.checks import Level, build_probes, overall, roll_up, run_probes
+from veyntora_api.integrations import service as integrations
 
 router = APIRouter(tags=["status"])
 
@@ -73,8 +79,10 @@ async def system_status(state: State, db: DbSession) -> StatusOut:
     if cached and time.monotonic() - cached[0] < _CACHE_SECONDS:
         return cached[1]
 
+    langfuse_url = await integrations.service_url(db, IntegrationKind.LANGFUSE)
     results = await run_probes(
-        build_probes(state.settings, state.http, state.redis), state.settings.status_timeout_seconds
+        build_probes(state.settings, state.http, state.redis, langfuse_url=langfuse_url),
+        state.settings.status_timeout_seconds,
     )
     levels = roll_up(results)
 

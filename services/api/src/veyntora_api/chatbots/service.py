@@ -94,6 +94,8 @@ class GovernanceInput(BaseModel):
     allowed_external_instance_ids: list[UUID] = Field(default_factory=list)
     allowed_external_mcp_server_ids: list[UUID] = Field(default_factory=list)
     allow_byok: bool = False
+    # Traces to Langfuse when it is external (Integrations); masked there regardless.
+    allow_external_traces: bool = False
     mask_pii_before_external: bool = True
 
 

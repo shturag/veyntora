@@ -20,7 +20,8 @@ _PATH = re.compile(
     r"|users/[0-9a-f-]{36}/[a-z0-9_-]{1,64}"
     r"|mcp/[0-9a-f-]{36}"
     r"|sources/[0-9a-f-]{36}"
-    r"|channels/[0-9a-f-]{36})$"
+    r"|channels/[0-9a-f-]{36}"
+    r"|integrations/(?:langfuse|grafana))$"
 )
 _MIN_LEN_FOR_LAST4 = 12
 

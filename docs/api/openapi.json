@@ -2184,6 +2184,11 @@
             "title": "External",
             "type": "array"
           },
+          "external_traces": {
+            "default": false,
+            "title": "External Traces",
+            "type": "boolean"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -4234,6 +4239,88 @@
         "title": "CreatedKey",
         "type": "object"
       },
+      "DashboardOut": {
+        "properties": {
+          "end": {
+            "title": "End",
+            "type": "integer"
+          },
+          "panels": {
+            "items": {
+              "$ref": "#/components/schemas/PanelOut"
+            },
+            "title": "Panels",
+            "type": "array"
+          },
+          "start": {
+            "title": "Start",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "title",
+          "url",
+          "start",
+          "end",
+          "panels"
+        ],
+        "title": "DashboardOut",
+        "type": "object"
+      },
+      "DashboardRef": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "uid": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "title"
+        ],
+        "title": "DashboardRef",
+        "type": "object"
+      },
+      "DashboardRefOut": {
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "title"
+        ],
+        "title": "DashboardRefOut",
+        "type": "object"
+      },
       "DatabaseSettings": {
         "additionalProperties": false,
         "properties": {
@@ -5979,6 +6066,11 @@
             "title": "Allow Byok",
             "type": "boolean"
           },
+          "allow_external_traces": {
+            "default": false,
+            "title": "Allow External Traces",
+            "type": "boolean"
+          },
           "allowed_external_instance_ids": {
             "items": {
               "format": "uuid",
@@ -6024,6 +6116,11 @@
           "allow_byok": {
             "default": false,
             "title": "Allow Byok",
+            "type": "boolean"
+          },
+          "allow_external_traces": {
+            "default": false,
+            "title": "Allow External Traces",
             "type": "boolean"
           },
           "allowed_external_instance_ids": {
@@ -6301,6 +6398,47 @@
           "access_review_every_days"
         ],
         "title": "GovernanceSettings",
+        "type": "object"
+      },
+      "GrafanaDashboardOut": {
+        "properties": {
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "title",
+          "folder"
+        ],
+        "title": "GrafanaDashboardOut",
+        "type": "object"
+      },
+      "GrafanaDashboardRef": {
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "uid": {
+            "title": "Uid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "title"
+        ],
+        "title": "GrafanaDashboardRef",
         "type": "object"
       },
       "Grant": {
@@ -7950,6 +8088,228 @@
         "title": "InjectionAction",
         "type": "string"
       },
+      "IntegrationInput": {
+        "additionalProperties": false,
+        "properties": {
+          "browser_url": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Url"
+          },
+          "dashboards": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DashboardRef"
+                },
+                "maxItems": 12,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dashboards"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "hosting": {
+            "$ref": "#/components/schemas/Hosting",
+            "default": "self_hosted"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "url": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "title": "IntegrationInput",
+        "type": "object"
+      },
+      "IntegrationKind": {
+        "enum": [
+          "langfuse",
+          "grafana"
+        ],
+        "title": "IntegrationKind",
+        "type": "string"
+      },
+      "IntegrationOut": {
+        "description": "Never contains a key or its OpenBao path: only whether one is set, last 4 and expiry.",
+        "properties": {
+          "browser_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Browser Url"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "dashboards": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardRefOut"
+            },
+            "title": "Dashboards",
+            "type": "array"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "has_secret": {
+            "title": "Has Secret",
+            "type": "boolean"
+          },
+          "health_checked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Checked At"
+          },
+          "health_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Detail"
+          },
+          "health_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Ok"
+          },
+          "hosting": {
+            "$ref": "#/components/schemas/Hosting"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/IntegrationKind"
+          },
+          "public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public Key"
+          },
+          "secret_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Expires At"
+          },
+          "secret_last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Last4"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "kind",
+          "configured",
+          "enabled",
+          "hosting",
+          "url",
+          "browser_url",
+          "public_key",
+          "dashboards",
+          "has_secret",
+          "secret_last4",
+          "secret_expires_at",
+          "health_ok",
+          "health_detail",
+          "health_checked_at",
+          "version"
+        ],
+        "title": "IntegrationOut",
+        "type": "object"
+      },
       "IssueDocument": {
         "properties": {
           "excluded": {
@@ -8846,6 +9206,13 @@
             "title": "Fast",
             "type": "integer"
           },
+          "grafana_dashboards": {
+            "items": {
+              "$ref": "#/components/schemas/GrafanaDashboardRef"
+            },
+            "title": "Grafana Dashboards",
+            "type": "array"
+          },
           "grafana_url": {
             "anyOf": [
               {
@@ -8950,7 +9317,8 @@
           "providers",
           "alerts",
           "grafana_url",
-          "langfuse_url"
+          "langfuse_url",
+          "grafana_dashboards"
         ],
         "title": "MonitoringOut",
         "type": "object"
@@ -9701,6 +10069,95 @@
           "can_post_notice"
         ],
         "title": "OverviewOut",
+        "type": "object"
+      },
+      "PanelOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "kind": {
+            "enum": [
+              "timeseries",
+              "stat",
+              "table",
+              "unsupported"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/SeriesOut"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "table": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TableOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "width": {
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "type",
+          "kind",
+          "unit",
+          "width",
+          "series",
+          "table",
+          "error"
+        ],
+        "title": "PanelOut",
         "type": "object"
       },
       "ParentChunk": {
@@ -13227,6 +13684,44 @@
         "title": "SearchType",
         "type": "string"
       },
+      "SeriesOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Points",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "points"
+        ],
+        "title": "SeriesOut",
+        "type": "object"
+      },
       "ServerDetail": {
         "properties": {
           "auth": {
@@ -14711,6 +15206,31 @@
           }
         },
         "title": "SuspendIn",
+        "type": "object"
+      },
+      "TableOut": {
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "items": {},
+              "type": "array"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "columns",
+          "rows"
+        ],
+        "title": "TableOut",
         "type": "object"
       },
       "TeamsInput": {
@@ -16267,6 +16787,33 @@
           "finished_at"
         ],
         "title": "RunOut",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_integrations__SecretInput": {
+        "properties": {
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "secret": {
+            "format": "password",
+            "title": "Secret",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "secret"
+        ],
+        "title": "SecretInput",
         "type": "object"
       },
       "veyntora_api__routers__admin_knowledge_health__Started": {
@@ -21797,6 +22344,330 @@
         "summary": "The group's roles on one chatbot",
         "tags": [
           "admin: users & groups"
+        ]
+      }
+    },
+    "/v1/admin/integrations": {
+      "get": {
+        "operationId": "list_integrations_v1_admin_integrations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationOut"
+                  },
+                  "title": "Response List Integrations V1 Admin Integrations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Langfuse and Grafana settings (never the keys)",
+        "tags": [
+          "admin: integrations"
+        ]
+      }
+    },
+    "/v1/admin/integrations/grafana/dashboards/{uid}": {
+      "get": {
+        "operationId": "grafana_dashboard_v1_admin_integrations_grafana_dashboards__uid__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uid",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Uid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "6h",
+              "enum": [
+                "1h",
+                "6h",
+                "24h",
+                "7d"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One chosen dashboard's panels with data",
+        "tags": [
+          "admin: integrations"
+        ]
+      }
+    },
+    "/v1/admin/integrations/grafana/search": {
+      "get": {
+        "operationId": "grafana_search_v1_admin_integrations_grafana_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 100,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GrafanaDashboardOut"
+                  },
+                  "title": "Response Grafana Search V1 Admin Integrations Grafana Search Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dashboards the Grafana token can see (to pick from)",
+        "tags": [
+          "admin: integrations"
+        ]
+      }
+    },
+    "/v1/admin/integrations/{kind}": {
+      "delete": {
+        "operationId": "remove_integration_v1_admin_integrations__kind__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IntegrationKind"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove the settings and key",
+        "tags": [
+          "admin: integrations"
+        ]
+      },
+      "put": {
+        "operationId": "save_integration_v1_admin_integrations__kind__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IntegrationKind"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set up or change Langfuse or Grafana",
+        "tags": [
+          "admin: integrations"
+        ]
+      }
+    },
+    "/v1/admin/integrations/{kind}/secret": {
+      "put": {
+        "operationId": "put_secret_v1_admin_integrations__kind__secret_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IntegrationKind"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__routers__admin_integrations__SecretInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Store or replace the key (write-only)",
+        "tags": [
+          "admin: integrations"
+        ]
+      }
+    },
+    "/v1/admin/integrations/{kind}/test": {
+      "post": {
+        "description": "Queued for a worker: only runtime services may read the key. Poll for\n`health_checked_at` to see the result.",
+        "operationId": "test_integration_v1_admin_integrations__kind__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IntegrationKind"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Check the address and key against the live service (async)",
+        "tags": [
+          "admin: integrations"
         ]
       }
     },

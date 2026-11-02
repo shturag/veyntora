@@ -6,14 +6,19 @@ with audit retention (veyntora_api.governance.audit_archive)."""
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import httpx
 import structlog
+from sqlalchemy.ext.asyncio import AsyncSession
+from veyntora_api.db.models.platform import IntegrationKind
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.governance import audit_archive, retention
 from veyntora_api.governance import service as governance
+from veyntora_api.integrations import runtime as integrations
 from veyntora_api.settings import Settings
+from veyntora_providers.secrets import OpenBaoReader
 
 log = structlog.get_logger()
 _PAGE = 100
@@ -44,15 +49,12 @@ async def purge_traces(http: httpx.AsyncClient, cutoff: datetime, held_users: se
     return len(doomed)
 
 
-def langfuse_client(settings: Settings) -> httpx.AsyncClient | None:
-    secret = settings.langfuse_secret_key.get_secret_value()
-    if not (settings.langfuse_url and settings.langfuse_public_key and secret):
-        return None
-    return httpx.AsyncClient(
-        base_url=settings.langfuse_url.rstrip("/"),
-        auth=(settings.langfuse_public_key, secret),
-        timeout=30,
-    )
+async def langfuse_client(db: AsyncSession, settings: Settings) -> httpx.AsyncClient | None:
+    """A client with Langfuse's address and project keys from Integrations, or None when
+    Langfuse is not set up."""
+    reader = OpenBaoReader(settings.openbao_url, Path(settings.openbao_token_file))
+    conn = await integrations.resolve(db, reader, IntegrationKind.LANGFUSE)
+    return conn.langfuse_client() if conn else None
 
 
 async def run(settings: Settings, now: datetime | None = None) -> dict[str, int]:
@@ -72,8 +74,8 @@ async def run(settings: Settings, now: datetime | None = None) -> dict[str, int]
             out["audit_removed"] = await audit_archive.trim(db, now)
         policy = await governance.settings_of(db)
         held_users, _ = await governance.held(db)
+        http = await langfuse_client(db, settings)
         await db.commit()
-    http = langfuse_client(settings)
     if http is not None:
         try:
             out["traces"] = await purge_traces(

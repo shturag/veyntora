@@ -3,6 +3,10 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { Forbidden } from "@/components/forbidden";
+import {
+  GrafanaDashboard,
+  type GrafanaDashboardData,
+} from "@/components/monitoring/grafana-dashboard";
 import { RequestsChart } from "@/components/monitoring/requests-chart";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
@@ -11,20 +15,40 @@ export const generateMetadata = () => screenMetadata("monitoring");
 
 const RANGES = ["today", "7d", "30d"] as const;
 type Range = (typeof RANGES)[number];
+// Grafana dashboards have their own range: they show infrastructure, minute by minute.
+const GRANGES = ["1h", "6h", "24h", "7d"] as const;
+type GRange = (typeof GRANGES)[number];
 
 /** Monitoring (prototype: Monitoring.html). */
 export default async function MonitoringPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; bot?: string }>;
+  searchParams: Promise<{ range?: string; bot?: string; grange?: string }>;
 }) {
   const params = await searchParams;
   const range: Range = RANGES.includes(params.range as Range) ? (params.range as Range) : "today";
+  const grange: GRange = GRANGES.includes(params.grange as GRange)
+    ? (params.grange as GRange)
+    : "6h";
   const t = await getTranslations("monitoring");
   const format = await getFormatter();
-  const { data, response } = await (
-    await serverApi()
-  ).GET("/v1/admin/monitoring", { params: { query: { range, chatbot_id: params.bot } } });
+  const api = await serverApi();
+  const { data, response } = await api.GET("/v1/admin/monitoring", {
+    params: { query: { range, chatbot_id: params.bot } },
+  });
+  const dashboards = await Promise.all(
+    (data?.grafana_dashboards ?? []).map(async (d) => {
+      const res = await api.GET("/v1/admin/integrations/grafana/dashboards/{uid}", {
+        params: { path: { uid: d.uid }, query: { range: grange } },
+      });
+      const detail = (res.error as { detail?: unknown } | undefined)?.detail;
+      return {
+        ref: d,
+        data: (res.data ?? null) as GrafanaDashboardData | null,
+        error: typeof detail === "string" ? detail : String(res.response.status),
+      };
+    }),
+  );
   if (!data)
     return response.status === 403 ? (
       <Forbidden />
@@ -33,7 +57,8 @@ export default async function MonitoringPage({
     );
   const href = (over: Record<string, string | undefined>) => {
     const q = new URLSearchParams();
-    for (const [k, v] of Object.entries({ range, bot: params.bot, ...over })) if (v) q.set(k, v);
+    for (const [k, v] of Object.entries({ range, bot: params.bot, grange: params.grange, ...over }))
+      if (v) q.set(k, v);
     return `/admin/monitoring?${q}`;
   };
   const pill = (active: boolean) =>
@@ -210,6 +235,45 @@ export default async function MonitoringPage({
           </section>
         </aside>
       </div>
+      {dashboards.length ? (
+        <section
+          aria-labelledby="grafana"
+          className="flex flex-col gap-4 border-t border-line pt-5"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="grafana" className="m-0 text-base font-semibold">
+              {t("grafana.title")}
+            </h2>
+            <nav aria-label={t("grafana.range")} className="flex flex-wrap gap-2">
+              {GRANGES.map((r) => (
+                <Link
+                  key={r}
+                  href={href({ grange: r })}
+                  aria-current={r === grange ? "page" : undefined}
+                  className={pill(r === grange)}
+                >
+                  {t(`grafana.ranges.${r}`)}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          {dashboards.map((d) =>
+            d.data ? (
+              <GrafanaDashboard key={d.ref.uid} dashboard={d.data} />
+            ) : (
+              <p key={d.ref.uid} className="m-0 text-sm text-red">
+                {t("grafana.failed", { title: d.ref.title, reason: d.error })}
+              </p>
+            ),
+          )}
+        </section>
+      ) : (
+        <p className="m-0 text-xs text-fg-muted">
+          {t.rich("grafana.setUp", {
+            link: (chunks) => <Link href="/admin/integrations">{chunks}</Link>,
+          })}
+        </p>
+      )}
     </div>
   );
 }
