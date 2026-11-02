@@ -2,7 +2,7 @@
 nameOverride: graphs
 image:
   repository: ghcr.io/shturag/veyntora-graphs
-  tag: "6a897d798264953ee92e0188c2ae66e4d8e4af44"
+  tag: "c6ef4461ee9b0700e5ca6d4c340842e5eede69c7"
 replicas: 1
 port: 2026
 healthPath: /health
