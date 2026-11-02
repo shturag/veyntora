@@ -26,6 +26,8 @@ from veyntora_api.rag.pipeline import ATTACHMENT, Answer, RunContext, RunRefused
 # Prices are set per provider instance (options), in EUR per million tokens.
 PRICE_IN = "price_in_per_mtok_eur"
 PRICE_OUT = "price_out_per_mtok_eur"
+# The cost centre of embedding done while indexing documents.
+INDEXING = "indexing"
 
 
 def cost_of(row: ProviderInstance | None, usage: Usage) -> Decimal:
@@ -59,6 +61,24 @@ async def record_usage(
                 cost=cost_of(row, usage),
                 external=own or bool(row and row.hosting is Hosting.EXTERNAL),
                 byok=own,
+            )
+        )
+    # Embedding and reranker calls of the question (tokens in only).
+    for instance_id, tokens in ctx.metered:
+        row = ctx.providers.get(instance_id) or await db.get(ProviderInstance, instance_id)
+        db.add(
+            UsageRecord(
+                user_id=ctx.user_id,
+                chatbot_id=ctx.chatbot_id,
+                cost_centre=ctx.cost_centre,
+                app_key_id=ctx.app_key_id,
+                provider_instance_id=instance_id,
+                message_id=message_id,
+                tokens_in=tokens,
+                tokens_out=0,
+                cost=cost_of(row, Usage(tokens, 0)),
+                external=bool(row and row.hosting is Hosting.EXTERNAL),
+                byok=False,
             )
         )
     await db.flush()
@@ -144,3 +164,24 @@ async def record(
     await db.flush()
     await record_usage(db, ctx, result, message_id=msg.id)
     return msg.id
+
+
+async def record_indexing(
+    db: AsyncSession, instance_id: UUID, tokens: int, *, source_id: UUID | None = None
+) -> None:
+    """Embedding done while indexing: booked as "indexing" (an index can serve several
+    chatbots), priced like any call to the provider."""
+    if tokens <= 0:
+        return
+    row = await db.get(ProviderInstance, instance_id)
+    db.add(
+        UsageRecord(
+            provider_instance_id=instance_id,
+            cost_centre=INDEXING,
+            tokens_in=tokens,
+            tokens_out=0,
+            cost=cost_of(row, Usage(tokens, 0)),
+            external=bool(row and row.hosting is Hosting.EXTERNAL),
+            byok=False,
+        )
+    )

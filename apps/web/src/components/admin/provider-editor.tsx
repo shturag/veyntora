@@ -55,7 +55,10 @@ export function ProviderEditor({
 }) {
   const t = useTranslations("providers");
   const format = useFormatter();
-  const priced = provider.capability === "llm";
+  // Language models are priced per input and output token; embedding models and rerankers
+  // only read text, so they have an input price.
+  const priced = ["llm", "embedding", "reranker"].includes(provider.capability);
+  const hasOutput = provider.capability === "llm";
   const router = useRouter();
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -91,9 +94,9 @@ export function ProviderEditor({
       next.options = {
         ...provider.options,
         [PRICE_IN]: Number(form.get("price_in") || 0),
-        [PRICE_OUT]: Number(form.get("price_out") || 0),
+        ...(hasOutput ? { [PRICE_OUT]: Number(form.get("price_out") || 0) } : {}),
       };
-      if (provider.adapter === "openai_compatible") {
+      if (hasOutput && provider.adapter === "openai_compatible") {
         const style = String(form.get("thinking") || "");
         const options = next.options as Record<string, unknown>;
         if (style) options.thinking = style;
@@ -243,7 +246,7 @@ export function ProviderEditor({
           </select>
           <span className="text-xs font-normal text-fg-muted">{t("fallbackHint")}</span>
         </label>
-        {priced && provider.adapter === "openai_compatible" ? (
+        {hasOutput && provider.adapter === "openai_compatible" ? (
           <label className={label}>
             {t("thinkingSwitch")}
             <select
@@ -275,18 +278,22 @@ export function ProviderEditor({
                 className={input}
               />
             </label>
-            <label className={label}>
-              {t("priceOut")}
-              <input
-                name="price_out"
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={price(PRICE_OUT)}
-                disabled={!canEdit}
-                className={input}
-              />
-            </label>
+            {hasOutput ? (
+              <label className={label}>
+                {t("priceOut")}
+                <input
+                  name="price_out"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  defaultValue={price(PRICE_OUT)}
+                  disabled={!canEdit}
+                  className={input}
+                />
+              </label>
+            ) : (
+              <p className="m-0 self-end pb-2 text-xs text-fg-muted">{t("priceInOnly")}</p>
+            )}
           </div>
         ) : null}
         {canEdit ? (
@@ -404,7 +411,9 @@ export function ProviderEditor({
             {priced ? t("noUsage") : t("noUsageCounted")}
           </p>
         )}
-        <p className="m-0 text-xs text-fg-muted">{priced ? t("usageHint") : t("usageNotPriced")}</p>
+        <p className="m-0 text-xs text-fg-muted">
+          {hasOutput ? t("usageHint") : priced ? t("usageHintEmbedding") : t("usageNotPriced")}
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-divider pt-4">
         <Badge

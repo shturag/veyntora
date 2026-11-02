@@ -36,7 +36,7 @@ from veyntora_api.knowledge import vocabulary
 from veyntora_api.providers.runtime import Retrying
 from veyntora_api.rag import attachments, pipeline
 from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
-from veyntora_api.rag.record import PRICE_IN, PRICE_OUT
+from veyntora_api.rag.record import PRICE_IN, PRICE_OUT, record_usage
 from veyntora_api.routers.admin_playground import PlaygroundResult
 from veyntora_graphs import fast_rag, playground
 from veyntora_providers.interfaces import (
@@ -1041,3 +1041,27 @@ async def test_an_answer_cut_at_the_length_limit_says_so(rag: Rag) -> None:
     ctx = dataclasses.replace(ctx, no_documents_allowed=True)
     result = await answer(rag.w.db, adapters, ctx, "Summarize the strategy.")
     assert result.cut_off and result.text.endswith("about")
+
+
+async def test_a_question_counts_its_embedding_and_reranking(rag: Rag) -> None:
+    from veyntora_api.db.models.quality import UsageRecord  # noqa: PLC0415
+
+    adapters = rag.adapters()
+    embedder, reranker = adapters.by_id[rag.w.embed], adapters.by_id[rag.w.rerank]
+    reranker.last_tokens = 0
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    await answer(rag.w.db, adapters, ctx, "Can digital products be refunded after download?")
+    assert [i for i, _ in ctx.metered] == [rag.w.embed] and ctx.metered[0][1] == (
+        embedder.last_tokens
+    )
+    await record_usage(rag.w.db, ctx, pipeline.Answer("answered", "x"), message_id=None)
+    rows = (
+        await rag.w.db.execute(
+            sa.select(UsageRecord).where(
+                UsageRecord.provider_instance_id == rag.w.embed,
+                UsageRecord.chatbot_id == rag.bot.id,  # indexing rows have none
+            )
+        )
+    ).scalars()
+    [row] = rows
+    assert row.tokens_in == embedder.last_tokens > 0

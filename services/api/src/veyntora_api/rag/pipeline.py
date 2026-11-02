@@ -166,6 +166,8 @@ class RunContext:
     web_search: bool = False
     # The asker switched the code interpreter on (and the chatbot offers it).
     code: bool = False
+    # Embedding and reranker calls of this question: (instance, tokens), for usage and cost.
+    metered: list[tuple[UUID, int]] = field(default_factory=list)
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -535,6 +537,8 @@ async def retrieve(
         dense = (
             await embed_query(query) if embed_query else (await embedder.embed([query])).dense[0]
         )
+        if tokens := getattr(embedder, "last_tokens", 0):
+            ctx.metered.append((profile.embedding_instance_id, int(tokens)))
     sparse_text = query
     if ret.german_compound_splitting and ret.search_type is not SearchType.DENSE:
         # Keyword search also gets the compounds' parts and compounds ending in the words.
@@ -631,11 +635,15 @@ async def rerank(
     skipped = False
     if spec.enabled and candidates and spec.reranker_instance_id is not None:
         try:
-            ranked = await _score(adapters, spec.reranker_instance_id, query, candidates)
+            ranked = await _score(
+                adapters, spec.reranker_instance_id, query, candidates, ctx.metered
+            )
         except Exception as exc:
             if spec.fallback is RerankFallback.INSTANCE and spec.fallback_instance_id:
                 log.warning("rerank.fallback", error=str(exc))
-                ranked = await _score(adapters, spec.fallback_instance_id, query, candidates)
+                ranked = await _score(
+                    adapters, spec.fallback_instance_id, query, candidates, ctx.metered
+                )
             else:
                 # Retrieval order is kept; the groundedness check still guards the answer.
                 log.warning("rerank.skipped", error=str(exc))
@@ -674,7 +682,11 @@ def _weigh(ctx: RunContext, sources: list[Source]) -> None:
 
 
 async def _score(
-    adapters: AdapterSource, instance_id: UUID, query: str, candidates: list[Source]
+    adapters: AdapterSource,
+    instance_id: UUID,
+    query: str,
+    candidates: list[Source],
+    metered: list[tuple[UUID, int]] | None = None,
 ) -> list[Source]:
     reranker = await adapters.get(instance_id)
     scored = await reranker.rerank(
@@ -682,6 +694,8 @@ async def _score(
         [Doc(str(i), c.chunk_text or c.text) for i, c in enumerate(candidates)],
         len(candidates),
     )
+    if metered is not None and (tokens := getattr(reranker, "last_tokens", 0)):
+        metered.append((instance_id, int(tokens)))
     out = []
     for s in scored:
         c = candidates[int(s.id)]

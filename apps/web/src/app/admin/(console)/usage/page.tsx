@@ -63,7 +63,9 @@ export default async function UsagePage({
           <tbody>
             {rows.map((r) => (
               <tr key={r.key || "none"} className="border-t border-line">
-                <td className="py-1.5">{r.name || t("unassigned")}</td>
+                <td className="py-1.5">
+                  {r.name === "indexing" ? t("indexing") : r.name || t("unassigned")}
+                </td>
                 <td className="py-1.5 text-right tabular-nums">{tokens(r.tokens)}</td>
                 <td className="py-1.5 text-right tabular-nums">{money(r.external_cost)}</td>
                 <td className="py-1.5 text-right tabular-nums">{money(r.cost)}</td>

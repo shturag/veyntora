@@ -892,8 +892,10 @@
     "thinkingFlag": "enable_thinking flag (SiliconFlow, DashScope)",
     "thinkingTemplate": "chat_template_kwargs (vLLM, SGLang)",
     "thinkingHint": "How this server turns a model's thinking on and off, so chatbots can offer people a Thinking switch. Only for models that can think (e.g. Qwen3).",
-    "usageNotPriced": "Usage and prices are counted for language models only. Calls to this kind of provider (e.g. embedding documents while indexing) are not counted or priced yet.",
-    "noUsageCounted": "Not counted for this kind of provider."
+    "usageNotPriced": "Usage and prices are counted for language models, embedding models and rerankers only.",
+    "noUsageCounted": "Not counted for this kind of provider.",
+    "priceInOnly": "Text sent to it is counted (as the service reports it, else estimated); there is no output to price.",
+    "usageHintEmbedding": "Counted from indexing documents and from questions (search or reranking), attributed to the provider that served each call. Cost uses the price above."
   },
   "sources": {
     "title": "Data sources",
@@ -3265,7 +3267,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "close": "Close",
-    "failed": "Did not work: {reason}"
+    "failed": "Did not work: {reason}",
+    "indexing": "Indexing documents"
   },
   "review": {
     "title": "Conversations and feedback",

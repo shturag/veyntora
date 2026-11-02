@@ -32,3 +32,4 @@
 | [0028](0028-chat-attachments.md) | Files attached to a chat question |
 | [0029](0029-web-search.md) | Web search in the chat |
 | [0030](0030-code-interpreter.md) | Code interpreter: a sandbox in the stack |
+| [0031](0031-embedding-and-rerank-costs.md) | Embedding and reranker usage and prices |

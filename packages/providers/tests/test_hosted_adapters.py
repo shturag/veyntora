@@ -121,3 +121,37 @@ def test_model_is_required() -> None:
     cfg = _cfg(Capability.EMBEDDING, "voyage")
     with pytest.raises(ValueError, match="model"):
         registry.create(cfg.model_copy(update={"model": None}), Secret())
+
+
+@respx.mock
+async def test_embedders_and_rerankers_report_the_tokens_they_used() -> None:
+    base = "https://api.siliconflow.example/v1"
+    respx.post(f"{base}/embeddings").mock(
+        return_value=httpx.Response(
+            200,
+            json={"data": [{"index": 0, "embedding": [0.1, 0.2]}], "usage": {"total_tokens": 17}},
+        )
+    )
+    embedder = registry.create(_cfg(Capability.EMBEDDING, "openai_compatible", base), Secret())
+    await embedder.embed(["Wie beantrage ich einen Parkausweis?"])
+    assert embedder.last_tokens == 17
+
+    respx.post(f"{base}/rerank").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "results": [{"index": 0, "relevance_score": 0.9}],
+                "meta": {"tokens": {"input_tokens": 42, "output_tokens": 0}},
+            },
+        )
+    )
+    reranker = registry.create(_cfg(Capability.RERANKER, "cohere_compatible", base), Secret())
+    await reranker.rerank("Parkausweis", [Doc("a", "Anwohnerparken in Essen")], 1)
+    assert reranker.last_tokens == 42
+
+    # A service that does not count: an estimate (about four characters a token).
+    respx.post(f"{base}/embeddings").mock(
+        return_value=httpx.Response(200, json={"data": [{"index": 0, "embedding": [0.1]}]})
+    )
+    await embedder.embed(["x" * 400])
+    assert embedder.last_tokens == 101

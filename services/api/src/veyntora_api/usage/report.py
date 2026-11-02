@@ -120,6 +120,11 @@ async def grouped(db: AsyncSession, month: str, by: GroupBy) -> list[Row]:
         )
         for r in rows
     ]
+    if by == "chatbot":
+        # Embedding while indexing belongs to no single chatbot (record_indexing).
+        for row in out:
+            if not row.key:
+                row.key = row.name = "indexing"
     return sorted(out, key=lambda r: r.cost, reverse=True)
 
 

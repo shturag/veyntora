@@ -49,6 +49,8 @@ class _Hosted:
         self._config = config
         self._secrets = secrets
         self._base = base.rstrip("/")
+        # Tokens of the last call, for usage and cost (read by the caller right after it).
+        self.last_tokens = 0
 
     async def _post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
         headers = {}
@@ -78,6 +80,27 @@ class _Hosted:
         return HealthResult(True, (time.perf_counter() - start) * 1000)
 
 
+def estimate_tokens(texts: list[str]) -> int:
+    """About four characters a token, for services that do not report what they counted."""
+    return sum(len(t) for t in texts) // 4 + len(texts)
+
+
+def _tokens(body: dict[str, Any], texts: list[str]) -> int:
+    """Tokens the service counted (OpenAI-style `usage`, or `meta.tokens` / `meta.billed_units`
+    on rerank APIs), else an estimate."""
+    usage = body.get("usage") or {}
+    meta = body.get("meta") or {}
+    for value in (
+        usage.get("total_tokens"),
+        usage.get("prompt_tokens"),
+        (meta.get("tokens") or {}).get("input_tokens"),
+        (meta.get("billed_units") or {}).get("input_tokens"),
+    ):
+        if isinstance(value, int | float) and value > 0:
+            return int(value)
+    return estimate_tokens(texts)
+
+
 def _vectors(body: dict[str, Any]) -> list[list[float]]:
     rows = sorted(body.get("data", []), key=lambda r: r.get("index", 0))
     return [list(map(float, r["embedding"])) for r in rows]
@@ -90,15 +113,20 @@ class VoyageEmbedder(_Hosted):
 
     async def _embed(self, texts: list[str], input_type: str) -> EmbedResult:
         dense: list[list[float]] = []
+        tokens = 0
         for i in range(0, len(texts), _BATCH):
+            batch = texts[i : i + _BATCH]
             body: dict[str, Any] = {
-                "input": texts[i : i + _BATCH],
+                "input": batch,
                 "model": self._config.model,
                 "input_type": input_type,
             }
             if self._dims:
                 body["output_dimension"] = int(self._dims)
-            dense += _vectors(await self._post("/embeddings", body))
+            reply = await self._post("/embeddings", body)
+            dense += _vectors(reply)
+            tokens += _tokens(reply, batch)
+        self.last_tokens = tokens
         return EmbedResult(dense=dense, dimensions=len(dense[0]) if dense else 0)
 
     async def embed(self, texts: list[str]) -> EmbedResult:
@@ -114,11 +142,16 @@ class VoyageEmbedder(_Hosted):
 class OpenAIEmbedder(_Hosted):
     async def embed(self, texts: list[str]) -> EmbedResult:
         dense: list[list[float]] = []
+        tokens = 0
         for i in range(0, len(texts), _BATCH):
-            body: dict[str, Any] = {"input": texts[i : i + _BATCH], "model": self._config.model}
+            batch = texts[i : i + _BATCH]
+            body: dict[str, Any] = {"input": batch, "model": self._config.model}
             if dims := self._config.options.get("dimensions"):
                 body["dimensions"] = int(dims)
-            dense += _vectors(await self._post("/embeddings", body))
+            reply = await self._post("/embeddings", body)
+            dense += _vectors(reply)
+            tokens += _tokens(reply, batch)
+        self.last_tokens = tokens
         return EmbedResult(dense=dense, dimensions=len(dense[0]) if dense else 0)
 
     async def health(self) -> HealthResult:
@@ -141,6 +174,7 @@ class _Reranker(_Hosted):
                 self._top_key: min(top_n, len(docs)),
             },
         )
+        self.last_tokens = _tokens(body, [query, *(d.text for d in docs)])
         ranked = sorted(body.get(self._results_key, []), key=lambda r: -float(r["relevance_score"]))
         return [
             Scored(docs[int(r["index"])].id, float(r["relevance_score"])) for r in ranked[:top_n]

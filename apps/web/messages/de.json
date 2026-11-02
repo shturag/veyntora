@@ -892,8 +892,10 @@
     "thinkingFlag": "enable_thinking-Flag (SiliconFlow, DashScope)",
     "thinkingTemplate": "chat_template_kwargs (vLLM, SGLang)",
     "thinkingHint": "Wie dieser Server das Nachdenken eines Modells an- und ausschaltet, damit Chatbots Menschen einen Denk-Schalter anbieten können. Nur für Modelle, die nachdenken können (z. B. Qwen3).",
-    "usageNotPriced": "Nutzung und Preise werden nur für Sprachmodelle gezählt. Aufrufe dieser Art von Anbieter (z. B. Einbetten von Dokumenten beim Indexieren) werden noch nicht gezählt oder bepreist.",
-    "noUsageCounted": "Für diese Art von Anbieter nicht gezählt."
+    "usageNotPriced": "Nutzung und Preise werden nur für Sprachmodelle, Embedding-Modelle und Reranker gezählt.",
+    "noUsageCounted": "Für diese Art von Anbieter nicht gezählt.",
+    "priceInOnly": "Gezählt wird der gesendete Text (wie der Dienst ihn meldet, sonst geschätzt); es gibt keine Ausgabe zu bepreisen.",
+    "usageHintEmbedding": "Gezählt beim Indexieren von Dokumenten und bei Fragen (Suche oder Reranking), dem Anbieter zugeordnet, der den Aufruf bedient hat. Kosten nach dem Preis oben."
   },
   "sources": {
     "title": "Datenquellen",
@@ -3265,7 +3267,8 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "failed": "Hat nicht funktioniert: {reason}"
+    "failed": "Hat nicht funktioniert: {reason}",
+    "indexing": "Dokumente indexieren"
   },
   "review": {
     "title": "Unterhaltungen und Feedback",

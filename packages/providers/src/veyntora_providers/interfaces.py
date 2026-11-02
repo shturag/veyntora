@@ -106,7 +106,9 @@ class EmbedResult:
 @runtime_checkable
 class EmbeddingProvider(Protocol):
     """Documents are embedded with `embed`. Models with separate query embeddings (Voyage)
-    also offer `async embed_query(text) -> list[float]`; retrieval uses it when present."""
+    also offer `async embed_query(text) -> list[float]`; retrieval uses it when present.
+    Adapters set `last_tokens` after each call (counted by the service, else estimated),
+    for usage and cost; rerankers do too."""
 
     async def embed(self, texts: list[str]) -> EmbedResult: ...
 

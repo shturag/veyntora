@@ -107,7 +107,11 @@ class FakeParser:
 
 
 class FakeEmbedder:
+    def __init__(self) -> None:
+        self.last_tokens = 0
+
     async def embed(self, texts: list[str]) -> EmbedResult:
+        self.last_tokens = sum(len(t) for t in texts) // 4
         return EmbedResult(dense=[[1.0, float(len(t)), 0.0] for t in texts], dimensions=3)
 
 
@@ -703,3 +707,22 @@ async def test_a_source_nothing_uses_can_be_removed_with_its_documents(world: Wo
     assert await purge_deleted_sources(world.db) == 1
     world.db.expunge_all()
     assert await world.db.get(DataSource, source_id) is None
+
+
+async def test_indexing_books_the_embedding_tokens_at_the_providers_price(world: World) -> None:
+    from veyntora_api.db.models.quality import UsageRecord  # noqa: PLC0415
+    from veyntora_api.rag.record import INDEXING, PRICE_IN  # noqa: PLC0415
+
+    _, source = await _bot_with_source(world)
+    embed = await world.db.get(ProviderInstance, world.embed)
+    assert embed is not None
+    embed.options = {**embed.options, PRICE_IN: 20}  # EUR per million tokens
+    doc = await _upload(world, source)
+    await world.ingestor().index_document(doc, force=False)
+    [row] = (
+        await world.db.execute(
+            sa.select(UsageRecord).where(UsageRecord.provider_instance_id == world.embed)
+        )
+    ).scalars()
+    assert row.cost_centre == INDEXING and row.chatbot_id is None and row.tokens_in > 0
+    assert float(row.cost) == pytest.approx(row.tokens_in * 20 / 1_000_000)

@@ -46,6 +46,7 @@ from veyntora_api.knowledge.connectors import CONNECTED
 from veyntora_api.knowledge.profiles import index_plan
 from veyntora_api.knowledge.service import principals_of, source_acl
 from veyntora_api.providers.runtime import Adapters, ProviderUnavailableError
+from veyntora_api.rag.record import record_indexing
 from veyntora_api.settings import Settings
 from veyntora_api.storage import ObjectStore
 from veyntora_providers.adapters.docling_parser import ParseFailedError
@@ -116,13 +117,18 @@ class _Work:
     parsed: dict[tuple[Any, ...], ParsedDoc] = field(default_factory=dict)
 
 
-async def _chunks(profile: IndexProfile, parsed: ParsedDoc, embedder: Any) -> list[Chunk]:
+async def _chunks(
+    profile: IndexProfile, parsed: ParsedDoc, embedder: Any, spent: list[int]
+) -> list[Chunk]:
+    """The document's chunks; tokens embedded to find them (semantic chunking) go to `spent`."""
     if profile.chunking is ChunkingStrategy.STRUCTURE:
         return as_chunks(parsed.sections)
     if profile.chunking is ChunkingStrategy.SEMANTIC:
 
         async def embed(texts: list[str]) -> list[list[float]]:
-            return list((await embedder.embed(texts)).dense)
+            dense = list((await embedder.embed(texts)).dense)
+            spent.append(int(getattr(embedder, "last_tokens", 0)))
+            return dense
 
         return await semantic_chunks(
             parsed.sections, embed, profile.semantic_threshold, profile.chunk_size_tokens
@@ -339,7 +345,8 @@ class Ingestor:
         """Index the document under the profile. Returns its chunk count and its words."""
         parsed = await self._parse(doc, profile, work)
         embedder = await self.adapters.get(profile.embedding_instance_id)
-        chunks = await _chunks(profile, parsed, embedder)
+        spent: list[int] = []
+        chunks = await _chunks(profile, parsed, embedder, spent)
         if not chunks:
             raise ParseFailedError("no text extracted")
         title = parsed.title if parsed.title and parsed.title != doc.path else doc.title
@@ -352,6 +359,9 @@ class Ingestor:
             for c in chunks
         ]
         vectors = (await embedder.embed(texts)).dense
+        spent.append(int(getattr(embedder, "last_tokens", 0)))
+        # Usage and cost of embedding this document (Usage & budgets: Indexing).
+        await record_indexing(self.db, profile.embedding_instance_id, sum(spent))
         if len(vectors) != len(chunks):
             raise ValueError("the embedding server returned a different number of vectors")
         store = await self.adapters.get(profile.vector_store_instance_id)

@@ -223,8 +223,14 @@ async def test_usage_is_booked_to_cost_centre_and_app_key_and_exported(rag: Rag)
 
     month = report.current_month()
     by_cc = await report.grouped(db, month, "cost_centre")
-    assert [r.key for r in by_cc] == ["CC-410"] and by_cc[0].tokens_in == 120
-    assert [r.name for r in await report.grouped(db, month, "chatbot")] == [rag.bot.name]
+    # Embedding while indexing has its own cost centre.
+    cc = {r.key: r for r in by_cc}
+    assert set(cc) == {"CC-410", "indexing"} and cc["CC-410"].tokens_in == 120
+    # Indexing belongs to no single chatbot and is listed on its own.
+    assert {r.name for r in await report.grouped(db, month, "chatbot")} == {
+        rag.bot.name,
+        "indexing",
+    }
     assert [r.name for r in await report.grouped(db, month, "group")] == [rag.w.group.name]
     csv = report.to_csv(
         month, "chatbot", [report.Row("x", "=HYPERLINK(1)", 1, 2, Decimal(1), Decimal(0))]
@@ -232,7 +238,13 @@ async def test_usage_is_booked_to_cost_centre_and_app_key_and_exported(rag: Rag)
     assert "'=HYPERLINK(1)" in csv and csv.startswith("month,chatbot,name")
     assert (await report.months(db))[0] == month
     totals = await report.totals(db, month)
-    assert totals.tokens == 150 and totals.agent_tokens == 0
+    # The answer's 150 model tokens, plus embedding (indexing and the question's search).
+    embedded = await db.scalar(
+        sa.select(sa.func.sum(UsageRecord.tokens_in)).where(
+            UsageRecord.provider_instance_id == rag.w.embed
+        )
+    )
+    assert embedded and totals.tokens == 150 + embedded and totals.agent_tokens == 0
 
 
 async def test_a_budget_keeps_its_scope_and_one_per_period(rag: Rag) -> None:
