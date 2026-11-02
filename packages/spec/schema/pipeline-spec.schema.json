@@ -72,6 +72,11 @@
       "additionalProperties": false,
       "description": "What people may switch in the chat (ADR 0027).",
       "properties": {
+        "attachments": {
+          "default": true,
+          "title": "Attachments",
+          "type": "boolean"
+        },
         "llm_instance_ids": {
           "items": {
             "format": "uuid",

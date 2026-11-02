@@ -4,6 +4,8 @@
   message; after a day for people who switched "Keep chat history" off. Chats with a
   saved answer are kept while the answer is saved (people chose to keep it). Deleting a
   conversation removes its messages, citations and feedback.
+- Files attached to a chat question go with their conversation; files attached but never
+  sent are removed after a day.
 - Uploads ("My files"): by the platform setting; documents are removed from every index
   by the usual delete job.
 - Traces: in Langfuse, by the platform setting (veyntora_workers.retention).
@@ -20,7 +22,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from veyntora_api.core import audit
 from veyntora_api.core.context import RequestContext
-from veyntora_api.db.models.conversations import Conversation, Message, SavedAnswer
+from veyntora_api.db.models.conversations import (
+    ChatAttachment,
+    Conversation,
+    Message,
+    SavedAnswer,
+)
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.knowledge import DataSource, Document, DocumentStatus, IngestJobKind
@@ -78,6 +85,22 @@ async def purge_chats(db: AsyncSession, now: datetime | None = None) -> int:
             after={"deleted": len(doomed)},
         )
     return len(doomed)
+
+
+async def purge_attachments(db: AsyncSession, now: datetime | None = None) -> int:
+    """Files attached but never sent with a question (sent ones go with their chat)."""
+    now = now or datetime.now(UTC)
+    held_users, held_bots = await governance.held(db)
+    doomed = sa.delete(ChatAttachment).where(
+        ChatAttachment.conversation_id.is_(None),
+        ChatAttachment.created_at < now - timedelta(days=1),
+    )
+    if held_users:
+        doomed = doomed.where(ChatAttachment.user_id.not_in(held_users))
+    if held_bots:
+        doomed = doomed.where(ChatAttachment.chatbot_id.not_in(held_bots))
+    result = await db.execute(doomed)
+    return int(getattr(result, "rowcount", 0) or 0)
 
 
 async def purge_uploads(db: AsyncSession, now: datetime | None = None) -> int:

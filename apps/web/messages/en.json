@@ -645,9 +645,8 @@
     "share": "Share",
     "moreOptions": "More options",
     "deleteChat": "Delete chat",
-    "attach": "Attach files to My files",
-    "attached": "{count, plural, one {Added to My files. You can ask about it once it is indexed.} other {# files added to My files. You can ask about them once they are indexed.}}",
-    "attachFailed": "The files could not be uploaded.",
+    "attach": "Attach files to this question",
+    "attachFailed": "The file could not be attached.",
     "agentSteps": "{count, plural, =0 {Agent} one {Agent · # tool call} other {Agent · # tool calls}}",
     "stepStatus": {
       "done": "done",
@@ -714,7 +713,15 @@
     "thinkingLive": "Thinking…",
     "thoughtAbout": "Thought process",
     "placeholderGeneral": "Ask anything…",
-    "disclaimerGeneral": "This assistant answers from general knowledge, not your company's documents: answers have no sources and can be wrong."
+    "disclaimerGeneral": "This assistant answers from general knowledge and the files you attach, not your company's documents. Answers can be wrong.",
+    "attachHint": "Attach files ({types}). Their text goes with your questions in this chat.",
+    "attachedFiles": "Attached files",
+    "attaching": "Reading the file…",
+    "attachCut": "only the start is used",
+    "attachRemove": "Remove {name}",
+    "attachTooMany": "Attach at most {max} files to a question.",
+    "fromAttachedFile": "From a file attached in this chat",
+    "answeredFromFiles": "{count, plural, one {Answered from your attached file} other {Answered from # attached files}}"
   },
   "source": {
     "updated": "updated {date}",
@@ -1346,6 +1353,10 @@
       "thinking": {
         "label": "Thinking switch for people",
         "hint": "People can turn thinking on for a question, with models that support it; the reasoning is shown folded above the answer."
+      },
+      "attachments": {
+        "label": "Attachments",
+        "hint": "People can attach files to a question; their text goes with the conversation to the answer model. Plain text is always read; PDF, Office and images need the ingestion parser. The data rule and masking apply as for the question."
       }
     },
     "o": {

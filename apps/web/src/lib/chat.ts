@@ -59,8 +59,12 @@ export type GraphMessage = {
   id?: string;
   type: "human" | "ai" | string;
   content: unknown;
-  additional_kwargs?: { veyntora?: AnswerMeta };
+  // Answers carry AnswerMeta; questions carry their attached files.
+  additional_kwargs?: { veyntora?: AnswerMeta | { attachments?: AttachedFile[] } };
 };
+
+/** A file attached to a question (ADR 0028): its text goes with the conversation. */
+export type AttachedFile = { id: string; name: string; truncated?: boolean };
 
 export type ChatState = { messages: GraphMessage[]; chatbot_id?: string };
 
@@ -86,6 +90,8 @@ export type ChatFeatures = {
   documents: boolean;
   /** The AI notice to show; left out where the platform default would be untrue. */
   ai_notice?: string | null;
+  /** File endings that may be attached to a question; empty when attachments are off. */
+  attachments?: string[];
 };
 
 export const CSRF_HEADERS = { "x-veyntora-csrf": "1" } as const;
@@ -124,6 +130,22 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     );
   }
   return (res.status === 204 ? undefined : await res.json()) as T;
+}
+
+/** Attach a file to the next question. Throws with the API's message on failure. */
+export async function attachFile(chatbotId: string, file: File): Promise<AttachedFile> {
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch(`/api/v1/me/chatbots/${chatbotId}/attachments`, {
+    method: "POST",
+    body,
+    headers: CSRF_HEADERS,
+  });
+  if (!res.ok) {
+    const detail = ((await res.json().catch(() => ({}))) as { detail?: unknown }).detail;
+    throw new Error(typeof detail === "string" ? detail : String(res.status));
+  }
+  return (await res.json()) as AttachedFile;
 }
 
 export async function newThread(): Promise<string> {

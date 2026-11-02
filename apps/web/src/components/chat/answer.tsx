@@ -43,9 +43,13 @@ function CitationChip({
           <blockquote className="m-0 rounded-sm bg-amber-soft px-2.5 py-2 text-[13px] leading-relaxed text-fg-secondary">
             {citation.quote}
           </blockquote>
-          <Link href={href} className="text-[13px] font-medium">
-            {t("openDocument")}
-          </Link>
+          {citation.document_id ? (
+            <Link href={href} className="text-[13px] font-medium">
+              {t("openDocument")}
+            </Link>
+          ) : (
+            <span className="text-[13px] text-fg-muted">{t("fromAttachedFile")}</span>
+          )}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -263,7 +267,10 @@ export function AnswerBlock({
       </div>
     );
   }
-  const documents = new Set((meta.citations ?? []).map((c) => c.document_id)).size;
+  const cited = meta.citations ?? [];
+  const documents = new Set(cited.filter((c) => c.document_id).map((c) => c.document_id)).size;
+  // Attached files are cited too (ADR 0028); they are not documents.
+  const files = cited.filter((c) => !c.document_id).length;
   const seconds = meta.latency_ms ? (meta.latency_ms / 1000).toFixed(1) : null;
   const answered = meta.outcome === "answered";
   return (
@@ -276,7 +283,9 @@ export function AnswerBlock({
           {meta.no_sources
             ? t("noSources")
             : answered
-              ? t("answeredFrom", { count: documents })
+              ? documents || !files
+                ? t("answeredFrom", { count: documents })
+                : t("answeredFromFiles", { count: files })
               : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
         </span>

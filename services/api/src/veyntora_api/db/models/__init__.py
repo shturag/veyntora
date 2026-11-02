@@ -16,6 +16,7 @@ from veyntora_api.db.models.channels import (
 )
 from veyntora_api.db.models.chatbots import Chatbot, PipelineVersion
 from veyntora_api.db.models.conversations import (
+    ChatAttachment,
     Citation,
     Conversation,
     ConversationShare,
@@ -83,6 +84,7 @@ __all__ = [
     "ChannelDestination",
     "ChannelIdentity",
     "ChannelThread",
+    "ChatAttachment",
     "Chatbot",
     "Citation",
     "Conversation",

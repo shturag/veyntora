@@ -20,7 +20,8 @@ from veyntora_api.db.models.conversations import (
 )
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.models.quality import UsageRecord
-from veyntora_api.rag.pipeline import Answer, RunContext, RunRefusedError
+from veyntora_api.rag import attachments
+from veyntora_api.rag.pipeline import ATTACHMENT, Answer, RunContext, RunRefusedError
 
 # Prices are set per provider instance (options), in EUR per million tokens.
 PRICE_IN = "price_in_per_mtok_eur"
@@ -124,11 +125,14 @@ async def record(
     )
     db.add(msg)
     await db.flush()
+    await attachments.link(db, conv.id, [a.id for a in ctx.attachments])
     for n, source in result.cited:
+        attached = source.chunk_id.startswith(ATTACHMENT)
         db.add(
             Citation(
                 message_id=msg.id,
-                document_id=UUID(source.document_id),
+                document_id=None if attached else UUID(source.document_id),
+                attachment_id=UUID(source.chunk_id.removeprefix(ATTACHMENT)) if attached else None,
                 chunk_id=source.chunk_id,
                 ordinal=n,
                 quote=source.text[:2000],

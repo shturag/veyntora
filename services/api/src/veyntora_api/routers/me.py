@@ -17,6 +17,8 @@ from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineVers
 from veyntora_api.db.models.identity import Group, Membership
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.governance import service as governance
+from veyntora_api.rag import attachments
+from veyntora_api.routers.me_attachments import parser_ready
 
 router = APIRouter(prefix="/v1/me", tags=["me"])
 
@@ -157,6 +159,8 @@ class ChatFeatures(BaseModel):
     # The platform's AI notice for this chatbot: none where the default notice ("answers come
     # from company documents") would be untrue; an admin's own wording is always shown.
     ai_notice: str | None = None
+    # File endings people may attach to a question; empty when attachments are off.
+    attachments: list[str] = []
 
 
 # Servers that switch thinking per request (see the openai_compatible adapter's options).
@@ -207,4 +211,7 @@ async def chat_features(
         ai_notice=None
         if not spec.retrieval.enabled and notice == governance.DEFAULT_NOTICE
         else notice,
+        attachments=attachments.accepted(parser=await parser_ready(db, spec))
+        if spec.chat.attachments
+        else [],
     )

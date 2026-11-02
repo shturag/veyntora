@@ -51,6 +51,9 @@ def test_run_body_is_rebuilt_from_what_the_chat_needs() -> None:
             "chatbot_id": BOT,
             "mode": "auto",
             "messages": [{"type": "human", "content": "Refunds?"}],
+            "model": "",
+            "thinking": None,
+            "attachments": [],
         },
     }
 
@@ -112,3 +115,44 @@ def test_a_resume_names_only_the_approval_it_waited_for() -> None:
     assert _run_body({"command": {"resume": {"cancel": True}}})["command"] == {
         "resume": {"cancel": True}
     }
+
+
+MODEL = "462293a3-dc62-43c9-b065-b949a799332e"
+
+
+def _asked(**extra: object) -> dict[str, object]:
+    return {
+        "input": {
+            "chatbot_id": BOT,
+            "messages": [{"type": "human", "content": "Is 391 prime?"}],
+            **extra,
+        }
+    }
+
+
+def test_the_askers_choices_reach_the_graph() -> None:
+    out = _run_body(_asked(model=MODEL, thinking=True))
+    assert out["input"]["model"] == MODEL
+    assert out["input"]["thinking"] is True
+
+
+def test_choices_are_always_set_so_a_thread_does_not_keep_the_last_ones() -> None:
+    out = _run_body(_asked())
+    assert out["input"]["model"] == ""
+    assert out["input"]["thinking"] is None
+
+
+@pytest.mark.parametrize("extra", [{"model": "gpt-4"}, {"thinking": "yes"}])
+def test_bad_choices_are_refused(extra: dict[str, object]) -> None:
+    with pytest.raises(HTTPException):
+        _run_body(_asked(**extra))
+
+
+def test_attachments_are_passed_as_ids() -> None:
+    out = _run_body(_asked(attachments=[MODEL, MODEL]))
+    assert out["input"]["attachments"] == [MODEL]
+    assert _run_body(_asked())["input"]["attachments"] == []
+    with pytest.raises(HTTPException):
+        _run_body(_asked(attachments=["x"]))
+    with pytest.raises(HTTPException):
+        _run_body(_asked(attachments=[str(i) for i in range(6)]))

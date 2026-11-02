@@ -15,6 +15,7 @@ the resume message itself approves nothing. Custom stream events: {"type": "stat
 
 from __future__ import annotations
 
+import dataclasses
 import time
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
@@ -47,7 +48,7 @@ from veyntora_api.db.models.conversations import RequestedMode, UsedMode
 from veyntora_api.db.models.identity import Membership
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.providers.runtime import Adapters
-from veyntora_api.rag import pipeline
+from veyntora_api.rag import attachments, pipeline
 from veyntora_api.rag.guard import find_pii
 from veyntora_api.rag.pipeline import (
     Answer,
@@ -70,6 +71,11 @@ log = structlog.get_logger()
 CONNECT: mcp_client.Connect = mcp_client.connect
 
 
+def _add_files(old: list[str] | None, new: list[str] | None) -> list[str]:
+    """Files attached in a conversation stay with it; each question may add some."""
+    return list(dict.fromkeys([*(old or []), *(new or [])]))
+
+
 class State(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     chatbot_id: str
@@ -77,6 +83,8 @@ class State(TypedDict, total=False):
     # The asker's choices for this question (chatbots that offer them, ChatSpec).
     model: str
     thinking: bool | None
+    # Files attached to this conversation's questions (ADR 0028).
+    attachments: Annotated[list[str], _add_files]
     route: dict[str, Any]
     agent: runner.AgentState
     # A custom flow's position and results (graph editor; veyntora_api.agent.flow).
@@ -118,6 +126,16 @@ async def _open(state: State, config: RunnableConfig, db: AsyncSession) -> _Turn
     )
     thinking = state.get("thinking")
     ctx = with_choices(ctx, state.get("model"), thinking if isinstance(thinking, bool) else None)
+    files = state.get("attachments") or []
+    if files and ctx.spec.chat.attachments:
+        rows = await attachments.for_run(
+            db,
+            user_id=ctx.user_id,
+            chatbot_id=ctx.chatbot_id,
+            thread_id=_thread(config)[0],
+            ids=files,
+        )
+        ctx = dataclasses.replace(ctx, attachments=tuple(attachments.fit(rows)))
     return _Turn(db, ctx, Adapters(db, reader), reader)
 
 
@@ -528,6 +546,13 @@ async def agent_start_node(state: State, config: RunnableConfig) -> Command[Any]
                     ChatMessage(m.role, masker.mask(m.content, spans))
                     for m, spans in zip(history, found, strict=True)
                 ]
+            attached = pipeline.attached_sources(turn.ctx)
+            if attached and stop is None:
+                # The files go with the question, numbered as the first sources.
+                block = pipeline.sources_block(attached)
+                if need_mask:
+                    block = masker.mask(block, (await find_pii(pii, [block], language))[0])
+                guarded = f"{block}\n\nQuestion: {guarded}"
         finally:
             await turn.adapters.close()
         if stop is not None:

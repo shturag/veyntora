@@ -1958,6 +1958,20 @@
         "title": "AvailableTool",
         "type": "object"
       },
+      "Body_attach_v1_me_chatbots__bot_id__attachments_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_attach_v1_me_chatbots__bot_id__attachments_post",
+        "type": "object"
+      },
       "Body_import_cases_v1_admin_evaluation_sets__set_id__import_post": {
         "properties": {
           "file": {
@@ -2984,6 +2998,35 @@
         "title": "Change",
         "type": "object"
       },
+      "ChatAttachmentOut": {
+        "properties": {
+          "chars": {
+            "title": "Chars",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "chars",
+          "truncated"
+        ],
+        "title": "ChatAttachmentOut",
+        "type": "object"
+      },
       "ChatFeatures": {
         "description": "What the chat offers for this chatbot (its live version, ChatSpec).",
         "properties": {
@@ -2997,6 +3040,14 @@
               }
             ],
             "title": "Ai Notice"
+          },
+          "attachments": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Attachments",
+            "type": "array"
           },
           "documents": {
             "default": true,
@@ -3026,6 +3077,11 @@
         "additionalProperties": false,
         "description": "What people may switch in the chat (ADR 0027).",
         "properties": {
+          "attachments": {
+            "default": true,
+            "title": "Attachments",
+            "type": "boolean"
+          },
           "llm_instance_ids": {
             "items": {
               "format": "uuid",
@@ -3448,6 +3504,17 @@
       },
       "CitationOut": {
         "properties": {
+          "attachment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attachment"
+          },
           "document_id": {
             "anyOf": [
               {
@@ -27031,6 +27098,59 @@
           }
         },
         "summary": "Chatbots the user may chat with (only live ones)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/chatbots/{bot_id}/attachments": {
+      "post": {
+        "operationId": "attach_v1_me_chatbots__bot_id__attachments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_attach_v1_me_chatbots__bot_id__attachments_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatAttachmentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Attach a file to your next question",
         "tags": [
           "me"
         ]

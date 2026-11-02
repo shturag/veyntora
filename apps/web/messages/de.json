@@ -645,9 +645,8 @@
     "share": "Teilen",
     "moreOptions": "Weitere Optionen",
     "deleteChat": "Chat löschen",
-    "attach": "Dateien zu „Meine Dateien“ hinzufügen",
-    "attached": "{count, plural, one {Zu „Meine Dateien“ hinzugefügt. Du kannst danach fragen, sobald sie indiziert ist.} other {# Dateien zu „Meine Dateien“ hinzugefügt. Du kannst danach fragen, sobald sie indiziert sind.}}",
-    "attachFailed": "Die Dateien konnten nicht hochgeladen werden.",
+    "attach": "Dateien an diese Frage anhängen",
+    "attachFailed": "Die Datei konnte nicht angehängt werden.",
     "agentSteps": "{count, plural, =0 {Agent} one {Agent · # Tool-Aufruf} other {Agent · # Tool-Aufrufe}}",
     "stepStatus": {
       "done": "erledigt",
@@ -714,7 +713,15 @@
     "thinkingLive": "Denkt nach …",
     "thoughtAbout": "Gedankengang",
     "placeholderGeneral": "Frag irgendetwas …",
-    "disclaimerGeneral": "Dieser Assistent antwortet aus allgemeinem Wissen, nicht aus euren Dokumenten: Antworten haben keine Quellen und können falsch sein."
+    "disclaimerGeneral": "Dieser Assistent antwortet aus allgemeinem Wissen und den Dateien, die du anhängst, nicht aus euren Dokumenten. Antworten können falsch sein.",
+    "attachHint": "Dateien anhängen ({types}). Ihr Text geht mit deinen Fragen in diesem Chat mit.",
+    "attachedFiles": "Angehängte Dateien",
+    "attaching": "Datei wird gelesen …",
+    "attachCut": "nur der Anfang wird verwendet",
+    "attachRemove": "{name} entfernen",
+    "attachTooMany": "Hänge höchstens {max} Dateien an eine Frage an.",
+    "fromAttachedFile": "Aus einer in diesem Chat angehängten Datei",
+    "answeredFromFiles": "{count, plural, one {Beantwortet aus deiner angehängten Datei} other {Beantwortet aus # angehängten Dateien}}"
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -1346,6 +1353,10 @@
       "thinking": {
         "label": "Denk-Schalter für Menschen",
         "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können; die Überlegungen erscheinen eingeklappt über der Antwort."
+      },
+      "attachments": {
+        "label": "Anhänge",
+        "hint": "Personen können Dateien an eine Frage anhängen; ihr Text geht mit dem Gespräch an das Antwortmodell. Reiner Text wird immer gelesen; PDF, Office und Bilder brauchen den Parser der Aufnahme. Datenregel und Maskierung gelten wie für die Frage."
       }
     },
     "o": {

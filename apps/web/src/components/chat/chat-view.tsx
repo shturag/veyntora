@@ -1,6 +1,7 @@
 "use client";
 
 import { useStream } from "@langchain/langgraph-sdk/react";
+import { FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -9,7 +10,9 @@ import {
   api,
   CSRF_HEADERS,
   textOf,
+  type AnswerMeta,
   type ApprovalWait,
+  type AttachedFile,
   type ChatEvent,
   type ChatFeatures,
   type ChatState,
@@ -34,6 +37,7 @@ function Thread({
   showSteps,
   aiNotice,
   initialQuestion,
+  initialFiles = [],
 }: {
   apiUrl: string;
   threadId: string;
@@ -42,6 +46,8 @@ function Thread({
   showSteps: boolean;
   aiNotice?: string;
   initialQuestion?: string;
+  /** Files attached on Home to the first question. */
+  initialFiles?: AttachedFile[];
 }) {
   const t = useTranslations("chat");
   const router = useRouter();
@@ -106,7 +112,7 @@ function Thread({
     },
   });
 
-  function ask(question: string) {
+  function ask(question: string, files: AttachedFile[] = []) {
     setFailed(false);
     setSteps([]);
     setProgress({ step: "searching" });
@@ -115,6 +121,7 @@ function Thread({
         chatbot_id: chatbotId,
         mode,
         messages: [{ type: "human", content: question }],
+        ...(files.length ? { attachments: files.map((f) => f.id) } : {}),
         ...(model ? { model } : {}),
         ...(features.thinking ? { thinking } : {}),
       },
@@ -122,7 +129,14 @@ function Thread({
         streamMode: STREAM_MODES,
         optimisticValues: (prev) => ({
           ...prev,
-          messages: [...(prev.messages ?? []), { type: "human", content: question }],
+          messages: [
+            ...(prev.messages ?? []),
+            {
+              type: "human",
+              content: question,
+              ...(files.length ? { additional_kwargs: { veyntora: { attachments: files } } } : {}),
+            },
+          ],
         }),
       },
     );
@@ -134,7 +148,7 @@ function Thread({
       // Keep the chatbot in the address: if the first answer fails, no conversation is stored
       // yet and the page still has to know which chatbot it is.
       router.replace(`/chat/${threadId}?bot=${chatbotId}`, { scroll: false });
-      ask(initialQuestion);
+      ask(initialQuestion, initialFiles);
     }
     // Runs once for the question typed on Home.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,16 +174,37 @@ function Thread({
       >
         {messages.map((m, i) => {
           if (m.type === "human") {
+            const extra = m.additional_kwargs?.veyntora;
+            const files = extra && "attachments" in extra ? (extra.attachments ?? []) : [];
             return (
-              <div
-                key={m.id ?? i}
-                className="max-w-[78%] self-end rounded-[14px_14px_4px_14px] bg-ink px-4 py-3 text-[15px] leading-normal text-ground"
-              >
-                {textOf(m.content)}
+              <div key={m.id ?? i} className="flex max-w-[78%] flex-col items-end gap-1.5 self-end">
+                {files.length ? (
+                  <ul
+                    aria-label={t("attachedFiles")}
+                    className="m-0 flex list-none flex-wrap justify-end gap-1.5 p-0"
+                  >
+                    {files.map((f) => (
+                      <li
+                        key={f.id}
+                        className="inline-flex max-w-[260px] items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-[13px]"
+                      >
+                        <FileText aria-hidden className="size-3.5 shrink-0 text-fg-muted" />
+                        <span className="truncate" title={f.name}>
+                          {f.name}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="rounded-[14px_14px_4px_14px] bg-ink px-4 py-3 text-[15px] leading-normal text-ground">
+                  {textOf(m.content)}
+                </div>
               </div>
             );
           }
-          const meta = m.additional_kwargs?.veyntora ?? { outcome: "refused" as const };
+          const extra = m.additional_kwargs?.veyntora;
+          const meta: AnswerMeta =
+            extra && "outcome" in extra ? extra : { outcome: "refused" as const };
           const previous = messages[i - 1];
           const question = previous?.type === "human" ? textOf(previous.content) : "";
           const last = i === messages.length - 1;
@@ -238,6 +273,7 @@ function Thread({
           rows={2}
           submitLabel={t("send")}
           placeholder={features.documents ? undefined : t("placeholderGeneral")}
+          attach={features.attachments?.length ? { chatbotId, accept: features.attachments } : null}
           extras={
             <ChatExtras
               features={features}
@@ -307,6 +343,7 @@ export function ChatView(props: {
   initialMode: Mode;
   showSteps: boolean;
   initialQuestion?: string;
+  initialFiles?: AttachedFile[];
   aiNotice?: string;
 }) {
   const origin = useSyncExternalStore(

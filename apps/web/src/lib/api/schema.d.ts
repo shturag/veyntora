@@ -3067,6 +3067,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/chatbots/{bot_id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attach a file to your next question */
+        post: operations["attach_v1_me_chatbots__bot_id__attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/chatbots/{bot_id}/features": {
         parameters: {
             query?: never;
@@ -4207,6 +4224,11 @@ export interface components {
             /** Server */
             server: string;
         };
+        /** Body_attach_v1_me_chatbots__bot_id__attachments_post */
+        Body_attach_v1_me_chatbots__bot_id__attachments_post: {
+            /** File */
+            file: string;
+        };
         /** Body_import_cases_v1_admin_evaluation_sets__set_id__import_post */
         Body_import_cases_v1_admin_evaluation_sets__set_id__import_post: {
             /** File */
@@ -4565,6 +4587,20 @@ export interface components {
             /** Path */
             path: string;
         };
+        /** ChatAttachmentOut */
+        ChatAttachmentOut: {
+            /** Chars */
+            chars: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Truncated */
+            truncated: boolean;
+        };
         /**
          * ChatFeatures
          * @description What the chat offers for this chatbot (its live version, ChatSpec).
@@ -4572,6 +4608,11 @@ export interface components {
         ChatFeatures: {
             /** Ai Notice */
             ai_notice?: string | null;
+            /**
+             * Attachments
+             * @default []
+             */
+            attachments: string[];
             /**
              * Documents
              * @default true
@@ -4587,6 +4628,11 @@ export interface components {
          * @description What people may switch in the chat (ADR 0027).
          */
         ChatSpec: {
+            /**
+             * Attachments
+             * @default true
+             */
+            attachments: boolean;
             /** Llm Instance Ids */
             llm_instance_ids?: string[];
             /**
@@ -4732,6 +4778,8 @@ export interface components {
         };
         /** CitationOut */
         CitationOut: {
+            /** Attachment */
+            attachment?: string | null;
             /** Document Id */
             document_id: string | null;
             /** N */
@@ -16357,6 +16405,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatbotSummary"][];
+                };
+            };
+        };
+    };
+    attach_v1_me_chatbots__bot_id__attachments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_attach_v1_me_chatbots__bot_id__attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatAttachmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

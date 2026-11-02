@@ -1,13 +1,14 @@
 "use client";
 
 import { Button, cn } from "@veyntora/ui";
-import { Paperclip } from "lucide-react";
+import { FileText, Paperclip, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 
-import { MODES, type Mode } from "@/lib/chat";
+import { MODES, attachFile, type AttachedFile, type Mode } from "@/lib/chat";
 
-import { ACCEPT, uploadMyFiles } from "./my-files";
+// Files a question may bring (the API's limit).
+const MAX_FILES = 5;
 
 /**
  * Question box with the answer-mode switch (prototype: Home.html, ChatFast.html). Auto lets
@@ -24,8 +25,9 @@ export function Composer({
   submitLabel,
   extras,
   placeholder,
+  attach,
 }: {
-  onSubmit: (question: string) => void;
+  onSubmit: (question: string, files: AttachedFile[]) => void;
   mode: Mode;
   onModeChange: (mode: Mode) => void;
   busy?: boolean;
@@ -36,27 +38,38 @@ export function Composer({
   /** More controls next to the mode switch (model picker, thinking). */
   extras?: ReactNode;
   placeholder?: string;
+  /** The chatbot that takes attached files, and the endings it reads; none: no paperclip. */
+  attach?: { chatbotId: string; accept: string[] } | null;
 }) {
   const t = useTranslations("chat");
   const [text, setText] = useState("");
   const id = useId();
-  const ready = text.trim().length > 0 && !busy && !disabled;
+  const [files, setFiles] = useState<AttachedFile[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const [attaching, setAttaching] = useState(false);
-  const [attachNote, setAttachNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [attachError, setAttachError] = useState<string | null>(null);
+  const ready = text.trim().length > 0 && !busy && !disabled && !attaching;
 
-  // Attached files go to "My files": private to you and searched by your chats once indexed.
-  async function attach(el: HTMLInputElement) {
-    if (!el.files?.length) return;
+  // Each file is scanned and read now; its text goes with this question and the rest of
+  // the conversation.
+  async function addFiles(el: HTMLInputElement) {
+    const picked = Array.from(el.files ?? []);
+    el.value = "";
+    if (!attach || !picked.length) return;
+    setAttachError(null);
+    if (files.length + picked.length > MAX_FILES) {
+      setAttachError(t("attachTooMany", { max: MAX_FILES }));
+      return;
+    }
     setAttaching(true);
-    setAttachNote(null);
     try {
-      await uploadMyFiles(el.files);
-      setAttachNote({ ok: true, text: t("attached", { count: el.files.length }) });
+      for (const f of picked) {
+        const added = await attachFile(attach.chatbotId, f);
+        setFiles((list) => [...list, added]);
+      }
     } catch (e) {
-      setAttachNote({ ok: false, text: e instanceof Error ? e.message : t("attachFailed") });
+      setAttachError(e instanceof Error ? e.message : t("attachFailed"));
     } finally {
-      el.value = "";
       setAttaching(false);
     }
   }
@@ -64,8 +77,10 @@ export function Composer({
   function send(event?: FormEvent) {
     event?.preventDefault();
     if (!ready) return;
-    onSubmit(text.trim());
+    onSubmit(text.trim(), files);
     setText("");
+    setFiles([]);
+    setAttachError(null);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -92,28 +107,62 @@ export function Composer({
         placeholder={placeholder ?? t("placeholder")}
         className="resize-none border-0 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
       />
+      {files.length || attaching ? (
+        <ul aria-label={t("attachedFiles")} className="m-0 flex list-none flex-wrap gap-2 p-0">
+          {files.map((f) => (
+            <li
+              key={f.id}
+              className="inline-flex max-w-[260px] items-center gap-1.5 rounded-md border border-line bg-sunken py-1 pr-1 pl-2 text-[13px]"
+            >
+              <FileText aria-hidden className="size-3.5 shrink-0 text-fg-muted" />
+              <span className="truncate" title={f.name}>
+                {f.name}
+              </span>
+              {f.truncated ? <span className="text-fg-muted">· {t("attachCut")}</span> : null}
+              <button
+                type="button"
+                aria-label={t("attachRemove", { name: f.name })}
+                onClick={() => setFiles((list) => list.filter((x) => x.id !== f.id))}
+                className="rounded p-0.5 text-fg-muted hover:text-fg"
+              >
+                <X aria-hidden className="size-3.5" />
+              </button>
+            </li>
+          ))}
+          {attaching ? (
+            <li role="status" className="py-1 text-[13px] text-fg-muted">
+              {t("attaching")}
+            </li>
+          ) : null}
+        </ul>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            size="lg"
-            className="w-11 px-0"
-            aria-label={t("attach")}
-            disabled={attaching}
-            onClick={() => fileInput.current?.click()}
-          >
-            <Paperclip aria-hidden className="size-4" />
-          </Button>
-          <input
-            ref={fileInput}
-            type="file"
-            multiple
-            accept={ACCEPT}
-            className="hidden"
-            tabIndex={-1}
-            aria-hidden
-            onChange={(e) => void attach(e.currentTarget)}
-          />
+          {attach ? (
+            <>
+              <Button
+                type="button"
+                size="lg"
+                className="w-11 px-0"
+                aria-label={t("attach")}
+                title={t("attachHint", { types: attach.accept.join(" ") })}
+                disabled={attaching || files.length >= MAX_FILES}
+                onClick={() => fileInput.current?.click()}
+              >
+                <Paperclip aria-hidden className="size-4" />
+              </Button>
+              <input
+                ref={fileInput}
+                type="file"
+                multiple
+                accept={attach.accept.join(",")}
+                className="hidden"
+                tabIndex={-1}
+                aria-hidden
+                onChange={(e) => void addFiles(e.currentTarget)}
+              />
+            </>
+          ) : null}
           <div
             role="radiogroup"
             aria-label={t("mode")}
@@ -141,12 +190,9 @@ export function Composer({
           {busy ? t("answering") : (submitLabel ?? t("ask"))}
         </Button>
       </div>
-      {attachNote ? (
-        <p
-          role={attachNote.ok ? "status" : "alert"}
-          className={cn("m-0 text-xs", attachNote.ok ? "text-fg-muted" : "text-red")}
-        >
-          {attachNote.text}
+      {attachError ? (
+        <p role="alert" className="m-0 text-xs text-red">
+          {attachError}
         </p>
       ) : null}
     </form>

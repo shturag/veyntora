@@ -54,6 +54,7 @@ from veyntora_api.routers import (
     hooks,
     internal,
     me,
+    me_attachments,
     me_files,
     me_notifications,
     me_saved,
@@ -200,6 +201,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(me.router)
     app.include_router(me_files.router)
+    app.include_router(me_attachments.router)
     app.include_router(me_settings.router)
     app.include_router(chat.router)
     app.include_router(admin_providers.router)

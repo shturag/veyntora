@@ -21,14 +21,20 @@ from langchain_core.messages import HumanMessage
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_api.chatbots import service as bots
 from veyntora_api.db.models.chatbots import ChatbotStatus
-from veyntora_api.db.models.conversations import Citation, Conversation, Message, MessageRole
+from veyntora_api.db.models.conversations import (
+    ChatAttachment,
+    Citation,
+    Conversation,
+    Message,
+    MessageRole,
+)
 from veyntora_api.db.models.identity import GroupSource, Membership, User
 from veyntora_api.db.models.providers import ByokKey, ProviderInstance
 from veyntora_api.db.models.quality import UsageRecord
 from veyntora_api.knowledge import service as knowledge
 from veyntora_api.knowledge import vocabulary
 from veyntora_api.providers.runtime import Retrying
-from veyntora_api.rag import pipeline
+from veyntora_api.rag import attachments, pipeline
 from veyntora_api.rag.pipeline import RunRefusedError, answer, load_context
 from veyntora_api.rag.record import PRICE_IN, PRICE_OUT
 from veyntora_api.routers.admin_playground import PlaygroundResult
@@ -795,4 +801,72 @@ async def test_the_asker_chooses_among_offered_models_and_thinking(rag: Rag) -> 
     assert (
         pipeline.with_choices(ctx, str(ctx.spec.generation.llm_instance_id), False).thinking
         is False
+    )
+
+
+async def _attach(rag: Rag, text: str, name: str = "notes.txt") -> ChatAttachment:
+    row = ChatAttachment(
+        user_id=rag.w.user.id, chatbot_id=rag.bot.id, name=name, mime_type="text/plain", text=text
+    )
+    rag.w.db.add(row)
+    await rag.w.db.flush()
+    return row
+
+
+async def test_attached_files_go_with_a_general_chat_question(rag: Rag) -> None:
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.retrieval.enabled = False
+    row = await _attach(rag, "The team meeting moved to Friday at 10.")
+    ctx = dataclasses.replace(
+        ctx, no_documents_allowed=True, attachments=tuple(attachments.fit([row]))
+    )
+    rag.llm.reply = "The meeting is on Friday at 10."
+    result = await answer(rag.w.db, rag.adapters(), ctx, "Summarize this!")
+    assert result.outcome == "answered" and not result.no_sources
+    [(n, source)] = result.cited
+    assert n == 1 and source.title == "notes.txt" and source.document_id == ""
+    system, user = rag.llm.calls[-1][0], rag.llm.calls[-1][-1]
+    assert "attached the files" in system.content
+    assert "moved to Friday" in user.content and "Question: Summarize this!" in user.content
+
+
+async def test_a_grounded_chatbot_answers_from_an_attached_file(rag: Rag) -> None:
+    # Nothing in the knowledge base answers this, but the attached file does.
+    row = await _attach(
+        rag, "Invoice 4711 from Acme Supplies must be paid by 30 November.", "invoice.txt"
+    )
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx = dataclasses.replace(ctx, attachments=tuple(attachments.fit([row])))
+    rag.llm.reply = "Invoice 4711 from Acme Supplies must be paid by 30 November [1]."
+    result = await answer(rag.w.db, rag.adapters(), ctx, "When is invoice 4711 due?")
+    assert result.outcome == "answered"
+    assert result.cited[0][1].chunk_id == f"{pipeline.ATTACHMENT}{row.id}"
+
+
+async def test_files_belong_to_their_asker_and_conversation(rag: Rag) -> None:
+    db = rag.w.db
+    row = await _attach(rag, "Private notes.")
+    found = await attachments.for_run(
+        db, user_id=rag.w.user.id, chatbot_id=rag.bot.id, thread_id="t-1", ids=[str(row.id)]
+    )
+    assert [f.id for f in found] == [row.id]
+    # Not someone else's, and not for another chatbot.
+    assert not await attachments.for_run(
+        db, user_id=uuid4(), chatbot_id=rag.bot.id, thread_id="t-1", ids=[str(row.id)]
+    )
+    assert not await attachments.for_run(
+        db, user_id=rag.w.user.id, chatbot_id=uuid4(), thread_id="t-1", ids=[str(row.id)]
+    )
+    # Once sent in a conversation it stays there.
+    conv = Conversation(
+        chatbot_id=rag.bot.id, user_id=rag.w.user.id, thread_id="t-1", title="Notes"
+    )
+    db.add(conv)
+    await db.flush()
+    await attachments.link(db, conv.id, [row.id])
+    assert await attachments.for_run(
+        db, user_id=rag.w.user.id, chatbot_id=rag.bot.id, thread_id="t-1", ids=[str(row.id)]
+    )
+    assert not await attachments.for_run(
+        db, user_id=rag.w.user.id, chatbot_id=rag.bot.id, thread_id="t-2", ids=[str(row.id)]
     )

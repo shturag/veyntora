@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { ChatHeaderActions } from "@/components/chat/chat-header-menu";
 import { ChatView } from "@/components/chat/chat-view";
+import type { AttachedFile } from "@/lib/chat";
 import { MODES } from "@/lib/chat";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
@@ -11,12 +12,12 @@ export const generateMetadata = () => screenMetadata("chat");
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ bot?: string; q?: string; mode?: string }>;
+  searchParams: Promise<{ bot?: string; q?: string; mode?: string; files?: string }>;
 };
 
 export default async function ChatPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { bot, q, mode } = await searchParams;
+  const { bot, q, mode, files } = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const api = await serverApi();
   const [conv, { data: prefs }] = await Promise.all([
@@ -53,8 +54,29 @@ export default async function ChatPage({ params, searchParams }: Props) {
         initialMode={initialMode}
         showSteps={prefs?.show_agent_steps ?? true}
         initialQuestion={conv.data ? undefined : q}
+        initialFiles={conv.data ? undefined : filesOf(files)}
         aiNotice={info?.ai_notice}
       />
     </div>
   );
+}
+
+/** Files attached on Home to the first question (the server checks they are the asker's). */
+function filesOf(raw?: string): AttachedFile[] | undefined {
+  if (!raw) return undefined;
+  try {
+    const list: unknown = JSON.parse(raw);
+    if (!Array.isArray(list)) return undefined;
+    return list
+      .filter(
+        (f): f is AttachedFile =>
+          typeof f === "object" &&
+          f !== null &&
+          typeof f.id === "string" &&
+          typeof f.name === "string",
+      )
+      .slice(0, 5);
+  } catch {
+    return undefined;
+  }
 }

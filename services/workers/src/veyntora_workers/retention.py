@@ -63,6 +63,7 @@ async def run(settings: Settings, now: datetime | None = None) -> dict[str, int]
     async with get_sessionmaker()() as db:
         out["chats"] = await retention.purge_chats(db, now)
         out["uploads"] = await retention.purge_uploads(db, now)
+        out["attachments"] = await retention.purge_attachments(db, now)
         if settings.audit_archive_bucket:
             bucket = audit_archive.LockedBucket(settings)
             for _ in range(100):  # at most 500,000 entries a night

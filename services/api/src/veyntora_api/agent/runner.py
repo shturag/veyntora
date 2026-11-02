@@ -38,6 +38,7 @@ from veyntora_api.rag.pipeline import (
     Source,
     _adapter,
     _llm,
+    attached_sources,
     rerank,
     retrieve,
     system_prompt,
@@ -143,7 +144,20 @@ def start(
         "question": question,
         "language": language,
         "transcript": transcript,
-        "sources": [],
+        # The asker's attached files are the first sources (the question carries them).
+        "sources": [
+            {
+                "n": n,
+                "chunk_id": src.chunk_id,
+                "document_id": "",
+                "title": src.title,
+                "section": src.section,
+                "text": src.text,
+                "page": None,
+                "score": src.score,
+            }
+            for n, src in enumerate(attached_sources(ctx), 1)
+        ],
         "steps": [],
         "pending": [],
         "calls": [],

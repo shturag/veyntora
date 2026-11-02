@@ -219,6 +219,9 @@ class ChatSpec(_Spec):
     llm_instance_ids: list[InstanceRef] = Field(default_factory=list, max_length=12)
     # People may turn thinking on for a question (models that support it).
     thinking: bool = False
+    # People may attach files to a question; their text goes with it to the answer model
+    # (read in-house: plain text directly, other formats by the ingestion parser).
+    attachments: bool = True
 
     @field_validator("llm_instance_ids")
     @classmethod

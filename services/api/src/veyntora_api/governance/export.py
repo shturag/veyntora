@@ -12,7 +12,13 @@ from uuid import UUID
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from veyntora_api.db.models.conversations import Conversation, Feedback, Message, SavedAnswer
+from veyntora_api.db.models.conversations import (
+    ChatAttachment,
+    Conversation,
+    Feedback,
+    Message,
+    SavedAnswer,
+)
 from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.knowledge import DataSource, Document, DocumentStatus
 
@@ -60,6 +66,13 @@ async def export_zip(db: AsyncSession, store: Any, user_id: UUID) -> bytes:
             await db.execute(sa.select(SavedAnswer).where(SavedAnswer.user_id == user_id))
         ).scalars()
         put("saved_answers.json", [{"title": s.title, "at": s.created_at} for s in saved])
+        files = (
+            await db.execute(sa.select(ChatAttachment).where(ChatAttachment.user_id == user_id))
+        ).scalars()
+        put(
+            "chat_attachments.json",
+            [{"name": f.name, "text": f.text, "at": f.created_at} for f in files],
+        )
         fb = (await db.execute(sa.select(Feedback).where(Feedback.user_id == user_id))).scalars()
         put(
             "feedback.json",

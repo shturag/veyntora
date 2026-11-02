@@ -3,11 +3,11 @@
 import { cn } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { newThread } from "@/lib/chat";
+import { api, newThread } from "@/lib/chat";
 
-import type { Mode } from "@/lib/chat";
+import type { AttachedFile, ChatFeatures, Mode } from "@/lib/chat";
 
 import { Composer } from "./composer";
 
@@ -32,13 +32,36 @@ export function HomeClient({
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  // File endings the chosen assistant reads from attached files (none: no paperclip).
+  const [accept, setAccept] = useState<string[]>([]);
+  const [general, setGeneral] = useState(false);
 
-  async function start(question: string) {
+  useEffect(() => {
+    if (!selected) return;
+    let live = true;
+    api<ChatFeatures>(`/v1/me/chatbots/${selected}/features`)
+      .then((f) => {
+        if (!live) return;
+        setAccept(f.attachments ?? []);
+        setGeneral(f.documents === false);
+      })
+      .catch(() => {
+        if (live) setAccept([]);
+      });
+    return () => {
+      live = false;
+    };
+  }, [selected]);
+
+  async function start(question: string, files: AttachedFile[]) {
     setBusy(true);
     setError(false);
     try {
       const thread = await newThread();
       const params = new URLSearchParams({ bot: selected, q: question, mode });
+      if (files.length) {
+        params.set("files", JSON.stringify(files.map(({ id, name }) => ({ id, name }))));
+      }
       router.push(`/chat/${thread}?${params.toString()}`);
     } catch {
       setError(true);
@@ -86,7 +109,17 @@ export function HomeClient({
           ))}
         </div>
       </div>
-      <Composer onSubmit={start} mode={mode} onModeChange={setMode} busy={busy} autoFocus />
+      <Composer
+        // Files belong to one assistant: switching starts the attachments over.
+        key={selected}
+        onSubmit={start}
+        mode={mode}
+        onModeChange={setMode}
+        busy={busy}
+        autoFocus
+        attach={accept.length ? { chatbotId: selected, accept } : null}
+        placeholder={general ? t("placeholderGeneral") : undefined}
+      />
       {error ? (
         <p role="alert" className="m-0 text-sm text-red">
           {t("startFailed")}

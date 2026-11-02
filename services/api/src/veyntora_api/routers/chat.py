@@ -19,9 +19,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.background import BackgroundTask
 
-from veyntora_api.auth.deps import CurrentPrincipal, DbSession, State
+from veyntora_api.auth.deps import CurrentPrincipal, DbSession, Principal, State
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.conversations import (
+    ChatAttachment,
     Citation,
     Conversation,
     Feedback,
@@ -32,6 +33,7 @@ from veyntora_api.db.models.conversations import (
 from veyntora_api.db.models.knowledge import DataSource, Document
 from veyntora_api.knowledge import health as knowledge_health
 from veyntora_api.knowledge.service import may_read, user_principals
+from veyntora_api.rag import attachments
 from veyntora_api.storage import ObjectStore
 
 router = APIRouter(prefix="/v1/chat", tags=["chat"])
@@ -83,6 +85,31 @@ def _modes(out: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+async def _name_attachments(db: DbSession, principal: Principal, data: dict[str, Any]) -> None:
+    """The question shows the names of its files; they must be the asker's, for this chatbot
+    (the graph checks again, and that a file stays in its conversation)."""
+    ids = [UUID(i) for i in data["attachments"]]
+    if not ids:
+        return
+    rows = (
+        await db.execute(
+            sa.select(ChatAttachment.id, ChatAttachment.name).where(
+                ChatAttachment.id.in_(ids),
+                ChatAttachment.user_id == principal.user_id,
+                ChatAttachment.chatbot_id == UUID(data["chatbot_id"]),
+            )
+        )
+    ).all()
+    if len(rows) != len(ids):
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "An attached file is no longer available."
+        )
+    names = {i: n for i, n in rows}
+    data["messages"][0]["additional_kwargs"] = {
+        "veyntora": {"attachments": [{"id": str(i), "name": names[i]} for i in ids]}
+    }
+
+
 def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     out = {k: v for k, v in body.items() if k in _RUN_KEYS}
     if "command" in out:
@@ -125,19 +152,30 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     thinking = data.get("thinking")
     if thinking is not None and not isinstance(thinking, bool):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "thinking must be true or false")
+    files = data.get("attachments") or []
+    if not isinstance(files, list) or len(files) > attachments.MAX_PER_QUESTION:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            f"attach at most {attachments.MAX_PER_QUESTION} files to a question",
+        )
+    try:
+        files = list(dict.fromkeys(str(UUID(str(f))) for f in files))
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown attachment") from exc
     out["input"] = {
         "chatbot_id": chatbot_id,
         "mode": mode,
         "messages": [{"type": "human", "content": content}],
         "model": model,
         "thinking": thinking,
+        "attachments": files,
     }
     return _modes(out)
 
 
 @router.api_route("/lg/{path:path}", methods=["GET", "POST"], include_in_schema=False)
 async def graph_proxy(
-    path: str, request: Request, principal: CurrentPrincipal, state: State
+    path: str, request: Request, principal: CurrentPrincipal, state: State, db: DbSession
 ) -> Response:
     method = request.method
     if not any(m == method and p.fullmatch(path) for m, p in _ALLOWED):
@@ -157,6 +195,7 @@ async def graph_proxy(
                 )
                 if not allowed:
                     raise HTTPException(status.HTTP_403_FORBIDDEN, "No access to this assistant")
+                await _name_attachments(db, principal, body["input"])
         elif path == "threads":
             body = {}  # threads carry no client metadata; the owner is set by the server
         elif path == "threads/search":
@@ -334,13 +373,16 @@ async def export_chat(thread_id: str, principal: CurrentPrincipal, db: DbSession
         if m.role is MessageRole.ASSISTANT:
             cites = (
                 await db.execute(
-                    sa.select(Citation, Document)
+                    sa.select(Citation, Document, ChatAttachment.name)
                     .outerjoin(Document, Document.id == Citation.document_id)
+                    .outerjoin(ChatAttachment, ChatAttachment.id == Citation.attachment_id)
                     .where(Citation.message_id == m.id)
                     .order_by(Citation.ordinal)
                 )
             ).all()
-            lines += [f"- [{c.ordinal}] {(d.title or d.path) if d else ''}" for c, d in cites]
+            for c, d, file in cites:
+                name = (d.title or d.path) if d else f"{file} (attached)" if file else ""
+                lines.append(f"- [{c.ordinal}] {name}")
             lines.append("")
     return Response(
         "\n".join(lines),
@@ -357,6 +399,8 @@ class CitationOut(BaseModel):
     document_id: UUID | None
     quote: str
     page: int | None
+    # A file the asker attached (ADR 0028), instead of a document.
+    attachment: str | None = None
 
 
 @router.get("/messages/{message_id}/citations", summary="The sources an answer cites")
@@ -367,17 +411,21 @@ async def citations(
     principals = await user_principals(db, principal.user_id)
     rows = (
         await db.execute(
-            sa.select(Citation, Document)
+            sa.select(Citation, Document, ChatAttachment.name)
             .outerjoin(Document, Document.id == Citation.document_id)
+            .outerjoin(ChatAttachment, ChatAttachment.id == Citation.attachment_id)
             .where(Citation.message_id == message_id)
             .order_by(Citation.ordinal)
         )
     ).all()
-    # A quote stays visible only while the user may still read its document.
+    # A quote stays visible only while the user may still read its document; attached files
+    # are the asker's own (and gone with their conversation).
     return [
-        CitationOut(n=c.ordinal, document_id=c.document_id, quote=c.quote, page=c.page)
-        for c, doc in rows
-        if doc is not None and may_read(principals, doc)
+        CitationOut(
+            n=c.ordinal, document_id=c.document_id, quote=c.quote, page=c.page, attachment=file
+        )
+        for c, doc, file in rows
+        if (doc is not None and may_read(principals, doc)) or file is not None
     ]
 
 

@@ -7,6 +7,7 @@ export type TokenBudget = number;
 export type Enabled = boolean;
 export type ToolId = string;
 export type Tools = AgentToolBinding[];
+export type Attachments = boolean;
 /**
  * @maxItems 12
  */
@@ -138,6 +139,7 @@ export interface AgentToolBinding {
  * What people may switch in the chat (ADR 0027).
  */
 export interface ChatSpec {
+  attachments?: Attachments;
   llm_instance_ids?: LlmInstanceIds;
   thinking?: Thinking;
 }

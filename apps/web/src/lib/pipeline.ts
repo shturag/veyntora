@@ -182,6 +182,7 @@ export const SECTIONS: readonly Section[] = [
     fields: [
       { name: "llm_instance_ids", kind: "instances", capability: "llm" },
       { name: "thinking", kind: "toggle" },
+      { name: "attachments", kind: "toggle" },
     ],
   },
 ];

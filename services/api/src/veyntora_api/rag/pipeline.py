@@ -69,6 +69,7 @@ from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.providers.service import with_fallbacks
 from veyntora_api.rag import grounding
+from veyntora_api.rag.attachments import Attached
 from veyntora_api.rag.guard import (
     Masker,
     Span,
@@ -157,6 +158,8 @@ class RunContext:
     no_documents_allowed: bool = False
     # The asker turned thinking on or off for this question (None: the model's default).
     thinking: bool | None = None
+    # Files the asker attached in this conversation (ADR 0028), cut to fit the question.
+    attachments: tuple[Attached, ...] = ()
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -675,6 +678,9 @@ If the sources do not answer the question, reply with exactly: NO_ANSWER"""
 _FREE_RULES = """There are no company documents in this conversation; answer from general knowledge.
 Never state company-specific facts (policies, prices, people, internal systems) as known:
 say that you cannot check them and suggest where to look. Say so when you are not sure."""
+_FREE_FILES = """
+The person attached the files in <sources>. Use them for anything the question asks about
+them; quote them faithfully and do not invent what they do not say."""
 
 
 _LENGTH = {
@@ -702,6 +708,25 @@ def system_prompt(ctx: RunContext, language: str, rules: str = _RULES) -> str:
     )
     length = _LENGTH.get(str(ctx.preferences.get("answer_length") or ""), "")
     return f"{base.strip()}\n\n{rules}\n{lang}{length}"
+
+
+ATTACHMENT = "attachment:"
+
+
+def attached_sources(ctx: RunContext) -> list[Source]:
+    """The asker's attached files as sources, numbered before any document."""
+    return [
+        Source(
+            chunk_id=f"{ATTACHMENT}{a.id}",
+            document_id="",
+            title=a.name,
+            section="attached file" + (" (cut to fit)" if a.cut else ""),
+            text=a.text,
+            page=None,
+            score=1.0,
+        )
+        for a in ctx.attachments
+    ]
 
 
 def sources_block(sources: Sequence[Source]) -> str:
@@ -960,6 +985,7 @@ async def answer(  # noqa: PLR0911 - one return per outcome
         run.egress |= llm_external
         run.steps["rewrite"] = round((time.perf_counter() - t0) * 1000)
 
+    attached = attached_sources(ctx)
     if not spec.retrieval.enabled:
         return await _without_documents(
             adapters,
@@ -971,6 +997,7 @@ async def answer(  # noqa: PLR0911 - one return per outcome
             language=language_hint,
             emit=emit,
             tr=tr,
+            attached=attached,
         )
 
     emit_({"type": "status", "step": "searching"})
@@ -978,6 +1005,7 @@ async def answer(  # noqa: PLR0911 - one return per outcome
         db, adapters, ctx, query, tr=tr, steps=run.steps
     )
     run.egress |= external
+    sources = [*attached, *sources]
     if not sources:
         return run.finish(Answer("no_answer", no_answer))
 
@@ -1056,6 +1084,7 @@ async def _without_documents(
     language: str,
     emit: Emit | None,
     tr: Trace,
+    attached: Sequence[Source] = (),
 ) -> Answer:
     """General chat: the data rule must allow it, input checks and masking have run, the
     output check still applies, and the answer is marked as having no sources."""
@@ -1071,13 +1100,13 @@ async def _without_documents(
         run,
         question=question,
         history=history,
-        sources=[],
+        sources=attached,
         masker=masking[0] if masking else None,
         pii=masking[1] if masking else None,
         language=language,
         emit=None if hold else emit,
         tr=tr,
-        rules=_FREE_RULES,
+        rules=_FREE_RULES + (_FREE_FILES if attached else ""),
     )
     with tr.step("output_check") as step:
         out = await check_output(
@@ -1087,6 +1116,16 @@ async def _without_documents(
     run.egress |= ctx.hosting(g.output_guardrail_instance_id) is Hosting.EXTERNAL
     if out.action != "allow":
         return run.finish(Answer("blocked", g.blocked_message, warning=out.reason))
+    if attached:
+        # Answered from the asker's files: they are its sources.
+        return run.finish(
+            Answer(
+                "answered",
+                text.strip(),
+                sources=list(attached),
+                cited=list(enumerate(attached, 1)),
+            )
+        )
     return run.finish(Answer("answered", text.strip(), no_sources=True))
 
 

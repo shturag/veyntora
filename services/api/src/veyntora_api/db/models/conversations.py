@@ -99,6 +99,30 @@ class Citation(IdMixin, Base):
     quote: Mapped[str] = mapped_column(sa.Text)
     score: Mapped[float | None] = mapped_column(sa.Float)
     page: Mapped[int | None] = mapped_column(sa.Integer)
+    # A file attached to the question instead of a document.
+    attachment_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("chat_attachments.id", ondelete="SET NULL"), index=True
+    )
+
+
+class ChatAttachment(IdMixin, Base):
+    """A file attached to a question: its text, read when it was attached (ADR 0028). It
+    belongs to one person and chatbot, and to the conversation it was first sent in;
+    deleting the conversation deletes it."""
+
+    __tablename__ = "chat_attachments"
+
+    user_id: Mapped[UUID] = mapped_column(sa.ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    chatbot_id: Mapped[UUID] = mapped_column(sa.ForeignKey("chatbots.id", ondelete="CASCADE"))
+    conversation_id: Mapped[UUID | None] = mapped_column(
+        sa.ForeignKey("conversations.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(sa.String(255))
+    mime_type: Mapped[str] = mapped_column(sa.String(128))
+    text: Mapped[str] = mapped_column(sa.Text)
+    # The text was cut to what is kept for a chat.
+    truncated: Mapped[bool] = mapped_column(sa.Boolean, server_default=sa.false())
+    created_at: Mapped[datetime] = utcnow_col(nullable=False)
 
 
 class Feedback(IdMixin, Base):
