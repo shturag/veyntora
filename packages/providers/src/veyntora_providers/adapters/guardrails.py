@@ -3,8 +3,9 @@
 - `azure_pii`: Azure AI Language PII entity recognition (German and English). Finds personal
   data so it can be masked before text goes to an external model, or blocked.
 - `presidio`: a Microsoft Presidio analyzer you run yourself (not part of this stack). Finds
-  personal data, for the PII slot. A key is optional (sent as a bearer token, for a
-  Presidio behind a gateway).
+  personal data, for the PII slot. A key is optional, for a Presidio behind a gateway or a
+  wrapper API: it is sent as a bearer token and as `X-API-Key`. The reply may be Presidio's
+  list of findings or a wrapper's `{"entities": [...]}`.
 - `llama_guard`: Llama Guard served by an OpenAI-compatible provider. Judges the question
   (input) or the answer (output) against its standard hazard categories plus custom ones:
   prompt injection, the pipeline's blocked topics and, for answers, promises.
@@ -278,7 +279,7 @@ class Presidio(_Base):
     ) -> list[Entity]:
         res = await http.post(
             f"{self._base}/analyze",
-            headers={"Authorization": f"Bearer {key}"} if key else {},
+            headers={"Authorization": f"Bearer {key}", "X-API-Key": key} if key else {},
             json={
                 "text": text,
                 # Presidio knows the languages it was set up with; others are read as English.
@@ -293,6 +294,8 @@ class Presidio(_Base):
             raise KeyRejectedError(f"Presidio rejected the key (HTTP {res.status_code})")
         if res.status_code != 200:
             raise GuardrailRequestError(f"Presidio refused the request (HTTP {res.status_code})")
+        data = res.json()
+        found = data.get("entities", []) if isinstance(data, dict) else data
         return [
             Entity(
                 text=text[int(e["start"]) : int(e["end"])],
@@ -301,7 +304,7 @@ class Presidio(_Base):
                 length=int(e["end"]) - int(e["start"]),
                 score=float(e.get("score", 0)),
             )
-            for e in res.json()
+            for e in found
         ]
 
     async def detect(self, texts: Sequence[str], language: str = "de") -> list[list[Entity]]:

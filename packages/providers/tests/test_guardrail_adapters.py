@@ -148,8 +148,9 @@ async def test_presidio_finds_personal_data_per_text_and_language() -> None:
     ]
     # Empty texts are not sent; the language is passed on; dates and URLs are not asked for.
     assert len(sent) == 2 and sent[0]["language"] == "de"
-    # A key, when set (a Presidio behind a gateway), is sent as a bearer token.
-    assert respx.calls.last.request.headers["authorization"] == f"Bearer {KEY}"
+    # A key, when set (a gateway or a wrapper API), is sent both ways.
+    headers = respx.calls.last.request.headers
+    assert headers["authorization"] == f"Bearer {KEY}" and headers["x-api-key"] == KEY
     assert "DATE_TIME" not in sent[0]["entities"] and "URL" not in sent[0]["entities"]
     await guard.detect(["x", "y"], "fr")
     assert sent[-1]["language"] == "en"
@@ -165,3 +166,17 @@ async def test_presidio_errors_carry_the_status_only() -> None:
     respx.post(f"{PRESIDIO}/analyze").respond(503)
     with pytest.raises(httpx.TransportError):
         await guard.detect(["Anna"], "en")
+
+
+@respx.mock
+async def test_presidio_wrappers_that_wrap_the_findings_work_too() -> None:
+    respx.post(f"{PRESIDIO}/analyze").respond(
+        200,
+        json={
+            "language": "en",
+            "entities": [{"entity_type": "EMAIL_ADDRESS", "start": 3, "end": 15, "score": 1.0}],
+        },
+    )
+    guard = registry.create(_cfg("presidio", PRESIDIO), Secret())
+    [found] = await guard.detect(["To jane@ex.com"], "en")
+    assert [(e.category, e.text) for e in found] == [("EMAIL_ADDRESS", "jane@ex.com")]
