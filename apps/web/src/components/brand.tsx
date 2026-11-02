@@ -15,17 +15,20 @@ export function BrandLogo({
   tone = "auto",
   height = 28,
   className,
+  decorative = false,
 }: {
   tone?: "auto" | "light" | "dark";
   height?: number;
   className?: string;
+  /** The name is already written next to it (e.g. in a heading's hidden text). */
+  decorative?: boolean;
 }) {
   const t = useTranslations("common");
   const width = Math.round(height * RATIO);
   const img = (src: string, extra?: string) => (
     <Image
       src={src}
-      alt={t("brand")}
+      alt={decorative ? "" : t("brand")}
       width={width}
       height={height}
       priority

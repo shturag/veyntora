@@ -68,6 +68,10 @@
   --font-mono: var(--vey-font-mono);
 
   --shadow-popover: var(--vey-shadow-popover);
+  --shadow-card: var(--vey-shadow-card);
+  --color-brand-cyan: var(--vey-brand-cyan);
+  --color-brand-blue: var(--vey-brand-blue);
+  --color-brand-violet: var(--vey-brand-violet);
 }
 
 @layer base {

@@ -130,7 +130,9 @@ def _version(v: PipelineVersion) -> VersionOut:
         status=v.status.value,
         change_note=v.change_note,
         published_at=v.published_at,
-        spec=v.spec,
+        # With every default filled in: a setting added after the version was saved shows
+        # its default instead of looking empty (and being saved as off from a form).
+        spec=PipelineSpec.model_validate(v.spec).model_dump(mode="json"),
     )
 
 

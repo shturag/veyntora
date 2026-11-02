@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,3 +87,19 @@ async def test_cards_overview_duplicate_and_preview(db: AsyncSession) -> None:
     assert {p.chatbot for p in seen} == {bot.name, "Support copy"}
     with pytest.raises(Exception, match="Person not found"):
         await insights.preview(bot.id, team.id, me, state, db)
+
+
+async def test_versions_come_back_with_every_default(db: AsyncSession) -> None:
+    from veyntora_api.db.models.chatbots import PipelineStatus, PipelineVersion  # noqa: PLC0415
+    from veyntora_api.routers.admin_chatbots import _version  # noqa: PLC0415
+
+    # Saved before retrieval.enabled existed: the key is missing in the stored JSON.
+    old = PipelineVersion(
+        id=uuid4(),
+        number=1,
+        status=PipelineStatus.DRAFT,
+        change_note="",
+        spec={"retrieval": {"top_k": 7}},
+    )
+    out = _version(old)
+    assert out.spec["retrieval"]["enabled"] is True and out.spec["retrieval"]["top_k"] == 7

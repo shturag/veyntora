@@ -10,7 +10,9 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-accent text-on-accent font-semibold hover:bg-accent-hover",
+        // The logo's blue→violet; hover deepens it with an overlay so the text stays readable.
+        primary:
+          "bg-accent bg-[image:var(--vey-primary-gradient)] text-on-accent font-semibold shadow-sm hover:shadow-[inset_0_0_0_999px_rgba(0,0,0,0.12)] dark:hover:shadow-[inset_0_0_0_999px_rgba(255,255,255,0.12)]",
         secondary: "border border-line-strong bg-surface text-fg hover:bg-sunken",
         danger: "bg-red text-white font-semibold hover:opacity-90 dark:text-ground",
         // For destructive actions next to everyday ones: red, but not shouting.

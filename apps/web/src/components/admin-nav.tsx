@@ -11,7 +11,8 @@ import { NavLink } from "./nav-link";
 
 const link =
   "rounded-md px-3 py-[9px] text-sm text-nav-fg no-underline hover:bg-nav-active hover:text-nav-fg-active";
-const active = "bg-nav-active font-medium text-nav-fg-active";
+const active =
+  "bg-nav-active font-medium text-nav-fg-active relative before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-[image:var(--vey-brand-gradient)]";
 
 /** The admin console's dark rail (prototype: Overview.html). Only areas the user may open are listed. */
 export function AdminNav({ me }: { me: Me }) {

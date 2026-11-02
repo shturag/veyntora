@@ -30,6 +30,7 @@ export default async function SignInPage({
   if (!params.error && !params.signed_out && (await getMe().catch(() => null))) redirect(returnTo);
 
   const t = await getTranslations("signIn");
+  const brand = (await getTranslations("common"))("brand");
   const locale = await getLocale();
   const info = await getPublicInfo();
   const days = info?.chat_retention_days ?? 90;
@@ -42,15 +43,21 @@ export default async function SignInPage({
   const footerLink = "text-fg-muted hover:text-fg";
 
   return (
-    <div className="flex min-h-screen flex-col bg-ground">
-      <header className="flex justify-end px-7 py-5">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-ground">
+      {/* The logo's colours, softly behind the card. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-48 left-1/2 size-[720px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(90,31,220,.14),rgba(0,180,236,.08)_45%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(124,92,255,.22),rgba(0,180,236,.1)_45%,transparent_70%)]"
+      />
+      <header className="relative flex justify-end px-7 py-5">
         <LanguageSelect />
       </header>
-      <main id="main" className="flex flex-1 items-center justify-center p-6">
-        <div className="box-border flex w-full max-w-[420px] flex-col gap-6 rounded-[18px] border border-line bg-surface px-9 py-10 shadow-[0_8px_30px_rgba(27,27,31,0.06)]">
+      <main id="main" className="relative flex flex-1 items-center justify-center p-6">
+        <div className="box-border flex w-full max-w-[420px] flex-col gap-6 rounded-[18px] border border-line bg-surface px-9 py-10 shadow-[0_8px_30px_rgba(11,16,51,0.08)]">
           <div className="flex flex-col items-center gap-3.5 text-center">
             <h1 className="m-0">
-              <BrandLogo height={56} />
+              <span className="sr-only">{brand}</span>
+              <BrandLogo height={56} decorative />
             </h1>
             <p className="m-0 text-[15px] leading-normal text-fg-muted">{t("tagline")}</p>
           </div>

@@ -12,7 +12,8 @@ type Recent = { id: string; thread_id: string | null; title: string };
 
 const link =
   "rounded-md px-3 py-2.5 text-sm text-fg-secondary no-underline hover:bg-sunken hover:text-fg";
-const active = "bg-accent-soft font-medium text-fg";
+const active =
+  "bg-accent-soft font-medium text-fg relative before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-[image:var(--vey-brand-gradient)]";
 
 /**
  * The user app's left sidebar (prototype: Home.html) with the most recent chats, and the

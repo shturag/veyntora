@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const btn =
   "inline-flex h-11 items-center gap-2 rounded-[10px] px-5 text-sm font-semibold no-underline box-border";
-const btnLight = `${btn} bg-white !text-hero hover:bg-[#E6E8F8]`;
+const btnLight = `${btn} bg-white !text-hero hover:bg-[#E9E5FF]`;
 const btnOutline = `${btn} border border-hero-line !text-white hover:border-hero-accent`;
 const card =
   "relative flex flex-col gap-3 overflow-hidden rounded-[18px] border border-line bg-surface p-[26px] !text-fg no-underline transition hover:-translate-y-1 hover:border-accent-soft-strong hover:shadow-[0_18px_40px_rgba(18,19,24,0.1)]";
@@ -70,24 +70,24 @@ function RequestFlow({ t }: { t: (key: string) => string }) {
     <svg viewBox="0 0 1200 380" width="100%" role="img" aria-label={t("flowAria")}>
       <defs>
         <linearGradient id="gf" x1="0" x2="1">
-          <stop offset="0" stopColor="#8B98F5" />
-          <stop offset="1" stopColor="#5DD39E" />
+          <stop offset="0" stopColor="#00B4EC" />
+          <stop offset="1" stopColor="#8B6BFF" />
         </linearGradient>
         <filter id="gl">
           <feGaussianBlur stdDeviation="3" />
         </filter>
       </defs>
       <g fill="none" strokeWidth="2">
-        <path d="M170 190 H240" stroke="#3A3D4D" />
+        <path d="M170 190 H240" stroke="#2A3165" />
         <path
           id="pf"
           d="M170 190 H390 C435 190 435 80 480 80 H960 C1005 80 975 190 1010 190"
-          stroke="#3A3D4D"
+          stroke="#2A3165"
         />
         <path
           id="pa"
           d="M170 190 H390 C435 190 435 300 480 300 H960 C1005 300 975 190 1010 190"
-          stroke="#3A3D4D"
+          stroke="#2A3165"
         />
         <path
           d="M390 190 C435 190 435 80 480 80 H960 C1005 80 975 190 1010 190"
@@ -103,7 +103,7 @@ function RequestFlow({ t }: { t: (key: string) => string }) {
         />
       </g>
       <g>
-        <circle r="6" fill="#8B98F5" filter="url(#gl)">
+        <circle r="6" fill="#9AA8FF" filter="url(#gl)">
           <animateMotion dur="3.2s" repeatCount="indefinite">
             <mpath href="#pf" />
           </animateMotion>
@@ -135,43 +135,43 @@ function RequestFlow({ t }: { t: (key: string) => string }) {
         fontWeight="600"
         textAnchor="middle"
       >
-        <text x="480" y="34" textAnchor="start" fill="#8B98F5" fontSize="13">
+        <text x="480" y="34" textAnchor="start" fill="#9AA8FF" fontSize="13">
           {t("flowFast")}
         </text>
         <text x="480" y="362" textAnchor="start" fill="#E0A458" fontSize="13">
           {t("flowAgent")}
         </text>
-        <rect x="20" y="158" width="150" height="64" rx="14" fill="#1E2029" stroke="#3A3D4D" />
+        <rect x="20" y="158" width="150" height="64" rx="14" fill="#11163A" stroke="#2A3165" />
         <text x="95" y="186" fill="#fff">
           {t("flowQuestion")}
         </text>
-        <text x="95" y="206" fill="#8D8FA0" fontSize="12" fontWeight="400">
+        <text x="95" y="206" fill="#9AA0C8" fontSize="12" fontWeight="400">
           {t("flowQuestionExample")}
         </text>
-        <rect x="240" y="158" width="150" height="64" rx="14" fill="#262A4A" stroke="#5E6BD6" />
+        <rect x="240" y="158" width="150" height="64" rx="14" fill="#1C1F55" stroke="#6A5CFF" />
         <text x="315" y="186" fill="#fff">
           {t("flowRouter")}
         </text>
-        <text x="315" y="206" fill="#A9B1F2" fontSize="12" fontWeight="400">
+        <text x="315" y="206" fill="#B9B3FF" fontSize="12" fontWeight="400">
           {t("flowRouterSub")}
         </text>
-        <rect x="480" y="54" width="140" height="52" rx="12" fill="#1E2029" stroke="#3A3D4D" />
+        <rect x="480" y="54" width="140" height="52" rx="12" fill="#11163A" stroke="#2A3165" />
         <text x="550" y="85" fill="#fff">
           {t("flowSearch")}
         </text>
-        <rect x="650" y="54" width="140" height="52" rx="12" fill="#1E2029" stroke="#3A3D4D" />
+        <rect x="650" y="54" width="140" height="52" rx="12" fill="#11163A" stroke="#2A3165" />
         <text x="720" y="85" fill="#fff">
           {t("flowRerank")}
         </text>
-        <rect x="820" y="54" width="140" height="52" rx="12" fill="#1E2029" stroke="#3A3D4D" />
+        <rect x="820" y="54" width="140" height="52" rx="12" fill="#11163A" stroke="#2A3165" />
         <text x="890" y="85" fill="#fff">
           {t("flowGenerate")}
         </text>
-        <rect x="480" y="274" width="140" height="52" rx="12" fill="#1E2029" stroke="#3A3D4D" />
+        <rect x="480" y="274" width="140" height="52" rx="12" fill="#11163A" stroke="#2A3165" />
         <text x="550" y="305" fill="#fff">
           {t("flowPlan")}
         </text>
-        <rect x="650" y="274" width="140" height="52" rx="12" fill="#1E2029" stroke="#3A3D4D" />
+        <rect x="650" y="274" width="140" height="52" rx="12" fill="#11163A" stroke="#2A3165" />
         <text x="720" y="305" fill="#fff">
           {t("flowTools")}
         </text>
@@ -246,22 +246,22 @@ export default async function LandingPage() {
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-[260px] -right-[160px] size-[720px] rounded-full bg-[radial-gradient(circle,rgba(51,69,184,.55),transparent_65%)] [animation:vey-drift_12s_ease-in-out_infinite_alternate]"
+            className="pointer-events-none absolute -top-[260px] -right-[160px] size-[720px] rounded-full bg-[radial-gradient(circle,rgba(90,31,220,.5),transparent_65%)] [animation:vey-drift_12s_ease-in-out_infinite_alternate]"
           />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -bottom-[260px] -left-[120px] size-[520px] rounded-full bg-[radial-gradient(circle,rgba(30,107,69,.35),transparent_65%)] [animation:vey-drift_14s_ease-in-out_infinite_alternate-reverse]"
+            className="pointer-events-none absolute -bottom-[260px] -left-[120px] size-[520px] rounded-full bg-[radial-gradient(circle,rgba(0,180,236,.28),transparent_65%)] [animation:vey-drift_14s_ease-in-out_infinite_alternate-reverse]"
           />
           <div className="relative mx-auto box-border max-w-[1240px] px-8 max-[640px]:px-4">
             <div className="pt-16">
-              <span className="inline-flex h-[30px] items-center gap-2 rounded-[15px] border border-[rgba(139,152,245,.3)] bg-[rgba(139,152,245,.12)] px-3 text-[13px] font-medium text-[#C9CEFA]">
+              <span className="inline-flex h-[30px] items-center gap-2 rounded-[15px] border border-[rgba(154,168,255,.3)] bg-[rgba(154,168,255,.12)] px-3 text-[13px] font-medium text-[#D2D8FF]">
                 <span className="size-[7px] rounded-full bg-hero-green [animation:vey-ping_2s_infinite]" />
                 {t("pill")}
               </span>
               <h1 className="mt-[22px] mb-[18px] max-w-[900px] text-[64px] leading-[1.04] font-extrabold tracking-[-0.035em] max-[640px]:text-[40px]">
                 {t("headline1")}
                 <br />
-                <span className="bg-[linear-gradient(90deg,#8B98F5,#5DD39E)] bg-clip-text text-transparent">
+                <span className="bg-[linear-gradient(90deg,#3FD0FF,#7C9BFF_45%,#B08CFF)] bg-clip-text text-transparent">
                   {t("headline2")}
                 </span>
               </h1>
@@ -282,7 +282,7 @@ export default async function LandingPage() {
             </div>
 
             <div className="relative mt-14 rounded-[20px] border border-[#2A2C38] bg-[linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015))] px-[22px] pt-[22px] pb-2.5">
-              <div className="mb-1.5 flex items-center justify-between text-[13px] text-[#8D8FA0]">
+              <div className="mb-1.5 flex items-center justify-between text-[13px] text-[#9AA0C8]">
                 <span>{t("flowTitle")}</span>
                 <span className="font-mono">{t("flowExample")}</span>
               </div>
@@ -585,7 +585,7 @@ export default async function LandingPage() {
                   {security.map((line) => (
                     <li
                       key={line}
-                      className="flex items-start gap-3 text-[15px] leading-normal text-[#D3D4DE]"
+                      className="flex items-start gap-3 text-[15px] leading-normal text-[#D3D7EE]"
                     >
                       <i
                         aria-hidden="true"
@@ -606,8 +606,8 @@ export default async function LandingPage() {
                   </Link>
                 </div>
               </div>
-              <div className="rounded-xl border border-[#2A2C38] bg-[#1B1C23] p-5 text-[13px]">
-                <div className="mb-1.5 flex justify-between text-[#8D8FA0]">
+              <div className="rounded-xl border border-[#2A3165] bg-[#11163A] p-5 text-[13px]">
+                <div className="mb-1.5 flex justify-between text-[#9AA0C8]">
                   <span>{t("vaultTitle")}</span>
                   <span className="font-mono">{t("vaultMode")}</span>
                 </div>
@@ -615,7 +615,7 @@ export default async function LandingPage() {
                   {vault.map((row) => (
                     <div
                       key={row.label}
-                      className="flex items-center justify-between gap-3 border-b border-[#2A2C38] py-[11px] last:border-b-0"
+                      className="flex items-center justify-between gap-3 border-b border-[#2A3165] py-[11px] last:border-b-0"
                     >
                       <dt>{row.label}</dt>
                       <dd className="m-0 font-mono text-[#8FD9B4]">{row.value}</dd>
@@ -626,12 +626,12 @@ export default async function LandingPage() {
             </div>
           </section>
 
-          <section className="relative mt-24 flex items-center justify-between gap-8 overflow-hidden rounded-[28px] bg-[linear-gradient(120deg,#3345B8,#1F2C80)] p-14 text-white after:absolute after:-top-20 after:-right-20 after:size-80 after:rounded-full after:border-[40px] after:border-white/[.07] after:content-[''] max-[900px]:flex-col max-[900px]:items-start max-[640px]:p-7">
+          <section className="relative mt-24 flex items-center justify-between gap-8 overflow-hidden rounded-[28px] bg-[linear-gradient(120deg,#2547D6,#5A1FDC)] p-14 text-white after:absolute after:-top-20 after:-right-20 after:size-80 after:rounded-full after:border-[40px] after:border-white/[.07] after:content-[''] max-[900px]:flex-col max-[900px]:items-start max-[640px]:p-7">
             <div className="relative">
               <h2 className="m-0 mb-2 text-[42px] leading-[1.1] font-extrabold tracking-[-0.03em] text-white max-[640px]:text-[30px]">
                 {t("ctaTitle")}
               </h2>
-              <p className="m-0 text-[17px] text-[#D5D9F7]">{t("ctaBody")}</p>
+              <p className="m-0 text-[17px] text-[#E1E4FF]">{t("ctaBody")}</p>
             </div>
             <div className="relative flex gap-3">
               <Link className={btnLight} href="/sign-in">

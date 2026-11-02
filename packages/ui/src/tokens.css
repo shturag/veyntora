@@ -1,26 +1,26 @@
 /*
- * Veyntora design tokens, taken from design/prototype (rag-platform-ui-v11).
- * Light values are the prototype's; dark values are chosen to keep WCAG 2.2 AA contrast
- * (4.5:1 for text, 3:1 for UI boundaries) on the dark ground.
+ * Veyntora design tokens, from the logo: navy ink (#0b1033, the wordmark), the blue→violet
+ * of the "V" and its cyan ring. Every text colour keeps WCAG 2.2 AA contrast (4.5:1) on
+ * surface, ground and sunken, in both themes; most reach AAA.
  */
 
 :root {
   color-scheme: light;
 
   /* core palette (brief) */
-  --vey-ink: #1b1b1f;
-  --vey-ground: #f6f6f3;
-  --vey-accent: #3345b8;
+  --vey-ink: #0b1033;
+  --vey-ground: #f5f6fb;
+  --vey-accent: #4b22d6;
   --vey-amber: #8a5300;
   --vey-green: #1e6b45;
   --vey-red: #a3261b;
 
   /* surfaces and lines */
   --vey-surface: #ffffff;
-  --vey-sunken: #f0efea;
-  --vey-border: #e4e3de;
-  --vey-border-strong: #d6d5cf;
-  --vey-divider: #ecebe6;
+  --vey-sunken: #eef0f7;
+  --vey-border: #e3e6f0;
+  --vey-border-strong: #c9cde0;
+  --vey-divider: #eceef5;
 
   /* chart series (categorical, fixed order; validated for colour-vision deficiency) */
   --vey-series-1: #2a78d6;
@@ -34,16 +34,16 @@
 
   /* text */
   --vey-text: var(--vey-ink);
-  --vey-text-secondary: #45443f;
-  --vey-text-muted: #6b6a65;
-  --vey-text-subtle: #8e8d87;
+  --vey-text-secondary: #3a4061;
+  --vey-text-muted: #5d6385;
+  --vey-text-subtle: #7d82a0;
   --vey-on-accent: #ffffff;
 
   /* accent family */
-  --vey-accent-hover: #1f2c80;
-  --vey-accent-soft: #eef0fb;
-  --vey-accent-soft-strong: #e6e8f8;
-  --vey-accent-avatar: #dce1f7;
+  --vey-accent-hover: #3a17b0;
+  --vey-accent-soft: #efebfd;
+  --vey-accent-soft-strong: #e6e0fc;
+  --vey-accent-avatar: #ddd5fb;
 
   /* status families: fg on soft bg */
   --vey-amber-soft: #fdf0dc;
@@ -54,23 +54,32 @@
   --vey-info-soft: #e8f2f8;
 
   /* admin navigation (dark rail in both themes) */
-  --vey-nav-bg: #1b1b1f;
-  --vey-nav-active: #34343a;
-  --vey-nav-text: #c9c8c2;
-  --vey-nav-heading: #9a9993;
+  --vey-nav-bg: #0b1033;
+  --vey-nav-active: #1c2352;
+  --vey-nav-text: #c3c8e6;
+  --vey-nav-heading: #8f96bd;
   --vey-nav-text-active: #ffffff;
 
   /* hero (landing) */
-  --vey-hero-bg: #121318;
-  --vey-hero-panel: #1e2029;
-  --vey-hero-line: #3a3d4d;
-  --vey-hero-text-muted: #b9bac7;
-  --vey-hero-accent: #8b98f5;
+  --vey-hero-bg: #070b24;
+  --vey-hero-panel: #11163a;
+  --vey-hero-line: #2a3165;
+  --vey-hero-text-muted: #b4badc;
+  --vey-hero-accent: #9aa8ff;
   --vey-hero-green: #5dd39e;
   --vey-hero-amber: #e0a458;
 
-  --vey-focus: #3345b8;
+  --vey-focus: #4b22d6;
   --vey-shadow-popover: 0 24px 64px rgba(0, 0, 0, 0.25);
+
+  /* brand: the logo's gradient (cyan ring → blue → violet "V"), for signature details only;
+     primary buttons use its blue→violet part, where white text keeps 7:1 contrast. */
+  --vey-brand-cyan: #00b4ec;
+  --vey-brand-blue: #2547d6;
+  --vey-brand-violet: #5a1fdc;
+  --vey-brand-gradient: linear-gradient(120deg, var(--vey-brand-cyan) 0%, var(--vey-brand-blue) 45%, var(--vey-brand-violet) 100%);
+  --vey-primary-gradient: linear-gradient(120deg, var(--vey-brand-blue) 0%, var(--vey-brand-violet) 100%);
+  --vey-shadow-card: 0 1px 2px rgba(11, 16, 51, 0.04), 0 1px 3px rgba(11, 16, 51, 0.06);
 
   --vey-radius-sm: 6px;
   --vey-radius: 8px;
@@ -85,18 +94,18 @@
 .dark {
   color-scheme: dark;
 
-  --vey-ink: #ecebe6;
-  --vey-ground: #121318;
-  --vey-accent: #a2adf8;
+  --vey-ink: #eceef8;
+  --vey-ground: #0a0d1f;
+  --vey-accent: #a99bff;
   --vey-amber: #f0b45a;
   --vey-green: #5dd39e;
   --vey-red: #f2877c;
 
-  --vey-surface: #1b1c23;
-  --vey-sunken: #23242d;
-  --vey-border: #2f3140;
-  --vey-border-strong: #43465a;
-  --vey-divider: #2a2c38;
+  --vey-surface: #12162c;
+  --vey-sunken: #1a1f3a;
+  --vey-border: #262c4d;
+  --vey-border-strong: #3d4473;
+  --vey-divider: #20264a;
 
   --vey-series-1: #3987e5;
   --vey-series-2: #d95926;
@@ -107,16 +116,16 @@
   --vey-series-7: #9085e9;
   --vey-series-8: #e66767;
 
-  --vey-text: #ecebe6;
-  --vey-text-secondary: #cfcec8;
-  --vey-text-muted: #a8a7a1;
-  --vey-text-subtle: #8d8fa0;
-  --vey-on-accent: #121318;
+  --vey-text: #eceef8;
+  --vey-text-secondary: #c8cce2;
+  --vey-text-muted: #9ea4c4;
+  --vey-text-subtle: #868baf;
+  --vey-on-accent: #0a0d1f;
 
-  --vey-accent-hover: #b0b8f8;
-  --vey-accent-soft: #222747;
-  --vey-accent-soft-strong: #2a3058;
-  --vey-accent-avatar: #2a3058;
+  --vey-accent-hover: #bcb1ff;
+  --vey-accent-soft: #221d4d;
+  --vey-accent-soft-strong: #2b2560;
+  --vey-accent-avatar: #2b2560;
 
   --vey-amber-soft: #3a2e1a;
   --vey-amber-dot: #f0b45a;
@@ -125,9 +134,12 @@
   --vey-info: #8cc4e6;
   --vey-info-soft: #1a2d3a;
 
-  --vey-nav-bg: #0d0e12;
-  --vey-nav-active: #2a2c38;
+  --vey-nav-bg: #060819;
+  --vey-nav-active: #1a1f3a;
 
-  --vey-focus: #a2adf8;
+  --vey-focus: #a99bff;
   --vey-shadow-popover: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --vey-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  /* Light blue→violet: dark text on it keeps 8:1. */
+  --vey-primary-gradient: linear-gradient(120deg, #7fa6ff 0%, #b59cff 100%);
 }

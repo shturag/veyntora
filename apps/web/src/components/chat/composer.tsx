@@ -70,7 +70,7 @@ export function Composer({
   return (
     <form
       onSubmit={send}
-      className="flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-3.5 shadow-[0_2px_10px_rgba(27,27,31,0.05)]"
+      className="flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-3.5 shadow-[0_2px_10px_rgba(11,16,51,0.06)]"
     >
       <label htmlFor={id} className="sr-only">
         {t("askLabel")}
