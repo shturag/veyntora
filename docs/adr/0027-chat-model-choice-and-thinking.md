@@ -35,3 +35,9 @@ For a chatbot with retrieval off (ADR 0025), the chat says so:
 ## Not yet
 
 Web search and the code interpreter are separate decisions with their own providers and sandbox.
+
+## Revisions (2026-11-02)
+
+- **Home:** the first question on Home offers the same switches, and the choices carry on into the chat.
+- **Thinking budget:** with thinking on, a model gets 8,000 extra tokens for its reasoning on top of the answer limit, because models count reasoning against it. An empty answer is refused with a clear message, instead of showing nothing.
+- **Masked answers:** where the answer is held back for masking, the reasoning is still shown while the model thinks. Personal data is put back, and updates come at most twice a second.

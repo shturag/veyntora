@@ -100,9 +100,11 @@ class ScriptedLLM:
     def __init__(self, reply: str) -> None:
         self.reply = reply
         self.calls: list[Sequence[ChatMessage]] = []
+        self.opts: list[dict[str, Any]] = []
 
-    async def chat(self, messages: Sequence[ChatMessage], **_: Any) -> AsyncIterator[ChatChunk]:
+    async def chat(self, messages: Sequence[ChatMessage], **opts: Any) -> AsyncIterator[ChatChunk]:
         self.calls.append(messages)
+        self.opts.append(opts)
         for word in self.reply.split(" "):
             yield ChatChunk(delta=word + " ")
         yield ChatChunk(finish_reason="end_turn", usage=Usage(120, 30))
@@ -915,3 +917,41 @@ async def test_web_search_goes_with_the_question_when_switched_on(rag: Rag) -> N
     assert n == 1 and source.url == "https://news.example/acme" and not result.no_sources
     system, user = rag.llm.calls[-1][0], rag.llm.calls[-1][-1]
     assert "web search results" in system.content and "news.example" in user.content
+
+
+async def test_thinking_gets_its_own_allowance_and_an_empty_answer_is_refused(rag: Rag) -> None:
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.chat.thinking = True
+    question = "Can digital products be refunded after download?"
+    await answer(rag.w.db, rag.adapters(), pipeline.with_choices(ctx, None, True), question)
+    limit = ctx.spec.generation.max_answer_tokens
+    assert rag.llm.opts[-1]["max_tokens"] == limit + pipeline.THINKING_TOKENS
+
+    rag.llm.reply = ""
+    with pytest.raises(RunRefusedError, match="no answer"):
+        await answer(rag.w.db, rag.adapters(), pipeline.with_choices(ctx, None, False), question)
+
+
+async def test_reasoning_shows_while_a_masked_answer_is_held_back() -> None:
+    class Thinker:
+        async def chat(self, messages: Any, **opts: Any) -> AsyncIterator[ChatChunk]:
+            yield ChatChunk(reasoning="[PERSON_1] asked ")
+            yield ChatChunk(reasoning="about refunds.")
+            yield ChatChunk(delta="Yes.")
+
+    shown: list[dict[str, Any]] = []
+    reasoning: list[str] = []
+    text, _ = await pipeline._complete(
+        Thinker(),
+        [],
+        100,
+        None,
+        thinking=True,
+        reasoning=reasoning,
+        held=shown.append,
+        reveal=lambda t: t.replace("[PERSON_1]", "Jane"),
+    )
+    assert text == "Yes." and "".join(reasoning) == "[PERSON_1] asked about refunds."
+    # Nothing of the answer streams; the reasoning does, with the name put back.
+    assert shown and all(e["type"] == "reasoning" and e["all"] for e in shown)
+    assert shown[0]["text"].startswith("Jane asked")

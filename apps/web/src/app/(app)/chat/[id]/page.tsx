@@ -12,12 +12,20 @@ export const generateMetadata = () => screenMetadata("chat");
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ bot?: string; q?: string; mode?: string; files?: string }>;
+  searchParams: Promise<{
+    bot?: string;
+    q?: string;
+    mode?: string;
+    files?: string;
+    model?: string;
+    thinking?: string;
+    web?: string;
+  }>;
 };
 
 export default async function ChatPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { bot, q, mode, files } = await searchParams;
+  const { bot, q, mode, files, model, thinking, web } = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const api = await serverApi();
   const [conv, { data: prefs }] = await Promise.all([
@@ -55,6 +63,7 @@ export default async function ChatPage({ params, searchParams }: Props) {
         showSteps={prefs?.show_agent_steps ?? true}
         initialQuestion={conv.data ? undefined : q}
         initialFiles={conv.data ? undefined : filesOf(files)}
+        initialChoices={{ model, thinking: thinking === "1", webSearch: web === "1" }}
         aiNotice={info?.ai_notice}
       />
     </div>

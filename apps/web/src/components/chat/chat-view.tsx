@@ -38,6 +38,7 @@ function Thread({
   aiNotice,
   initialQuestion,
   initialFiles = [],
+  initialChoices,
 }: {
   apiUrl: string;
   threadId: string;
@@ -48,6 +49,8 @@ function Thread({
   initialQuestion?: string;
   /** Files attached on Home to the first question. */
   initialFiles?: AttachedFile[];
+  /** Choices made on Home for the first question. */
+  initialChoices?: Choices;
 }) {
   const t = useTranslations("chat");
   const router = useRouter();
@@ -64,11 +67,11 @@ function Thread({
     thinking: false,
     documents: true,
   });
-  const [model, setModel] = useState<string | null>(null);
+  const [model, setModel] = useState<string | null>(initialChoices?.model ?? null);
   // The chatbot's own notice once known (null: none); until then the platform's.
   const notice = features.ai_notice === undefined ? aiNotice : features.ai_notice;
-  const [thinking, setThinking] = useState(false);
-  const [webSearch, setWebSearch] = useState(false);
+  const [thinking, setThinking] = useState(initialChoices?.thinking ?? false);
+  const [webSearch, setWebSearch] = useState(initialChoices?.webSearch ?? false);
   const started = useRef(false);
 
   useEffect(() => {
@@ -86,7 +89,9 @@ function Thread({
       const event = data as ChatEvent;
       if (event.type === "status") setProgress({ step: event.step, sources: event.sources });
       if (event.type === "token") setDraft((d) => d + event.text);
-      if (event.type === "reasoning") setReasoning((r) => r + event.text);
+      if (event.type === "reasoning") {
+        setReasoning((r) => (event.all ? event.text : r + event.text));
+      }
       if (event.type === "route") setRouteNote(event.mode === "agent" ? event.reason : null);
       if (event.type === "step") {
         setSteps((list) => {
@@ -124,8 +129,10 @@ function Thread({
         messages: [{ type: "human", content: question }],
         ...(files.length ? { attachments: files.map((f) => f.id) } : {}),
         ...(model ? { model } : {}),
-        ...(features.thinking ? { thinking } : {}),
-        ...(features.web_search ? { web_search: webSearch } : {}),
+        // Always sent (the first question may go before the features load); the server
+        // ignores a switch the chatbot does not offer.
+        thinking,
+        web_search: webSearch,
       },
       {
         streamMode: STREAM_MODES,
@@ -338,6 +345,8 @@ function ExpertReplies({ threadId }: { threadId: string }) {
   );
 }
 
+export type Choices = { model?: string; thinking?: boolean; webSearch?: boolean };
+
 /** The chat for one thread. The LangGraph client needs an absolute URL, so it mounts in the browser. */
 const noSubscribe = () => () => {};
 
@@ -348,6 +357,7 @@ export function ChatView(props: {
   showSteps: boolean;
   initialQuestion?: string;
   initialFiles?: AttachedFile[];
+  initialChoices?: Choices;
   aiNotice?: string;
 }) {
   const origin = useSyncExternalStore(

@@ -9,9 +9,12 @@ import { api, newThread } from "@/lib/chat";
 
 import type { AttachedFile, ChatFeatures, Mode } from "@/lib/chat";
 
+import { ChatExtras } from "./chat-extras";
 import { Composer } from "./composer";
 
 export type Assistant = { id: string; name: string; description: string };
+
+const NONE: ChatFeatures = { models: [], thinking: false, documents: true };
 
 /** Assistant picker and first question; the chat continues on /chat/<thread>. */
 export function HomeClient({
@@ -32,22 +35,19 @@ export function HomeClient({
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
-  // File endings the chosen assistant reads from attached files (none: no paperclip).
-  const [accept, setAccept] = useState<string[]>([]);
-  const [general, setGeneral] = useState(false);
+  // What the chosen assistant offers: files, models, thinking, web search.
+  const [features, setFeatures] = useState<ChatFeatures>(NONE);
+  const [model, setModel] = useState<string | null>(null);
+  const [thinking, setThinking] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
+  const accept = features.attachments ?? [];
 
   useEffect(() => {
     if (!selected) return;
     let live = true;
     api<ChatFeatures>(`/v1/me/chatbots/${selected}/features`)
-      .then((f) => {
-        if (!live) return;
-        setAccept(f.attachments ?? []);
-        setGeneral(f.documents === false);
-      })
-      .catch(() => {
-        if (live) setAccept([]);
-      });
+      .then((f) => live && setFeatures(f))
+      .catch(() => live && setFeatures(NONE));
     return () => {
       live = false;
     };
@@ -62,6 +62,10 @@ export function HomeClient({
       if (files.length) {
         params.set("files", JSON.stringify(files.map(({ id, name }) => ({ id, name }))));
       }
+      // The choices go with the first question; the chat keeps them for the next ones.
+      if (model) params.set("model", model);
+      if (features.thinking && thinking) params.set("thinking", "1");
+      if (features.web_search && webSearch) params.set("web", "1");
       router.push(`/chat/${thread}?${params.toString()}`);
     } catch {
       setError(true);
@@ -95,7 +99,10 @@ export function HomeClient({
               type="button"
               role="radio"
               aria-checked={selected === a.id}
-              onClick={() => setSelected(a.id)}
+              onClick={() => {
+                setSelected(a.id);
+                setModel(null); // models belong to an assistant
+              }}
               className={cn(
                 "flex flex-col items-start gap-1 rounded-lg bg-surface p-3.5 text-left",
                 selected === a.id ? "border-2 border-accent" : "border border-line-strong",
@@ -118,7 +125,18 @@ export function HomeClient({
         busy={busy}
         autoFocus
         attach={accept.length ? { chatbotId: selected, accept } : null}
-        placeholder={general ? t("placeholderGeneral") : undefined}
+        placeholder={features.documents === false ? t("placeholderGeneral") : undefined}
+        extras={
+          <ChatExtras
+            features={features}
+            model={model}
+            onModel={setModel}
+            thinking={thinking}
+            onThinking={setThinking}
+            webSearch={webSearch}
+            onWebSearch={setWebSearch}
+          />
+        }
       />
       {error ? (
         <p role="alert" className="m-0 text-sm text-red">

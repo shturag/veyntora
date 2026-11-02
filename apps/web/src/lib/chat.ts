@@ -81,7 +81,8 @@ export type StepEvent = {
 };
 export type RouteEvent = { type: "route"; mode: "fast" | "agent"; reason: string };
 // The model's reasoning while it thinks (thinking switched on).
-export type ReasoningEvent = { type: "reasoning"; text: string };
+// `all`: the whole reasoning so far (sent while the answer itself is held back).
+export type ReasoningEvent = { type: "reasoning"; text: string; all?: boolean };
 export type ChatEvent = StatusEvent | TokenEvent | StepEvent | RouteEvent | ReasoningEvent;
 
 /** What the chat offers for a chatbot (GET /v1/me/chatbots/{id}/features). */
