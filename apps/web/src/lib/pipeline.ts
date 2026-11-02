@@ -6,7 +6,7 @@
 import type { PipelineSpec } from "@veyntora/spec";
 
 export type SectionKey =
-  "ingestion" | "retrieval" | "rerank" | "generation" | "agent" | "router" | "guardrails";
+  "ingestion" | "retrieval" | "rerank" | "generation" | "agent" | "router" | "guardrails" | "chat";
 
 export type Field =
   | {
@@ -20,6 +20,8 @@ export type Field =
   | { name: string; kind: "select"; options: readonly string[] }
   | { name: string; kind: "number"; min: number; max: number; step?: number; optional?: boolean }
   | { name: string; kind: "toggle" }
+  // Several provider instances of one capability (e.g. the models people may pick).
+  | { name: string; kind: "instances"; capability: string }
   | { name: string; kind: "text" }
   | { name: string; kind: "textarea"; rows?: number }
   | { name: string; kind: "list" }
@@ -171,6 +173,15 @@ export const SECTIONS: readonly Section[] = [
       { name: "citation_required", kind: "toggle" },
       { name: "no_promises", kind: "toggle" },
       { name: "blocked_message", kind: "textarea", rows: 2 },
+    ],
+  },
+  {
+    key: "chat",
+    spec: "chat",
+    path: "chat",
+    fields: [
+      { name: "llm_instance_ids", kind: "instances", capability: "llm" },
+      { name: "thinking", kind: "toggle" },
     ],
   },
 ];

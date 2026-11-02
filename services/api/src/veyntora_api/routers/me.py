@@ -7,13 +7,16 @@ from typing import Any, Literal
 from uuid import UUID
 
 import sqlalchemy as sa
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+from veyntora_spec.pipeline import PipelineSpec
 
 from veyntora_api.auth.deps import CurrentPrincipal, DbSession, State, platform_roles
 from veyntora_api.authz.fga import CheckItem
-from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus
+from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineVersion
 from veyntora_api.db.models.identity import Group, Membership
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.governance import service as governance
 
 router = APIRouter(prefix="/v1/me", tags=["me"])
 
@@ -134,3 +137,74 @@ async def my_chatbots(
         )
         for b in bots
     ]
+
+
+class ModelChoice(BaseModel):
+    id: UUID
+    name: str
+    default: bool
+    # The model can switch thinking on and off (and show its reasoning).
+    thinking: bool
+
+
+class ChatFeatures(BaseModel):
+    """What the chat offers for this chatbot (its live version, ChatSpec)."""
+
+    models: list[ModelChoice]
+    thinking: bool
+    # False for a chatbot that answers without documents (general chat).
+    documents: bool = True
+    # The platform's AI notice for this chatbot: none where the default notice ("answers come
+    # from company documents") would be untrue; an admin's own wording is always shown.
+    ai_notice: str | None = None
+
+
+# Servers that switch thinking per request (see the openai_compatible adapter's options).
+_THINKING_STYLES = frozenset({"enable_thinking", "chat_template_kwargs"})
+
+
+def _can_think(p: ProviderInstance) -> bool:
+    return p.adapter == "anthropic" or (p.options or {}).get("thinking") in _THINKING_STYLES
+
+
+@router.get("/chatbots/{bot_id}/features", summary="Models and switches the chat offers")
+async def chat_features(
+    bot_id: UUID, principal: CurrentPrincipal, state: State, db: DbSession
+) -> ChatFeatures:
+    if not await state.require_authz().check(principal.fga, "can_chat", f"chatbot:{bot_id}"):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Chatbot not found")
+    bot = await db.get(Chatbot, bot_id)
+    live = (
+        await db.get(PipelineVersion, bot.live_version_id) if bot and bot.live_version_id else None
+    )
+    if live is None:
+        return ChatFeatures(models=[], thinking=False)
+    spec = PipelineSpec.model_validate(live.spec)
+    default = spec.generation.llm_instance_id
+    order = [default, *[i for i in spec.chat.llm_instance_ids if i != default]]
+    rows = {
+        p.id: p
+        for p in (
+            await db.execute(
+                sa.select(ProviderInstance).where(
+                    ProviderInstance.id.in_([i for i in order if i]),
+                    ProviderInstance.enabled.is_(True),
+                )
+            )
+        ).scalars()
+    }
+    models = [
+        ModelChoice(id=i, name=rows[i].name, default=i == default, thinking=_can_think(rows[i]))
+        for i in order
+        if i in rows
+    ]
+    notice = (await governance.settings_of(db)).ai_notice
+    return ChatFeatures(
+        # A picker only when there is something to pick.
+        models=models if len(models) > 1 else [],
+        thinking=spec.chat.thinking and any(m.thinking for m in models),
+        documents=spec.retrieval.enabled,
+        ai_notice=None
+        if not spec.retrieval.enabled and notice == governance.DEFAULT_NOTICE
+        else notice,
+    )

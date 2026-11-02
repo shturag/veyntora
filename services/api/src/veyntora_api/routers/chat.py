@@ -114,10 +114,23 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     mode = str(data.get("mode") or "auto")
     if mode not in _MODES:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown mode")
+    # The asker's choices (ChatSpec); always set, so a thread does not keep the last
+    # question's. The graph checks that the chatbot offers them.
+    model = data.get("model") or ""
+    if model:
+        try:
+            model = str(UUID(str(model)))
+        except ValueError as exc:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown model") from exc
+    thinking = data.get("thinking")
+    if thinking is not None and not isinstance(thinking, bool):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "thinking must be true or false")
     out["input"] = {
         "chatbot_id": chatbot_id,
         "mode": mode,
         "messages": [{"type": "human", "content": content}],
+        "model": model,
+        "thinking": thinking,
     }
     return _modes(out)
 

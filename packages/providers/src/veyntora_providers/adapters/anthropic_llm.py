@@ -98,6 +98,10 @@ class AnthropicLLM:
             "messages": convo,
             "output_config": {"effort": opts.get("effort", self._effort)},
         }
+        if opts.get("thinking"):
+            # Current models think adaptively anyway; "on" asks for a readable summary of
+            # the reasoning (the default display leaves it empty).
+            params["thinking"] = {"type": "adaptive", "display": "summarized"}
         if system:
             # Stable system prompt first so the prefix caches across questions.
             params["system"] = [
@@ -123,8 +127,12 @@ class AnthropicLLM:
             try:
                 async with client.beta.messages.stream(**params, **extra) as stream:
                     async for event in stream:
-                        if event.type == "content_block_delta" and event.delta.type == "text_delta":
+                        if event.type != "content_block_delta":
+                            continue
+                        if event.delta.type == "text_delta":
                             yield ChatChunk(delta=event.delta.text)
+                        elif event.delta.type == "thinking_delta" and event.delta.thinking:
+                            yield ChatChunk(reasoning=event.delta.thinking)
                     final = await stream.get_final_message()
             except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
                 raise KeyRejectedError(

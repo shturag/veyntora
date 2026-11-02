@@ -68,6 +68,8 @@ class Usage:
 @dataclass(frozen=True, slots=True)
 class ChatChunk:
     delta: str = ""
+    # Reasoning the model shows while thinking (when thinking is on and it returns any).
+    reasoning: str = ""
     tool_calls: tuple[ToolCall, ...] = ()
     finish_reason: str | None = None
     usage: Usage | None = None

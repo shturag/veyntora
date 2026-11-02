@@ -3,7 +3,7 @@
 import { Button, cn } from "@veyntora/ui";
 import { Paperclip } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 
 import { MODES, type Mode } from "@/lib/chat";
 
@@ -22,6 +22,8 @@ export function Composer({
   rows = 3,
   autoFocus = false,
   submitLabel,
+  extras,
+  placeholder,
 }: {
   onSubmit: (question: string) => void;
   mode: Mode;
@@ -31,6 +33,9 @@ export function Composer({
   rows?: number;
   autoFocus?: boolean;
   submitLabel?: string;
+  /** More controls next to the mode switch (model picker, thinking). */
+  extras?: ReactNode;
+  placeholder?: string;
 }) {
   const t = useTranslations("chat");
   const [text, setText] = useState("");
@@ -84,7 +89,7 @@ export function Composer({
         disabled={disabled}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={onKeyDown}
-        placeholder={t("placeholder")}
+        placeholder={placeholder ?? t("placeholder")}
         className="resize-none border-0 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
       />
       <div className="flex flex-wrap items-center justify-between gap-2.5">
@@ -130,6 +135,7 @@ export function Composer({
               </button>
             ))}
           </div>
+          {extras}
         </div>
         <Button type="submit" variant="primary" size="lg" disabled={!ready}>
           {busy ? t("answering") : (submitLabel ?? t("ask"))}

@@ -11,6 +11,7 @@ import {
   textOf,
   type ApprovalWait,
   type ChatEvent,
+  type ChatFeatures,
   type ChatState,
   type GraphMessage,
   type Mode,
@@ -18,6 +19,7 @@ import {
 
 import { AnswerBlock } from "./answer";
 import { ApprovalCard } from "./approval-card";
+import { ChatExtras } from "./chat-extras";
 import { Composer } from "./composer";
 
 type Progress = { step: "searching" | "writing"; sources?: number } | null;
@@ -49,7 +51,24 @@ function Thread({
   const [mode, setMode] = useState<Mode>(initialMode);
   const [steps, setSteps] = useState<LiveStep[]>([]);
   const [routeNote, setRouteNote] = useState<string | null>(null);
+  const [reasoning, setReasoning] = useState("");
+  // Models and switches this chatbot offers (none: the composer stays as it is).
+  const [features, setFeatures] = useState<ChatFeatures>({
+    models: [],
+    thinking: false,
+    documents: true,
+  });
+  const [model, setModel] = useState<string | null>(null);
+  // The chatbot's own notice once known (null: none); until then the platform's.
+  const notice = features.ai_notice === undefined ? aiNotice : features.ai_notice;
+  const [thinking, setThinking] = useState(false);
   const started = useRef(false);
+
+  useEffect(() => {
+    api<ChatFeatures>(`/v1/me/chatbots/${chatbotId}/features`)
+      .then(setFeatures)
+      .catch(() => setFeatures({ models: [], thinking: false, documents: true }));
+  }, [chatbotId]);
 
   const stream = useStream<ChatState>({
     apiUrl,
@@ -60,6 +79,7 @@ function Thread({
       const event = data as ChatEvent;
       if (event.type === "status") setProgress({ step: event.step, sources: event.sources });
       if (event.type === "token") setDraft((d) => d + event.text);
+      if (event.type === "reasoning") setReasoning((r) => r + event.text);
       if (event.type === "route") setRouteNote(event.mode === "agent" ? event.reason : null);
       if (event.type === "step") {
         setSteps((list) => {
@@ -73,6 +93,7 @@ function Thread({
     onFinish: () => {
       setProgress(null);
       setDraft("");
+      setReasoning("");
       setSteps([]);
       setRouteNote(null);
       router.refresh(); // recent chats in the sidebar
@@ -80,6 +101,7 @@ function Thread({
     onError: () => {
       setProgress(null);
       setDraft("");
+      setReasoning("");
       setFailed(true);
     },
   });
@@ -89,7 +111,13 @@ function Thread({
     setSteps([]);
     setProgress({ step: "searching" });
     void stream.submit(
-      { chatbot_id: chatbotId, mode, messages: [{ type: "human", content: question }] },
+      {
+        chatbot_id: chatbotId,
+        mode,
+        messages: [{ type: "human", content: question }],
+        ...(model ? { model } : {}),
+        ...(features.thinking ? { thinking } : {}),
+      },
       {
         streamMode: STREAM_MODES,
         optimisticValues: (prev) => ({
@@ -178,6 +206,12 @@ function Thread({
                   : t("searching")}
               </span>
             )}
+            {reasoning ? (
+              <details open className="rounded-md bg-sunken px-3 py-2 text-sm">
+                <summary className="cursor-pointer text-fg-muted">{t("thinkingLive")}</summary>
+                <p className="m-0 mt-1 whitespace-pre-wrap text-fg-secondary">{reasoning}</p>
+              </details>
+            ) : null}
             {draft ? <p className="m-0 text-base leading-[1.7] text-fg">{draft}</p> : null}
           </div>
         ) : null}
@@ -203,10 +237,20 @@ function Thread({
           busy={busy || Boolean(wait)}
           rows={2}
           submitLabel={t("send")}
+          placeholder={features.documents ? undefined : t("placeholderGeneral")}
+          extras={
+            <ChatExtras
+              features={features}
+              model={model}
+              onModel={setModel}
+              thinking={thinking}
+              onThinking={setThinking}
+            />
+          }
         />
         <p className="mt-2 mb-0 text-center text-xs text-fg-muted">
-          {aiNotice ? `${aiNotice} ` : ""}
-          {t("disclaimer")}
+          {notice ? `${notice} ` : ""}
+          {features.documents ? t("disclaimer") : t("disclaimerGeneral")}
         </p>
       </div>
     </>

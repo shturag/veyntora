@@ -3067,6 +3067,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/chatbots/{bot_id}/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Models and switches the chat offers */
+        get: operations["chat_features_v1_me_chatbots__bot_id__features_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me/conversations": {
         parameters: {
             query?: never;
@@ -4547,6 +4564,36 @@ export interface components {
             before: unknown;
             /** Path */
             path: string;
+        };
+        /**
+         * ChatFeatures
+         * @description What the chat offers for this chatbot (its live version, ChatSpec).
+         */
+        ChatFeatures: {
+            /** Ai Notice */
+            ai_notice?: string | null;
+            /**
+             * Documents
+             * @default true
+             */
+            documents: boolean;
+            /** Models */
+            models: components["schemas"]["ModelChoice"][];
+            /** Thinking */
+            thinking: boolean;
+        };
+        /**
+         * ChatSpec
+         * @description What people may switch in the chat (ADR 0027).
+         */
+        ChatSpec: {
+            /** Llm Instance Ids */
+            llm_instance_ids?: string[];
+            /**
+             * Thinking
+             * @default false
+             */
+            thinking: boolean;
         };
         /** ChatbotDetail */
         ChatbotDetail: {
@@ -6904,6 +6951,20 @@ export interface components {
          * @enum {string}
          */
         Mode: "auto" | "fast" | "agent";
+        /** ModelChoice */
+        ModelChoice: {
+            /** Default */
+            default: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Thinking */
+            thinking: boolean;
+        };
         /** MonitorAlert */
         MonitorAlert: {
             /**
@@ -7393,6 +7454,7 @@ export interface components {
         /** PipelineSpec */
         PipelineSpec: {
             agent?: components["schemas"]["AgentSpec"];
+            chat?: components["schemas"]["ChatSpec"];
             flow?: components["schemas"]["FlowSpec"];
             generation?: components["schemas"]["GenerationSpec"];
             guardrails?: components["schemas"]["GuardrailsSpec"];
@@ -16295,6 +16357,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatbotSummary"][];
+                };
+            };
+        };
+    };
+    chat_features_v1_me_chatbots__bot_id__features_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatFeatures"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

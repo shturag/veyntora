@@ -296,6 +296,12 @@ export function AnswerBlock({
         ) : null}
       </div>
       {meta.steps?.length ? <AgentSteps steps={meta.steps} reason={meta.route_reason} /> : null}
+      {meta.reasoning ? (
+        <details className="rounded-md bg-sunken px-3 py-2 text-sm">
+          <summary className="cursor-pointer text-fg-muted">{t("thoughtAbout")}</summary>
+          <p className="m-0 mt-1 whitespace-pre-wrap text-fg-secondary">{meta.reasoning}</p>
+        </details>
+      ) : null}
       {answered ? (
         <AnswerText text={text} meta={meta} />
       ) : (

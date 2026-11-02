@@ -336,6 +336,10 @@
     "audit": {
       "title": "Audit-Log",
       "summary": "Durchsuchbares, nur erweiterbares Audit-Log mit Export und Zurücksetzen."
+    },
+    "pipelineChat": {
+      "title": "Pipeline · Chat-Funktionen",
+      "summary": "Modelle zur Auswahl und der Denk-Schalter."
     }
   },
   "landing": {
@@ -704,7 +708,13 @@
     "exportChat": "Chat exportieren",
     "noSources": "Ohne Dokumente beantwortet",
     "noSourcesBadge": "Ohne Quellen",
-    "noSourcesExplained": "Dieser Chatbot antwortet aus allgemeinem Wissen, nicht aus euren Dokumenten: Es gibt nichts, woran sich diese Antwort prüfen lässt."
+    "noSourcesExplained": "Dieser Chatbot antwortet aus allgemeinem Wissen, nicht aus euren Dokumenten: Es gibt nichts, woran sich diese Antwort prüfen lässt.",
+    "model": "Modell",
+    "thinking": "Nachdenken",
+    "thinkingLive": "Denkt nach …",
+    "thoughtAbout": "Gedankengang",
+    "placeholderGeneral": "Frag irgendetwas …",
+    "disclaimerGeneral": "Dieser Assistent antwortet aus allgemeinem Wissen, nicht aus euren Dokumenten: Antworten haben keine Quellen und können falsch sein."
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -846,7 +856,12 @@
     "regionPlaceholder": "z. B. eu-central",
     "delete": "Löschen",
     "deleteConfirm": "{name} und seinen Schlüssel löschen? Nur möglich, wenn keine Chatbot-Pipeline (auch ältere Versionen) und kein anderer Anbieter ihn nutzt. Das lässt sich nicht rückgängig machen.",
-    "deleted": "Gelöscht."
+    "deleted": "Gelöscht.",
+    "thinkingSwitch": "Denk-Schalter",
+    "thinkingNone": "Keiner (Standard des Modells)",
+    "thinkingFlag": "enable_thinking-Flag (SiliconFlow, DashScope)",
+    "thinkingTemplate": "chat_template_kwargs (vLLM, SGLang)",
+    "thinkingHint": "Wie dieser Server das Nachdenken eines Modells an- und ausschaltet, damit Chatbots Menschen einen Denk-Schalter anbieten können. Nur für Modelle, die nachdenken können (z. B. Qwen3)."
   },
   "sources": {
     "title": "Datenquellen",
@@ -1118,7 +1133,8 @@
       "generation": "Antwort",
       "agent": "Agent",
       "router": "Router",
-      "guardrails": "Schutzregeln"
+      "guardrails": "Schutzregeln",
+      "chat": "Chat-Funktionen"
     },
     "f": {
       "parser_instance_id": {
@@ -1322,6 +1338,14 @@
       "suggest_follow_ups": {
         "label": "Folgefragen vorschlagen",
         "hint": "Bis zu drei Fragen unter einer belegten Antwort (ein kleiner zusätzlicher Modellaufruf). Personen können sie in den Einstellungen ausschalten."
+      },
+      "llm_instance_ids": {
+        "label": "Modelle zur Auswahl",
+        "hint": "Das Modell der Generierung ist der Standard und immer dabei. Externe Modelle brauchen die Datenregel dieses Chatbots."
+      },
+      "thinking": {
+        "label": "Denk-Schalter für Menschen",
+        "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können; die Überlegungen erscheinen eingeklappt über der Antwort."
       }
     },
     "o": {
@@ -3823,6 +3847,15 @@
     "apply": "Übernehmen",
     "saveContinue": "Speichern und weiter",
     "afterwards": "Übernimmt Modi, Schritte und Anbieter in den Entwurf; live geht erst etwas, wenn du veröffentlichst.",
-    "failed": "Das hat nicht funktioniert: {reason}"
+    "failed": "Das hat nicht funktioniert: {reason}",
+    "models": {
+      "title": "Menschen das Modell wählen lassen",
+      "hint": "Neben dem Modell für Antworten (Schritt 3) können Menschen im Chat zu diesen wechseln. Externe brauchen die Datenregel.",
+      "none": "Füge weitere LLM-Anbieter hinzu, um eine Auswahl anzubieten."
+    },
+    "thinking": {
+      "title": "Denk-Schalter",
+      "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können (Denk-Schalter beim Anbieter setzen). Die Überlegungen erscheinen eingeklappt."
+    }
   }
 }

@@ -276,6 +276,8 @@ _EXPECTED: dict[str, Capability] = {
     "guardrails.input_guardrail_instance_id": Capability.GUARDRAIL,
     "guardrails.output_guardrail_instance_id": Capability.GUARDRAIL,
     "guardrails.pii_instance_id": Capability.GUARDRAIL,
+    # Lists: each entry is checked as "chat.llm_instance_ids[0]", "[1]", ...
+    "chat.llm_instance_ids": Capability.LLM,
 }
 
 
@@ -296,9 +298,16 @@ def instance_refs(spec: PipelineSpec) -> dict[str, UUID]:
     for path in _EXPECTED:
         section, field = path.split(".")
         value = getattr(getattr(spec, section), field)
-        if value is not None:
+        if isinstance(value, list):
+            out |= {f"{path}[{i}]": v for i, v in enumerate(value)}
+        elif value is not None:
             out[path] = value
     return out
+
+
+def _slot(path: str) -> str:
+    """ "chat.llm_instance_ids[2]" -> "chat.llm_instance_ids" """
+    return path.split("[", 1)[0]
 
 
 async def reference_problems(
@@ -318,8 +327,10 @@ async def reference_problems(
         row = rows.get(ref)
         if row is None:
             problems.append(f"{path} points to a provider that does not exist")
-        elif row.capability is not _EXPECTED[path]:
-            problems.append(f"{path} needs a {_EXPECTED[path].value} provider, not {row.name}")
+        elif row.capability is not _EXPECTED[_slot(path)]:
+            problems.append(
+                f"{path} needs a {_EXPECTED[_slot(path)].value} provider, not {row.name}"
+            )
         elif path in _ADAPTERS and row.adapter not in _ADAPTERS[path]:
             problems.append(
                 f"{path} needs a personal-data detector (Presidio or Azure AI Language PII); "

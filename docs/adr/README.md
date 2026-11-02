@@ -28,3 +28,4 @@
 | [0024](0024-external-observability-and-identity.md) | Langfuse and Grafana as configuration, your own Keycloak |
 | [0025](0025-guided-setup-and-answers-without-documents.md) | Guided setup; answers without documents as a labelled exception |
 | [0026](0026-presidio-self-hosted-pii.md) | Presidio as a personal-data detector you connect |
+| [0027](0027-chat-model-choice-and-thinking.md) | Model choice and thinking in the chat |

@@ -7,6 +7,24 @@ export type TokenBudget = number;
 export type Enabled = boolean;
 export type ToolId = string;
 export type Tools = AgentToolBinding[];
+/**
+ * @maxItems 12
+ */
+export type LlmInstanceIds =
+  | []
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string]
+  | [string, string, string, string, string]
+  | [string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string, string]
+  | [string, string, string, string, string, string, string, string, string, string, string, string];
+export type Thinking = boolean;
 export type Custom = boolean;
 export type Label = string;
 export type Source = string;
@@ -95,6 +113,7 @@ export type SchemaVersion = 1;
 
 export interface PipelineSpec {
   agent?: AgentSpec;
+  chat?: ChatSpec;
   flow?: FlowSpec;
   generation?: GenerationSpec;
   guardrails?: GuardrailsSpec;
@@ -114,6 +133,13 @@ export interface AgentSpec {
 export interface AgentToolBinding {
   enabled?: Enabled;
   tool_id: ToolId;
+}
+/**
+ * What people may switch in the chat (ADR 0027).
+ */
+export interface ChatSpec {
+  llm_instance_ids?: LlmInstanceIds;
+  thinking?: Thinking;
 }
 export interface FlowSpec {
   custom?: Custom;

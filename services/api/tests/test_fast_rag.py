@@ -777,3 +777,22 @@ async def test_without_documents_only_when_the_data_rule_allows_it(rag: Rag) -> 
     # No sources were searched or sent; the model was told not to pretend to know the company.
     system, user = rag.llm.calls[-1][0], rag.llm.calls[-1][-1]
     assert "no company documents" in system.content and "<sources>" not in user.content
+
+
+async def test_the_asker_chooses_among_offered_models_and_thinking(rag: Rag) -> None:
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    other = uuid4()
+    # Nothing offered: only the default model, and the thinking switch is ignored.
+    assert pipeline.with_choices(ctx, None, True).thinking is None
+    with pytest.raises(RunRefusedError, match="does not offer"):
+        pipeline.with_choices(ctx, str(other), None)
+
+    ctx.spec.chat.llm_instance_ids = [other]
+    ctx.spec.chat.thinking = True
+    chosen = pipeline.with_choices(ctx, str(other), True)
+    assert chosen.spec.generation.llm_instance_id == other and chosen.thinking is True
+    assert ctx.spec.generation.llm_instance_id != other  # the chatbot's own spec is untouched
+    assert (
+        pipeline.with_choices(ctx, str(ctx.spec.generation.llm_instance_id), False).thinking
+        is False
+    )

@@ -14,7 +14,7 @@ from enum import StrEnum
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 SPEC_SCHEMA_VERSION: Literal[1] = 1
 
@@ -206,6 +206,24 @@ class RouterSpec(_Spec):
         if self.default_mode not in self.allowed_modes:
             raise ValueError("default_mode must be one of allowed_modes")
         return self
+
+
+# ---------------------------------------------------------------- chat features
+
+
+class ChatSpec(_Spec):
+    """What people may switch in the chat (ADR 0027)."""
+
+    # Models people may choose between; the generation model is the default and always
+    # offered. External ones need the chatbot's data rule, like every model it uses.
+    llm_instance_ids: list[InstanceRef] = Field(default_factory=list, max_length=12)
+    # People may turn thinking on for a question (models that support it).
+    thinking: bool = False
+
+    @field_validator("llm_instance_ids")
+    @classmethod
+    def _unique(cls, v: list[UUID]) -> list[UUID]:
+        return list(dict.fromkeys(v))
 
 
 # ---------------------------------------------------------------- guardrails
@@ -476,6 +494,7 @@ class PipelineSpec(_Spec):
     agent: AgentSpec = Field(default_factory=AgentSpec)
     router: RouterSpec = Field(default_factory=RouterSpec)
     guardrails: GuardrailsSpec = Field(default_factory=GuardrailsSpec)
+    chat: ChatSpec = Field(default_factory=ChatSpec)
     flow: FlowSpec = Field(default_factory=FlowSpec)
 
     def publish_problems(self) -> list[str]:

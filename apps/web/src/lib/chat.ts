@@ -25,6 +25,8 @@ export type AnswerMeta = {
   external_egress?: boolean;
   /** Answered without documents (general chat): nothing to check it against. */
   no_sources?: boolean;
+  /** The model's reasoning, when thinking was on and the model returned it. */
+  reasoning?: string | null;
   latency_ms?: number;
   handoff_available?: boolean;
   citations?: CitationMeta[];
@@ -72,7 +74,19 @@ export type StepEvent = {
   approval_id?: string;
 };
 export type RouteEvent = { type: "route"; mode: "fast" | "agent"; reason: string };
-export type ChatEvent = StatusEvent | TokenEvent | StepEvent | RouteEvent;
+// The model's reasoning while it thinks (thinking switched on).
+export type ReasoningEvent = { type: "reasoning"; text: string };
+export type ChatEvent = StatusEvent | TokenEvent | StepEvent | RouteEvent | ReasoningEvent;
+
+/** What the chat offers for a chatbot (GET /v1/me/chatbots/{id}/features). */
+export type ChatFeatures = {
+  models: { id: string; name: string; default: boolean; thinking: boolean }[];
+  thinking: boolean;
+  /** False for a chatbot that answers without documents (general chat). */
+  documents: boolean;
+  /** The AI notice to show; left out where the platform default would be untrue. */
+  ai_notice?: string | null;
+};
 
 export const CSRF_HEADERS = { "x-veyntora-csrf": "1" } as const;
 

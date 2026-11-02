@@ -336,6 +336,10 @@
     "audit": {
       "title": "Audit log",
       "summary": "Searchable, append-only audit log with export and revert."
+    },
+    "pipelineChat": {
+      "title": "Pipeline · Chat features",
+      "summary": "Models people may choose and the thinking switch."
     }
   },
   "landing": {
@@ -704,7 +708,13 @@
     "exportChat": "Export chat",
     "noSources": "Answered without documents",
     "noSourcesBadge": "No sources",
-    "noSourcesExplained": "This chatbot answers from general knowledge, not your company's documents: there is nothing to check this answer against."
+    "noSourcesExplained": "This chatbot answers from general knowledge, not your company's documents: there is nothing to check this answer against.",
+    "model": "Model",
+    "thinking": "Thinking",
+    "thinkingLive": "Thinking…",
+    "thoughtAbout": "Thought process",
+    "placeholderGeneral": "Ask anything…",
+    "disclaimerGeneral": "This assistant answers from general knowledge, not your company's documents: answers have no sources and can be wrong."
   },
   "source": {
     "updated": "updated {date}",
@@ -846,7 +856,12 @@
     "regionPlaceholder": "e.g. eu-central",
     "delete": "Delete",
     "deleteConfirm": "Delete {name} and its key? Only possible when no chatbot pipeline (including older versions) and no other provider uses it. This cannot be undone.",
-    "deleted": "Deleted."
+    "deleted": "Deleted.",
+    "thinkingSwitch": "Thinking switch",
+    "thinkingNone": "None (the model's default)",
+    "thinkingFlag": "enable_thinking flag (SiliconFlow, DashScope)",
+    "thinkingTemplate": "chat_template_kwargs (vLLM, SGLang)",
+    "thinkingHint": "How this server turns a model's thinking on and off, so chatbots can offer people a Thinking switch. Only for models that can think (e.g. Qwen3)."
   },
   "sources": {
     "title": "Data sources",
@@ -1118,7 +1133,8 @@
       "generation": "Generation",
       "agent": "Agent",
       "router": "Router",
-      "guardrails": "Guardrails"
+      "guardrails": "Guardrails",
+      "chat": "Chat features"
     },
     "f": {
       "parser_instance_id": {
@@ -1322,6 +1338,14 @@
       "suggest_follow_ups": {
         "label": "Suggest follow-up questions",
         "hint": "Up to three questions under a grounded answer (one small extra model call). People can turn them off in Settings."
+      },
+      "llm_instance_ids": {
+        "label": "Models people may choose",
+        "hint": "The Generation model is the default and always offered. External models need this chatbot's data rule."
+      },
+      "thinking": {
+        "label": "Thinking switch for people",
+        "hint": "People can turn thinking on for a question, with models that support it; the reasoning is shown folded above the answer."
       }
     },
     "o": {
@@ -3823,6 +3847,15 @@
     "apply": "Apply",
     "saveContinue": "Save and continue",
     "afterwards": "Applies the modes, steps and providers above to the draft; nothing goes live until you publish.",
-    "failed": "That did not work: {reason}"
+    "failed": "That did not work: {reason}",
+    "models": {
+      "title": "Let people choose the model",
+      "hint": "Besides the model for answers (step 3), people can switch to these in the chat. External ones need the data rule.",
+      "none": "Add more LLM providers to offer a choice."
+    },
+    "thinking": {
+      "title": "Thinking switch",
+      "hint": "People can turn thinking on for a question, with models that support it (set the Thinking switch on the provider). The reasoning is shown folded."
+    }
   }
 }

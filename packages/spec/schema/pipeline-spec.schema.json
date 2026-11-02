@@ -68,6 +68,28 @@
       "title": "AgentToolBinding",
       "type": "object"
     },
+    "ChatSpec": {
+      "additionalProperties": false,
+      "description": "What people may switch in the chat (ADR 0027).",
+      "properties": {
+        "llm_instance_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Llm Instance Ids",
+          "type": "array"
+        },
+        "thinking": {
+          "default": false,
+          "title": "Thinking",
+          "type": "boolean"
+        }
+      },
+      "title": "ChatSpec",
+      "type": "object"
+    },
     "ChunkMetadata": {
       "enum": [
         "source_title_section",
@@ -752,6 +774,9 @@
   "properties": {
     "agent": {
       "$ref": "#/$defs/AgentSpec"
+    },
+    "chat": {
+      "$ref": "#/$defs/ChatSpec"
     },
     "flow": {
       "$ref": "#/$defs/FlowSpec"

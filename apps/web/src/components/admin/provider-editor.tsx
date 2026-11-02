@@ -93,6 +93,12 @@ export function ProviderEditor({
         [PRICE_IN]: Number(form.get("price_in") || 0),
         [PRICE_OUT]: Number(form.get("price_out") || 0),
       };
+      if (provider.adapter === "openai_compatible") {
+        const style = String(form.get("thinking") || "");
+        const options = next.options as Record<string, unknown>;
+        if (style) options.thinking = style;
+        else delete options.thinking;
+      }
     }
     const before: Record<string, unknown> = { ...provider };
     return Object.fromEntries(
@@ -237,6 +243,24 @@ export function ProviderEditor({
           </select>
           <span className="text-xs font-normal text-fg-muted">{t("fallbackHint")}</span>
         </label>
+        {priced && provider.adapter === "openai_compatible" ? (
+          <label className={label}>
+            {t("thinkingSwitch")}
+            <select
+              name="thinking"
+              defaultValue={
+                typeof provider.options.thinking === "string" ? provider.options.thinking : ""
+              }
+              disabled={!canEdit}
+              className={input}
+            >
+              <option value="">{t("thinkingNone")}</option>
+              <option value="enable_thinking">{t("thinkingFlag")}</option>
+              <option value="chat_template_kwargs">{t("thinkingTemplate")}</option>
+            </select>
+            <span className="text-xs font-normal text-fg-muted">{t("thinkingHint")}</span>
+          </label>
+        ) : null}
         {priced ? (
           <div className="grid grid-cols-2 gap-3">
             <label className={label}>

@@ -12,6 +12,7 @@ PostgreSQL, so a revoked or deleted document disappears at once, before the inde
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import re
 import time
@@ -154,6 +155,8 @@ class RunContext:
     external_traces: bool = False
     # The data rule allows answers without documents (only used when retrieval is off).
     no_documents_allowed: bool = False
+    # The asker turned thinking on or off for this question (None: the model's default).
+    thinking: bool | None = None
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -211,6 +214,8 @@ class Answer:
     follow_ups: list[str] = field(default_factory=list)
     # Answered without documents (general chat): nothing to check it against.
     no_sources: bool = False
+    # The model's reasoning, when thinking was on and the model returns it.
+    reasoning: str = ""
 
 
 # ---------------------------------------------------------------- context
@@ -391,6 +396,8 @@ async def _context(
             spec.rerank.reranker_instance_id if spec.rerank.enabled else None,
             spec.rerank.fallback_instance_id if spec.rerank.enabled else None,
             spec.generation.llm_instance_id,
+            # Models people may choose: data rules apply to every model a run may use.
+            *spec.chat.llm_instance_ids,
             # Agent and router models: data rules apply to every model a run may use.
             spec.agent.llm_instance_id,
             spec.router.router_instance_id,
@@ -443,6 +450,23 @@ async def _context(
         no_documents_allowed=bool(rule and rule.allow_no_documents),
         source_paths=paths,
     )
+
+
+def with_choices(ctx: RunContext, model: str | None, thinking: bool | None) -> RunContext:
+    """The asker's choices for one question: a model the chatbot offers (ChatSpec), and
+    thinking on or off where the chatbot allows the switch."""
+    spec = ctx.spec
+    # Where people may switch thinking, no choice means off; elsewhere the model decides.
+    choose_thinking = bool(thinking) if spec.chat.thinking else None
+    if not model or model == str(spec.generation.llm_instance_id):
+        return dataclasses.replace(ctx, thinking=choose_thinking)
+    offered = {str(i) for i in spec.chat.llm_instance_ids}
+    if model not in offered:
+        raise RunRefusedError("This assistant does not offer that model.")
+    chosen = spec.model_copy(deep=True)
+    chosen.generation.llm_instance_id = UUID(model)
+    # A model picked by name is used as picked: the asker's own key does not replace it.
+    return dataclasses.replace(ctx, spec=chosen, own_model=None, thinking=choose_thinking)
 
 
 async def _own_model(db: AsyncSession, user_id: UUID) -> ByokKey | None:
@@ -690,11 +714,25 @@ def sources_block(sources: Sequence[Source]) -> str:
 
 
 async def _complete(
-    llm: Any, messages: list[ChatMessage], max_tokens: int, emit: Emit | None
+    llm: Any,
+    messages: list[ChatMessage],
+    max_tokens: int,
+    emit: Emit | None,
+    *,
+    thinking: bool | None = None,
+    reasoning: list[str] | None = None,
 ) -> tuple[str, Usage]:
+    """The answer text; the model's reasoning (when it returns any) goes to `reasoning`."""
     text: list[str] = []
     usage = Usage(0, 0)
-    async for chunk in llm.chat(messages, max_tokens=max_tokens):
+    opts: dict[str, Any] = {"max_tokens": max_tokens}
+    if thinking is not None:
+        opts["thinking"] = thinking
+    async for chunk in llm.chat(messages, **opts):
+        if getattr(chunk, "reasoning", "") and reasoning is not None:
+            reasoning.append(chunk.reasoning)
+            if emit is not None:
+                emit({"type": "reasoning", "text": chunk.reasoning})
         if chunk.delta:
             text.append(chunk.delta)
             if emit is not None:
@@ -779,6 +817,7 @@ class _Run:
     warning: str | None = None
     skipped: bool = False
     calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
+    reasoning: list[str] = field(default_factory=list)
 
     def call(
         self, adapters: AdapterSource, instance_id: UUID | None, usage: Usage, own: Any = None
@@ -803,6 +842,7 @@ class _Run:
         result.rerank_skipped = self.skipped
         result.warning = result.warning or self.warning
         result.latency_ms = round((time.perf_counter() - self.started) * 1000)
+        result.reasoning = result.reasoning or "".join(self.reasoning).strip()
         return result
 
 
@@ -1124,7 +1164,14 @@ async def _generate(
     llm, own = await _llm(adapters, ctx)
     t0 = time.perf_counter()
     with tr.step("generate", generation=True) as step:
-        text, u = await _complete(llm, messages, gen.max_answer_tokens, emit)
+        text, u = await _complete(
+            llm,
+            messages,
+            gen.max_answer_tokens,
+            emit,
+            thinking=ctx.thinking,
+            reasoning=run.reasoning,
+        )
         step.set(
             **_usage_attrs(ctx, gen.llm_instance_id, u),
             streamed=emit is not None,
@@ -1136,6 +1183,8 @@ async def _generate(
         ctx.own_model.last_used_at = datetime.now(UTC)
     run.egress |= _llm_external(ctx)
     run.steps["generate"] = round((time.perf_counter() - t0) * 1000)
+    if masker is not None and run.reasoning:
+        run.reasoning[:] = [masker.unmask("".join(run.reasoning))]
     return masker.unmask(text) if masker is not None else text
 
 

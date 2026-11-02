@@ -49,7 +49,14 @@ from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.providers.runtime import Adapters
 from veyntora_api.rag import pipeline
 from veyntora_api.rag.guard import find_pii
-from veyntora_api.rag.pipeline import Answer, RunContext, RunRefusedError, language_of, load_context
+from veyntora_api.rag.pipeline import (
+    Answer,
+    RunContext,
+    RunRefusedError,
+    language_of,
+    load_context,
+    with_choices,
+)
 from veyntora_api.rag.record import conversation_for, record
 from veyntora_api.rag.tracing import new_trace
 from veyntora_providers import mcp_client
@@ -67,6 +74,9 @@ class State(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     chatbot_id: str
     mode: str
+    # The asker's choices for this question (chatbots that offer them, ChatSpec).
+    model: str
+    thinking: bool | None
     route: dict[str, Any]
     agent: runner.AgentState
     # A custom flow's position and results (graph editor; veyntora_api.agent.flow).
@@ -106,6 +116,8 @@ async def _open(state: State, config: RunnableConfig, db: AsyncSession) -> _Turn
         UUID(str(state.get("chatbot_id"))),
         app_key_id=_app_key(config),
     )
+    thinking = state.get("thinking")
+    ctx = with_choices(ctx, state.get("model"), thinking if isinstance(thinking, bool) else None)
     return _Turn(db, ctx, Adapters(db, reader), reader)
 
 

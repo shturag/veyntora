@@ -1,6 +1,9 @@
 """OpenAI-compatible chat completions: vLLM, the LiteLLM proxy, and other compatible servers.
 
-Options: `extra_body` (dict merged into each request, e.g. vLLM sampling settings).
+Options: `extra_body` (dict merged into each request, e.g. vLLM sampling settings);
+`thinking`: how this server switches a model's thinking on and off, when people may choose:
+"enable_thinking" (a top-level flag: SiliconFlow, DashScope) or "chat_template_kwargs"
+(vLLM, SGLang). Reasoning streamed as `reasoning_content` (or `reasoning`) is passed on.
 `temperature` is honoured here because these servers accept it.
 """
 
@@ -48,12 +51,12 @@ class OpenAICompatLLM:
             return {}
         return {"Authorization": f"Bearer {await self._secrets.read(self._config.secret_ref)}"}
 
-    async def chat(
+    def _body(
         self,
         messages: Sequence[ChatMessage],
-        tools: Sequence[ToolSpec] | None = None,
-        **opts: Any,
-    ) -> AsyncIterator[ChatChunk]:
+        tools: Sequence[ToolSpec] | None,
+        opts: dict[str, Any],
+    ) -> dict[str, Any]:
         body: dict[str, Any] = {
             "model": self._config.model,
             "messages": [_message(m) for m in messages],
@@ -64,6 +67,11 @@ class OpenAICompatLLM:
         }
         if "temperature" in opts:
             body["temperature"] = float(opts["temperature"])
+        style = self._config.options.get("thinking")
+        if "thinking" in opts and style == "enable_thinking":
+            body["enable_thinking"] = bool(opts["thinking"])
+        elif "thinking" in opts and style == "chat_template_kwargs":
+            body["chat_template_kwargs"] = {"enable_thinking": bool(opts["thinking"])}
         if tools:
             body["tools"] = [
                 {
@@ -76,6 +84,15 @@ class OpenAICompatLLM:
                 }
                 for t in tools
             ]
+        return body
+
+    async def chat(
+        self,
+        messages: Sequence[ChatMessage],
+        tools: Sequence[ToolSpec] | None = None,
+        **opts: Any,
+    ) -> AsyncIterator[ChatChunk]:
+        body = self._body(messages, tools, opts)
         calls: dict[int, dict[str, str]] = {}
         finish: str | None = None
         usage: Usage | None = None
@@ -105,6 +122,9 @@ class OpenAICompatLLM:
                     )
                 for choice in event.get("choices", []):
                     delta = choice.get("delta") or {}
+                    thought = delta.get("reasoning_content") or delta.get("reasoning")
+                    if isinstance(thought, str) and thought:
+                        yield ChatChunk(reasoning=thought)
                     if delta.get("content"):
                         yield ChatChunk(delta=delta["content"])
                     for tc in delta.get("tool_calls") or []:

@@ -2984,6 +2984,66 @@
         "title": "Change",
         "type": "object"
       },
+      "ChatFeatures": {
+        "description": "What the chat offers for this chatbot (its live version, ChatSpec).",
+        "properties": {
+          "ai_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Notice"
+          },
+          "documents": {
+            "default": true,
+            "title": "Documents",
+            "type": "boolean"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelChoice"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "thinking": {
+            "title": "Thinking",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "models",
+          "thinking"
+        ],
+        "title": "ChatFeatures",
+        "type": "object"
+      },
+      "ChatSpec": {
+        "additionalProperties": false,
+        "description": "What people may switch in the chat (ADR 0027).",
+        "properties": {
+          "llm_instance_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 12,
+            "title": "Llm Instance Ids",
+            "type": "array"
+          },
+          "thinking": {
+            "default": false,
+            "title": "Thinking",
+            "type": "boolean"
+          }
+        },
+        "title": "ChatSpec",
+        "type": "object"
+      },
       "ChatbotDetail": {
         "properties": {
           "answer_language": {
@@ -9146,6 +9206,35 @@
         "title": "Mode",
         "type": "string"
       },
+      "ModelChoice": {
+        "properties": {
+          "default": {
+            "title": "Default",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "thinking": {
+            "title": "Thinking",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "default",
+          "thinking"
+        ],
+        "title": "ModelChoice",
+        "type": "object"
+      },
       "MonitorAlert": {
         "properties": {
           "level": {
@@ -10560,6 +10649,9 @@
         "properties": {
           "agent": {
             "$ref": "#/components/schemas/AgentSpec"
+          },
+          "chat": {
+            "$ref": "#/components/schemas/ChatSpec"
           },
           "flow": {
             "$ref": "#/components/schemas/FlowSpec"
@@ -26939,6 +27031,49 @@
           }
         },
         "summary": "Chatbots the user may chat with (only live ones)",
+        "tags": [
+          "me"
+        ]
+      }
+    },
+    "/v1/me/chatbots/{bot_id}/features": {
+      "get": {
+        "operationId": "chat_features_v1_me_chatbots__bot_id__features_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatFeatures"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Models and switches the chat offers",
         "tags": [
           "me"
         ]
