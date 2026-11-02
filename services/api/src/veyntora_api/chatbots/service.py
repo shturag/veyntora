@@ -281,8 +281,14 @@ _EXPECTED: dict[str, Capability] = {
 
 # Slots that need a particular kind of provider within a capability. The PII slot finds
 # personal data to mask, which a safety classifier such as Llama Guard cannot do.
-PII_ADAPTERS = frozenset({"azure_pii"})
-_ADAPTERS: dict[str, frozenset[str]] = {"guardrails.pii_instance_id": PII_ADAPTERS}
+PII_ADAPTERS = frozenset({"azure_pii", "presidio"})
+# Safety checks judge a question or answer; Presidio only finds personal data.
+CHECK_ADAPTERS = frozenset({"azure_pii", "llama_guard"})
+_ADAPTERS: dict[str, frozenset[str]] = {
+    "guardrails.pii_instance_id": PII_ADAPTERS,
+    "guardrails.input_guardrail_instance_id": CHECK_ADAPTERS,
+    "guardrails.output_guardrail_instance_id": CHECK_ADAPTERS,
+}
 
 
 def instance_refs(spec: PipelineSpec) -> dict[str, UUID]:
@@ -316,8 +322,11 @@ async def reference_problems(
             problems.append(f"{path} needs a {_EXPECTED[path].value} provider, not {row.name}")
         elif path in _ADAPTERS and row.adapter not in _ADAPTERS[path]:
             problems.append(
-                f"{path} needs a personal-data detector (Azure AI Language PII); "
+                f"{path} needs a personal-data detector (Presidio or Azure AI Language PII); "
                 f"{row.name} is a safety check: use it as the input or output safety check"
+                if path == "guardrails.pii_instance_id"
+                else f"{path} needs a safety check (Llama Guard or Azure AI Language PII); "
+                f"{row.name} only finds personal data: use it as the PII provider"
             )
         elif not row.enabled:
             problems.append(f"{path}: provider {row.name} is disabled")

@@ -269,3 +269,28 @@ async def test_the_pii_slot_takes_only_a_personal_data_detector(db: AsyncSession
     spec.guardrails.pii_instance_id = guard.id
     [problem] = (await reference_problems(db, spec))[0]
     assert "personal-data detector" in problem and "Llama Guard" in problem
+
+
+async def test_presidio_fills_only_the_pii_slot(db: AsyncSession) -> None:
+    from veyntora_api.chatbots.service import reference_problems  # noqa: PLC0415
+    from veyntora_spec.pipeline import PipelineSpec  # noqa: PLC0415
+
+    presidio = await create_provider(
+        db,
+        CTX,
+        None,
+        _input(
+            capability=Capability.GUARDRAIL,
+            adapter="presidio",
+            name="Presidio",
+            endpoint="http://presidio:3000",
+            hosting=Hosting.SELF_HOSTED,
+            model=None,
+        ),
+    )
+    spec = PipelineSpec()
+    spec.guardrails.pii_instance_id = presidio.id
+    assert (await reference_problems(db, spec))[0] == []
+    spec.guardrails.input_guardrail_instance_id = presidio.id
+    [problem] = (await reference_problems(db, spec))[0]
+    assert "needs a safety check" in problem and "Presidio" in problem

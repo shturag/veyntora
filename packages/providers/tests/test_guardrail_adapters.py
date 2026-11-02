@@ -116,3 +116,50 @@ async def test_errors_never_echo_text_or_key() -> None:
     with pytest.raises(GuardrailRequestError) as err2:
         await pii.detect(["Anna Schmidt, IBAN DE89..."])
     assert KEY not in str(err2.value) and "Anna" not in str(err2.value)
+
+
+PRESIDIO = "http://presidio:3000"
+
+
+@respx.mock
+async def test_presidio_finds_personal_data_per_text_and_language() -> None:
+    sent: list[dict[str, object]] = []
+
+    def analyze(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        sent.append(body)
+        text = str(body["text"])
+        name = "Anna Schmidt"
+        at = text.find(name)
+        return httpx.Response(
+            200,
+            json=[{"entity_type": "PERSON", "start": at, "end": at + len(name), "score": 0.85}]
+            if at >= 0
+            else [],
+        )
+
+    respx.post(f"{PRESIDIO}/analyze").mock(side_effect=analyze)
+    guard = registry.create(_cfg("presidio", PRESIDIO), Secret())
+    found = await guard.detect(["Bitte an Anna Schmidt schicken.", "", "Nothing here."], "de")
+    assert [[(e.category, e.text, e.offset) for e in f] for f in found] == [
+        [("PERSON", "Anna Schmidt", 9)],
+        [],
+        [],
+    ]
+    # Empty texts are not sent; the language is passed on; dates and URLs are not asked for.
+    assert len(sent) == 2 and sent[0]["language"] == "de"
+    assert "DATE_TIME" not in sent[0]["entities"] and "URL" not in sent[0]["entities"]
+    await guard.detect(["x", "y"], "fr")
+    assert sent[-1]["language"] == "en"
+
+
+@respx.mock
+async def test_presidio_errors_carry_the_status_only() -> None:
+    respx.post(f"{PRESIDIO}/analyze").respond(400, json={"error": "text with secrets"})
+    guard = registry.create(_cfg("presidio", PRESIDIO), Secret())
+    with pytest.raises(GuardrailRequestError) as err:
+        await guard.detect(["Anna"], "en")
+    assert "secrets" not in str(err.value)
+    respx.post(f"{PRESIDIO}/analyze").respond(503)
+    with pytest.raises(httpx.TransportError):
+        await guard.detect(["Anna"], "en")

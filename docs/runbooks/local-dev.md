@@ -31,6 +31,8 @@ Order: `postgres`, `valkey`, `seaweedfs` → `seaweedfs-init` (buckets), `openba
 
 Model and observability services start alongside: `tei-embed`, `tei-rerank`, `docling`, `litellm`, `langfuse` (+ `clickhouse`, `langfuse-worker`), `otel-collector`, `prometheus`, `loki`, `grafana`. On first start, `bootstrap` imports the bundled Langfuse (address and project keys) and the Grafana address into **Admin → Integrations**. Grafana dashboards on Monitoring also need a service-account token stored there. `vllm` needs `--profile gpu` and `VLLM_MODEL`.
 
+**Presidio** (finding personal data inside your network) is optional: add `bundled-presidio` to `COMPOSE_PROFILES` in `.env` and run `make up`. Then, under **Providers & keys → Add provider → Guardrail → Presidio (self-hosted)**, keep the endpoint `http://presidio:3000` and choose it as the **PII provider** on a chatbot's Guardrails page. It handles English and German (ADR 0026).
+
 `channels` (Teams and Slack, port 8010) also posts automations' messages and approval cards. `mailpit` catches email locally: under **Channels & API → Email** set host `mailpit`, port `1025`, security *None*, any from address, and read the mails at http://localhost:8025.
 
 ## Everyday commands

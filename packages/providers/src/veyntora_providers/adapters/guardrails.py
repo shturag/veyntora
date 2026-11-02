@@ -2,6 +2,8 @@
 
 - `azure_pii`: Azure AI Language PII entity recognition (German and English). Finds personal
   data so it can be masked before text goes to an external model, or blocked.
+- `presidio`: Microsoft Presidio analyzer, self-hosted (deploy/compose/presidio: English and
+  German). Finds personal data inside your network, for the PII slot; no key.
 - `llama_guard`: Llama Guard served by an OpenAI-compatible provider. Judges the question
   (input) or the answer (output) against its standard hazard categories plus custom ones:
   prompt injection, the pipeline's blocked topics and, for answers, promises.
@@ -12,6 +14,7 @@ Not yet tested against the live services (Phase 2 report).
 
 from __future__ import annotations
 
+import asyncio
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -244,6 +247,78 @@ class LlamaGuard(_Base):
         verdict = await self.check("input", {"question": "What are the opening hours?"})
         if not verdict.allowed:
             raise GuardrailRequestError("a harmless test question was flagged")
+
+
+# What Presidio reports and Veyntora masks. URLs and dates are left out: they are rarely
+# personal, and masking them would garble ordinary answers.
+PRESIDIO_ENTITIES = (
+    "PERSON",
+    "LOCATION",
+    "EMAIL_ADDRESS",
+    "PHONE_NUMBER",
+    "IBAN_CODE",
+    "CREDIT_CARD",
+    "IP_ADDRESS",
+    "CRYPTO",
+    "MEDICAL_LICENSE",
+)
+_PRESIDIO_LANGUAGES = frozenset({"en", "de"})
+_PRESIDIO_PARALLEL = 4
+
+
+class Presidio(_Base):
+    """`detect` only: Presidio finds personal data; it is not a safety check."""
+
+    def _min_score(self) -> float:
+        return float(self._config.options.get("min_score", 0.5))
+
+    async def _analyze(self, http: httpx.AsyncClient, text: str, language: str) -> list[Entity]:
+        res = await http.post(
+            f"{self._base}/analyze",
+            json={
+                "text": text,
+                # Presidio knows the languages it was set up with; others are read as English.
+                "language": language if language in _PRESIDIO_LANGUAGES else "en",
+                "score_threshold": self._min_score(),
+                "entities": list(PRESIDIO_ENTITIES),
+            },
+        )
+        if res.status_code == 429 or res.status_code >= 500:
+            raise httpx.TransportError(f"Presidio is busy (HTTP {res.status_code})")
+        if res.status_code != 200:
+            raise GuardrailRequestError(f"Presidio refused the request (HTTP {res.status_code})")
+        return [
+            Entity(
+                text=text[int(e["start"]) : int(e["end"])],
+                category=str(e.get("entity_type", "PII")),
+                offset=int(e["start"]),
+                length=int(e["end"]) - int(e["start"]),
+                score=float(e.get("score", 0)),
+            )
+            for e in res.json()
+        ]
+
+    async def detect(self, texts: Sequence[str], language: str = "de") -> list[list[Entity]]:
+        gate = asyncio.Semaphore(_PRESIDIO_PARALLEL)
+        async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=5.0)) as http:
+
+            async def one(text: str) -> list[Entity]:
+                if not text.strip():
+                    return []
+                async with gate:
+                    return await self._analyze(http, text, language)
+
+            return list(await asyncio.gather(*(one(t) for t in texts)))
+
+    async def _probe(self) -> None:
+        [found] = await self.detect(["Write to jane.doe@example.com"], "en")
+        if not any(e.category == "EMAIL_ADDRESS" for e in found):
+            raise GuardrailRequestError("Presidio did not find a test e-mail address")
+
+
+@register(Capability.GUARDRAIL, "presidio")
+def _presidio(config: ProviderInstanceConfig, secrets: SecretReader) -> Presidio:
+    return Presidio(config, secrets)
 
 
 @register(Capability.GUARDRAIL, "azure_pii")

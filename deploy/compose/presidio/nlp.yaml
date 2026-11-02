@@ -1,0 +1,35 @@
+# Names and places come from these models; dates and organisations are not masked (they are
+# rarely personal and masking them would garble ordinary answers).
+nlp_engine_name: spacy
+models:
+  - lang_code: en
+    model_name: en_core_web_lg
+  - lang_code: de
+    model_name: de_core_news_md
+
+ner_model_configuration:
+  model_to_presidio_entity_mapping:
+    PER: PERSON
+    PERSON: PERSON
+    LOC: LOCATION
+    GPE: LOCATION
+    FAC: LOCATION
+    LOCATION: LOCATION
+  low_confidence_score_multiplier: 0.4
+  labels_to_ignore:
+    - ORG
+    - ORGANIZATION
+    - MISC
+    - NORP
+    - DATE
+    - TIME
+    - CARDINAL
+    - EVENT
+    - LANGUAGE
+    - LAW
+    - MONEY
+    - ORDINAL
+    - PERCENT
+    - PRODUCT
+    - QUANTITY
+    - WORK_OF_ART
