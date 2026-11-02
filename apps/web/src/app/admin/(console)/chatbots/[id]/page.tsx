@@ -78,9 +78,16 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
             <Link href={`/admin/pipelines/${o.id}/chat`}>{t("chatFeatures")}</Link>
           </h2>
           <p className="m-0 text-sm">{offered.join(" · ") || t("chatFeaturesNone")}</p>
-          <p className="m-0 text-xs text-fg-muted">
-            {o.draft_version ? t("chatFeaturesDraft") : t("chatFeaturesHint")}
-          </p>
+          {o.draft_version ? (
+            <p className="m-0 text-xs text-amber">
+              {t("chatFeaturesDraft")}{" "}
+              <Link href={`/admin/pipelines/${o.id}`} className="font-medium">
+                {t("publishNow", { version: o.draft_version })}
+              </Link>
+            </p>
+          ) : (
+            <p className="m-0 text-xs text-fg-muted">{t("chatFeaturesHint")}</p>
+          )}
         </section>
         <section className={card} aria-labelledby="ov-knowledge">
           <h2 id="ov-knowledge" className="m-0 text-sm font-semibold">

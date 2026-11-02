@@ -2076,14 +2076,15 @@
     "chatFeatures": "Chat-Funktionen",
     "chatFeaturesNone": "Keine Schalter für Personen",
     "chatFeaturesHint": "Was Personen im Chat schalten können: Modelle, Denken, Websuche, Code-Interpreter, Anhänge.",
-    "chatFeaturesDraft": "Enthält unveröffentlichte Änderungen: Veröffentliche die Pipeline, damit Personen sie bekommen.",
+    "chatFeaturesDraft": "Noch nicht im Chat: Personen bekommen die Live-Version.",
     "offers": {
       "models": "{count} Modelle zur Wahl",
       "thinking": "Denken",
       "webSearch": "Websuche",
       "code": "Code-Interpreter",
       "attachments": "Anhänge"
-    }
+    },
+    "publishNow": "Prüfen und v{version} veröffentlichen →"
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",

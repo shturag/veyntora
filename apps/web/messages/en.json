@@ -2076,14 +2076,15 @@
     "chatFeatures": "Chat features",
     "chatFeaturesNone": "No switches for people",
     "chatFeaturesHint": "What people can switch in the chat: models, thinking, web search, code interpreter, attachments.",
-    "chatFeaturesDraft": "Includes unpublished changes: publish the pipeline to give them to people.",
+    "chatFeaturesDraft": "Not in the chat yet: people get the live version.",
     "offers": {
       "models": "{count} models to choose",
       "thinking": "Thinking",
       "webSearch": "Web search",
       "code": "Code interpreter",
       "attachments": "Attachments"
-    }
+    },
+    "publishNow": "Review and publish v{version} →"
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
