@@ -1056,7 +1056,7 @@
     "privacyLink": "Datenschutzhinweis lesen",
     "modes": {
       "title": "Wie Antworten entstehen",
-      "body": "Der Schnellmodus durchsucht die Dokumente, die du öffnen darfst, und antwortet daraus in wenigen Sekunden. Die Modi Auto und Agent, die mehrere Schritte durchgehen und Aktionen zur Freigabe vorbereiten können, sind noch nicht verfügbar."
+      "body": "Wähle den Modus unter dem Textfeld, in das du schreibst. Schnell durchsucht die Dokumente, die du öffnen darfst, und antwortet daraus in wenigen Sekunden. Agent geht mehrere Schritte durch und kann Tools nutzen, etwa ein Ticket nachschlagen; bevor er etwas ändert, bittet er um Freigabe, und diese Anfragen findest du unter Freigaben. Auto wählt für jede Frage Schnell oder Agent. Manche Assistenten bieten nur einige dieser Modi an und nutzen dann einen erlaubten."
     },
     "checking": {
       "title": "Antworten prüfen",

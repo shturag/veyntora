@@ -62,7 +62,7 @@ test.describe("public pages", () => {
 test("help opens without signing in and only describes what exists", async ({ page }) => {
   await page.goto("/help");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Help");
-  await expect(page.getByText(/not available yet/)).toBeVisible();
+  await expect(page.getByText(/before it changes anything, it asks for approval/)).toBeVisible();
   await expect(page.getByRole("link", { name: "System status" })).toHaveAttribute(
     "href",
     "/status",

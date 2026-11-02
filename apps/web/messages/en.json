@@ -1056,7 +1056,7 @@
     "privacyLink": "Read the privacy notice",
     "modes": {
       "title": "How answers are made",
-      "body": "Fast mode searches the documents you are allowed to open and answers from them in a few seconds. Auto and Agent modes, which can work through several steps and prepare actions for your approval, are not available yet."
+      "body": "Choose a mode below the text field where you type. Fast searches the documents you are allowed to open and answers from them in a few seconds. Agent works through several steps and can use tools, such as looking up a ticket; before it changes anything, it asks for approval, and you find those requests under Approvals. Auto picks Fast or Agent for each question. Some assistants offer only some of these modes and use one they allow instead."
     },
     "checking": {
       "title": "Checking answers",
