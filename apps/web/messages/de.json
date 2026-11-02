@@ -916,7 +916,8 @@
       "active": "Aktiv",
       "paused": "Pausiert",
       "error": "Fehler",
-      "disconnected": "Getrennt"
+      "disconnected": "Getrennt",
+      "deleting": "Wird entfernt"
     },
     "connectTitle": "Datenquelle verbinden",
     "failed": "Das hat nicht funktioniert: {code}",
@@ -1088,7 +1089,10 @@
       "database": "Passwort",
       "smb": "Passwort",
       "sharepoint": "Client-Secret"
-    }
+    },
+    "delete": "Löschen",
+    "deleteConfirm": "Quelle {name} löschen? Ihre Dokumente werden aus allen Indizes entfernt, gespeicherte Dateien und Schlüssel gelöscht. Nur möglich, wenn kein Chatbot sie nutzt. Das lässt sich nicht rückgängig machen. Zum Bestätigen den Namen der Quelle eingeben:",
+    "deletingNote": "Diese Quelle wird entfernt: Ihre Dokumente verlassen alle Indizes. Danach verschwindet sie aus der Liste."
   },
   "myFiles": {
     "title": "Meine Dateien",

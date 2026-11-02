@@ -379,10 +379,42 @@ async def change_source(
 
 @router.post("/{source_id}/sync", status_code=status.HTTP_202_ACCEPTED, summary="Re-sync now")
 async def sync_source(source_id: UUID, principal: Editor, db: DbSession) -> JobOut:
-    await _source(db, source_id)
+    if (await _source(db, source_id)).status is SourceStatus.DELETING:
+        raise HTTPException(status.HTTP_409_CONFLICT, "The source is being removed")
     job = await svc.enqueue(db, source_id, IngestJobKind.SYNC, triggered_by=principal.user_id)
     await db.commit()
     return _job_out(job)
+
+
+class DeletedSource(BaseModel):
+    # Documents being taken out of every index; the source disappears when they are gone.
+    documents: int
+
+
+@router.delete(
+    "/{source_id}",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Remove a source nothing uses, with its documents",
+)
+async def delete_source(
+    source_id: UUID,
+    confirm: str,
+    _: Editor,
+    ctx: Ctx,
+    db: DbSession,
+    state: State,
+) -> DeletedSource:
+    row = await _source(db, source_id)
+    if confirm != row.name:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "Type the source's name to confirm"
+        )
+    try:
+        count = await svc.delete_source(db, ctx, state.secrets, row)
+    except svc.KnowledgeError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    await db.commit()
+    return DeletedSource(documents=count)
 
 
 @router.get("/{source_id}/documents", summary="Documents of a source")

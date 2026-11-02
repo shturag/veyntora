@@ -916,7 +916,8 @@
       "active": "Active",
       "paused": "Paused",
       "error": "Error",
-      "disconnected": "Disconnected"
+      "disconnected": "Disconnected",
+      "deleting": "Being removed"
     },
     "connectTitle": "Connect data source",
     "failed": "That did not work: {code}",
@@ -1088,7 +1089,10 @@
       "database": "Password",
       "smb": "Password",
       "sharepoint": "Client secret"
-    }
+    },
+    "delete": "Delete",
+    "deleteConfirm": "Delete the source {name}? Its documents are removed from every index and its stored files and key are deleted. Only possible when no chatbot uses it. This cannot be undone. Type the source's name to confirm:",
+    "deletingNote": "This source is being removed: its documents are leaving every index. It disappears from the list when that is done."
   },
   "myFiles": {
     "title": "My files",

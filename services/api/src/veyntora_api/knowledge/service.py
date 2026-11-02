@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService
 from veyntora_api.core.context import RequestContext
+from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.identity import Group, Membership, User
 from veyntora_api.db.models.knowledge import (
     DataSource,
@@ -29,6 +30,7 @@ from veyntora_api.db.models.knowledge import (
     IngestJobKind,
     JobStatus,
     ScanStatus,
+    SourceAttachment,
     SourceStatus,
     SourceType,
 )
@@ -448,6 +450,75 @@ async def delete_document(
     return await enqueue(
         db, doc.source_id, IngestJobKind.DELETE, document_id=doc.id, triggered_by=triggered_by
     )
+
+
+async def delete_source(
+    db: AsyncSession, ctx: RequestContext, secrets: SecretWriter | None, source: DataSource
+) -> int:
+    """Remove a source nothing uses: its key at once, its documents from every index (the
+    usual delete jobs), then the source itself (veyntora_workers.ingest.purge_deleted_sources).
+    Returns how many documents are being removed."""
+    if source.uploaded_by is not None:
+        raise KnowledgeError("this is a person's own files; they remove them in My files")
+    if source.status is SourceStatus.DELETING:
+        raise KnowledgeError("the source is already being removed")
+    users = (
+        (
+            await db.execute(
+                sa.select(Chatbot.name)
+                .join(SourceAttachment, SourceAttachment.chatbot_id == Chatbot.id)
+                .where(SourceAttachment.source_id == source.id)
+                .order_by(Chatbot.name)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if users:
+        raise KnowledgeError(f"used by {', '.join(users)}: remove it from their Knowledge first")
+    if source.secret_ref is not None:
+        if secrets is None:
+            raise KnowledgeError("the secret store is not available")
+        await secrets.delete(f"sources/{source.id}")
+        source.secret_ref = source.secret_last4 = source.secret_expires_at = None
+    # Nothing new may arrive: waiting syncs and indexing stop.
+    await db.execute(
+        sa.update(IngestJob)
+        .where(
+            IngestJob.source_id == source.id,
+            IngestJob.status == JobStatus.QUEUED,
+            IngestJob.kind != IngestJobKind.DELETE,
+        )
+        .values(status=JobStatus.CANCELLED)
+    )
+    before = {"name": source.name, "status": source.status.value}
+    source.status = SourceStatus.DELETING
+    source.version += 1
+    docs = (
+        (
+            await db.execute(
+                sa.select(Document).where(
+                    Document.source_id == source.id, Document.status != DocumentStatus.DELETED
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for doc in docs:
+        doc.status = DocumentStatus.DELETED
+        await enqueue(db, source.id, IngestJobKind.DELETE, document_id=doc.id)
+    await db.flush()
+    await audit.record(
+        db,
+        ctx,
+        action="source.delete",
+        target_type="data_source",
+        target_id=str(source.id),
+        before=before,
+        after={"status": SourceStatus.DELETING.value, "documents": len(docs)},
+    )
+    return len(docs)
 
 
 async def reindex_document(

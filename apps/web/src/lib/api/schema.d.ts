@@ -2198,7 +2198,8 @@ export interface paths {
         get: operations["get_source_v1_admin_sources__source_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Remove a source nothing uses, with its documents */
+        delete: operations["delete_source_v1_admin_sources__source_id__delete"];
         options?: never;
         head?: never;
         /** Rename, pause or change who may read */
@@ -5147,6 +5148,11 @@ export interface components {
         DeletedOut: {
             /** Chats Deleted */
             chats_deleted: number;
+        };
+        /** DeletedSource */
+        DeletedSource: {
+            /** Documents */
+            documents: number;
         };
         /**
          * DestinationKind
@@ -9117,7 +9123,7 @@ export interface components {
          * SourceStatus
          * @enum {string}
          */
-        SourceStatus: "active" | "paused" | "error" | "disconnected";
+        SourceStatus: "active" | "paused" | "error" | "disconnected" | "deleting";
         /**
          * SourceType
          * @enum {string}
@@ -14642,6 +14648,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_source_v1_admin_sources__source_id__delete: {
+        parameters: {
+            query: {
+                confirm: string;
+            };
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedSource"];
                 };
             };
             /** @description Validation Error */

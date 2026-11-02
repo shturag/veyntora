@@ -36,6 +36,7 @@ from veyntora_api.db.models.knowledge import (
     IngestJobKind,
     JobStatus,
     ScanStatus,
+    SourceStatus,
     SourceType,
 )
 from veyntora_api.db.session import get_sessionmaker
@@ -576,6 +577,20 @@ async def run_job(
         await _finish(db, job_id, JobStatus.SUCCEEDED, stats=stats, error=None)
     log.info("ingest.done", job_id=str(job_id), kind=kind.value, **stats)
     return JobStatus.SUCCEEDED
+
+
+async def purge_deleted_sources(db: AsyncSession) -> int:
+    """Sources an admin removed, once every delete job of theirs has run: gone, with their
+    document rows and job history (the chunks and originals were removed by the jobs)."""
+    busy = sa.select(IngestJob.source_id).where(
+        IngestJob.status.in_([JobStatus.QUEUED, JobStatus.RUNNING])
+    )
+    res = await db.execute(
+        sa.delete(DataSource).where(
+            DataSource.status == SourceStatus.DELETING, DataSource.id.not_in(busy)
+        )
+    )
+    return int(res.rowcount or 0)  # type: ignore[attr-defined]
 
 
 async def requeue_stuck(db: AsyncSession) -> int:

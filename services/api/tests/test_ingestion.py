@@ -21,6 +21,7 @@ from veyntora_api.db.models.chatbots import PipelineStatus, PipelineVersion
 from veyntora_api.db.models.governance import ActorType, AuditEvent
 from veyntora_api.db.models.identity import Group, GroupSource, User
 from veyntora_api.db.models.knowledge import (
+    DataSource,
     Document,
     DocumentIndex,
     DocumentStatus,
@@ -29,6 +30,7 @@ from veyntora_api.db.models.knowledge import (
     IngestJobKind,
     JobStatus,
     ScanStatus,
+    SourceStatus,
 )
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge import clamd
@@ -664,3 +666,35 @@ async def test_documents_reach_an_external_embedder_only_with_the_data_rule(
     )
     [profile] = await profiles_for_source(world.db, source.id)
     assert profile.embedding_instance_id == external
+
+
+async def test_a_source_nothing_uses_can_be_removed_with_its_documents(world: World) -> None:
+    from veyntora_workers.ingest import purge_deleted_sources  # noqa: PLC0415
+
+    bot, source = await _bot_with_source(world)
+    doc = await _upload(world, source)
+    await world.ingestor().index_document(doc, force=False)
+    with pytest.raises(knowledge.KnowledgeError, match="used by Support"):
+        await knowledge.delete_source(world.db, CTX, None, source)
+
+    await bots.set_sources(world.db, CTX, bot, [], world.user.id)
+    assert await knowledge.delete_source(world.db, CTX, None, source) == 1
+    assert source.status is SourceStatus.DELETING and doc.status is DocumentStatus.DELETED
+    # It cannot be attached again or removed twice while it goes.
+    with pytest.raises(bots.ChatbotError, match="unknown sources"):
+        await bots.set_sources(
+            world.db, CTX, bot, [bots.Attachment(source_id=source.id)], world.user.id
+        )
+    with pytest.raises(knowledge.KnowledgeError, match="already"):
+        await knowledge.delete_source(world.db, CTX, None, source)
+
+    # The source stays until its delete jobs have run, then it is gone.
+    assert await purge_deleted_sources(world.db) == 0
+    for job in await world.jobs(IngestJobKind.DELETE):
+        await world.ingestor().run(job)
+        job.status = JobStatus.SUCCEEDED
+    assert world.vectors.of(doc.id) == []
+    source_id = source.id
+    assert await purge_deleted_sources(world.db) == 1
+    world.db.expunge_all()
+    assert await world.db.get(DataSource, source_id) is None

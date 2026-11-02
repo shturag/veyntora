@@ -29,7 +29,12 @@ from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineStat
 from veyntora_api.db.models.conversations import Conversation
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import Group, User
-from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceAttachment
+from veyntora_api.db.models.knowledge import (
+    DataSource,
+    IngestJobKind,
+    SourceAttachment,
+    SourceStatus,
+)
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.models.tools import McpServer, McpServerStatus, Tool, ToolAccess
 from veyntora_api.evaluation import service as evaluation
@@ -618,7 +623,15 @@ async def set_sources(
         raise ChatbotError("a source is listed twice")
     if wanted:
         found = set(
-            (await db.execute(sa.select(DataSource.id).where(DataSource.id.in_(wanted)))).scalars()
+            (
+                await db.execute(
+                    sa.select(DataSource.id).where(
+                        DataSource.id.in_(wanted),
+                        # A source being removed cannot be attached again.
+                        DataSource.status != SourceStatus.DELETING,
+                    )
+                )
+            ).scalars()
         )
         if missing := [str(s) for s in wanted if s not in found]:
             raise ChatbotError(f"unknown sources: {', '.join(missing)}")

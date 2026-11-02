@@ -40,7 +40,7 @@ from veyntora_workers import (
     retention,
     saved_answers,
 )
-from veyntora_workers.ingest import requeue_stuck, run_pending
+from veyntora_workers.ingest import purge_deleted_sources, requeue_stuck, run_pending
 from veyntora_workers.integration_tests import run_queued_integration_tests
 from veyntora_workers.mcp_discovery import run_queued_discovery
 from veyntora_workers.provider_tests import run_queued_provider_tests
@@ -78,6 +78,7 @@ app.conf.update(
         },
         "source-tests": {"task": "veyntora.source_tests", "schedule": timedelta(seconds=5)},
         "source-schedules": {"task": "veyntora.source_schedules", "schedule": timedelta(minutes=1)},
+        "sources-purge": {"task": "veyntora.sources_purge", "schedule": timedelta(minutes=1)},
         "ingest-requeue-stuck": {
             "task": "veyntora.ingest_requeue_stuck",
             "schedule": timedelta(minutes=5),
@@ -202,6 +203,17 @@ def mcp_discovery() -> int:
 @app.task(name="veyntora.ingest")
 def ingest() -> int:
     return _run(run_pending(settings))
+
+
+@app.task(name="veyntora.sources_purge")
+def sources_purge() -> int:
+    async def go() -> int:
+        async with get_sessionmaker()() as db:
+            purged = await purge_deleted_sources(db)
+            await db.commit()
+            return purged
+
+    return _run(go())
 
 
 @app.task(name="veyntora.ingest_requeue_stuck")

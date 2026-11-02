@@ -33,6 +33,8 @@ class SourceStatus(StrEnum):
     PAUSED = "paused"
     ERROR = "error"
     DISCONNECTED = "disconnected"
+    # Removed by an admin: documents are being taken out of every index, then it is gone.
+    DELETING = "deleting"
 
 
 class DocumentStatus(StrEnum):

@@ -4742,6 +4742,19 @@
         "title": "DeletedOut",
         "type": "object"
       },
+      "DeletedSource": {
+        "properties": {
+          "documents": {
+            "title": "Documents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "documents"
+        ],
+        "title": "DeletedSource",
+        "type": "object"
+      },
       "DestinationKind": {
         "enum": [
           "teams_channel",
@@ -15288,7 +15301,8 @@
           "active",
           "paused",
           "error",
-          "disconnected"
+          "disconnected",
+          "deleting"
         ],
         "title": "SourceStatus",
         "type": "string"
@@ -24512,6 +24526,56 @@
       }
     },
     "/v1/admin/sources/{source_id}": {
+      "delete": {
+        "operationId": "delete_source_v1_admin_sources__source_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "confirm",
+            "required": true,
+            "schema": {
+              "title": "Confirm",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedSource"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a source nothing uses, with its documents",
+        "tags": [
+          "admin: sources"
+        ]
+      },
       "get": {
         "operationId": "get_source_v1_admin_sources__source_id__get",
         "parameters": [

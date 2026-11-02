@@ -65,6 +65,26 @@ export function SourceActions({ source, canEdit }: { source: Source; canEdit: bo
       router.refresh();
     });
   const paused = source.status === "paused";
+  if (source.status === "deleting") {
+    return (
+      <p role="status" className="m-0 max-w-sm text-right text-sm text-fg-muted">
+        {t("deletingNote")}
+      </p>
+    );
+  }
+  // Removing asks for the source's name, like deleting a chatbot; the API checks it too.
+  const remove = () => {
+    const typed = window.prompt(t("deleteConfirm", { name: source.name }));
+    if (typed === null) return;
+    void run(async () => {
+      setDone(null);
+      await api(`/v1/admin/sources/${source.id}?confirm=${encodeURIComponent(typed.trim())}`, {
+        method: "DELETE",
+      });
+      router.push("/admin/sources");
+      router.refresh();
+    });
+  };
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="flex flex-wrap gap-2">
@@ -110,6 +130,9 @@ export function SourceActions({ source, canEdit }: { source: Source; canEdit: bo
           }
         >
           {paused ? t("resume") : t("pause")}
+        </Button>
+        <Button variant="danger-outline" disabled={busy} onClick={remove}>
+          {t("delete")}
         </Button>
       </div>
       <Feedback error={error} done={done} />

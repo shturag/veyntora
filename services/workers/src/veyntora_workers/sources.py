@@ -95,7 +95,11 @@ async def run_queued_source_tests(settings: Settings, limit: int = 5) -> int:
                 break
             async with get_sessionmaker()() as db:
                 source = await db.get(DataSource, UUID(str(raw)))
-                if source is None or source.type is SourceType.UPLOAD:
+                if (
+                    source is None
+                    or source.type is SourceType.UPLOAD
+                    or source.status is SourceStatus.DELETING
+                ):
                     continue
                 ing = Ingestor(db, settings, ObjectStore(settings), reader)
                 try:
