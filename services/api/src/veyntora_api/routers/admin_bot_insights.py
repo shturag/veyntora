@@ -280,6 +280,10 @@ class DuplicateIn(BaseModel):
     slug: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{1,63}$")
     copy_sources: bool = True
     copy_access: bool = False
+    # What the person typed for the copy; left out, the original's are kept.
+    description: str | None = Field(default=None, max_length=2000)
+    welcome_message: str | None = Field(default=None, max_length=2000)
+    answer_language: str | None = Field(default=None, pattern=r"^(auto|de|en)$")
 
 
 @router.post(
@@ -301,9 +305,11 @@ async def duplicate(
             svc.ChatbotInput(
                 slug=data.slug,
                 name=data.name,
-                description=original.description,
-                welcome_message=original.welcome_message,
-                answer_language=original.answer_language,
+                description=original.description if data.description is None else data.description,
+                welcome_message=original.welcome_message
+                if data.welcome_message is None
+                else data.welcome_message,
+                answer_language=data.answer_language or original.answer_language,
             ),
             principal.user_id,
         )

@@ -24,13 +24,14 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
   const t = useTranslations("bots");
   const router = useRouter();
   const [name, setName] = useState("");
+  // The chatbot this one starts as a copy of ("" for a blank one).
+  const [from, setFrom] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const f = new FormData(event.currentTarget);
-    const from = String(f.get("from") || "");
     const slug = slugOf(String(f.get("slug") || name));
     setBusy(true);
     setError(null);
@@ -43,6 +44,9 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
               slug,
               copy_sources: f.get("copy_sources") === "on",
               copy_access: false,
+              description: String(f.get("description") || ""),
+              welcome_message: String(f.get("welcome") || ""),
+              answer_language: String(f.get("language") || "auto"),
             }),
           })
         : await api<{ id: string }>("/v1/admin/chatbots", {
@@ -112,7 +116,12 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
         </label>
         <label className={field}>
           {t("startFrom")}
-          <select name="from" defaultValue="" className={control}>
+          <select
+            name="from"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className={control}
+          >
             <option value="">{t("blank")}</option>
             {templates.map((b) => (
               <option key={b.id} value={b.id}>
@@ -122,9 +131,16 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
           </select>
         </label>
       </div>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="copy_sources" defaultChecked /> {t("copySources")}
-      </label>
+      {from ? (
+        // Only a copy has sources to take over.
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="copy_sources" defaultChecked className="mt-1" />
+          <span className="flex flex-col gap-0.5">
+            {t("copySources")}
+            <span className="text-xs text-fg-muted">{t("copySourcesHint")}</span>
+          </span>
+        </label>
+      ) : null}
       <p className="m-0 text-xs text-fg-muted">{t("draftNote")}</p>
       {error ? (
         <p role="alert" className="m-0 text-sm text-red">

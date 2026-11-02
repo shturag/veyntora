@@ -2087,7 +2087,8 @@
       "code": "Code-Interpreter",
       "attachments": "Anhänge"
     },
-    "publishNow": "Prüfen und v{version} veröffentlichen →"
+    "publishNow": "Prüfen und v{version} veröffentlichen →",
+    "copySourcesHint": "Der neue Chatbot antwortet aus denselben Datenquellen wie der kopierte (die Dokumente werden geteilt, nicht verdoppelt). Abwählen, um die Quellen im nächsten Schritt zu wählen."
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",

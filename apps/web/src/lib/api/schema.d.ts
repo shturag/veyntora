@@ -5262,6 +5262,8 @@ export interface components {
         };
         /** DuplicateIn */
         DuplicateIn: {
+            /** Answer Language */
+            answer_language?: string | null;
             /**
              * Copy Access
              * @default false
@@ -5272,10 +5274,14 @@ export interface components {
              * @default true
              */
             copy_sources: boolean;
+            /** Description */
+            description?: string | null;
             /** Name */
             name: string;
             /** Slug */
             slug: string;
+            /** Welcome Message */
+            welcome_message?: string | null;
         };
         /** EntryDetail */
         EntryDetail: {

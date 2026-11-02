@@ -83,8 +83,32 @@ async def test_cards_overview_duplicate_and_preview(db: AsyncSession) -> None:
     copied = {(g.principal, g.role) for g in await bots.read_access(authz, copy_id)}  # type: ignore[arg-type]
     assert (f"group:{team.id}", "user") in copied
 
+    # What the person typed for the copy wins over the original's.
+    typed = await insights.duplicate(
+        bot.id,
+        insights.DuplicateIn(
+            name="Essen",
+            slug="essen",
+            copy_sources=False,
+            description="Serviceportal",
+            welcome_message="Willkommen",
+            answer_language="de",
+        ),
+        me,
+        state,
+        db,
+        CTX,
+    )
+    essen = await db.get(type(bot), typed["id"])
+    assert essen is not None
+    assert (essen.description, essen.welcome_message, essen.answer_language) == (
+        "Serviceportal",
+        "Willkommen",
+        "de",
+    )
+
     seen = await insights.preview(bot.id, w.user.id, me, state, db)
-    assert {p.chatbot for p in seen} == {bot.name, "Support copy"}
+    assert {p.chatbot for p in seen} == {bot.name, "Support copy", "Essen"}
     with pytest.raises(Exception, match="Person not found"):
         await insights.preview(bot.id, team.id, me, state, db)
 

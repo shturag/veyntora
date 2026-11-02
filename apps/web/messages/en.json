@@ -2087,7 +2087,8 @@
       "code": "Code interpreter",
       "attachments": "Attachments"
     },
-    "publishNow": "Review and publish v{version} →"
+    "publishNow": "Review and publish v{version} →",
+    "copySourcesHint": "The new chatbot answers from the same data sources as the one you copy (the documents are shared, not duplicated). Untick to choose its sources in the next step."
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",

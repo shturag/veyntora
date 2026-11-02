@@ -5036,6 +5036,18 @@
       },
       "DuplicateIn": {
         "properties": {
+          "answer_language": {
+            "anyOf": [
+              {
+                "pattern": "^(auto|de|en)$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Language"
+          },
           "copy_access": {
             "default": false,
             "title": "Copy Access",
@@ -5045,6 +5057,18 @@
             "default": true,
             "title": "Copy Sources",
             "type": "boolean"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           },
           "name": {
             "maxLength": 255,
@@ -5056,6 +5080,18 @@
             "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
             "title": "Slug",
             "type": "string"
+          },
+          "welcome_message": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Welcome Message"
           }
         },
         "required": [
