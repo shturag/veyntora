@@ -738,7 +738,10 @@
     "codeTimedOut": "stopped: took too long",
     "codeFailed": "ended with an error",
     "chart": "Chart: {name}",
-    "cutOff": "This answer reached its length limit and stops early. Ask “continue” for the rest. An admin can raise the limit under Pipelines → Generation → Max answer tokens."
+    "cutOff": "This answer reached its length limit and stops early. Ask “continue” for the rest. An admin can raise the limit under Pipelines → Generation → Max answer tokens.",
+    "sourcesPanel": "Sources",
+    "sourcesFor": "For: {question}",
+    "sourcesNone": "This answer cites no sources."
   },
   "source": {
     "updated": "updated {date}",

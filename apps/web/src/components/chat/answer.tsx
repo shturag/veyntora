@@ -1,15 +1,16 @@
 "use client";
 
-import { Badge, Button, Tooltip } from "@veyntora/ui";
+import { Badge, Button, cn, Tooltip } from "@veyntora/ui";
 import { Bookmark, BookmarkCheck, Copy, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Popover } from "radix-ui";
-import { Fragment, useState } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 
 import {
   api,
   parseBlocks,
+  plainText,
   type Inline,
   type AgentStep,
   type AnswerMeta,
@@ -32,7 +33,9 @@ function CitationChip({
   const t = useTranslations("chat");
   if (!citation) return <span className={chip}>{n}</span>;
   const href = `/source/${citation.document_id}?m=${messageId ?? ""}&n=${n}`;
-  const where = [citation.title, citation.section].filter(Boolean).join(" · ");
+  const where = [plainText(citation.title), plainText(citation.section)]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <Popover.Root>
       <Popover.Trigger className={chip} aria-label={t("sourceN", { n, title: citation.title })}>
@@ -49,7 +52,7 @@ function CitationChip({
             {citation.page ? ` · ${t("page", { page: citation.page })}` : ""}
           </div>
           <blockquote className="m-0 rounded-sm bg-amber-soft px-2.5 py-2 text-[13px] leading-relaxed text-fg-secondary">
-            {citation.quote}
+            {plainText(citation.quote)}
           </blockquote>
           {citation.document_id ? (
             <Link href={href} className="text-[13px] font-medium">
@@ -346,9 +349,14 @@ export function AnswerBlock({
   meta,
   onRegenerate,
   onAsk,
+  onShowSources,
+  sourcesShown = false,
 }: {
   text: string;
   meta: AnswerMeta;
+  /** Show this answer's sources in the panel beside the chat (wide screens). */
+  onShowSources?: () => void;
+  sourcesShown?: boolean;
   onRegenerate?: () => void;
   // Ask a suggested follow-up question.
   onAsk?: (question: string) => void;
@@ -378,7 +386,10 @@ export function AnswerBlock({
         <Badge tone={meta.mode_used === "agent" ? "accent" : "info"}>
           {t(`modes.${meta.mode_used ?? "fast"}`)}
         </Badge>
-        <span>
+        <SourcesLabel
+          onShow={cited.length ? onShowSources : undefined}
+          shown={sourcesShown && cited.length > 0}
+        >
           {meta.no_sources
             ? t("noSources")
             : answered
@@ -389,7 +400,7 @@ export function AnswerBlock({
                   : t("answeredFromWeb", { count: pages })
               : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
-        </span>
+        </SourcesLabel>
         {meta.no_sources ? (
           <Tooltip content={t("noSourcesExplained")}>
             <span tabIndex={0}>
@@ -519,5 +530,31 @@ function CodeRuns({ runs }: { runs: CodeRun[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/** The answer's "from N documents" line; where a panel can show its sources, it opens them. */
+function SourcesLabel({
+  onShow,
+  shown,
+  children,
+}: {
+  onShow?: () => void;
+  shown: boolean;
+  children: ReactNode;
+}) {
+  if (!onShow) return <span>{children}</span>;
+  return (
+    <button
+      type="button"
+      onClick={onShow}
+      aria-pressed={shown}
+      className={cn(
+        "-mx-1 rounded px-1 text-left underline decoration-dotted underline-offset-2 hover:text-fg",
+        shown && "text-fg decoration-solid",
+      )}
+    >
+      {children}
+    </button>
   );
 }

@@ -25,6 +25,7 @@ import { AnswerBlock } from "./answer";
 import { ApprovalCard } from "./approval-card";
 import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
+import { SourcesPanel } from "./sources-panel";
 
 type Progress = { step: StatusEvent["step"]; sources?: number } | null;
 type LiveStep = { kind: string; name?: string; status: string };
@@ -72,6 +73,8 @@ function Thread({
   // The chatbot's own notice once known (null: none); until then the platform's.
   const notice = features.ai_notice === undefined ? aiNotice : features.ai_notice;
   const [thinking, setThinking] = useState(initialChoices?.thinking ?? false);
+  // The answer whose sources the panel beside the chat shows (null: the latest).
+  const [sourcesFor, setSourcesFor] = useState<string | null>(null);
   const [webSearch, setWebSearch] = useState(initialChoices?.webSearch ?? false);
   const [code, setCode] = useState(initialChoices?.code ?? false);
   const started = useRef(false);
@@ -181,137 +184,171 @@ function Thread({
   const busy = stream.isLoading;
   const wait = busy ? undefined : (stream.interrupt?.value as ApprovalWait | undefined);
 
+  // The answer whose sources the panel shows: the one chosen, else the latest with any.
+  const answers = messages
+    .map((m, i) => ({ m, i }))
+    .filter(({ m }) => m.type !== "human")
+    .map(({ m, i }) => {
+      const extra = m.additional_kwargs?.veyntora;
+      const meta = extra && "outcome" in extra ? extra : undefined;
+      const previous = messages[i - 1];
+      return {
+        key: m.id ?? String(i),
+        meta,
+        question: previous?.type === "human" ? textOf(previous.content) : "",
+      };
+    });
+  const withSources = answers.filter((a) => a.meta?.citations?.length);
+  const shown =
+    withSources.find((a) => a.key === sourcesFor) ?? withSources[withSources.length - 1];
+
   return (
-    <>
-      <section
-        aria-label={t("conversation")}
-        aria-busy={busy}
-        className="mx-auto flex w-full max-w-[820px] flex-1 flex-col gap-[22px] px-7 py-8 max-[640px]:px-4"
-      >
-        {messages.map((m, i) => {
-          if (m.type === "human") {
-            const extra = m.additional_kwargs?.veyntora;
-            const files = extra && "attachments" in extra ? (extra.attachments ?? []) : [];
-            return (
-              <div key={m.id ?? i} className="flex max-w-[78%] flex-col items-end gap-1.5 self-end">
-                {files.length ? (
-                  <ul
-                    aria-label={t("attachedFiles")}
-                    className="m-0 flex list-none flex-wrap justify-end gap-1.5 p-0"
-                  >
-                    {files.map((f) => (
-                      <li
-                        key={f.id}
-                        className="inline-flex max-w-[260px] items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-[13px]"
-                      >
-                        <FileText aria-hidden className="size-3.5 shrink-0 text-fg-muted" />
-                        <span className="truncate" title={f.name}>
-                          {f.name}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                <div className="rounded-[14px_14px_4px_14px] bg-ink px-4 py-3 text-[15px] leading-normal text-ground">
-                  {textOf(m.content)}
+    <div className="flex min-h-0 flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <section
+          aria-label={t("conversation")}
+          aria-busy={busy}
+          className="mx-auto flex w-full max-w-[820px] flex-1 flex-col gap-[22px] px-7 py-8 max-[640px]:px-4"
+        >
+          {messages.map((m, i) => {
+            if (m.type === "human") {
+              const extra = m.additional_kwargs?.veyntora;
+              const files = extra && "attachments" in extra ? (extra.attachments ?? []) : [];
+              return (
+                <div
+                  key={m.id ?? i}
+                  className="flex max-w-[78%] flex-col items-end gap-1.5 self-end"
+                >
+                  {files.length ? (
+                    <ul
+                      aria-label={t("attachedFiles")}
+                      className="m-0 flex list-none flex-wrap justify-end gap-1.5 p-0"
+                    >
+                      {files.map((f) => (
+                        <li
+                          key={f.id}
+                          className="inline-flex max-w-[260px] items-center gap-1.5 rounded-md border border-line bg-surface px-2 py-1 text-[13px]"
+                        >
+                          <FileText aria-hidden className="size-3.5 shrink-0 text-fg-muted" />
+                          <span className="truncate" title={f.name}>
+                            {f.name}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <div className="rounded-[14px_14px_4px_14px] bg-ink px-4 py-3 text-[15px] leading-normal text-ground">
+                    {textOf(m.content)}
+                  </div>
                 </div>
-              </div>
+              );
+            }
+            const extra = m.additional_kwargs?.veyntora;
+            const meta: AnswerMeta =
+              extra && "outcome" in extra ? extra : { outcome: "refused" as const };
+            const previous = messages[i - 1];
+            const question = previous?.type === "human" ? textOf(previous.content) : "";
+            const last = i === messages.length - 1;
+            return (
+              <AnswerBlock
+                key={m.id ?? i}
+                text={textOf(m.content)}
+                meta={meta}
+                onShowSources={() => setSourcesFor(m.id ?? String(i))}
+                sourcesShown={shown?.key === (m.id ?? String(i))}
+                onRegenerate={last && question && !busy ? () => ask(question) : undefined}
+                onAsk={last && !busy ? ask : undefined}
+              />
             );
-          }
-          const extra = m.additional_kwargs?.veyntora;
-          const meta: AnswerMeta =
-            extra && "outcome" in extra ? extra : { outcome: "refused" as const };
-          const previous = messages[i - 1];
-          const question = previous?.type === "human" ? textOf(previous.content) : "";
-          const last = i === messages.length - 1;
-          return (
-            <AnswerBlock
-              key={m.id ?? i}
-              text={textOf(m.content)}
-              meta={meta}
-              onRegenerate={last && question && !busy ? () => ask(question) : undefined}
-              onAsk={last && !busy ? ask : undefined}
+          })}
+          {busy ? (
+            <div role="status" className="flex flex-col gap-2 text-sm text-fg-muted">
+              {routeNote ? <span>{t("toAgent", { reason: routeNote })}</span> : null}
+              {showSteps && steps.length ? (
+                <ol className="m-0 flex list-none flex-col gap-1 p-0">
+                  {steps.map((s, i) => (
+                    <li key={i} className="inline-flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className={`size-2 rounded-full ${s.status === "running" ? "animate-pulse bg-accent" : "bg-line-strong"}`}
+                      />
+                      {t(`live.${s.kind}` as "live.think", { name: s.name ?? "" })}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <span aria-hidden className="size-2 animate-pulse rounded-full bg-accent" />
+                  {progress?.step === "running_code"
+                    ? t("runningCode")
+                    : progress?.step === "writing"
+                      ? t("writing", { count: progress.sources ?? 0 })
+                      : t("searching")}
+                </span>
+              )}
+              {reasoning ? (
+                <details open className="rounded-md bg-sunken px-3 py-2 text-sm">
+                  <summary className="cursor-pointer text-fg-muted">{t("thinkingLive")}</summary>
+                  <p className="m-0 mt-1 whitespace-pre-wrap text-fg-secondary">{reasoning}</p>
+                </details>
+              ) : null}
+              {draft ? <p className="m-0 text-base leading-[1.7] text-fg">{draft}</p> : null}
+            </div>
+          ) : null}
+          <ExpertReplies threadId={threadId} />
+          {wait?.type === "approval" ? (
+            <ApprovalCard
+              wait={wait}
+              onDecided={() => resume({ approval_id: wait.approval_id })}
+              onStop={() => resume({ cancel: true })}
             />
-          );
-        })}
-        {busy ? (
-          <div role="status" className="flex flex-col gap-2 text-sm text-fg-muted">
-            {routeNote ? <span>{t("toAgent", { reason: routeNote })}</span> : null}
-            {showSteps && steps.length ? (
-              <ol className="m-0 flex list-none flex-col gap-1 p-0">
-                {steps.map((s, i) => (
-                  <li key={i} className="inline-flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className={`size-2 rounded-full ${s.status === "running" ? "animate-pulse bg-accent" : "bg-line-strong"}`}
-                    />
-                    {t(`live.${s.kind}` as "live.think", { name: s.name ?? "" })}
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <span className="inline-flex items-center gap-2">
-                <span aria-hidden className="size-2 animate-pulse rounded-full bg-accent" />
-                {progress?.step === "running_code"
-                  ? t("runningCode")
-                  : progress?.step === "writing"
-                    ? t("writing", { count: progress.sources ?? 0 })
-                    : t("searching")}
-              </span>
-            )}
-            {reasoning ? (
-              <details open className="rounded-md bg-sunken px-3 py-2 text-sm">
-                <summary className="cursor-pointer text-fg-muted">{t("thinkingLive")}</summary>
-                <p className="m-0 mt-1 whitespace-pre-wrap text-fg-secondary">{reasoning}</p>
-              </details>
-            ) : null}
-            {draft ? <p className="m-0 text-base leading-[1.7] text-fg">{draft}</p> : null}
-          </div>
-        ) : null}
-        <ExpertReplies threadId={threadId} />
-        {wait?.type === "approval" ? (
-          <ApprovalCard
-            wait={wait}
-            onDecided={() => resume({ approval_id: wait.approval_id })}
-            onStop={() => resume({ cancel: true })}
+          ) : null}
+          {failed ? (
+            <p role="alert" className="m-0 rounded-md bg-red-soft px-3 py-2 text-sm text-red">
+              {t("runFailed")}
+            </p>
+          ) : null}
+        </section>
+        <div className="sticky bottom-0 mx-auto w-full max-w-[820px] bg-ground px-7 pt-2 pb-5 max-[640px]:px-4">
+          <Composer
+            onSubmit={ask}
+            mode={mode}
+            onModeChange={setMode}
+            busy={busy || Boolean(wait)}
+            rows={2}
+            submitLabel={t("send")}
+            placeholder={features.documents ? undefined : t("placeholderGeneral")}
+            attach={
+              features.attachments?.length ? { chatbotId, accept: features.attachments } : null
+            }
+            trailing={<ModelPicker features={features} model={model} onModel={setModel} />}
+            extras={
+              <ChatExtras
+                features={features}
+                model={model}
+                thinking={thinking}
+                onThinking={setThinking}
+                webSearch={webSearch}
+                onWebSearch={setWebSearch}
+                code={code}
+                onCode={setCode}
+              />
+            }
           />
-        ) : null}
-        {failed ? (
-          <p role="alert" className="m-0 rounded-md bg-red-soft px-3 py-2 text-sm text-red">
-            {t("runFailed")}
+          <p className="mt-2 mb-0 text-center text-xs text-fg-muted">
+            {notice ? `${notice} ` : ""}
+            {features.documents ? t("disclaimer") : t("disclaimerGeneral")}
           </p>
-        ) : null}
-      </section>
-      <div className="sticky bottom-0 mx-auto w-full max-w-[820px] bg-ground px-7 pt-2 pb-5 max-[640px]:px-4">
-        <Composer
-          onSubmit={ask}
-          mode={mode}
-          onModeChange={setMode}
-          busy={busy || Boolean(wait)}
-          rows={2}
-          submitLabel={t("send")}
-          placeholder={features.documents ? undefined : t("placeholderGeneral")}
-          attach={features.attachments?.length ? { chatbotId, accept: features.attachments } : null}
-          trailing={<ModelPicker features={features} model={model} onModel={setModel} />}
-          extras={
-            <ChatExtras
-              features={features}
-              model={model}
-              thinking={thinking}
-              onThinking={setThinking}
-              webSearch={webSearch}
-              onWebSearch={setWebSearch}
-              code={code}
-              onCode={setCode}
-            />
-          }
-        />
-        <p className="mt-2 mb-0 text-center text-xs text-fg-muted">
-          {notice ? `${notice} ` : ""}
-          {features.documents ? t("disclaimer") : t("disclaimerGeneral")}
-        </p>
+        </div>
       </div>
-    </>
+      {shown?.meta?.citations ? (
+        <SourcesPanel
+          citations={shown.meta.citations}
+          messageId={shown.meta.message_id}
+          question={shown.question}
+        />
+      ) : null}
+    </div>
   );
 }
 

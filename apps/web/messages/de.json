@@ -738,7 +738,10 @@
     "codeTimedOut": "abgebrochen: hat zu lange gedauert",
     "codeFailed": "mit Fehler beendet",
     "chart": "Diagramm: {name}",
-    "cutOff": "Diese Antwort hat ihre Längengrenze erreicht und endet vorzeitig. Schreib „weiter“ für den Rest. Admins können die Grenze unter Pipelines → Antwort → Maximale Antwortlänge (Tokens) erhöhen."
+    "cutOff": "Diese Antwort hat ihre Längengrenze erreicht und endet vorzeitig. Schreib „weiter“ für den Rest. Admins können die Grenze unter Pipelines → Antwort → Maximale Antwortlänge (Tokens) erhöhen.",
+    "sourcesPanel": "Quellen",
+    "sourcesFor": "Zu: {question}",
+    "sourcesNone": "Diese Antwort zitiert keine Quellen."
   },
   "source": {
     "updated": "aktualisiert am {date}",

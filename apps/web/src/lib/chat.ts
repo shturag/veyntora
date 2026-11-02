@@ -302,3 +302,18 @@ export function parseAnswer(text: string): Inline[][] {
       return inlines(paragraph);
     });
 }
+
+/**
+ * Text from a document as people read it: Markdown links keep their words, images their
+ * description; heading marks, emphasis and stray brackets go (quotes and source names).
+ */
+export function plainText(text: string): string {
+  return text
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/(\*\*|__|\*|_)(\S[^*_]*?)\1/g, "$2")
+    .replace(/[[\]]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}

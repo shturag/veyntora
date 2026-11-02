@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAnswer, parseBlocks, textOf } from "./chat";
+import { parseAnswer, parseBlocks, plainText, textOf } from "./chat";
 
 describe("parseAnswer", () => {
   it("splits paragraphs, bold text and citations", () => {
@@ -114,5 +114,20 @@ describe("parseBlocks", () => {
     expect(parseBlocks("# <script>x</script>")).toEqual([
       { kind: "heading", level: 1, text: [{ kind: "text", text: "<script>x</script>" }] },
     ]);
+  });
+});
+
+describe("plainText", () => {
+  it("reads Markdown from documents as plain words", () => {
+    expect(
+      plainText(
+        "- [Grugapark](grugapark_1/grugapark_essen.de.html) - [Parks und Grünflächen](x.html)",
+      ),
+    ).toBe("- Grugapark - Parks und Grünflächen");
+    expect(plainText("Grüne Stadt Essen > [Aktuelle Grünprojekte")).toBe(
+      "Grüne Stadt Essen > Aktuelle Grünprojekte",
+    );
+    expect(plainText("## **Wichtig:** Termin\n![Karte](map.png)")).toBe("Wichtig: Termin Karte");
+    expect(plainText("2 * 3 = 6")).toBe("2 * 3 = 6");
   });
 });
