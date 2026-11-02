@@ -27,4 +27,4 @@
 | [0023](0023-governance-audit-connectors-hardening.md) | Governance, data subject requests, audit archive, access reviews, Confluence/database/file-share connectors, hardening (Phase 7) |
 | [0024](0024-external-observability-and-identity.md) | Langfuse and Grafana as configuration, your own Keycloak |
 | [0025](0025-guided-setup-and-answers-without-documents.md) | Guided setup; answers without documents as a labelled exception |
-| [0026](0026-presidio-self-hosted-pii.md) | Presidio: finding personal data inside the network |
+| [0026](0026-presidio-self-hosted-pii.md) | Presidio as a personal-data detector you connect |

@@ -13,7 +13,6 @@ export type AdapterOption = { capability: string; adapter: string; external_only
 const DEFAULT_ENDPOINT: Record<string, string> = {
   "vector_store/qdrant": "http://qdrant:6333",
   "parser/docling": "http://docling:5001",
-  "guardrail/presidio": "http://presidio:3000",
   "embedding/tei": "http://tei-embed:80",
   "reranker/tei": "http://tei-rerank:80",
 };

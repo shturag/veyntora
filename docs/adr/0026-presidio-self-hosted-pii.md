@@ -1,22 +1,23 @@
-# 0026 · Presidio: finding personal data inside the network
+# 0026 · Presidio as a personal-data detector you connect
 
-Status: accepted · 2026-11-02
+Status: accepted · 2026-11-02 · revised the same day: Presidio is not part of the stack
 
 ## Decision
 
-- **Adapter:** `presidio`, a guardrail for the **PII slot only**. It calls a self-hosted Microsoft Presidio analyzer (MIT licence).
-- **Why:** before this, the only personal-data detector was Azure AI Language. That is an external service, so protecting data from one external model meant sending it to another.
-- **Image:** `mcr.microsoft.com/presidio-analyzer:2.2.362` (2026-03-15, amd64 and arm64), extended in `deploy/compose/presidio`:
-  - adds spaCy's `de_core_news_md` 3.8.0, pinned by URL, next to the bundled `en_core_web_lg`;
-  - sets the configuration to English and German.
-- **Optional in compose:** add `bundled-presidio` to `COMPOSE_PROFILES`. It runs on port 5002 locally and `http://presidio:3000` inside the stack.
+- **Adapter:** `presidio`, a guardrail for the **PII slot only**. It calls a Microsoft Presidio analyzer (MIT licence) that you run and operate yourself.
+- **Not bundled:** Veyntora does not ship or start Presidio. Add it under **Providers & keys → Add provider → Guardrail → Presidio**.
+- **Connection:**
+  - **Endpoint:** its base URL; Veyntora calls `/analyze`.
+  - **Key:** optional. It is sent as a bearer token, for a Presidio behind a gateway.
+  - **Hosting:** declare it like any provider. If you mark it **external**, every chatbot that uses it needs it allowed in its data rule.
+- **Why:** it is an alternative to Azure AI Language (PII). Run it in your own network, and personal data is found without another cloud service.
 
-## What it finds
+## What Veyntora asks it for
 
-- **Recognised:** names and places (from the language models), e-mail, phone, IBAN, card numbers, IP addresses, crypto wallets and medical licences.
-- **Deliberately left out:** dates, URLs and organisations. They are rarely personal, and masking them would garble ordinary answers.
-- **Missed:** street addresses (for example "Hauptstraße 5"). Azure AI Language finds those.
-- **Languages:** questions in other languages are analysed as English.
+- **Entities:**
+  - person, location, e-mail, phone, IBAN, card number, IP address, crypto wallet, medical licence;
+  - not dates or URLs, which would garble ordinary answers.
+- **Languages:** the question's language is passed for `en` and `de`; others are sent as `en`. Your Presidio must be configured for the languages you use. The official image ships English only; for German, install spaCy's `de_core_news_md` and list `de` in its NLP, analyzer and recognizer configuration.
 
 ## Slots are checked by kind
 

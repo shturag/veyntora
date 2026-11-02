@@ -773,7 +773,7 @@
       "docling": "Docling",
       "azure_pii": "Azure AI Language (PII)",
       "llama_guard": "Llama Guard",
-      "presidio": "Presidio (selbst gehostet)"
+      "presidio": "Presidio"
     },
     "health": {
       "unknown": "Nicht getestet",
@@ -1313,7 +1313,7 @@
       },
       "pii_instance_id": {
         "label": "PII-Anbieter",
-        "hint": "Findet Namen und Orte, die lokale Regeln nicht erkennen: Presidio (selbst gehostet, in deinem Netzwerk) oder Azure AI Language. E-Mail, IBAN, Telefon- und Kartennummern finden lokale Regeln immer."
+        "hint": "Findet Namen und Orte, die lokale Regeln nicht erkennen: Presidio (von euch betrieben) oder Azure AI Language. E-Mail, IBAN, Telefon- und Kartennummern finden lokale Regeln immer."
       },
       "tools": {
         "label": "Tools",

@@ -325,20 +325,6 @@ services:
       retries: 30
       start_period: 30s
 
-  presidio:
-    # Finds personal data inside the network (PII slot, adapter "presidio"); English and
-    # German. Optional: add bundled-presidio to COMPOSE_PROFILES.
-    profiles: [bundled-presidio]
-    build: ./presidio
-    image: veyntora/presidio:local
-    ports: ["127.0.0.1:5002:3000"]
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:3000/health >/dev/null"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-
   clamav:
     # Virus scan for uploads (clamd INSTREAM on 3310). Downloads signatures on first start,
     # which takes a few minutes; needs about 1.5 GB of memory.

@@ -148,6 +148,8 @@ async def test_presidio_finds_personal_data_per_text_and_language() -> None:
     ]
     # Empty texts are not sent; the language is passed on; dates and URLs are not asked for.
     assert len(sent) == 2 and sent[0]["language"] == "de"
+    # A key, when set (a Presidio behind a gateway), is sent as a bearer token.
+    assert respx.calls.last.request.headers["authorization"] == f"Bearer {KEY}"
     assert "DATE_TIME" not in sent[0]["entities"] and "URL" not in sent[0]["entities"]
     await guard.detect(["x", "y"], "fr")
     assert sent[-1]["language"] == "en"

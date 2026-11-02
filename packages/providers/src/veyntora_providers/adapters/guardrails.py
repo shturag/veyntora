@@ -2,8 +2,9 @@
 
 - `azure_pii`: Azure AI Language PII entity recognition (German and English). Finds personal
   data so it can be masked before text goes to an external model, or blocked.
-- `presidio`: Microsoft Presidio analyzer, self-hosted (deploy/compose/presidio: English and
-  German). Finds personal data inside your network, for the PII slot; no key.
+- `presidio`: a Microsoft Presidio analyzer you run yourself (not part of this stack). Finds
+  personal data, for the PII slot. A key is optional (sent as a bearer token, for a
+  Presidio behind a gateway).
 - `llama_guard`: Llama Guard served by an OpenAI-compatible provider. Judges the question
   (input) or the answer (output) against its standard hazard categories plus custom ones:
   prompt injection, the pipeline's blocked topics and, for answers, promises.
@@ -272,9 +273,12 @@ class Presidio(_Base):
     def _min_score(self) -> float:
         return float(self._config.options.get("min_score", 0.5))
 
-    async def _analyze(self, http: httpx.AsyncClient, text: str, language: str) -> list[Entity]:
+    async def _analyze(
+        self, http: httpx.AsyncClient, text: str, language: str, key: str | None
+    ) -> list[Entity]:
         res = await http.post(
             f"{self._base}/analyze",
+            headers={"Authorization": f"Bearer {key}"} if key else {},
             json={
                 "text": text,
                 # Presidio knows the languages it was set up with; others are read as English.
@@ -285,6 +289,8 @@ class Presidio(_Base):
         )
         if res.status_code == 429 or res.status_code >= 500:
             raise httpx.TransportError(f"Presidio is busy (HTTP {res.status_code})")
+        if res.status_code in (401, 403):
+            raise KeyRejectedError(f"Presidio rejected the key (HTTP {res.status_code})")
         if res.status_code != 200:
             raise GuardrailRequestError(f"Presidio refused the request (HTTP {res.status_code})")
         return [
@@ -300,13 +306,14 @@ class Presidio(_Base):
 
     async def detect(self, texts: Sequence[str], language: str = "de") -> list[list[Entity]]:
         gate = asyncio.Semaphore(_PRESIDIO_PARALLEL)
+        key = await self._key()
         async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, connect=5.0)) as http:
 
             async def one(text: str) -> list[Entity]:
                 if not text.strip():
                     return []
                 async with gate:
-                    return await self._analyze(http, text, language)
+                    return await self._analyze(http, text, language, key)
 
             return list(await asyncio.gather(*(one(t) for t in texts)))
 
