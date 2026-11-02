@@ -196,17 +196,15 @@ async def with_fallbacks(
     return out
 
 
-async def pipelines_using(
-    db: AsyncSession, instance_id: UUID, *, any_version: bool = False
-) -> list[str]:
-    """Chatbot names whose draft or live/canary pipeline uses the instance; with
-    `any_version`, also older versions that a rollback could bring back."""
-    statuses = [PipelineStatus.DRAFT, PipelineStatus.LIVE, PipelineStatus.CANARY]
+async def pipelines_using(db: AsyncSession, instance_id: UUID) -> list[str]:
+    """Chatbot names whose draft or live/canary pipeline uses the instance."""
     rows = await db.execute(
         sa.select(Chatbot.name)
         .join(PipelineVersion, PipelineVersion.chatbot_id == Chatbot.id)
         .where(
-            sa.true() if any_version else PipelineVersion.status.in_(statuses),
+            PipelineVersion.status.in_(
+                [PipelineStatus.DRAFT, PipelineStatus.LIVE, PipelineStatus.CANARY]
+            ),
             sa.cast(PipelineVersion.spec, sa.Text).contains(str(instance_id)),
         )
         .distinct()
@@ -220,13 +218,14 @@ async def delete_provider(
 ) -> None:
     """Delete an instance nothing can use any more, with every version of its key.
 
-    Refused while any pipeline version (rollbacks included) names it or another provider
-    falls back to it. History (usage, evaluations) keeps its rows without the link.
+    Refused while a draft, live or canary version names it or another provider falls back
+    to it. Older versions may name it: rolling back to one is then refused, with the reason.
+    History (usage, evaluations) keeps its rows without the link.
     """
-    if users := await pipelines_using(db, row.id, any_version=True):
+    if users := await pipelines_using(db, row.id):
         raise ProviderError(
-            f"used by the pipelines of {', '.join(users)} (including older versions a "
-            "rollback could restore): switch them to another provider first"
+            f"used by the draft or live pipeline of {', '.join(users)}: "
+            "switch them to another provider first"
         )
     standing_in = (
         (

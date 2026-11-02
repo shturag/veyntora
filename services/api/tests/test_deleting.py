@@ -116,3 +116,32 @@ async def test_a_legal_hold_keeps_the_chatbot(rag: Rag) -> None:
     with pytest.raises(bots.ChatbotError, match="legal hold"):
         await bots.delete_chatbot(db, CTX, FakeAuthz(), None, rag.bot)  # type: ignore[arg-type]
     assert await db.get(Chatbot, rag.bot.id) is not None
+
+
+async def test_a_provider_only_old_versions_use_can_go_and_they_cannot_return(rag: Rag) -> None:
+    db = rag.w.db
+    # A published version uses the provider as its PII detector.
+    guard = await create_provider(
+        db,
+        CTX,
+        None,
+        _input(
+            capability=Capability.GUARDRAIL,
+            adapter="presidio",
+            name="Old Presidio",
+            endpoint="http://presidio.example:3000",
+            hosting=Hosting.SELF_HOSTED,
+            model=None,
+        ),
+    )
+    spec = rag.w.spec()
+    spec.guardrails.pii_instance_id = guard.id
+    await bots.save_draft(db, CTX, rag.bot, spec, expected_version=None)
+    old = await bots.publish(db, CTX, rag.bot, None)
+    # The next version no longer uses it; the old one is archived.
+    await bots.save_draft(db, CTX, rag.bot, rag.w.spec(), expected_version=None)
+    await bots.publish(db, CTX, rag.bot, None)
+
+    await delete_provider(db, CTX, Writer(), guard)
+    with pytest.raises(bots.ChatbotError, match=f"version {old.number} cannot go live again"):
+        await bots.rollback(db, CTX, rag.bot, old.number, None)

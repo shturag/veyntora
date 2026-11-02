@@ -295,6 +295,14 @@ export function ProviderEditor({
           </div>
         ) : null}
       </form>
+      {message ? (
+        <p
+          role={message.ok ? "status" : "alert"}
+          className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}
+        >
+          {message.text}
+        </p>
+      ) : null}
       <p
         role="note"
         className={`m-0 rounded-md px-3 py-2 text-sm ${external ? "bg-amber-soft text-amber" : "bg-green-soft text-green"}`}
@@ -403,14 +411,6 @@ export function ProviderEditor({
           </Button>
         ) : null}
       </div>
-      {message ? (
-        <p
-          role={message.ok ? "status" : "alert"}
-          className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}
-        >
-          {message.text}
-        </p>
-      ) : null}
     </section>
   );
 }

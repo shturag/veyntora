@@ -553,9 +553,10 @@ async def rollback(
     if target.id == bot.live_version_id:
         return target
     target_spec = PipelineSpec.model_validate(target.spec)
-    _, rows = await reference_problems(db, target_spec)
-    if problems := await external_problems(db, bot, rows, target_spec):
-        raise ChatbotError("; ".join(problems))
+    # An old version may name a provider that was deleted, disabled or changed since.
+    missing, rows = await reference_problems(db, target_spec)
+    if problems := missing + await external_problems(db, bot, rows, target_spec):
+        raise ChatbotError(f"version {number} cannot go live again: " + "; ".join(problems))
     previous = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
     if previous is not None:
         previous.status = PipelineStatus.ARCHIVED
