@@ -150,6 +150,7 @@ async def _detail(db: DbSession, bot: Chatbot) -> ChatbotDetail:
             allowed_external_mcp_server_ids=rule.allowed_external_mcp_server_ids,
             allow_byok=rule.allow_byok,
             allow_external_traces=rule.allow_external_traces,
+            allow_no_documents=rule.allow_no_documents,
             mask_pii_before_external=rule.mask_pii_before_external,
         )
         if rule
@@ -346,6 +347,7 @@ async def put_governance(
         allowed_external_mcp_server_ids=rule.allowed_external_mcp_server_ids,
         allow_byok=rule.allow_byok,
         allow_external_traces=rule.allow_external_traces,
+        allow_no_documents=rule.allow_no_documents,
         mask_pii_before_external=rule.mask_pii_before_external,
     )
 

@@ -2201,6 +2201,11 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "no_documents": {
+            "default": false,
+            "title": "No Documents",
+            "type": "boolean"
           }
         },
         "required": [
@@ -6084,6 +6089,11 @@
             "title": "Allow External Traces",
             "type": "boolean"
           },
+          "allow_no_documents": {
+            "default": false,
+            "title": "Allow No Documents",
+            "type": "boolean"
+          },
           "allowed_external_instance_ids": {
             "items": {
               "format": "uuid",
@@ -6134,6 +6144,11 @@
           "allow_external_traces": {
             "default": false,
             "title": "Allow External Traces",
+            "type": "boolean"
+          },
+          "allow_no_documents": {
+            "default": false,
+            "title": "Allow No Documents",
             "type": "boolean"
           },
           "allowed_external_instance_ids": {
@@ -11693,6 +11708,11 @@
               }
             ],
             "title": "Embedding Instance Id"
+          },
+          "enabled": {
+            "default": true,
+            "title": "Enabled",
+            "type": "boolean"
           },
           "german_compound_splitting": {
             "default": true,

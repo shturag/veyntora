@@ -6,6 +6,7 @@ plus a fake reranker and a scripted LLM.
 
 from __future__ import annotations
 
+import dataclasses
 import re
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
@@ -760,3 +761,19 @@ async def test_sources_can_be_limited_to_folders_and_weighted(rag: Rag) -> None:
     assert ranked[0].score == pytest.approx(base * 1.5)
     with pytest.raises(ValueError, match="folders"):
         bots.Attachment(source_id=rag.source.id, paths=["/../etc"])
+
+
+async def test_without_documents_only_when_the_data_rule_allows_it(rag: Rag) -> None:
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.retrieval.enabled = False
+    rag.llm.reply = "Paris is the capital of France."
+    with pytest.raises(pipeline.RunRefusedError, match="without documents"):
+        await answer(rag.w.db, rag.adapters(), ctx, "What is the capital of France?")
+
+    ctx = dataclasses.replace(ctx, no_documents_allowed=True)
+    result = await answer(rag.w.db, rag.adapters(), ctx, "What is the capital of France?")
+    assert result.outcome == "answered" and result.no_sources
+    assert result.text == "Paris is the capital of France." and result.sources == []
+    # No sources were searched or sent; the model was told not to pretend to know the company.
+    system, user = rag.llm.calls[-1][0], rag.llm.calls[-1][-1]
+    assert "no company documents" in system.content and "<sources>" not in user.content

@@ -15,6 +15,7 @@ export type DataRule = {
   allowed_external_mcp_server_ids: string[];
   allow_byok: boolean;
   allow_external_traces: boolean;
+  allow_no_documents: boolean;
   mask_pii_before_external: boolean;
 };
 
@@ -72,6 +73,7 @@ export function DataRules({
         ),
         allow_byok: form.get("allow_byok") === "on",
         allow_external_traces: form.get("allow_external_traces") === "on",
+        allow_no_documents: form.get("allow_no_documents") === "on",
         mask_pii_before_external: form.get("mask") === "on",
       }),
     })
@@ -189,6 +191,18 @@ export function DataRules({
             disabled={!canEdit}
           />
           {t("mask")}
+        </label>
+        <label className={check}>
+          <input
+            name="allow_no_documents"
+            type="checkbox"
+            defaultChecked={rule.allow_no_documents}
+            disabled={!canEdit}
+          />
+          <span className="flex flex-col">
+            {t("noDocuments")}
+            <span className="text-xs text-fg-muted">{t("noDocumentsHint")}</span>
+          </span>
         </label>
         <label className={check}>
           <input

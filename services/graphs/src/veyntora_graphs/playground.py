@@ -57,6 +57,7 @@ def result_of(
         "warning": result.warning,
         "groundedness": result.groundedness,
         "external_egress": result.external_egress,
+        "no_sources": result.no_sources,
         "latency_ms": result.latency_ms,
         "tokens_in": result.usage.prompt_tokens,
         "tokens_out": result.usage.completion_tokens,

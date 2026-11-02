@@ -89,6 +89,7 @@ export default async function GovernancePage() {
                         })
                       : t("selfHostedOnly")}
                     {b.external_traces ? t("tracesExternal") : null}
+                    {b.no_documents ? t("noDocuments") : null}
                   </span>
                 </li>
               ))}

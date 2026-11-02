@@ -88,6 +88,9 @@ class SearchType(StrEnum):
 
 
 class RetrievalSpec(_Spec):
+    # Off: the chatbot answers without documents (general chat). Only possible when its
+    # data rule allows it; such answers are labelled as unchecked (no sources).
+    enabled: bool = True
     vector_store_instance_id: InstanceRef | None = None
     embedding_instance_id: InstanceRef | None = None
     search_type: SearchType = SearchType.HYBRID
@@ -478,21 +481,28 @@ class PipelineSpec(_Spec):
     def publish_problems(self) -> list[str]:
         """Return reasons this spec cannot be published yet (empty list means publishable)."""
         problems: list[str] = []
-        required = {
-            "ingestion.parser_instance_id": self.ingestion.parser_instance_id,
-            "ingestion.embedding_instance_id": self.ingestion.embedding_instance_id,
-            "retrieval.vector_store_instance_id": self.retrieval.vector_store_instance_id,
-            "retrieval.embedding_instance_id": self.retrieval.embedding_instance_id,
-            "generation.llm_instance_id": self.generation.llm_instance_id,
+        # Only what the chatbot uses is required: without documents, no parser, embedding
+        # or vector store; without reranking or the agent, no reranker or agent model.
+        docs = self.retrieval.enabled
+        required: dict[str, object] = {
+            "generation.llm_instance_id": self.generation.llm_instance_id
         }
+        if docs:
+            required |= {
+                "ingestion.parser_instance_id": self.ingestion.parser_instance_id,
+                "ingestion.embedding_instance_id": self.ingestion.embedding_instance_id,
+                "retrieval.vector_store_instance_id": self.retrieval.vector_store_instance_id,
+                "retrieval.embedding_instance_id": self.retrieval.embedding_instance_id,
+            }
         problems += [f"{path} is not set" for path, value in required.items() if value is None]
         if (
-            self.ingestion.embedding_instance_id is not None
+            docs
+            and self.ingestion.embedding_instance_id is not None
             and self.retrieval.embedding_instance_id is not None
             and self.ingestion.embedding_instance_id != self.retrieval.embedding_instance_id
         ):
             problems.append("retrieval must use the same embedding instance as ingestion")
-        if self.rerank.enabled and self.rerank.reranker_instance_id is None:
+        if docs and self.rerank.enabled and self.rerank.reranker_instance_id is None:
             problems.append("rerank.reranker_instance_id is not set")
         agent_reachable = Mode.AGENT in self.router.allowed_modes or (
             Mode.AUTO in self.router.allowed_modes
@@ -506,5 +516,11 @@ class PipelineSpec(_Spec):
             problems.append("guardrails.no_promises needs an output safety check instance")
         if g.blocked_topics and g.input_guardrail_instance_id is None:
             problems.append("guardrails.blocked_topics needs an input safety check instance")
-        problems += flow_problems(self.flow)
+        if not docs and self.flow.custom:
+            # A custom flow's checks assume documents (every answer passes a grounding check).
+            problems.append(
+                "a chatbot without documents runs the standard pipeline, not a custom flow"
+            )
+        else:
+            problems += flow_problems(self.flow)
         return problems

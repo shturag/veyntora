@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Forbidden } from "@/components/forbidden";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
+import { GuidedPanel } from "@/components/bots/guided-panel";
 import { PublishChecklist } from "@/components/pipeline/publish-checklist";
 import { SECTIONS, sectionHref, type SectionKey } from "@/lib/pipeline";
 
@@ -32,9 +33,12 @@ export async function PipelinePage({
   if (detail.response.status === 403) return <Forbidden />;
   const bot = detail.data;
   if (!bot) notFound();
-  const [{ data: providers }, { data: tools }] = await Promise.all([
+  const [{ data: providers }, { data: tools }, { data: experts }, grants] = await Promise.all([
     api.GET("/v1/admin/providers"),
     sectionKey === "agent" ? api.GET("/v1/admin/tools/available") : Promise.resolve({ data: [] }),
+    api.GET("/v1/admin/chatbots/{bot_id}/experts", { params: { path: { bot_id: botId } } }),
+    // Choosing expert teams needs can_manage_access, like the Access page.
+    api.GET("/v1/admin/chatbots/{bot_id}/access", { params: { path: { bot_id: botId } } }),
   ]);
   // Editors of the area or of this chatbot; the API checks can_edit_draft on save.
   const canEdit = access.level !== "viewer";
@@ -83,6 +87,17 @@ export async function PipelinePage({
           ) : null}
         </div>
       </div>
+      {canEdit ? (
+        <GuidedPanel
+          botId={bot.id}
+          version={bot.version}
+          spec={spec}
+          providers={(providers ?? [])
+            .filter((p) => p.enabled)
+            .map((p) => ({ id: p.id, name: p.name, capability: p.capability, hosting: p.hosting }))}
+          experts={experts && grants.response.status === 200 ? experts : null}
+        />
+      ) : null}
       <div className="grid grid-cols-[220px_minmax(0,1fr)_280px] items-start gap-5 max-[1200px]:grid-cols-[200px_minmax(0,1fr)] max-[760px]:grid-cols-1">
         <nav aria-label={t("steps")}>
           <ol className="m-0 flex list-none flex-col gap-1 p-0">

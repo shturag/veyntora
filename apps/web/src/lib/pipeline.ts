@@ -59,6 +59,7 @@ export const SECTIONS: readonly Section[] = [
     spec: "retrieval",
     path: "",
     fields: [
+      { name: "enabled", kind: "toggle" },
       { name: "vector_store_instance_id", kind: "instance", capability: "vector_store" },
       { name: "embedding_instance_id", kind: "instance", capability: "embedding" },
       { name: "search_type", kind: "select", options: ["hybrid", "dense", "sparse"] },

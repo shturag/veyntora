@@ -701,7 +701,10 @@
     "shareFailed": "Did not work: {reason}",
     "cancel": "Cancel",
     "close": "Close",
-    "exportChat": "Export chat"
+    "exportChat": "Export chat",
+    "noSources": "Answered without documents",
+    "noSourcesBadge": "No sources",
+    "noSourcesExplained": "This chatbot answers from general knowledge, not your company's documents: there is nothing to check this answer against."
   },
   "source": {
     "updated": "updated {date}",
@@ -1185,7 +1188,8 @@
         "hint": "For example: language in [de, en] AND source_id = <id>. Permission filters are always added and cannot be removed."
       },
       "enabled": {
-        "label": "Rerank candidates"
+        "label": "Answer from documents",
+        "hint": "Off: general chat without documents (needs the data rule; answers are labelled \"No sources\")."
       },
       "reranker_instance_id": {
         "label": "Reranker instance"
@@ -3529,7 +3533,8 @@
     },
     "accessReviews": "Access reviews",
     "reviewEvery": "Access review every (days; empty: by hand only)",
-    "tracesExternal": " · traces to external Langfuse"
+    "tracesExternal": " · traces to external Langfuse",
+    "noDocuments": " · answers without documents"
   },
   "audit": {
     "title": "Audit log",
@@ -3718,7 +3723,9 @@
     "save": "Save data rule",
     "saved": "Data rule saved.",
     "failed": "That did not work: {reason}",
-    "readOnly": "Governance editors change data rules."
+    "readOnly": "Governance editors change data rules.",
+    "noDocuments": "Allow answers without documents (general chat)",
+    "noDocumentsHint": "An exception to \"grounded or silent\": answers cannot be checked and are labelled \"No sources\". Only used when the chatbot's Retrieval is off."
   },
   "checklist": {
     "ready": "Ready to publish: every required setting is in place.",
@@ -3729,8 +3736,90 @@
       "systemPrompt": "Generation: write the system prompt",
       "sameEmbedding": "Retrieval: use the same embedding model as Ingestion",
       "outputCheck": "Guardrails: choose an output safety check (needed for \"no promises\")",
-      "inputCheck": "Guardrails: choose an input safety check (needed for blocked topics)"
+      "inputCheck": "Guardrails: choose an input safety check (needed for blocked topics)",
+      "noDocumentsRule": "Data rule: allow answers without documents (Access page)",
+      "noDocumentsFlow": "Without documents the chatbot runs the standard pipeline: switch off the custom flow"
     },
     "dataRule": "Data rule: allow the external provider {name} (Access page)"
+  },
+  "guided": {
+    "title": "What should this chatbot do?",
+    "intro": "Answer a few questions; Veyntora sets the modes and steps and asks only for the providers your chatbot needs. You can change everything afterwards.",
+    "teaser": "Not sure which settings this chatbot needs? Answer a few questions instead.",
+    "open": "Set up with questions",
+    "close": "Close",
+    "q": {
+      "knowledge": "Where do its answers come from?",
+      "more": "What else should it do?",
+      "providers": "Providers it needs",
+      "prompt": "How should it behave?"
+    },
+    "docs": {
+      "title": "From your documents",
+      "hint": "Searches the sources you attach and answers with citations, or says it does not know."
+    },
+    "general": {
+      "title": "Without documents (general chat)",
+      "hint": "Writing, summarising, explaining. Answers cannot be checked against sources.",
+      "rule": "An exception to \"grounded or silent\": every answer is labelled \"No sources\", and the chatbot's <link>data rule</link> must allow it before you can publish."
+    },
+    "tasks": {
+      "title": "Carry out tasks with tools",
+      "hint": "Adds Agent mode (Auto picks it for tasks). Tools come from Tools (MCP); anything that changes data waits for approval."
+    },
+    "rerank": {
+      "title": "Rerank results for better accuracy",
+      "hint": "Needs a reranker provider. Without it, the best search hits go straight to the model."
+    },
+    "handoff": {
+      "title": "Pass questions the documents can't answer to experts",
+      "hint": "People can send an unanswered question to one of these teams.",
+      "noGroups": "No groups yet: they come from Keycloak or Users & groups."
+    },
+    "providersHint": "Only what your answers above need. Missing one? Add it under Providers & keys.",
+    "need": {
+      "llm": "Model for answers",
+      "agent": "Model for the agent",
+      "embedding": "Embedding model",
+      "parser": "Document parser",
+      "store": "Vector store",
+      "reranker": "Reranker"
+    },
+    "needHint": {
+      "llm": "Writes the answers.",
+      "agent": "Plans tasks and calls tools. Empty: the same model as for answers.",
+      "embedding": "Turns documents and questions into vectors for search.",
+      "parser": "Reads PDFs, Word files and pages (e.g. Docling).",
+      "store": "Keeps the vectors (e.g. Qdrant).",
+      "reranker": "Puts the most relevant passages first."
+    },
+    "choose": "Choose…",
+    "sameAsAnswers": "Same as for answers",
+    "external": "external",
+    "noneYet": "None yet",
+    "addProvider": "Add one",
+    "externalRule": "{names}: external, so data leaves your network. Allow them in the chatbot's <link>data rule</link> before publishing.",
+    "promptHint": "Who the chatbot is and how it talks. You can use '{company}', '{user_name}', '{user_team}' and '{today}'. Citation and safety rules are always added.",
+    "prompt": {
+      "docs": "You are the assistant of '{company}'. Answer questions from the company's documents, briefly and clearly, and address '{user_name}' directly.",
+      "general": "You are the assistant of '{company}' for everyday work: writing, summarising and explaining. Be brief and clear.",
+      "tasks": "When someone asks you to do something, use your tools; changes always wait for approval."
+    },
+    "pic": {
+      "input": "User query",
+      "router": "Auto",
+      "retriever": "Hybrid search",
+      "reranker": "Rerank",
+      "llm": "Generate",
+      "chat": "Chat",
+      "grounded": "Grounded?",
+      "agent": "Plan & decide",
+      "tools": "MCP tools",
+      "output": "Answer"
+    },
+    "apply": "Apply",
+    "saveContinue": "Save and continue",
+    "afterwards": "Applies the modes, steps and providers above to the draft; nothing goes live until you publish.",
+    "failed": "That did not work: {reason}"
   }
 }

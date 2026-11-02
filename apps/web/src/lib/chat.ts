@@ -23,6 +23,8 @@ export type AnswerMeta = {
   groundedness?: number | null;
   warning?: string | null;
   external_egress?: boolean;
+  /** Answered without documents (general chat): nothing to check it against. */
+  no_sources?: boolean;
   latency_ms?: number;
   handoff_available?: boolean;
   citations?: CitationMeta[];

@@ -56,6 +56,7 @@ export default async function BotAccessPage({ params }: { params: Promise<{ id: 
           ...bot.governance,
           allowed_external_instance_ids: bot.governance.allowed_external_instance_ids ?? [],
           allowed_external_mcp_server_ids: bot.governance.allowed_external_mcp_server_ids ?? [],
+          allow_no_documents: bot.governance.allow_no_documents ?? false,
         }}
         providers={
           providers

@@ -12,7 +12,13 @@ export type Problem =
   | { kind: "dataRule"; name: string; href: string }
   | { kind: "other"; text: string };
 
-export type KnownProblem = "systemPrompt" | "sameEmbedding" | "outputCheck" | "inputCheck";
+export type KnownProblem =
+  | "systemPrompt"
+  | "sameEmbedding"
+  | "outputCheck"
+  | "inputCheck"
+  | "noDocumentsRule"
+  | "noDocumentsFlow";
 
 const KNOWN: Record<string, { key: KnownProblem; section: SectionKey }> = {
   "generation.system_prompt is empty": { key: "systemPrompt", section: "generation" },
@@ -46,6 +52,22 @@ export function describeProblem(raw: string, botId: string): Problem {
   const rule =
     /^(.+) is an external (?:provider|MCP server); allow it in this chatbot's data rules/.exec(raw);
   if (rule) return { kind: "dataRule", name: rule[1]!, href: `/admin/chatbots/${botId}/access` };
+  if (raw === "answering without documents needs this chatbot's data rule to allow it") {
+    return {
+      kind: "known",
+      key: "noDocumentsRule",
+      section: "retrieval",
+      href: `/admin/chatbots/${botId}/access`,
+    };
+  }
+  if (raw === "a chatbot without documents runs the standard pipeline, not a custom flow") {
+    return {
+      kind: "known",
+      key: "noDocumentsFlow",
+      section: "retrieval",
+      href: `/admin/chatbots/${botId}/flow`,
+    };
+  }
   const known = KNOWN[raw];
   if (known) return { kind: "known", ...known, href: href(known.section) };
   // Flow checks name the step first ("Generate: this step leads nowhere").

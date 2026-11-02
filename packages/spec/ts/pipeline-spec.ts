@@ -73,6 +73,7 @@ export type RerankerInstanceId = string | null;
 export type TopN = number;
 export type DenseWeight = number;
 export type EmbeddingInstanceId1 = string | null;
+export type Enabled2 = boolean;
 export type GermanCompoundSplitting = boolean;
 export type MetadataFilter = string;
 export type QueryRewrite = boolean;
@@ -187,6 +188,7 @@ export interface RerankSpec {
 export interface RetrievalSpec {
   dense_weight?: DenseWeight;
   embedding_instance_id?: EmbeddingInstanceId1;
+  enabled?: Enabled2;
   german_compound_splitting?: GermanCompoundSplitting;
   metadata_filter?: MetadataFilter;
   query_rewrite?: QueryRewrite;

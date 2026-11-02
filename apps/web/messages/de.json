@@ -701,7 +701,10 @@
     "shareFailed": "Hat nicht funktioniert: {reason}",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "exportChat": "Chat exportieren"
+    "exportChat": "Chat exportieren",
+    "noSources": "Ohne Dokumente beantwortet",
+    "noSourcesBadge": "Ohne Quellen",
+    "noSourcesExplained": "Dieser Chatbot antwortet aus allgemeinem Wissen, nicht aus euren Dokumenten: Es gibt nichts, woran sich diese Antwort prüfen lässt."
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -1185,7 +1188,8 @@
         "hint": "Zum Beispiel: language in [de, en] AND source_id = <id>. Berechtigungsfilter kommen immer dazu und lassen sich nicht entfernen."
       },
       "enabled": {
-        "label": "Kandidaten neu bewerten"
+        "label": "Aus Dokumenten antworten",
+        "hint": "Aus: allgemeiner Chat ohne Dokumente (braucht die Datenregel; Antworten sind als „Ohne Quellen“ markiert)."
       },
       "reranker_instance_id": {
         "label": "Reranker-Instanz"
@@ -3529,7 +3533,8 @@
     },
     "accessReviews": "Zugriffsprüfungen",
     "reviewEvery": "Zugriffsprüfung alle (Tage; leer: nur von Hand)",
-    "tracesExternal": " · Traces an externes Langfuse"
+    "tracesExternal": " · Traces an externes Langfuse",
+    "noDocuments": " · Antworten ohne Dokumente"
   },
   "audit": {
     "title": "Audit-Log",
@@ -3718,7 +3723,9 @@
     "save": "Datenregel speichern",
     "saved": "Datenregel gespeichert.",
     "failed": "Das hat nicht funktioniert: {reason}",
-    "readOnly": "Governance-Bearbeiter ändern Datenregeln."
+    "readOnly": "Governance-Bearbeiter ändern Datenregeln.",
+    "noDocuments": "Antworten ohne Dokumente erlauben (allgemeiner Chat)",
+    "noDocumentsHint": "Eine Ausnahme von „belegt oder still“: Antworten lassen sich nicht prüfen und sind als „Ohne Quellen“ markiert. Gilt nur, wenn der Abruf des Chatbots aus ist."
   },
   "checklist": {
     "ready": "Bereit zum Veröffentlichen: Alle nötigen Einstellungen sind gesetzt.",
@@ -3729,8 +3736,90 @@
       "systemPrompt": "Generierung: den System-Prompt schreiben",
       "sameEmbedding": "Abruf: dasselbe Embedding-Modell wie bei der Aufnahme nutzen",
       "outputCheck": "Guardrails: eine Ausgabe-Sicherheitsprüfung wählen (nötig für „keine Versprechen“)",
-      "inputCheck": "Guardrails: eine Eingabe-Sicherheitsprüfung wählen (nötig für gesperrte Themen)"
+      "inputCheck": "Guardrails: eine Eingabe-Sicherheitsprüfung wählen (nötig für gesperrte Themen)",
+      "noDocumentsRule": "Datenregel: Antworten ohne Dokumente erlauben (Seite Zugriff)",
+      "noDocumentsFlow": "Ohne Dokumente läuft die Standard-Pipeline: den eigenen Ablauf ausschalten"
     },
     "dataRule": "Datenregel: den externen Anbieter {name} erlauben (Seite Zugriff)"
+  },
+  "guided": {
+    "title": "Was soll dieser Chatbot tun?",
+    "intro": "Beantworte ein paar Fragen; Veyntora setzt Modi und Schritte und fragt nur nach den Anbietern, die dein Chatbot braucht. Danach kannst du alles ändern.",
+    "teaser": "Unsicher, welche Einstellungen dieser Chatbot braucht? Beantworte stattdessen ein paar Fragen.",
+    "open": "Mit Fragen einrichten",
+    "close": "Schließen",
+    "q": {
+      "knowledge": "Woher kommen seine Antworten?",
+      "more": "Was soll er noch tun?",
+      "providers": "Benötigte Anbieter",
+      "prompt": "Wie soll er sich verhalten?"
+    },
+    "docs": {
+      "title": "Aus euren Dokumenten",
+      "hint": "Durchsucht die angehängten Quellen und antwortet mit Belegen – oder sagt, dass er es nicht weiß."
+    },
+    "general": {
+      "title": "Ohne Dokumente (allgemeiner Chat)",
+      "hint": "Schreiben, Zusammenfassen, Erklären. Antworten lassen sich nicht an Quellen prüfen.",
+      "rule": "Eine Ausnahme von „belegt oder still“: Jede Antwort ist als „Ohne Quellen“ markiert, und die <link>Datenregel</link> des Chatbots muss es erlauben, bevor du veröffentlichst."
+    },
+    "tasks": {
+      "title": "Aufgaben mit Tools erledigen",
+      "hint": "Fügt den Agentenmodus hinzu (Auto wählt ihn für Aufgaben). Tools kommen aus Tools (MCP); alles, was Daten ändert, wartet auf Freigabe."
+    },
+    "rerank": {
+      "title": "Ergebnisse für mehr Genauigkeit neu ordnen",
+      "hint": "Braucht einen Reranker. Ohne ihn gehen die besten Suchtreffer direkt an das Modell."
+    },
+    "handoff": {
+      "title": "Fragen, die die Dokumente nicht beantworten, an Fachleute geben",
+      "hint": "Menschen können eine unbeantwortete Frage an eines dieser Teams senden.",
+      "noGroups": "Noch keine Gruppen: Sie kommen aus Keycloak oder Benutzer & Gruppen."
+    },
+    "providersHint": "Nur, was deine Antworten oben brauchen. Fehlt einer? Füge ihn unter Anbieter & Schlüssel hinzu.",
+    "need": {
+      "llm": "Modell für Antworten",
+      "agent": "Modell für den Agenten",
+      "embedding": "Embedding-Modell",
+      "parser": "Dokumentparser",
+      "store": "Vektorspeicher",
+      "reranker": "Reranker"
+    },
+    "needHint": {
+      "llm": "Schreibt die Antworten.",
+      "agent": "Plant Aufgaben und ruft Tools auf. Leer: dasselbe Modell wie für Antworten.",
+      "embedding": "Wandelt Dokumente und Fragen für die Suche in Vektoren um.",
+      "parser": "Liest PDFs, Word-Dateien und Seiten (z. B. Docling).",
+      "store": "Speichert die Vektoren (z. B. Qdrant).",
+      "reranker": "Stellt die passendsten Passagen nach vorn."
+    },
+    "choose": "Auswählen…",
+    "sameAsAnswers": "Wie für Antworten",
+    "external": "extern",
+    "noneYet": "Noch keiner",
+    "addProvider": "Hinzufügen",
+    "externalRule": "{names}: extern, Daten verlassen also dein Netzwerk. Erlaube sie vor dem Veröffentlichen in der <link>Datenregel</link> des Chatbots.",
+    "promptHint": "Wer der Chatbot ist und wie er spricht. Du kannst '{company}', '{user_name}', '{user_team}' und '{today}' verwenden. Beleg- und Sicherheitsregeln kommen immer dazu.",
+    "prompt": {
+      "docs": "Du bist der Assistent von '{company}'. Beantworte Fragen aus den Dokumenten des Unternehmens, kurz und klar, und sprich '{user_name}' direkt an.",
+      "general": "Du bist der Assistent von '{company}' für die tägliche Arbeit: Schreiben, Zusammenfassen und Erklären. Sei kurz und klar.",
+      "tasks": "Wenn dich jemand bittet, etwas zu tun, nutze deine Tools; Änderungen warten immer auf Freigabe."
+    },
+    "pic": {
+      "input": "Frage",
+      "router": "Auto",
+      "retriever": "Hybride Suche",
+      "reranker": "Neu ordnen",
+      "llm": "Antworten",
+      "chat": "Chat",
+      "grounded": "Belegt?",
+      "agent": "Planen & entscheiden",
+      "tools": "MCP-Tools",
+      "output": "Antwort"
+    },
+    "apply": "Übernehmen",
+    "saveContinue": "Speichern und weiter",
+    "afterwards": "Übernimmt Modi, Schritte und Anbieter in den Entwurf; live geht erst etwas, wenn du veröffentlichst.",
+    "failed": "Das hat nicht funktioniert: {reason}"
   }
 }

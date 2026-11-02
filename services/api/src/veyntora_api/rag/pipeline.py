@@ -126,7 +126,8 @@ class RunContext:
     version_id: UUID
     version_number: int
     spec: PipelineSpec
-    profile: IndexProfile
+    # The search index; None for a chatbot that answers without documents.
+    profile: IndexProfile | None
     source_ids: tuple[str, ...]
     providers: dict[UUID, ProviderInstance]
     company: str
@@ -151,6 +152,8 @@ class RunContext:
     mask_traces: bool = True
     # The data rule allows traces to an external Langfuse (Integrations, ADR 0024).
     external_traces: bool = False
+    # The data rule allows answers without documents (only used when retrieval is off).
+    no_documents_allowed: bool = False
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -206,6 +209,8 @@ class Answer:
     calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
     # Up to three follow-up questions the sources can answer (when the chatbot offers them).
     follow_ups: list[str] = field(default_factory=list)
+    # Answered without documents (general chat): nothing to check it against.
+    no_sources: bool = False
 
 
 # ---------------------------------------------------------------- context
@@ -325,7 +330,7 @@ async def _context(
     not the Playground, which tests the chatbot as configured)."""
     spec = PipelineSpec.model_validate(version.spec)
     profile = index_profile(spec)
-    if profile is None or spec.generation.llm_instance_id is None:
+    if spec.generation.llm_instance_id is None or (spec.retrieval.enabled and profile is None):
         raise RunRefusedError("This assistant is not set up completely yet.")
 
     groups = (
@@ -435,6 +440,7 @@ async def _context(
         limited=limited,
         mask_traces=(await governance.settings_of(db)).mask_reviews_and_traces,
         external_traces=bool(rule and rule.allow_external_traces),
+        no_documents_allowed=bool(rule and rule.allow_no_documents),
         source_paths=paths,
     )
 
@@ -459,6 +465,9 @@ async def retrieve(
     db: AsyncSession, adapters: AdapterSource, ctx: RunContext, query: str
 ) -> list[Source]:
     ret = ctx.spec.retrieval
+    profile = ctx.profile
+    if profile is None:  # answers without documents never search
+        return []
     narrowing = parse_filter(ret.metadata_filter)
     sources = ctx.source_ids
     if "source_id" in narrowing:
@@ -468,7 +477,7 @@ async def retrieve(
         return []
     dense = None
     if ret.search_type is not SearchType.SPARSE:
-        embedder = await adapters.get(ctx.profile.embedding_instance_id)
+        embedder = await adapters.get(profile.embedding_instance_id)
         embed_query = getattr(embedder, "embed_query", None)
         dense = (
             await embed_query(query) if embed_query else (await embedder.embed([query])).dense[0]
@@ -476,17 +485,17 @@ async def retrieve(
     sparse_text = query
     if ret.german_compound_splitting and ret.search_type is not SearchType.DENSE:
         # Keyword search also gets the compounds' parts and compounds ending in the words.
-        extra = await vocabulary.expand(db, ctx.profile.key, query)
+        extra = await vocabulary.expand(db, profile.key, query)
         sparse_text = " ".join([query, *extra])
-    store = await adapters.get(ctx.profile.vector_store_instance_id)
+    store = await adapters.get(profile.vector_store_instance_id)
     hits: list[Hit] = await store.hybrid_search(
-        ctx.profile.collection,
+        profile.collection,
         HybridQuery(
             text=sparse_text,
             dense=dense,
             dense_weight=ret.dense_weight if ret.search_type is SearchType.HYBRID else 1.0,
             sparse=ret.search_type is not SearchType.DENSE,
-            must_match={**narrowing, "profile": (ctx.profile.key,), "source_id": sources},
+            must_match={**narrowing, "profile": (profile.key,), "source_id": sources},
         ),
         AclFilter(ctx.principals),
         k=ret.top_k,
@@ -637,13 +646,20 @@ Never use outside knowledge and never invent sources.
 If the sources do not answer the question, reply with exactly: NO_ANSWER"""
 
 
+# For chatbots that answer without documents (their data rule allows it): no sources, so
+# no citations, and no pretending to know the company.
+_FREE_RULES = """There are no company documents in this conversation; answer from general knowledge.
+Never state company-specific facts (policies, prices, people, internal systems) as known:
+say that you cannot check them and suggest where to look. Say so when you are not sure."""
+
+
 _LENGTH = {
     "short": "\nKeep the answer short: two or three sentences.",
     "detailed": "\nGive a detailed answer that covers every relevant point in the sources.",
 }
 
 
-def system_prompt(ctx: RunContext, language: str) -> str:
+def system_prompt(ctx: RunContext, language: str, rules: str = _RULES) -> str:
     base = ctx.spec.generation.system_prompt
     for key, value in {
         "company": ctx.company,
@@ -661,7 +677,7 @@ def system_prompt(ctx: RunContext, language: str) -> str:
         else f"Answer in this language: {language}."
     )
     length = _LENGTH.get(str(ctx.preferences.get("answer_length") or ""), "")
-    return f"{base.strip()}\n\n{_RULES}\n{lang}{length}"
+    return f"{base.strip()}\n\n{rules}\n{lang}{length}"
 
 
 def sources_block(sources: Sequence[Source]) -> str:
@@ -862,7 +878,7 @@ async def _guard_input(
     return guarded, masker, pii, need_mask, stop
 
 
-async def answer(
+async def answer(  # noqa: PLR0911 - one return per outcome
     db: AsyncSession,
     adapters: AdapterSource,
     ctx: RunContext,
@@ -897,6 +913,19 @@ async def answer(
         run.call(adapters, gen.llm_instance_id, u, own)
         run.egress |= llm_external
         run.steps["rewrite"] = round((time.perf_counter() - t0) * 1000)
+
+    if not spec.retrieval.enabled:
+        return await _without_documents(
+            adapters,
+            ctx,
+            run,
+            question=question,
+            history=history,
+            masking=(masker, pii) if need_mask else None,
+            language=language_hint,
+            emit=emit,
+            tr=tr,
+        )
 
     emit_({"type": "status", "step": "searching"})
     sources, run.skipped, external = await _find_sources(
@@ -970,6 +999,51 @@ async def answer(
     )
 
 
+async def _without_documents(
+    adapters: AdapterSource,
+    ctx: RunContext,
+    run: _Run,
+    *,
+    question: str,
+    history: Sequence[ChatMessage],
+    masking: tuple[Masker, Any] | None,
+    language: str,
+    emit: Emit | None,
+    tr: Trace,
+) -> Answer:
+    """General chat: the data rule must allow it, input checks and masking have run, the
+    output check still applies, and the answer is marked as having no sources."""
+    if not ctx.no_documents_allowed:
+        raise RunRefusedError("This assistant may not answer without documents.")
+    g = ctx.spec.guardrails
+    if emit is not None:
+        emit({"type": "status", "step": "writing", "sources": 0})
+    hold = masking is not None or g.output_guardrail_instance_id is not None
+    text = await _generate(
+        adapters,
+        ctx,
+        run,
+        question=question,
+        history=history,
+        sources=[],
+        masker=masking[0] if masking else None,
+        pii=masking[1] if masking else None,
+        language=language,
+        emit=None if hold else emit,
+        tr=tr,
+        rules=_FREE_RULES,
+    )
+    with tr.step("output_check") as step:
+        out = await check_output(
+            ctx.spec, question, text, guard=await _adapter(adapters, g.output_guardrail_instance_id)
+        )
+        step.set(action=out.action, reason=out.reason)
+    run.egress |= ctx.hosting(g.output_guardrail_instance_id) is Hosting.EXTERNAL
+    if out.action != "allow":
+        return run.finish(Answer("blocked", g.blocked_message, warning=out.reason))
+    return run.finish(Answer("answered", text.strip(), no_sources=True))
+
+
 FOLLOW_UPS = """Suggest up to three short follow-up questions the person might ask next, which
 the passages below can answer. Write them in the language of the answer, one per line,
 without numbering or quotes. If there are none, write nothing."""
@@ -1023,9 +1097,10 @@ async def _generate(
     language: str,
     emit: Emit | None,
     tr: Trace,
+    rules: str = _RULES,
 ) -> str:
     gen = ctx.spec.generation
-    block = sources_block(sources)
+    block = sources_block(sources) if sources else ""
     turns = list(history[-2 * _HISTORY_TURNS :])
     if masker is not None:
         texts = [block, question, *(m.content for m in turns)]
@@ -1036,9 +1111,9 @@ async def _generate(
             for m, spans in zip(turns, found[2:], strict=True)
         ]
     messages = [
-        ChatMessage("system", system_prompt(ctx, gen.answer_language)),
+        ChatMessage("system", system_prompt(ctx, gen.answer_language, rules)),
         *turns,
-        ChatMessage("user", f"{block}\n\nQuestion: {question}"),
+        ChatMessage("user", f"{block}\n\nQuestion: {question}" if block else question),
     ]
     llm, own = await _llm(adapters, ctx)
     t0 = time.perf_counter()

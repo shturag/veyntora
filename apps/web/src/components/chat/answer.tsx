@@ -273,9 +273,20 @@ export function AnswerBlock({
           {t(`modes.${meta.mode_used ?? "fast"}`)}
         </Badge>
         <span>
-          {answered ? t("answeredFrom", { count: documents }) : t("notFound")}
+          {meta.no_sources
+            ? t("noSources")
+            : answered
+              ? t("answeredFrom", { count: documents })
+              : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
         </span>
+        {meta.no_sources ? (
+          <Tooltip content={t("noSourcesExplained")}>
+            <span tabIndex={0}>
+              <Badge tone="amber">{t("noSourcesBadge")}</Badge>
+            </span>
+          </Tooltip>
+        ) : null}
         {meta.external_egress ? (
           <Tooltip content={t("externalExplained")}>
             <span tabIndex={0}>

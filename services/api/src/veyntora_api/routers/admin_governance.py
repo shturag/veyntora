@@ -73,6 +73,8 @@ class BotRule(BaseModel):
     chat_retention_days: int | None
     # Traces may go to Langfuse when it is external (it receives them only then).
     external_traces: bool = False
+    # Answers without documents (general chat): unchecked, labelled on every answer.
+    no_documents: bool = False
 
 
 class RoleOut(BaseModel):
@@ -145,6 +147,7 @@ async def overview(principal: Viewer, db: DbSession, state: State) -> Governance
                 mask=rules[b.id].mask_pii_before_external if b.id in rules else True,
                 chat_retention_days=rules[b.id].chat_retention_days if b.id in rules else None,
                 external_traces=b.id in rules and rules[b.id].allow_external_traces,
+                no_documents=b.id in rules and rules[b.id].allow_no_documents,
             )
             for b in bots
         ],

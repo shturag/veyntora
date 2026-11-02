@@ -100,6 +100,8 @@ class GovernanceInput(BaseModel):
     allow_byok: bool = False
     # Traces to Langfuse when it is external (Integrations); masked there regardless.
     allow_external_traces: bool = False
+    # General chat without documents (unchecked answers, labelled as such).
+    allow_no_documents: bool = False
     mask_pii_before_external: bool = True
 
 
@@ -462,6 +464,12 @@ async def publish_problems(db: AsyncSession, bot: Chatbot, *, gate: bool = True)
     draft = await draft_of(db, bot)
     spec = PipelineSpec.model_validate(draft.spec)
     problems = spec.publish_problems()
+    if not spec.retrieval.enabled:
+        rule = await db.scalar(sa.select(GovernanceRule).where(GovernanceRule.chatbot_id == bot.id))
+        if not (rule and rule.allow_no_documents):
+            problems.append(
+                "answering without documents needs this chatbot's data rule to allow it"
+            )
     ref_problems, rows = await reference_problems(db, spec)
     return (
         problems

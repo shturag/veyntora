@@ -96,3 +96,23 @@ def test_mismatched_embedding_blocks_publish() -> None:
     spec.ingestion.embedding_instance_id = uuid4()
     spec.retrieval.embedding_instance_id = uuid4()
     assert "retrieval must use the same embedding instance as ingestion" in spec.publish_problems()
+
+
+def test_only_what_is_used_is_required() -> None:
+    spec = PipelineSpec()
+    spec.generation.llm_instance_id = uuid4()
+    spec.generation.system_prompt = "Be helpful."
+    spec.router.default_mode = Mode.FAST
+    spec.router.allowed_modes = [Mode.FAST]
+    spec.rerank.enabled = False
+    problems = spec.publish_problems()
+    # Documents: parser, embedding and vector store; no reranker, no agent model.
+    assert not [p for p in problems if p.startswith(("rerank.", "agent."))]
+    assert "ingestion.parser_instance_id is not set" in problems
+
+    spec.retrieval.enabled = False
+    assert spec.publish_problems() == []
+    spec.flow.custom = True
+    assert spec.publish_problems() == [
+        "a chatbot without documents runs the standard pipeline, not a custom flow"
+    ]

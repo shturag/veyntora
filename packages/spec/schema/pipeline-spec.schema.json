@@ -604,6 +604,11 @@
           "default": null,
           "title": "Embedding Instance Id"
         },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
         "german_compound_splitting": {
           "default": true,
           "title": "German Compound Splitting",

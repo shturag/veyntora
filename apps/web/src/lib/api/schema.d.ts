@@ -4276,6 +4276,11 @@ export interface components {
             mask: boolean;
             /** Name */
             name: string;
+            /**
+             * No Documents
+             * @default false
+             */
+            no_documents: boolean;
         };
         /** BotToday */
         BotToday: {
@@ -5667,6 +5672,11 @@ export interface components {
              * @default false
              */
             allow_external_traces: boolean;
+            /**
+             * Allow No Documents
+             * @default false
+             */
+            allow_no_documents: boolean;
             /** Allowed External Instance Ids */
             allowed_external_instance_ids?: string[];
             /** Allowed External Mcp Server Ids */
@@ -5699,6 +5709,11 @@ export interface components {
              * @default false
              */
             allow_external_traces: boolean;
+            /**
+             * Allow No Documents
+             * @default false
+             */
+            allow_no_documents: boolean;
             /** Allowed External Instance Ids */
             allowed_external_instance_ids?: string[];
             /** Allowed External Mcp Server Ids */
@@ -7823,6 +7838,11 @@ export interface components {
             dense_weight: number;
             /** Embedding Instance Id */
             embedding_instance_id?: string | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
             /**
              * German Compound Splitting
              * @default true

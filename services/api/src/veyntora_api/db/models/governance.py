@@ -50,6 +50,9 @@ class GovernanceRule(IdMixin, TimestampMixin, VersionedMixin, Base):
     )
     allow_byok: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     # Traces may go to Langfuse when it is external (Integrations); always masked there.
+    # General chat without documents: an exception to "grounded or silent", labelled on
+    # every answer ("no sources") and listed on the Governance page.
+    allow_no_documents: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     allow_external_traces: Mapped[bool] = mapped_column(server_default=sa.false(), default=False)
     mask_pii_before_external: Mapped[bool] = mapped_column(server_default=sa.true(), default=True)
 
