@@ -77,6 +77,31 @@ export function ProviderEditor({
     }
   }
 
+  /** Only what was changed: an untouched field never blocks saving another one. */
+  function changes(form: FormData) {
+    const next: Record<string, unknown> = {
+      name: String(form.get("name")),
+      endpoint: String(form.get("endpoint") || "") || null,
+      model: String(form.get("model") || "") || null,
+      fallback_instance_id: String(form.get("fallback") || "") || null,
+      hosting,
+      region: String(form.get("region") || "").trim() || null,
+    };
+    if (priced) {
+      next.options = {
+        ...provider.options,
+        [PRICE_IN]: Number(form.get("price_in") || 0),
+        [PRICE_OUT]: Number(form.get("price_out") || 0),
+      };
+    }
+    const before: Record<string, unknown> = { ...provider };
+    return Object.fromEntries(
+      Object.entries(next).filter(
+        ([k, v]) => JSON.stringify(v) !== JSON.stringify(before[k] ?? null),
+      ),
+    );
+  }
+
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -85,23 +110,7 @@ export function ProviderEditor({
         api(`/v1/admin/providers/${provider.id}`, {
           method: "PATCH",
           headers: { "If-Match": String(provider.version) },
-          body: JSON.stringify({
-            name: String(form.get("name")),
-            endpoint: String(form.get("endpoint") || "") || null,
-            model: String(form.get("model") || "") || null,
-            fallback_instance_id: String(form.get("fallback") || "") || null,
-            hosting,
-            region: String(form.get("region") || "").trim() || null,
-            ...(priced
-              ? {
-                  options: {
-                    ...provider.options,
-                    [PRICE_IN]: Number(form.get("price_in") || 0),
-                    [PRICE_OUT]: Number(form.get("price_out") || 0),
-                  },
-                }
-              : {}),
-          }),
+          body: JSON.stringify(changes(form)),
         }),
       t("saved"),
     );

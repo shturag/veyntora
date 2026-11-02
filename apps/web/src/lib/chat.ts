@@ -94,7 +94,15 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     // The API's own message (validation reasons are written for people), else the status.
     const detail = ((await res.json().catch(() => ({}))) as { detail?: unknown }).detail;
     // Validation errors arrive as a list; the first one says what to fix.
-    const first = Array.isArray(detail) ? (detail[0] as { msg?: unknown } | undefined)?.msg : null;
+    const item = Array.isArray(detail)
+      ? (detail[0] as { msg?: unknown; loc?: unknown[] } | undefined)
+      : undefined;
+    // Pydantic prefixes custom checks with "Value error, "; the field name says where.
+    const field = item?.loc?.at(-1);
+    const first =
+      typeof item?.msg === "string"
+        ? `${typeof field === "string" && field !== "body" ? `${field}: ` : ""}${item.msg.replace(/^Value error, /, "")}`
+        : null;
     throw new Error(
       typeof detail === "string" ? detail : typeof first === "string" ? first : `${res.status}`,
     );
