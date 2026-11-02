@@ -1,17 +1,61 @@
 "use client";
 
 import { cn } from "@veyntora/ui";
-import { Brain, Code, Globe, Plug, type LucideIcon } from "lucide-react";
+import { Brain, ChevronDown, Code, Globe, Plug, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Popover } from "radix-ui";
 
 import type { ChatFeatures } from "@/lib/chat";
 
-/** The model picker, the Thinking switch and Integrations, shown only when offered. */
-export function ChatExtras({
+import { CONTROL } from "./composer";
+
+const ACTIVE = "border-accent bg-accent-soft font-medium text-fg hover:text-fg";
+
+/** The model picker: the short model name, the full one on hover. */
+export function ModelPicker({
   features,
   model,
   onModel,
+}: {
+  features: ChatFeatures;
+  model: string | null;
+  onModel: (id: string) => void;
+}) {
+  const t = useTranslations("chat");
+  if (features.models.length < 2) return null;
+  const chosen = features.models.find((m) => m.id === model) ?? features.models[0];
+  return (
+    <label className="relative inline-flex">
+      <span className="sr-only">{t("model")}</span>
+      <select
+        value={chosen?.id ?? ""}
+        title={chosen?.name}
+        onChange={(e) => onModel(e.target.value)}
+        className={cn(CONTROL, "max-w-[200px] appearance-none truncate bg-surface pr-7 text-fg")}
+      >
+        {features.models.map((m) => (
+          <option key={m.id} value={m.id}>
+            {shortName(m.name)}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-fg-muted"
+      />
+    </label>
+  );
+}
+
+/** "siliconflow/Qwen/Qwen3.8-27B" → "Qwen3.8-27B": admins name providers by their path. */
+export function shortName(name: string): string {
+  return name.split("/").filter(Boolean).pop() ?? name;
+}
+
+/** The Thinking switch and Integrations, shown only when the chatbot offers them. */
+export function ChatExtras({
+  features,
+  model,
   thinking,
   onThinking,
   webSearch,
@@ -21,7 +65,6 @@ export function ChatExtras({
 }: {
   features: ChatFeatures;
   model: string | null;
-  onModel: (id: string) => void;
   thinking: boolean;
   onThinking: (on: boolean) => void;
   webSearch: boolean;
@@ -35,33 +78,13 @@ export function ChatExtras({
   const canThink = features.thinking && (features.models.length === 0 || chosen?.thinking);
   return (
     <>
-      {features.models.length > 1 ? (
-        <label className="flex items-center">
-          <span className="sr-only">{t("model")}</span>
-          <select
-            value={chosen?.id ?? ""}
-            onChange={(e) => onModel(e.target.value)}
-            className="h-9 max-w-[220px] truncate rounded-md border border-line-strong bg-surface px-2 text-[13px]"
-          >
-            {features.models.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ) : null}
       {canThink ? (
         <button
           type="button"
           aria-pressed={thinking}
           onClick={() => onThinking(!thinking)}
-          className={cn(
-            "inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-[13px]",
-            thinking
-              ? "border-accent bg-accent-soft font-medium text-fg"
-              : "border-line-strong text-fg-muted hover:text-fg",
-          )}
+          title={t("thinking")}
+          className={cn(CONTROL, thinking && ACTIVE)}
         >
           <Brain aria-hidden className="size-3.5" />
           {t("thinking")}
@@ -94,17 +117,14 @@ function Integrations({ items }: { items: Item[] }) {
   const on = items.filter((i) => i.on).length;
   return (
     <Popover.Root>
-      <Popover.Trigger
-        className={cn(
-          "inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-[13px]",
-          on
-            ? "border-accent bg-accent-soft font-medium text-fg"
-            : "border-line-strong text-fg-muted hover:text-fg",
-        )}
-      >
+      <Popover.Trigger className={cn(CONTROL, on > 0 && ACTIVE)}>
         <Plug aria-hidden className="size-3.5" />
         {t("integrations")}
-        {on ? <span className="text-fg-muted">· {t("integrationsOn", { count: on })}</span> : null}
+        {on ? (
+          <span className="rounded-full bg-accent px-1.5 text-[11px] leading-4 text-on-accent">
+            {on}
+          </span>
+        ) : null}
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content

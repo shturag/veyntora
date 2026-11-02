@@ -1,11 +1,15 @@
 "use client";
 
-import { Button, cn } from "@veyntora/ui";
-import { FileText, Paperclip, X } from "lucide-react";
+import { cn } from "@veyntora/ui";
+import { ArrowUp, FileText, Loader2, Paperclip, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 
 import { MODES, attachFile, type AttachedFile, type Mode } from "@/lib/chat";
+
+/** The toolbar's controls: one height, quiet outline. */
+export const CONTROL =
+  "inline-flex h-8 items-center gap-1.5 rounded-full border border-line-strong px-3 text-[13px] text-fg-muted transition-colors hover:text-fg disabled:opacity-40";
 
 // Files a question may bring (the API's limit).
 const MAX_FILES = 5;
@@ -24,6 +28,7 @@ export function Composer({
   autoFocus = false,
   submitLabel,
   extras,
+  trailing,
   placeholder,
   attach,
 }: {
@@ -35,8 +40,10 @@ export function Composer({
   rows?: number;
   autoFocus?: boolean;
   submitLabel?: string;
-  /** More controls next to the mode switch (model picker, thinking). */
+  /** Tools next to the paperclip (thinking, integrations). */
   extras?: ReactNode;
+  /** Settings next to the mode switch (the model picker). */
+  trailing?: ReactNode;
   placeholder?: string;
   /** The chatbot that takes attached files, and the endings it reads; none: no paperclip. */
   attach?: { chatbotId: string; accept: string[] } | null;
@@ -90,7 +97,7 @@ export function Composer({
   return (
     <form
       onSubmit={send}
-      className="flex flex-col gap-3 rounded-xl border border-line-strong bg-surface p-3.5 shadow-[0_2px_10px_rgba(11,16,51,0.06)]"
+      className="flex flex-col gap-2 rounded-2xl border border-line-strong bg-surface px-3.5 pt-3 pb-2.5 shadow-[0_2px_10px_rgba(11,16,51,0.06)] focus-within:border-accent"
     >
       <label htmlFor={id} className="sr-only">
         {t("askLabel")}
@@ -136,37 +143,39 @@ export function Composer({
           ) : null}
         </ul>
       ) : null}
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex flex-wrap items-center gap-2">
-          {attach ? (
-            <>
-              <Button
-                type="button"
-                size="lg"
-                className="w-11 px-0"
-                aria-label={t("attach")}
-                title={t("attachHint", { types: attach.accept.join(" ") })}
-                disabled={attaching || files.length >= MAX_FILES}
-                onClick={() => fileInput.current?.click()}
-              >
-                <Paperclip aria-hidden className="size-4" />
-              </Button>
-              <input
-                ref={fileInput}
-                type="file"
-                multiple
-                accept={attach.accept.join(",")}
-                className="hidden"
-                tabIndex={-1}
-                aria-hidden
-                onChange={(e) => void addFiles(e.currentTarget)}
-              />
-            </>
-          ) : null}
+      {/* One compact toolbar: tools on the left, model, mode and send on the right. */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {attach ? (
+          <>
+            <button
+              type="button"
+              className={cn(CONTROL, "w-8 justify-center px-0")}
+              aria-label={t("attach")}
+              title={t("attachHint", { types: attach.accept.join(" ") })}
+              disabled={attaching || files.length >= MAX_FILES}
+              onClick={() => fileInput.current?.click()}
+            >
+              <Paperclip aria-hidden className="size-4" />
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              multiple
+              accept={attach.accept.join(",")}
+              className="hidden"
+              tabIndex={-1}
+              aria-hidden
+              onChange={(e) => void addFiles(e.currentTarget)}
+            />
+          </>
+        ) : null}
+        {extras}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+          {trailing}
           <div
             role="radiogroup"
             aria-label={t("mode")}
-            className="flex gap-0.5 rounded-md bg-sunken p-[3px]"
+            className="flex h-8 items-center gap-0.5 rounded-full bg-sunken p-0.5"
           >
             {MODES.map((m) => (
               <button
@@ -176,19 +185,30 @@ export function Composer({
                 aria-checked={mode === m}
                 onClick={() => onModeChange(m)}
                 className={cn(
-                  "rounded-[8px] px-3 py-1.5 text-[13px]",
-                  mode === m ? "bg-surface font-medium text-fg shadow-sm" : "text-fg-muted",
+                  "h-7 rounded-full px-2.5 text-xs",
+                  mode === m
+                    ? "bg-surface font-medium text-fg shadow-sm"
+                    : "text-fg-muted hover:text-fg",
                 )}
               >
                 {t(`modes.${m}`)}
               </button>
             ))}
           </div>
-          {extras}
+          <button
+            type="submit"
+            disabled={!ready}
+            aria-label={busy ? t("answering") : (submitLabel ?? t("ask"))}
+            title={busy ? t("answering") : (submitLabel ?? t("ask"))}
+            className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-on-accent transition-opacity disabled:opacity-40"
+          >
+            {busy ? (
+              <Loader2 aria-hidden className="size-4 animate-spin" />
+            ) : (
+              <ArrowUp aria-hidden className="size-4" />
+            )}
+          </button>
         </div>
-        <Button type="submit" variant="primary" size="lg" disabled={!ready}>
-          {busy ? t("answering") : (submitLabel ?? t("ask"))}
-        </Button>
       </div>
       {attachError ? (
         <p role="alert" className="m-0 text-xs text-red">

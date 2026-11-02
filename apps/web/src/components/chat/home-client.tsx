@@ -9,7 +9,7 @@ import { api, newThread } from "@/lib/chat";
 
 import type { AttachedFile, ChatFeatures, Mode } from "@/lib/chat";
 
-import { ChatExtras } from "./chat-extras";
+import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
 
 export type Assistant = { id: string; name: string; description: string };
@@ -128,11 +128,11 @@ export function HomeClient({
         autoFocus
         attach={accept.length ? { chatbotId: selected, accept } : null}
         placeholder={features.documents === false ? t("placeholderGeneral") : undefined}
+        trailing={<ModelPicker features={features} model={model} onModel={setModel} />}
         extras={
           <ChatExtras
             features={features}
             model={model}
-            onModel={setModel}
             thinking={thinking}
             onThinking={setThinking}
             webSearch={webSearch}

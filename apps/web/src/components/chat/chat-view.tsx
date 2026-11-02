@@ -23,7 +23,7 @@ import {
 
 import { AnswerBlock } from "./answer";
 import { ApprovalCard } from "./approval-card";
-import { ChatExtras } from "./chat-extras";
+import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
 
 type Progress = { step: StatusEvent["step"]; sources?: number } | null;
@@ -292,11 +292,11 @@ function Thread({
           submitLabel={t("send")}
           placeholder={features.documents ? undefined : t("placeholderGeneral")}
           attach={features.attachments?.length ? { chatbotId, accept: features.attachments } : null}
+          trailing={<ModelPicker features={features} model={model} onModel={setModel} />}
           extras={
             <ChatExtras
               features={features}
               model={model}
-              onModel={setModel}
               thinking={thinking}
               onThinking={setThinking}
               webSearch={webSearch}
