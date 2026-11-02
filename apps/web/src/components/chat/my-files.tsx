@@ -1,8 +1,9 @@
 "use client";
 
-import { Badge, Button } from "@veyntora/ui";
+import { Badge } from "@veyntora/ui";
+import { FileText, Trash2, Upload } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, CSRF_HEADERS } from "@/lib/chat";
 
@@ -51,19 +52,19 @@ export function MyFiles({ initial }: { initial: MyFile[] }) {
     return () => clearInterval(timer);
   }, [pending, load]);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const chosen = input.current?.files;
+  // Choosing files uploads them at once (no separate Upload step).
+  async function upload(el: HTMLInputElement) {
+    const chosen = el.files;
     if (!chosen?.length) return;
     setBusy(true);
     setError(null);
     try {
       await uploadMyFiles(chosen);
-      if (input.current) input.current.value = "";
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : t("uploadFailed"));
     } finally {
+      el.value = "";
       setBusy(false);
     }
   }
@@ -89,50 +90,63 @@ export function MyFiles({ initial }: { initial: MyFile[] }) {
       aria-labelledby="my-files"
       className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4"
     >
-      <h2 id="my-files" className="m-0 text-sm font-semibold">
+      <h2 id="my-files" className="m-0 flex items-center justify-between text-sm font-semibold">
         {t("title")}
+        {files.length ? (
+          <span className="rounded-full bg-sunken px-2 text-xs font-medium text-fg-muted">
+            {files.length}
+          </span>
+        ) : null}
       </h2>
       <p className="m-0 text-xs text-fg-muted">{t("hint")}</p>
-      <form onSubmit={submit} className="flex flex-col gap-2">
-        <label className="text-[13px] font-medium">
-          {t("choose")}
-          <input
-            ref={input}
-            type="file"
-            multiple
-            accept={ACCEPT}
-            className="mt-1 block w-full text-xs"
-          />
-        </label>
-        <div>
-          <Button type="submit" size="sm" disabled={busy}>
-            {busy ? t("uploading") : t("upload")}
-          </Button>
-        </div>
-      </form>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => input.current?.click()}
+        className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-line-strong px-3 py-4 text-center text-sm hover:border-accent hover:bg-sunken disabled:opacity-60"
+      >
+        <Upload aria-hidden className="size-4 text-fg-muted" />
+        <span className="font-medium">{busy ? t("uploading") : t("choose")}</span>
+        <span className="text-xs text-fg-muted">{t("types")}</span>
+      </button>
+      <input
+        ref={input}
+        type="file"
+        multiple
+        accept={ACCEPT}
+        className="hidden"
+        tabIndex={-1}
+        aria-hidden
+        onChange={(e) => void upload(e.currentTarget)}
+      />
       {error ? (
         <p role="alert" className="m-0 text-xs text-red">
           {error}
         </p>
       ) : null}
       {files.length > 0 ? (
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+        <ul className="m-0 flex list-none flex-col divide-y divide-line p-0">
           {files.map((f) => (
-            <li key={f.id} className="flex flex-col gap-1 border-t border-divider pt-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm">{f.name}</span>
-                <Badge tone={tone(f)}>{label(f)}</Badge>
+            <li key={f.id} className="group flex items-start gap-2.5 py-2">
+              <FileText aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-muted" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate text-sm" title={f.name}>
+                  {f.name}
+                </span>
+                <span>
+                  <Badge tone={tone(f)}>{label(f)}</Badge>
+                </span>
+                {f.error ? <span className="text-xs text-red">{f.error}</span> : null}
               </div>
-              {f.error ? <span className="text-xs text-red">{f.error}</span> : null}
-              <div>
-                <button
-                  type="button"
-                  onClick={() => remove(f.id)}
-                  className="text-xs text-fg-muted underline"
-                >
-                  {t("remove", { name: f.name })}
-                </button>
-              </div>
+              <button
+                type="button"
+                aria-label={t("remove", { name: f.name })}
+                title={t("removeShort")}
+                onClick={() => remove(f.id)}
+                className="rounded-md p-1.5 text-fg-muted hover:bg-sunken hover:text-red"
+              >
+                <Trash2 aria-hidden className="size-3.5" />
+              </button>
             </li>
           ))}
         </ul>

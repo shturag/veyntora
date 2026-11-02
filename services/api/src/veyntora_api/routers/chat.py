@@ -249,15 +249,22 @@ class ConversationOut(BaseModel):
     chatbot_name: str
     title: str
     updated_at: datetime
+    # Questions asked in it (the list shows how long a chat is).
+    questions: int = 0
 
 
 @router.get("/conversations", summary="The user's conversations, newest first")
 async def conversations(
     principal: CurrentPrincipal, db: DbSession, limit: int = 50
 ) -> list[ConversationOut]:
+    asked = (
+        sa.select(sa.func.count())
+        .where(Message.conversation_id == Conversation.id, Message.role == MessageRole.USER)
+        .scalar_subquery()
+    )
     rows = (
         await db.execute(
-            sa.select(Conversation, Chatbot.name)
+            sa.select(Conversation, Chatbot.name, asked)
             .join(Chatbot, Chatbot.id == Conversation.chatbot_id)
             .where(Conversation.user_id == principal.user_id, Conversation.deleted_at.is_(None))
             .order_by(Conversation.updated_at.desc())
@@ -272,9 +279,31 @@ async def conversations(
             chatbot_name=name,
             title=c.title,
             updated_at=c.updated_at,
+            questions=int(count or 0),
         )
-        for c, name in rows
+        for c, name, count in rows
     ]
+
+
+class ConversationRename(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+
+
+@router.patch("/conversations/{conversation_id}", summary="Rename one of your conversations")
+async def rename_conversation(
+    conversation_id: UUID, data: ConversationRename, principal: CurrentPrincipal, db: DbSession
+) -> Response:
+    conv = await db.get(Conversation, conversation_id)
+    if conv is None or conv.user_id != principal.user_id or conv.deleted_at is not None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Conversation not found")
+    # A new name does not make the chat recent: its place in the list stays.
+    await db.execute(
+        sa.update(Conversation)
+        .where(Conversation.id == conv.id)
+        .values(title=data.title.strip(), updated_at=Conversation.updated_at)
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/threads/{thread_id}", summary="The conversation behind a chat thread")

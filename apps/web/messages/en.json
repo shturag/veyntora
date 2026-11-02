@@ -776,9 +776,34 @@
     "approvals": "Approvals",
     "search": "Search chats",
     "searchPlaceholder": "Search chats…",
-    "empty": "No chats yet. Ask a question on Home to start one.",
+    "empty": "Ask a question on Home to start one. Your chats are listed here, newest first.",
     "noMatches": "No chats match your search.",
-    "untitled": "Untitled chat"
+    "untitled": "Untitled chat",
+    "subtitle": "Your conversations and your own files. Only you can see them.",
+    "newChat": "New chat",
+    "emptyTitle": "No chats yet",
+    "startChat": "Start a chat",
+    "clearSearch": "Clear search",
+    "assistantFilter": "Assistant",
+    "allAssistants": "All assistants",
+    "count": "{count, plural, one {# chat} other {# chats}}",
+    "questions": "{count, plural, one {# question} other {# questions}}",
+    "when": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "week": "Previous 7 days",
+      "month": "Previous 30 days",
+      "older": "Older"
+    },
+    "rename": "Rename “{title}”",
+    "renameShort": "Rename",
+    "renameLabel": "New name",
+    "renameSave": "Save name",
+    "renameCancel": "Cancel",
+    "delete": "Delete “{title}”",
+    "deleteShort": "Delete",
+    "deleteConfirm": "Delete the chat “{title}”? It disappears from your list.",
+    "actionFailed": "That did not work. Try again."
   },
   "providers": {
     "title": "Providers and keys",
@@ -1104,7 +1129,7 @@
   "myFiles": {
     "title": "My files",
     "hint": "Only you can see these. Your chats search them once they are indexed.",
-    "choose": "Choose files",
+    "choose": "Choose files to add",
     "upload": "Upload",
     "uploading": "Uploading…",
     "loadFailed": "Your files could not be loaded.",
@@ -1114,7 +1139,9 @@
     "failed": "Failed",
     "infected": "Virus found",
     "remove": "Remove {name}",
-    "empty": "No files yet."
+    "empty": "No files yet.",
+    "types": "PDF, Word, PowerPoint, Excel, text, images",
+    "removeShort": "Remove"
   },
   "helpPage": {
     "back": "Back to chat",

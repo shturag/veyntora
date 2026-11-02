@@ -1065,3 +1065,34 @@ async def test_a_question_counts_its_embedding_and_reranking(rag: Rag) -> None:
     ).scalars()
     [row] = rows
     assert row.tokens_in == embedder.last_tokens > 0
+
+
+async def test_the_chat_list_counts_questions_and_renames_without_reordering(rag: Rag) -> None:
+    from veyntora_api.auth.deps import Principal  # noqa: PLC0415
+    from veyntora_api.routers import chat as chat_router  # noqa: PLC0415
+
+    db, user = rag.w.db, rag.w.user
+    conv = Conversation(chatbot_id=rag.bot.id, user_id=user.id, thread_id="t-list", title="hi")
+    db.add(conv)
+    await db.flush()
+    for text in ("Wo beantrage ich einen Parkausweis?", "Und was kostet er?"):
+        db.add(Message(conversation_id=conv.id, role=MessageRole.USER, content=text))
+    db.add(Message(conversation_id=conv.id, role=MessageRole.ASSISTANT, content="..."))
+    await db.flush()
+    await db.refresh(conv)
+    before = conv.updated_at
+    me = Principal(user.id, user.keycloak_sub, user.email, "Me", None, "session")
+    [row] = [c for c in await chat_router.conversations(me, db) if c.id == conv.id]
+    assert row.questions == 2
+
+    await chat_router.rename_conversation(
+        conv.id, chat_router.ConversationRename(title="Parkausweis"), me, db
+    )
+    await db.refresh(conv)
+    assert conv.title == "Parkausweis" and conv.updated_at == before
+
+    someone = Principal(uuid4(), "sub-x", None, "X", None, "session")
+    with pytest.raises(Exception, match="not found"):
+        await chat_router.rename_conversation(
+            conv.id, chat_router.ConversationRename(title="Mine"), someone, db
+        )

@@ -776,9 +776,34 @@
     "approvals": "Freigaben",
     "search": "Chats durchsuchen",
     "searchPlaceholder": "Chats durchsuchen…",
-    "empty": "Noch keine Chats. Stell auf der Startseite eine Frage, um einen zu beginnen.",
+    "empty": "Stell auf der Startseite eine Frage, um einen zu beginnen. Deine Chats stehen dann hier, die neuesten zuerst.",
     "noMatches": "Keine Chats passen zu deiner Suche.",
-    "untitled": "Chat ohne Titel"
+    "untitled": "Chat ohne Titel",
+    "subtitle": "Deine Gespräche und eigenen Dateien. Nur du siehst sie.",
+    "newChat": "Neuer Chat",
+    "emptyTitle": "Noch keine Chats",
+    "startChat": "Chat beginnen",
+    "clearSearch": "Suche leeren",
+    "assistantFilter": "Assistent",
+    "allAssistants": "Alle Assistenten",
+    "count": "{count, plural, one {# Chat} other {# Chats}}",
+    "questions": "{count, plural, one {# Frage} other {# Fragen}}",
+    "when": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "week": "Letzte 7 Tage",
+      "month": "Letzte 30 Tage",
+      "older": "Älter"
+    },
+    "rename": "„{title}“ umbenennen",
+    "renameShort": "Umbenennen",
+    "renameLabel": "Neuer Name",
+    "renameSave": "Namen speichern",
+    "renameCancel": "Abbrechen",
+    "delete": "„{title}“ löschen",
+    "deleteShort": "Löschen",
+    "deleteConfirm": "Den Chat „{title}“ löschen? Er verschwindet aus deiner Liste.",
+    "actionFailed": "Das hat nicht geklappt. Versuch es noch einmal."
   },
   "providers": {
     "title": "Anbieter und Schlüssel",
@@ -1104,7 +1129,7 @@
   "myFiles": {
     "title": "Meine Dateien",
     "hint": "Nur du siehst sie. Deine Chats durchsuchen sie, sobald sie indiziert sind.",
-    "choose": "Dateien auswählen",
+    "choose": "Dateien hinzufügen",
     "upload": "Hochladen",
     "uploading": "Lädt hoch…",
     "loadFailed": "Deine Dateien konnten nicht geladen werden.",
@@ -1114,7 +1139,9 @@
     "failed": "Fehlgeschlagen",
     "infected": "Virus gefunden",
     "remove": "{name} entfernen",
-    "empty": "Noch keine Dateien."
+    "empty": "Noch keine Dateien.",
+    "types": "PDF, Word, PowerPoint, Excel, Text, Bilder",
+    "removeShort": "Entfernen"
   },
   "helpPage": {
     "back": "Zurück zum Chat",

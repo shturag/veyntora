@@ -2738,7 +2738,8 @@ export interface paths {
         delete: operations["delete_conversation_v1_chat_conversations__conversation_id__delete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** Rename one of your conversations */
+        patch: operations["rename_conversation_v1_chat_conversations__conversation_id__patch"];
         trace?: never;
     };
     "/v1/chat/documents/{document_id}": {
@@ -4996,6 +4997,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Questions
+             * @default 0
+             */
+            questions: number;
             /** Thread Id */
             thread_id: string | null;
             /** Title */
@@ -5005,6 +5011,11 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ConversationRename */
+        ConversationRename: {
+            /** Title */
+            title: string;
         };
         /** Count */
         Count: {
@@ -15863,6 +15874,41 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_conversation_v1_chat_conversations__conversation_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationRename"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
             /** @description Validation Error */
             422: {
