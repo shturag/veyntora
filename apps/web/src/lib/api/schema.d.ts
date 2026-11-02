@@ -2830,6 +2830,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/chat/messages/{message_id}/thread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The chat an answer belongs to
+         * @description Where to go back to from a source opened from this answer (your own answers only).
+         */
+        get: operations["answer_thread_v1_chat_messages__message_id__thread_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/chat/threads/{thread_id}": {
         parameters: {
             query?: never;
@@ -3681,6 +3701,11 @@ export interface components {
             answer: string;
             /** Knowledge Group Ids */
             knowledge_group_ids?: string[];
+        };
+        /** AnswerThread */
+        AnswerThread: {
+            /** Thread Id */
+            thread_id: string | null;
         };
         /** ApiAnswer */
         ApiAnswer: {
@@ -16073,6 +16098,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeedbackInput-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_thread_v1_chat_messages__message_id__thread_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                message_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerThread"];
                 };
             };
             /** @description Validation Error */

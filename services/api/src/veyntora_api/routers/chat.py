@@ -363,6 +363,20 @@ async def _own_answer(db: DbSession, principal: CurrentPrincipal, message_id: UU
     return msg
 
 
+class AnswerThread(BaseModel):
+    thread_id: str | None
+
+
+@router.get("/messages/{message_id}/thread", summary="The chat an answer belongs to")
+async def answer_thread(
+    message_id: UUID, principal: CurrentPrincipal, db: DbSession
+) -> AnswerThread:
+    """Where to go back to from a source opened from this answer (your own answers only)."""
+    msg = await _own_answer(db, principal, message_id)
+    conv = await db.get(Conversation, msg.conversation_id)
+    return AnswerThread(thread_id=conv.thread_id if conv and conv.deleted_at is None else None)
+
+
 class FeedbackInput(BaseModel):
     rating: Rating
     reason: Literal["wrong", "outdated", "incomplete", "not_relevant", "other"] | None = None

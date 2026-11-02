@@ -741,7 +741,9 @@
     "cutOff": "Diese Antwort hat ihre Längengrenze erreicht und endet vorzeitig. Schreib „weiter“ für den Rest. Admins können die Grenze unter Pipelines → Antwort → Maximale Antwortlänge (Tokens) erhöhen.",
     "sourcesPanel": "Quellen",
     "sourcesFor": "Zu: {question}",
-    "sourcesNone": "Diese Antwort zitiert keine Quellen."
+    "sourcesNone": "Diese Antwort zitiert keine Quellen.",
+    "sourcesHide": "Quellen ausblenden",
+    "sourcesShow": "{count, plural, =0 {Quellen zeigen} one {# Quelle zeigen} other {# Quellen zeigen}}"
   },
   "source": {
     "updated": "aktualisiert am {date}",

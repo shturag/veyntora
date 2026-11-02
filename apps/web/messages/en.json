@@ -741,7 +741,9 @@
     "cutOff": "This answer reached its length limit and stops early. Ask “continue” for the rest. An admin can raise the limit under Pipelines → Generation → Max answer tokens.",
     "sourcesPanel": "Sources",
     "sourcesFor": "For: {question}",
-    "sourcesNone": "This answer cites no sources."
+    "sourcesNone": "This answer cites no sources.",
+    "sourcesHide": "Hide sources",
+    "sourcesShow": "{count, plural, =0 {Show sources} one {Show # source} other {Show # sources}}"
   },
   "source": {
     "updated": "updated {date}",

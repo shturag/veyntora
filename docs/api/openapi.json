@@ -334,6 +334,26 @@
         "title": "AnswerInput",
         "type": "object"
       },
+      "AnswerThread": {
+        "properties": {
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "thread_id"
+        ],
+        "title": "AnswerThread",
+        "type": "object"
+      },
       "ApiAnswer": {
         "properties": {
           "answer": {
@@ -26719,6 +26739,50 @@
           }
         },
         "summary": "Rate an answer",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/v1/chat/messages/{message_id}/thread": {
+      "get": {
+        "description": "Where to go back to from a source opened from this answer (your own answers only).",
+        "operationId": "answer_thread_v1_chat_messages__message_id__thread_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "message_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Message Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerThread"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The chat an answer belongs to",
         "tags": [
           "chat"
         ]

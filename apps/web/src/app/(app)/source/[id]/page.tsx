@@ -35,6 +35,14 @@ export default async function SourcePage({ params, searchParams }: Props) {
     });
     quote = (data ?? []).find((c) => c.n === Number(n) && c.document_id === id);
   }
+  // Opened from an answer: closing goes back to that chat, not to a new one.
+  let back = "/home";
+  if (m && /^[0-9a-f-]{36}$/.test(m)) {
+    const { data } = await api.GET("/v1/chat/messages/{message_id}/thread", {
+      params: { path: { message_id: m } },
+    });
+    if (data?.thread_id) back = `/chat/${data.thread_id}`;
+  }
   const original = `/api/v1/chat/documents/${id}/original`;
   const inline = doc.mime_type === "application/pdf" || doc.mime_type?.startsWith("image/");
   const meta = [
@@ -69,7 +77,7 @@ export default async function SourcePage({ params, searchParams }: Props) {
             </Button>
           ) : null}
           <Button asChild variant="ghost" className="w-10 px-0">
-            <Link href="/home" aria-label={t("close")}>
+            <Link href={back} aria-label={t("close")}>
               <X aria-hidden className="size-5" />
             </Link>
           </Button>

@@ -1,10 +1,20 @@
 "use client";
 
-import { ExternalLink, FileText, Globe, Paperclip } from "lucide-react";
+import {
+  ExternalLink,
+  FileText,
+  Globe,
+  PanelRightClose,
+  PanelRightOpen,
+  Paperclip,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useState } from "react";
 
 import { plainText, type CitationMeta } from "@/lib/chat";
+
+const FOLDED = "vey.sources.folded";
 
 /**
  * The sources of one answer, beside the conversation on wide screens: what each [n] in the
@@ -21,19 +31,72 @@ export function SourcesPanel({
 }) {
   const t = useTranslations("chat");
   const sorted = [...citations].sort((a, b) => a.n - b.n);
+  // Folded to a strip or open; remembered in this browser (the chat renders client-side).
+  const [folded, setFolded] = useState(() => {
+    try {
+      return localStorage.getItem(FOLDED) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const fold = (next: boolean) => {
+    setFolded(next);
+    try {
+      localStorage.setItem(FOLDED, next ? "1" : "0");
+    } catch {
+      // Not remembered; nothing else depends on it.
+    }
+  };
+  if (folded) {
+    return (
+      <aside
+        aria-label={t("sourcesPanel")}
+        className="sticky top-0 hidden h-screen w-12 shrink-0 flex-col items-center border-l border-line bg-surface py-3 min-[1280px]:flex"
+      >
+        <button
+          type="button"
+          onClick={() => fold(false)}
+          aria-expanded={false}
+          aria-label={t("sourcesShow", { count: sorted.length })}
+          title={t("sourcesShow", { count: sorted.length })}
+          className="flex flex-col items-center gap-2 rounded-md px-1.5 py-2 text-fg-muted hover:bg-sunken hover:text-fg"
+        >
+          <PanelRightOpen aria-hidden className="size-4" />
+          <span className="text-xs font-medium [writing-mode:vertical-rl]">
+            {t("sourcesPanel")}
+          </span>
+          {sorted.length ? (
+            <span className="rounded-full bg-accent-soft px-1.5 text-[11px] font-semibold text-fg">
+              {sorted.length}
+            </span>
+          ) : null}
+        </button>
+      </aside>
+    );
+  }
   return (
     <aside
       aria-label={t("sourcesPanel")}
       className="sticky top-0 hidden h-screen w-[320px] shrink-0 flex-col border-l border-line bg-surface min-[1280px]:flex"
     >
       <div className="border-b border-line px-4 py-3.5">
-        <h2 className="m-0 flex items-center justify-between text-sm font-semibold">
-          {t("sourcesPanel")}
+        <h2 className="m-0 flex items-center gap-2 text-sm font-semibold">
+          <span className="flex-1">{t("sourcesPanel")}</span>
           {sorted.length ? (
             <span className="rounded-full bg-sunken px-2 text-xs font-medium text-fg-muted">
               {sorted.length}
             </span>
           ) : null}
+          <button
+            type="button"
+            onClick={() => fold(true)}
+            aria-expanded
+            aria-label={t("sourcesHide")}
+            title={t("sourcesHide")}
+            className="-mr-1.5 rounded-md p-1 text-fg-muted hover:bg-sunken hover:text-fg"
+          >
+            <PanelRightClose aria-hidden className="size-4" />
+          </button>
         </h2>
         {question && sorted.length ? (
           <p className="m-0 mt-1 line-clamp-2 text-xs text-fg-muted" title={question}>

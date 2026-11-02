@@ -1096,3 +1096,21 @@ async def test_the_chat_list_counts_questions_and_renames_without_reordering(rag
         await chat_router.rename_conversation(
             conv.id, chat_router.ConversationRename(title="Mine"), someone, db
         )
+
+
+async def test_a_source_opened_from_an_answer_leads_back_to_its_chat(rag: Rag) -> None:
+    from veyntora_api.auth.deps import Principal  # noqa: PLC0415
+    from veyntora_api.routers import chat as chat_router  # noqa: PLC0415
+
+    db, user = rag.w.db, rag.w.user
+    conv = Conversation(chatbot_id=rag.bot.id, user_id=user.id, thread_id="t-back", title="x")
+    db.add(conv)
+    await db.flush()
+    answer_msg = Message(conversation_id=conv.id, role=MessageRole.ASSISTANT, content="...")
+    db.add(answer_msg)
+    await db.flush()
+    me = Principal(user.id, user.keycloak_sub, user.email, "Me", None, "session")
+    assert (await chat_router.answer_thread(answer_msg.id, me, db)).thread_id == "t-back"
+    someone = Principal(uuid4(), "sub-y", None, "Y", None, "session")
+    with pytest.raises(Exception, match="not found"):
+        await chat_router.answer_thread(answer_msg.id, someone, db)
