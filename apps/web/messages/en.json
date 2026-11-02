@@ -2144,9 +2144,8 @@
     "done": "Linked. Go back to {platform} and ask your question."
   },
   "flow": {
-    "runThis": "Run this flow instead of the standard pipeline",
-    "standardNote": "Off: the chatbot runs its standard pipeline (Router, Fast, Agent). The picture shows that pipeline.",
-    "customNote": "On: the chatbot runs exactly this flow. It is checked before publishing.",
+    "standardNote": "Runs the standard pipeline: Router, then Fast or Agent. Change its settings on the forms; to change the steps themselves, switch to Custom flow.",
+    "customNote": "Runs exactly this flow. Drag from the dot under a step to the top of another to connect them; the flow is checked before publishing.",
     "save": "Save draft",
     "saved": "Draft saved.",
     "failed": "Not saved: {reason}",
@@ -2233,7 +2232,60 @@
       "human_approval": "Waits until an approver allows the next step.",
       "output": "The answer is stored and shown."
     },
-    "formView": "Settings as forms"
+    "formView": "Settings as forms",
+    "modeLabel": "How this chatbot runs",
+    "modes": {
+      "standard": "Standard pipeline",
+      "custom": "Custom flow"
+    },
+    "unsaved": "Unsaved changes",
+    "tidy": "Tidy up",
+    "addHint": "Adds the step after the selected one and connects them.",
+    "addLocked": "Switch to Custom flow to add steps.",
+    "groups": {
+      "start": "Start",
+      "find": "Find",
+      "answer": "Answer",
+      "act": "Act",
+      "check": "Check & control"
+    },
+    "desc": {
+      "input": "The question asked",
+      "router": "Fast or Agent",
+      "retriever": "Search the sources",
+      "reranker": "Keep the best passages",
+      "llm": "Write the answer",
+      "agent_llm": "Plan and use tools",
+      "mcp_tool": "Call a tool",
+      "condition": "Branch yes or no",
+      "guardrail": "Block unsafe answers",
+      "human_approval": "Wait for an approver",
+      "output": "Show the answer"
+    },
+    "sum": {
+      "pipelineModel": "model from the pipeline",
+      "pipeline": "as in the pipeline",
+      "topK": "top {n}",
+      "keep": "keeps {n}",
+      "toolbox": "{count, plural, =0 {toolbox, no tools yet} one {toolbox · # tool} other {toolbox · # tools}}",
+      "noTest": "no test yet",
+      "input": "the question",
+      "router": "by intent and risk",
+      "human_approval": "waits for approval",
+      "output": "answer and sources"
+    },
+    "search": {
+      "hybrid": "Hybrid (meaning + keywords)",
+      "dense": "Meaning only",
+      "sparse": "Keywords only"
+    },
+    "inspectorEmpty": "Select a step on the canvas to change it, or a connection to change its branch. To connect two steps, drag from the dot under one step to the top of another.",
+    "inspectorReadOnly": "Select a step to see what it does. The standard pipeline's settings are on the forms.",
+    "comesFrom": "Comes from",
+    "goesTo": "Goes to",
+    "connectHint": "The same as dragging between two steps, for keyboards and screen readers.",
+    "switchToEdit": "This is the standard pipeline. Switch to Custom flow above to change the steps.",
+    "noTools": "No enabled tools yet: add an MCP server under Tools (MCP)."
   },
   "automations": {
     "title": "Automations",
@@ -3666,5 +3718,17 @@
     "saved": "Data rule saved.",
     "failed": "That did not work: {reason}",
     "readOnly": "Governance editors change data rules."
+  },
+  "checklist": {
+    "ready": "Ready to publish: every required setting is in place.",
+    "title": "{count, plural, one {# thing to do before publishing} other {# things to do before publishing}}",
+    "missing": "{section} · {field}: not chosen yet",
+    "flow": "Custom flow · {problem}",
+    "known": {
+      "systemPrompt": "Generation: write the system prompt",
+      "sameEmbedding": "Retrieval: use the same embedding model as Ingestion",
+      "outputCheck": "Guardrails: choose an output safety check (needed for \"no promises\")",
+      "inputCheck": "Guardrails: choose an input safety check (needed for blocked topics)"
+    }
   }
 }

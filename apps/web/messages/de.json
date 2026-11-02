@@ -2144,9 +2144,8 @@
     "done": "Verknüpft. Geh zurück zu {platform} und stelle deine Frage."
   },
   "flow": {
-    "runThis": "Diesen Ablauf statt der Standard-Pipeline ausführen",
-    "standardNote": "Aus: der Chatbot nutzt seine Standard-Pipeline (Router, Schnell, Agent). Das Bild zeigt diese Pipeline.",
-    "customNote": "An: der Chatbot führt genau diesen Ablauf aus. Er wird vor dem Veröffentlichen geprüft.",
+    "standardNote": "Läuft mit der Standard-Pipeline: Router, dann Schnell oder Agent. Ihre Einstellungen änderst du in den Formularen; um die Schritte selbst zu ändern, wechsle zu „Eigener Ablauf“.",
+    "customNote": "Läuft genau mit diesem Ablauf. Zieh vom Punkt unter einem Schritt nach oben auf einen anderen, um sie zu verbinden; der Ablauf wird vor dem Veröffentlichen geprüft.",
     "save": "Entwurf speichern",
     "saved": "Entwurf gespeichert.",
     "failed": "Nicht gespeichert: {reason}",
@@ -2233,7 +2232,60 @@
       "human_approval": "Wartet, bis eine genehmigende Person den nächsten Schritt erlaubt.",
       "output": "Die Antwort wird gespeichert und angezeigt."
     },
-    "formView": "Einstellungen als Formulare"
+    "formView": "Einstellungen als Formulare",
+    "modeLabel": "So läuft dieser Chatbot",
+    "modes": {
+      "standard": "Standard-Pipeline",
+      "custom": "Eigener Ablauf"
+    },
+    "unsaved": "Ungespeicherte Änderungen",
+    "tidy": "Aufräumen",
+    "addHint": "Fügt den Schritt nach dem ausgewählten ein und verbindet beide.",
+    "addLocked": "Wechsle zu „Eigener Ablauf“, um Schritte hinzuzufügen.",
+    "groups": {
+      "start": "Start",
+      "find": "Finden",
+      "answer": "Antworten",
+      "act": "Handeln",
+      "check": "Prüfen & steuern"
+    },
+    "desc": {
+      "input": "Die gestellte Frage",
+      "router": "Schnell oder Agent",
+      "retriever": "Quellen durchsuchen",
+      "reranker": "Die besten Passagen behalten",
+      "llm": "Die Antwort schreiben",
+      "agent_llm": "Planen und Tools nutzen",
+      "mcp_tool": "Ein Tool aufrufen",
+      "condition": "Ja oder Nein verzweigen",
+      "guardrail": "Unsichere Antworten blockieren",
+      "human_approval": "Auf eine Freigabe warten",
+      "output": "Die Antwort zeigen"
+    },
+    "sum": {
+      "pipelineModel": "Modell aus der Pipeline",
+      "pipeline": "wie in der Pipeline",
+      "topK": "Top {n}",
+      "keep": "behält {n}",
+      "toolbox": "{count, plural, =0 {Werkzeugkasten, noch keine Tools} one {Werkzeugkasten · # Tool} other {Werkzeugkasten · # Tools}}",
+      "noTest": "noch kein Test",
+      "input": "die Frage",
+      "router": "nach Absicht und Risiko",
+      "human_approval": "wartet auf Freigabe",
+      "output": "Antwort und Quellen"
+    },
+    "search": {
+      "hybrid": "Hybrid (Bedeutung + Stichwörter)",
+      "dense": "Nur Bedeutung",
+      "sparse": "Nur Stichwörter"
+    },
+    "inspectorEmpty": "Wähle einen Schritt auf der Fläche, um ihn zu ändern, oder eine Verbindung, um ihren Zweig zu ändern. Um zwei Schritte zu verbinden, zieh vom Punkt unter einem Schritt auf den oberen Rand eines anderen.",
+    "inspectorReadOnly": "Wähle einen Schritt, um zu sehen, was er tut. Die Einstellungen der Standard-Pipeline stehen in den Formularen.",
+    "comesFrom": "Kommt von",
+    "goesTo": "Geht zu",
+    "connectHint": "Dasselbe wie Ziehen zwischen zwei Schritten, für Tastatur und Screenreader.",
+    "switchToEdit": "Das ist die Standard-Pipeline. Wechsle oben zu „Eigener Ablauf“, um die Schritte zu ändern.",
+    "noTools": "Noch keine aktiven Tools: Füge unter Tools (MCP) einen MCP-Server hinzu."
   },
   "automations": {
     "title": "Automatisierungen",
@@ -3666,5 +3718,17 @@
     "saved": "Datenregel gespeichert.",
     "failed": "Das hat nicht funktioniert: {reason}",
     "readOnly": "Governance-Bearbeiter ändern Datenregeln."
+  },
+  "checklist": {
+    "ready": "Bereit zum Veröffentlichen: Alle nötigen Einstellungen sind gesetzt.",
+    "title": "{count, plural, one {# Punkt vor dem Veröffentlichen} other {# Punkte vor dem Veröffentlichen}}",
+    "missing": "{section} · {field}: noch nicht ausgewählt",
+    "flow": "Eigener Ablauf · {problem}",
+    "known": {
+      "systemPrompt": "Generierung: den System-Prompt schreiben",
+      "sameEmbedding": "Abruf: dasselbe Embedding-Modell wie bei der Aufnahme nutzen",
+      "outputCheck": "Guardrails: eine Ausgabe-Sicherheitsprüfung wählen (nötig für „keine Versprechen“)",
+      "inputCheck": "Guardrails: eine Eingabe-Sicherheitsprüfung wählen (nötig für gesperrte Themen)"
+    }
   }
 }

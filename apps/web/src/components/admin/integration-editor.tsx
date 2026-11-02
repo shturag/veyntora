@@ -329,7 +329,7 @@ export function IntegrationEditor({
                       <Button
                         type="button"
                         size="sm"
-                        variant="danger"
+                        variant="danger-outline"
                         disabled={busy}
                         onClick={() => saveDashboards(dashboards.filter((x) => x.uid !== d.uid))}
                       >
@@ -424,7 +424,7 @@ export function IntegrationEditor({
               </Button>
               <Button
                 type="button"
-                variant="danger"
+                variant="danger-outline"
                 disabled={busy}
                 onClick={() => {
                   if (window.confirm(t("removeConfirm", { name: title })))

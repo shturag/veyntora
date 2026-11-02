@@ -280,7 +280,7 @@ export function ProviderEditor({
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant="danger-outline"
               disabled={busy}
               onClick={() => {
                 if (!window.confirm(t("deleteConfirm", { name: provider.name }))) return;

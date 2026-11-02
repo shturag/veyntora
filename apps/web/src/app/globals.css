@@ -52,3 +52,35 @@ body {
   stroke-dasharray: 6 8;
   animation: vey-march 1.2s linear infinite;
 }
+
+/* React Flow (pipeline editor) in the app's own colours, light and dark: its own
+   stylesheet loads later, so its own variables are set (they take precedence over its defaults). */
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-background-pattern-dots-color: var(--vey-border-strong);
+  --xy-edge-stroke: var(--vey-text-muted);
+  --xy-edge-stroke-selected: var(--vey-accent);
+  --xy-connectionline-stroke: var(--vey-accent);
+  --xy-handle-background-color: var(--vey-text-muted);
+  --xy-handle-border-color: var(--vey-surface);
+  --xy-edge-label-background-color: var(--vey-surface);
+  --xy-edge-label-color: var(--vey-text-secondary);
+  --xy-controls-button-background-color: var(--vey-surface);
+  --xy-controls-button-background-color-hover: var(--vey-sunken);
+  --xy-controls-button-color: var(--vey-text-secondary);
+  --xy-controls-button-color-hover: var(--vey-text);
+  --xy-controls-button-border-color: var(--vey-border);
+  --xy-controls-box-shadow: none;
+}
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--vey-border);
+  border-radius: 8px;
+}
+.react-flow__edge-textbg {
+  stroke: var(--vey-border-strong);
+}
+.react-flow__edge-text {
+  font-size: 11px;
+  font-weight: 500;
+}

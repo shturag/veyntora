@@ -107,7 +107,7 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
             <Button disabled={busy} onClick={() => setStatus("paused")}>
               {t("restore")}
             </Button>
-            <Button variant="danger" disabled={busy} onClick={() => setDeleting(true)}>
+            <Button variant="danger-outline" disabled={busy} onClick={() => setDeleting(true)}>
               {t("delete")}
             </Button>
           </>

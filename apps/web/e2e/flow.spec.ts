@@ -15,18 +15,23 @@ test.describe("flow editor as a platform admin", () => {
       .getByRole("link", { name: "Pipeline" })
       .click();
     await expect(page.getByRole("region", { name: "Flow" })).toBeVisible();
-    await expect(page.getByLabel("Run this flow instead of the standard pipeline")).toBeVisible();
+    const mode = page.getByRole("radiogroup", { name: "How this chatbot runs" });
+    await expect(mode.getByRole("radio", { name: "Standard pipeline" })).toBeVisible();
+    // The standard pipeline is read-only on the canvas; a custom flow is edited.
+    await mode.getByRole("radio", { name: "Custom flow" }).click();
     await page
       .getByRole("navigation", { name: "Steps" })
-      .getByRole("button", { name: "+ Condition" })
+      .getByRole("button", { name: /^Condition/ })
       .click();
     const details = page.getByRole("complementary", { name: "Step settings" });
     await expect(details.getByLabel("Test")).toBeVisible();
     await details.getByLabel("Test").selectOption("no_sources");
+    await details.getByText("Connect two steps").click();
     const connect = page.getByRole("form", { name: "Connect two steps" });
     await connect.getByRole("combobox", { name: "From", exact: true }).selectOption({ index: 1 });
     await connect.getByRole("combobox", { name: "To", exact: true }).selectOption({ index: 2 });
     await connect.getByRole("button", { name: "Connect" }).click();
+    await expect(page.getByText("Unsaved changes")).toBeVisible();
     await expect(page.getByRole("link", { name: "Settings as forms" })).toBeVisible();
     await expectNoA11yViolations(page);
   });

@@ -13,6 +13,8 @@ export const buttonVariants = cva(
         primary: "bg-accent text-on-accent font-semibold hover:bg-accent-hover",
         secondary: "border border-line-strong bg-surface text-fg hover:bg-sunken",
         danger: "bg-red text-white font-semibold hover:opacity-90 dark:text-ground",
+        // For destructive actions next to everyday ones: red, but not shouting.
+        "danger-outline": "border border-red bg-surface text-red font-medium hover:bg-red-soft",
         ghost: "text-fg-secondary hover:bg-sunken",
       },
       size: {

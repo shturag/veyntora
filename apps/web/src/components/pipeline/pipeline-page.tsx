@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Forbidden } from "@/components/forbidden";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
+import { PublishChecklist } from "@/components/pipeline/publish-checklist";
 import { SECTIONS, sectionHref, type SectionKey } from "@/lib/pipeline";
 
 import { PublishButton } from "./publish-button";
@@ -99,23 +100,14 @@ export async function PipelinePage({
           tools={(tools ?? []) as ToolOption[]}
           canEdit={canEdit}
         />
-        <aside
-          aria-labelledby="checks"
-          className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4 max-[1200px]:col-span-2 max-[760px]:col-span-1"
-        >
-          <h2 id="checks" className="m-0 text-sm font-semibold">
-            {t("checks")}
-          </h2>
-          {bot.publish_problems.length === 0 ? (
-            <p className="m-0 text-sm text-green">{t("readyToPublish")}</p>
-          ) : (
-            <ul className="m-0 flex flex-col gap-1.5 pl-4 text-sm text-fg-secondary">
-              {bot.publish_problems.map((p) => (
-                <li key={p}>{p}</li>
-              ))}
-            </ul>
-          )}
-        </aside>
+        <div className="max-[1200px]:col-span-2 max-[760px]:col-span-1">
+          <PublishChecklist
+            botId={bot.id}
+            problems={bot.publish_problems}
+            headingId="checks"
+            narrow
+          />
+        </div>
       </div>
     </div>
   );
