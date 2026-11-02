@@ -8,6 +8,7 @@ export type Enabled = boolean;
 export type ToolId = string;
 export type Tools = AgentToolBinding[];
 export type Attachments = boolean;
+export type CodeInstanceId = string | null;
 /**
  * @maxItems 12
  */
@@ -141,6 +142,7 @@ export interface AgentToolBinding {
  */
 export interface ChatSpec {
   attachments?: Attachments;
+  code_instance_id?: CodeInstanceId;
   llm_instance_ids?: LlmInstanceIds;
   thinking?: Thinking;
   web_search_instance_id?: WebSearchInstanceId;

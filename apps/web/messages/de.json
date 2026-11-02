@@ -727,7 +727,14 @@
     "webSearchHint": "Für diese Frage im Web suchen und die Seiten zitieren.",
     "openPage": "Seite öffnen",
     "integrationsOn": "{count, plural, one {# an} other {# an}}",
-    "answeredFromWeb": "{count, plural, one {Beantwortet aus # Webseite} other {Beantwortet aus # Webseiten}}"
+    "answeredFromWeb": "{count, plural, one {Beantwortet aus # Webseite} other {Beantwortet aus # Webseiten}}",
+    "code": "Code-Interpreter",
+    "codeHint": "Den Assistenten Python ausführen lassen, um zu rechnen und Diagramme zu zeichnen.",
+    "runningCode": "Code wird ausgeführt …",
+    "codeRun": "Code-Ausführung {n}",
+    "codeTimedOut": "abgebrochen: hat zu lange gedauert",
+    "codeFailed": "mit Fehler beendet",
+    "chart": "Diagramm: {name}"
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -785,7 +792,8 @@
       "vector_store": "Vektorspeicher",
       "parser": "Dokumentparser",
       "guardrail": "Guardrail",
-      "web_search": "Websuche"
+      "web_search": "Websuche",
+      "code_interpreter": "Code-Interpreter"
     },
     "adapters": {
       "anthropic": "Anthropic (Claude)",
@@ -800,7 +808,8 @@
       "presidio": "Presidio",
       "searxng": "SearXNG",
       "brave": "Brave Search",
-      "tavily": "Tavily"
+      "tavily": "Tavily",
+      "sandbox": "Veyntora-Sandbox"
     },
     "health": {
       "unknown": "Nicht getestet",
@@ -1371,6 +1380,10 @@
       "web_search_instance_id": {
         "label": "Websuche",
         "hint": "Personen können die Websuche für eine Frage einschalten: Die Frage wird mit diesem Anbieter gesucht, und die Treffer gehen als zitierte Quellen mit. Ein externer Suchanbieter braucht die Datenregel dieses Chatbots."
+      },
+      "code_instance_id": {
+        "label": "Code-Interpreter",
+        "hint": "Personen können den Code-Interpreter für eine Frage einschalten: Das Modell darf Python (numpy, pandas, matplotlib) in dieser Sandbox ohne Internet ausführen, um zu rechnen, Daten auszuwerten und Diagramme zu zeichnen. Code und Ausgabe stehen bei der Antwort."
       }
     },
     "o": {

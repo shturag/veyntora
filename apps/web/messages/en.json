@@ -727,7 +727,14 @@
     "webSearchHint": "Search the web for this question and cite the pages.",
     "openPage": "Open page",
     "integrationsOn": "{count, plural, one {# on} other {# on}}",
-    "answeredFromWeb": "{count, plural, one {Answered from # web page} other {Answered from # web pages}}"
+    "answeredFromWeb": "{count, plural, one {Answered from # web page} other {Answered from # web pages}}",
+    "code": "Code interpreter",
+    "codeHint": "Let the assistant run Python to calculate and draw charts.",
+    "runningCode": "Running code…",
+    "codeRun": "Code run {n}",
+    "codeTimedOut": "stopped: took too long",
+    "codeFailed": "ended with an error",
+    "chart": "Chart: {name}"
   },
   "source": {
     "updated": "updated {date}",
@@ -785,7 +792,8 @@
       "vector_store": "Vector store",
       "parser": "Document parser",
       "guardrail": "Guardrail",
-      "web_search": "Web search"
+      "web_search": "Web search",
+      "code_interpreter": "Code interpreter"
     },
     "adapters": {
       "anthropic": "Anthropic (Claude)",
@@ -800,7 +808,8 @@
       "presidio": "Presidio",
       "searxng": "SearXNG",
       "brave": "Brave Search",
-      "tavily": "Tavily"
+      "tavily": "Tavily",
+      "sandbox": "Veyntora sandbox"
     },
     "health": {
       "unknown": "Not tested",
@@ -1371,6 +1380,10 @@
       "web_search_instance_id": {
         "label": "Web search",
         "hint": "People can switch web search on for a question: the question is searched with this provider and the results go with it as cited sources. An external search provider needs this chatbot's data rule."
+      },
+      "code_instance_id": {
+        "label": "Code interpreter",
+        "hint": "People can switch the code interpreter on for a question: the model may run Python (numpy, pandas, matplotlib) in this sandbox, without internet, to calculate, analyse data and draw charts. The code and its output are shown with the answer."
       }
     },
     "o": {

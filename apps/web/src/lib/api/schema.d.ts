@@ -4533,7 +4533,7 @@ export interface components {
          * Capability
          * @enum {string}
          */
-        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail" | "web_search";
+        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail" | "web_search" | "code_interpreter";
         /** CaseIdOut */
         CaseIdOut: {
             /**
@@ -4614,6 +4614,11 @@ export interface components {
              */
             attachments: string[];
             /**
+             * Code
+             * @default false
+             */
+            code: boolean;
+            /**
              * Documents
              * @default true
              */
@@ -4638,6 +4643,8 @@ export interface components {
              * @default true
              */
             attachments: boolean;
+            /** Code Instance Id */
+            code_instance_id?: string | null;
             /** Llm Instance Ids */
             llm_instance_ids?: string[];
             /**

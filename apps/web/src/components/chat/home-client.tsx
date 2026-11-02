@@ -40,6 +40,7 @@ export function HomeClient({
   const [model, setModel] = useState<string | null>(null);
   const [thinking, setThinking] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
+  const [code, setCode] = useState(false);
   const accept = features.attachments ?? [];
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export function HomeClient({
       if (model) params.set("model", model);
       if (features.thinking && thinking) params.set("thinking", "1");
       if (features.web_search && webSearch) params.set("web", "1");
+      if (features.code && code) params.set("code", "1");
       router.push(`/chat/${thread}?${params.toString()}`);
     } catch {
       setError(true);
@@ -135,6 +137,8 @@ export function HomeClient({
             onThinking={setThinking}
             webSearch={webSearch}
             onWebSearch={setWebSearch}
+            code={code}
+            onCode={setCode}
           />
         }
       />

@@ -2835,7 +2835,8 @@
           "vector_store",
           "parser",
           "guardrail",
-          "web_search"
+          "web_search",
+          "code_interpreter"
         ],
         "title": "Capability",
         "type": "string"
@@ -3050,6 +3051,11 @@
             "title": "Attachments",
             "type": "array"
           },
+          "code": {
+            "default": false,
+            "title": "Code",
+            "type": "boolean"
+          },
           "documents": {
             "default": true,
             "title": "Documents",
@@ -3087,6 +3093,18 @@
             "default": true,
             "title": "Attachments",
             "type": "boolean"
+          },
+          "code_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code Instance Id"
           },
           "llm_instance_ids": {
             "items": {

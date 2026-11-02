@@ -84,6 +84,7 @@ class State(TypedDict, total=False):
     model: str
     thinking: bool | None
     web_search: bool | None
+    code: bool | None
     # Files attached to this conversation's questions (ADR 0028).
     attachments: Annotated[list[str], _add_files]
     route: dict[str, Any]
@@ -131,6 +132,7 @@ async def _open(state: State, config: RunnableConfig, db: AsyncSession) -> _Turn
         state.get("model"),
         thinking if isinstance(thinking, bool) else None,
         state.get("web_search") is True,
+        state.get("code") is True,
     )
     files = state.get("attachments") or []
     if files and ctx.spec.chat.attachments:

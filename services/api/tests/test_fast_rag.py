@@ -44,12 +44,15 @@ from veyntora_providers.interfaces import (
     Capability,
     ChatChunk,
     ChatMessage,
+    CodeFile,
+    CodeResult,
     Doc,
     Hit,
     Hosting,
     HybridQuery,
     KeyRejectedError,
     Scored,
+    ToolCall,
     Usage,
     WebResult,
 )
@@ -955,3 +958,60 @@ async def test_reasoning_shows_while_a_masked_answer_is_held_back() -> None:
     # Nothing of the answer streams; the reasoning does, with the name put back.
     assert shown and all(e["type"] == "reasoning" and e["all"] for e in shown)
     assert shown[0]["text"].startswith("Jane asked")
+
+
+class CodeLLM:
+    """Asks to run code once, then answers with what the code printed."""
+
+    def __init__(self) -> None:
+        self.turns: list[Sequence[ChatMessage]] = []
+        self.tools: list[Any] = []
+
+    async def chat(self, messages: Sequence[ChatMessage], **opts: Any) -> AsyncIterator[ChatChunk]:
+        self.turns.append(list(messages))
+        self.tools.append(opts.get("tools"))
+        if messages[-1].role != "tool":
+            yield ChatChunk(delta="Let me calculate. ")
+            yield ChatChunk(
+                tool_calls=(ToolCall("c1", "run_python", '{"code": "print(sum(range(101)))"}'),)
+            )
+        else:
+            yield ChatChunk(delta="The sum of 0 to 100 is 5050.")
+        yield ChatChunk(finish_reason="end_turn", usage=Usage(50, 10))
+
+
+class FakeRunner:
+    def __init__(self) -> None:
+        self.codes: list[str] = []
+
+    async def run(self, code: str) -> CodeResult:
+        self.codes.append(code)
+        return CodeResult(
+            "5050\n", "", 0, files=(CodeFile("chart.png", "image/png", b"\x89PNG..."),)
+        )
+
+
+async def test_the_code_interpreter_runs_code_and_answers_with_its_output(rag: Rag) -> None:
+    sandbox_id = uuid4()
+    llm, runner = CodeLLM(), FakeRunner()
+    adapters = rag.adapters()
+    adapters.by_id[sandbox_id] = runner
+    adapters.by_id[rag.w.llm] = llm
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.retrieval.enabled = False
+    ctx = dataclasses.replace(ctx, no_documents_allowed=True)
+    # Not offered, or not switched on: no tool.
+    assert not pipeline.with_choices(ctx, None, None, code=True).code
+    ctx.spec.chat.code_instance_id = sandbox_id
+    assert not pipeline.with_choices(ctx, None, None, code=False).code
+
+    on = pipeline.with_choices(ctx, None, None, code=True)
+    result = await answer(rag.w.db, adapters, on, "What is the sum of 0 to 100?")
+    assert runner.codes == ["print(sum(range(101)))"]
+    assert result.text == "The sum of 0 to 100 is 5050."
+    [ran] = result.code_runs
+    assert ran["stdout"] == "5050\n" and ran["files"][0]["name"] == "chart.png"
+    # The model saw the output as the tool's answer, and had the tool offered.
+    assert llm.turns[-1][-1].role == "tool" and "5050" in llm.turns[-1][-1].content
+    assert llm.tools[0][0].name == "run_python"
+    assert "run_python tool" in llm.turns[0][0].content

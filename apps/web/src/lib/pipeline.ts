@@ -189,6 +189,12 @@ export const SECTIONS: readonly Section[] = [
         capability: "web_search",
         optional: true,
       },
+      {
+        name: "code_instance_id",
+        kind: "instance",
+        capability: "code_interpreter",
+        optional: true,
+      },
     ],
   },
 ];

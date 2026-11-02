@@ -26,6 +26,7 @@ class Capability(StrEnum):
     PARSER = "parser"
     GUARDRAIL = "guardrail"
     WEB_SEARCH = "web_search"
+    CODE_INTERPRETER = "code_interpreter"
 
 
 class Hosting(StrEnum):
@@ -310,3 +311,27 @@ class WebSearcher(Protocol):
     async def search(
         self, query: str, *, max_results: int = 5, language: str | None = None
     ) -> list[WebResult]: ...
+
+
+# ---------------------------------------------------------------- code interpreter
+
+
+@dataclass(frozen=True, slots=True)
+class CodeFile:
+    name: str
+    mime: str
+    content: bytes = field(repr=False)
+
+
+@dataclass(frozen=True, slots=True)
+class CodeResult:
+    stdout: str
+    stderr: str
+    exit_code: int | None
+    timed_out: bool = False
+    files: tuple[CodeFile, ...] = ()
+
+
+@runtime_checkable
+class CodeRunner(Protocol):
+    async def run(self, code: str) -> CodeResult: ...

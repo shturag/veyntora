@@ -325,6 +325,29 @@ services:
       retries: 30
       start_period: 30s
 
+  sandbox:
+    # Code interpreter (ADR 0030): runs Python for the chat. No internet: it sits only on the
+    # internal "sandbox" network, which the graph server (and workers, for Test connection)
+    # join. Read-only, no capabilities, as nobody, with CPU, memory and process limits.
+    build:
+      context: ../..
+      dockerfile: services/sandbox/Dockerfile
+    image: veyntora/sandbox:local
+    networks: [sandbox]
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.0
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
   clamav:
     # Virus scan for uploads (clamd INSTREAM on 3310). Downloads signatures on first start,
     # which takes a few minutes; needs about 1.5 GB of memory.
@@ -561,6 +584,7 @@ services:
       VEY_DB_NULL_POOL: "true"
     volumes:
       - openbao-runtime-token:/run/openbao:ro
+    networks: [default, sandbox]
     depends_on:
       migrate: { condition: service_completed_successfully }
       valkey: { condition: service_healthy }
@@ -615,6 +639,7 @@ services:
       VEY_OIDC_AUDIENCE: veyntora-api
     volumes:
       - openbao-runtime-token:/run/openbao:ro
+    networks: [default, sandbox]
     ports: ["127.0.0.1:2026:2026"]
     depends_on:
       migrate: { condition: service_completed_successfully }
@@ -663,3 +688,9 @@ volumes:
   prometheus:
   loki:
   grafana:
+
+networks:
+  default: {}
+  # Internal: no route to the internet. Only the graph server and workers reach the sandbox.
+  sandbox:
+    internal: true

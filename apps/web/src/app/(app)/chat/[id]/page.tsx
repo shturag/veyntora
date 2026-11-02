@@ -20,12 +20,13 @@ type Props = {
     model?: string;
     thinking?: string;
     web?: string;
+    code?: string;
   }>;
 };
 
 export default async function ChatPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { bot, q, mode, files, model, thinking, web } = await searchParams;
+  const { bot, q, mode, files, model, thinking, web, code } = await searchParams;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const api = await serverApi();
   const [conv, { data: prefs }] = await Promise.all([
@@ -63,7 +64,12 @@ export default async function ChatPage({ params, searchParams }: Props) {
         showSteps={prefs?.show_agent_steps ?? true}
         initialQuestion={conv.data ? undefined : q}
         initialFiles={conv.data ? undefined : filesOf(files)}
-        initialChoices={{ model, thinking: thinking === "1", webSearch: web === "1" }}
+        initialChoices={{
+          model,
+          thinking: thinking === "1",
+          webSearch: web === "1",
+          code: code === "1",
+        }}
         aiNotice={info?.ai_notice}
       />
     </div>

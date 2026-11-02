@@ -54,6 +54,7 @@ def test_run_body_is_rebuilt_from_what_the_chat_needs() -> None:
             "model": "",
             "thinking": None,
             "web_search": None,
+            "code": None,
             "attachments": [],
         },
     }

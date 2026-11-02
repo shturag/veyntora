@@ -163,6 +163,8 @@ class ChatFeatures(BaseModel):
     attachments: list[str] = []
     # People may switch web search on for a question (ADR 0029).
     web_search: bool = False
+    # People may switch the code interpreter on for a question (ADR 0030).
+    code: bool = False
 
 
 # Servers that switch thinking per request (see the openai_compatible adapter's options).
@@ -171,6 +173,18 @@ _THINKING_STYLES = frozenset({"enable_thinking", "chat_template_kwargs"})
 
 def _can_think(p: ProviderInstance) -> bool:
     return p.adapter == "anthropic" or (p.options or {}).get("thinking") in _THINKING_STYLES
+
+
+async def _enabled(db: DbSession, instance_id: UUID | None) -> bool:
+    if instance_id is None:
+        return False
+    return bool(
+        await db.scalar(
+            sa.select(ProviderInstance.id).where(
+                ProviderInstance.id == instance_id, ProviderInstance.enabled.is_(True)
+            )
+        )
+    )
 
 
 @router.get("/chatbots/{bot_id}/features", summary="Models and switches the chat offers")
@@ -216,13 +230,6 @@ async def chat_features(
         attachments=attachments.accepted(parser=await parser_ready(db, spec))
         if spec.chat.attachments
         else [],
-        web_search=spec.chat.web_search_instance_id is not None
-        and bool(
-            await db.scalar(
-                sa.select(ProviderInstance.id).where(
-                    ProviderInstance.id == spec.chat.web_search_instance_id,
-                    ProviderInstance.enabled.is_(True),
-                )
-            )
-        ),
+        web_search=await _enabled(db, spec.chat.web_search_instance_id),
+        code=await _enabled(db, spec.chat.code_instance_id),
     )

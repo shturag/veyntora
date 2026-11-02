@@ -152,10 +152,10 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
     thinking = data.get("thinking")
     if thinking is not None and not isinstance(thinking, bool):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "thinking must be true or false")
-    web_search = data.get("web_search")
-    if web_search is not None and not isinstance(web_search, bool):
+    web_search, code = data.get("web_search"), data.get("code")
+    if any(v is not None and not isinstance(v, bool) for v in (web_search, code)):
         raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "web_search must be true or false"
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "web_search and code must be true or false"
         )
     files = data.get("attachments") or []
     if not isinstance(files, list) or len(files) > attachments.MAX_PER_QUESTION:
@@ -174,6 +174,7 @@ def _run_body(body: dict[str, Any]) -> dict[str, Any]:
         "model": model,
         "thinking": thinking,
         "web_search": web_search,
+        "code": code,
         "attachments": files,
     }
     return _modes(out)

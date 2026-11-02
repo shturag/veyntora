@@ -15,6 +15,7 @@ from typing import Any
 from veyntora_providers.interfaces import (
     AclFilter,
     Capability,
+    CodeRunner,
     Doc,
     EmbeddingProvider,
     HybridQuery,
@@ -71,6 +72,12 @@ async def _web_search_returns_links(searcher: WebSearcher) -> None:
         raise AssertionError("a result has no web link")
 
 
+async def _code_runs_python(runner: CodeRunner) -> None:
+    out = await runner.run("print(sum(range(10)))")
+    if out.stdout.strip() != "45":
+        raise AssertionError(f"expected 45, got {out.stdout.strip()[:40]!r} {out.stderr[-120:]}")
+
+
 CHECKS: dict[Capability, list[tuple[str, Check]]] = {
     Capability.EMBEDDING: [("returns dense vectors", _embedding_returns_vectors)],
     Capability.RERANKER: [("orders by score", _reranker_orders_by_score)],
@@ -81,6 +88,7 @@ CHECKS: dict[Capability, list[tuple[str, Check]]] = {
     Capability.PARSER: [],
     Capability.GUARDRAIL: [],
     Capability.WEB_SEARCH: [("returns results with links", _web_search_returns_links)],
+    Capability.CODE_INTERPRETER: [("runs Python", _code_runs_python)],
 }
 
 

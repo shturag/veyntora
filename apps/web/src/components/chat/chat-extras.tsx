@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@veyntora/ui";
-import { Brain, Globe, Plug } from "lucide-react";
+import { Brain, Code, Globe, Plug, type LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Popover } from "radix-ui";
 
@@ -16,6 +16,8 @@ export function ChatExtras({
   onThinking,
   webSearch,
   onWebSearch,
+  code,
+  onCode,
 }: {
   features: ChatFeatures;
   model: string | null;
@@ -24,6 +26,8 @@ export function ChatExtras({
   onThinking: (on: boolean) => void;
   webSearch: boolean;
   onWebSearch: (on: boolean) => void;
+  code: boolean;
+  onCode: (on: boolean) => void;
 }) {
   const t = useTranslations("chat");
   const chosen = features.models.find((m) => m.id === model) ?? features.models[0];
@@ -63,23 +67,31 @@ export function ChatExtras({
           {t("thinking")}
         </button>
       ) : null}
-      {features.web_search ? (
-        <Integrations webSearch={webSearch} onWebSearch={onWebSearch} />
+      {features.web_search || features.code ? (
+        <Integrations
+          items={[
+            ...(features.web_search
+              ? [{ key: "webSearch" as const, icon: Globe, on: webSearch, set: onWebSearch }]
+              : []),
+            ...(features.code ? [{ key: "code" as const, icon: Code, on: code, set: onCode }] : []),
+          ]}
+        />
       ) : null}
     </>
   );
 }
 
-/** Tools people switch on for their questions (web search; more to come). */
-function Integrations({
-  webSearch,
-  onWebSearch,
-}: {
-  webSearch: boolean;
-  onWebSearch: (on: boolean) => void;
-}) {
+type Item = {
+  key: "webSearch" | "code";
+  icon: LucideIcon;
+  on: boolean;
+  set: (on: boolean) => void;
+};
+
+/** Tools people switch on for their questions: web search and the code interpreter. */
+function Integrations({ items }: { items: Item[] }) {
   const t = useTranslations("chat");
-  const on = webSearch ? 1 : 0;
+  const on = items.filter((i) => i.on).length;
   return (
     <Popover.Root>
       <Popover.Trigger
@@ -101,33 +113,36 @@ function Integrations({
           sideOffset={6}
           className="z-50 flex w-[300px] flex-col gap-1 rounded-lg border border-line bg-surface p-2 shadow-popover"
         >
-          <button
-            type="button"
-            role="switch"
-            aria-checked={webSearch}
-            onClick={() => onWebSearch(!webSearch)}
-            className="flex items-start gap-3 rounded-md p-2 text-left hover:bg-sunken"
-          >
-            <Globe aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-muted" />
-            <span className="flex flex-1 flex-col gap-0.5">
-              <span className="text-sm font-medium">{t("webSearch")}</span>
-              <span className="text-xs text-fg-muted">{t("webSearchHint")}</span>
-            </span>
-            <span
-              aria-hidden
-              className={cn(
-                "mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors",
-                webSearch ? "bg-accent" : "bg-line-strong",
-              )}
+          {items.map(({ key, icon: Icon, on: active, set }) => (
+            <button
+              key={key}
+              type="button"
+              role="switch"
+              aria-checked={active}
+              onClick={() => set(!active)}
+              className="flex items-start gap-3 rounded-md p-2 text-left hover:bg-sunken"
             >
+              <Icon aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-muted" />
+              <span className="flex flex-1 flex-col gap-0.5">
+                <span className="text-sm font-medium">{t(key)}</span>
+                <span className="text-xs text-fg-muted">{t(`${key}Hint`)}</span>
+              </span>
               <span
+                aria-hidden
                 className={cn(
-                  "size-4 rounded-full bg-surface transition-transform",
-                  webSearch ? "translate-x-4" : "",
+                  "mt-0.5 inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors",
+                  active ? "bg-accent" : "bg-line-strong",
                 )}
-              />
-            </span>
-          </button>
+              >
+                <span
+                  className={cn(
+                    "size-4 rounded-full bg-surface transition-transform",
+                    active ? "translate-x-4" : "",
+                  )}
+                />
+              </span>
+            </button>
+          ))}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

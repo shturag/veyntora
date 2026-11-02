@@ -17,6 +17,7 @@ import {
   type ChatFeatures,
   type ChatState,
   type GraphMessage,
+  type StatusEvent,
   type Mode,
 } from "@/lib/chat";
 
@@ -25,7 +26,7 @@ import { ApprovalCard } from "./approval-card";
 import { ChatExtras } from "./chat-extras";
 import { Composer } from "./composer";
 
-type Progress = { step: "searching" | "writing"; sources?: number } | null;
+type Progress = { step: StatusEvent["step"]; sources?: number } | null;
 type LiveStep = { kind: string; name?: string; status: string };
 const STREAM_MODES: ("values" | "custom")[] = ["values", "custom"];
 
@@ -72,6 +73,7 @@ function Thread({
   const notice = features.ai_notice === undefined ? aiNotice : features.ai_notice;
   const [thinking, setThinking] = useState(initialChoices?.thinking ?? false);
   const [webSearch, setWebSearch] = useState(initialChoices?.webSearch ?? false);
+  const [code, setCode] = useState(initialChoices?.code ?? false);
   const started = useRef(false);
 
   useEffect(() => {
@@ -87,7 +89,11 @@ function Thread({
     defaultHeaders: CSRF_HEADERS,
     onCustomEvent: (data) => {
       const event = data as ChatEvent;
-      if (event.type === "status") setProgress({ step: event.step, sources: event.sources });
+      if (event.type === "status") {
+        setProgress({ step: event.step, sources: event.sources });
+        // Text before a code run was the model's plan; the answer follows the run.
+        if (event.step === "running_code") setDraft("");
+      }
       if (event.type === "token") setDraft((d) => d + event.text);
       if (event.type === "reasoning") {
         setReasoning((r) => (event.all ? event.text : r + event.text));
@@ -133,6 +139,7 @@ function Thread({
         // ignores a switch the chatbot does not offer.
         thinking,
         web_search: webSearch,
+        code,
       },
       {
         streamMode: STREAM_MODES,
@@ -245,9 +252,11 @@ function Thread({
             ) : (
               <span className="inline-flex items-center gap-2">
                 <span aria-hidden className="size-2 animate-pulse rounded-full bg-accent" />
-                {progress?.step === "writing"
-                  ? t("writing", { count: progress.sources ?? 0 })
-                  : t("searching")}
+                {progress?.step === "running_code"
+                  ? t("runningCode")
+                  : progress?.step === "writing"
+                    ? t("writing", { count: progress.sources ?? 0 })
+                    : t("searching")}
               </span>
             )}
             {reasoning ? (
@@ -292,6 +301,8 @@ function Thread({
               onThinking={setThinking}
               webSearch={webSearch}
               onWebSearch={setWebSearch}
+              code={code}
+              onCode={setCode}
             />
           }
         />
@@ -345,7 +356,7 @@ function ExpertReplies({ threadId }: { threadId: string }) {
   );
 }
 
-export type Choices = { model?: string; thinking?: boolean; webSearch?: boolean };
+export type Choices = { model?: string; thinking?: boolean; webSearch?: boolean; code?: boolean };
 
 /** The chat for one thread. The LangGraph client needs an absolute URL, so it mounts in the browser. */
 const noSubscribe = () => () => {};

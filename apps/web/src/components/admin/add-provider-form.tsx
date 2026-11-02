@@ -15,6 +15,7 @@ const DEFAULT_ENDPOINT: Record<string, string> = {
   "parser/docling": "http://docling:5001",
   "embedding/tei": "http://tei-embed:80",
   "reranker/tei": "http://tei-rerank:80",
+  "code_interpreter/sandbox": "http://sandbox:8090",
 };
 const ENDPOINT_OPTIONAL = new Set([
   "llm/anthropic",

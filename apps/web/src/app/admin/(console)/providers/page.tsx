@@ -18,6 +18,7 @@ const CAPABILITIES = [
   "parser",
   "guardrail",
   "web_search",
+  "code_interpreter",
 ] as const;
 
 type Props = { searchParams: Promise<{ cap?: string; id?: string }> };

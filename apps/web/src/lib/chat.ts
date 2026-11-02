@@ -6,6 +6,15 @@ export const MODES: readonly Mode[] = ["auto", "fast", "agent"];
 
 export type Outcome = "answered" | "no_answer" | "blocked" | "refused";
 
+export type CodeRun = {
+  code: string;
+  stdout: string;
+  stderr: string;
+  exit_code: number | null;
+  timed_out: boolean;
+  files: { name: string; mime: string; base64: string }[];
+};
+
 export type CitationMeta = {
   n: number;
   document_id: string;
@@ -29,6 +38,8 @@ export type AnswerMeta = {
   no_sources?: boolean;
   /** The model's reasoning, when thinking was on and the model returned it. */
   reasoning?: string | null;
+  /** Code the model ran in the sandbox (code interpreter), with output and charts. */
+  code_runs?: CodeRun[] | null;
   latency_ms?: number;
   handoff_available?: boolean;
   citations?: CitationMeta[];
@@ -70,7 +81,11 @@ export type AttachedFile = { id: string; name: string; truncated?: boolean };
 
 export type ChatState = { messages: GraphMessage[]; chatbot_id?: string };
 
-export type StatusEvent = { type: "status"; step: "searching" | "writing"; sources?: number };
+export type StatusEvent = {
+  type: "status";
+  step: "searching" | "writing" | "running_code";
+  sources?: number;
+};
 export type TokenEvent = { type: "token"; text: string };
 export type StepEvent = {
   type: "step";
@@ -97,6 +112,8 @@ export type ChatFeatures = {
   attachments?: string[];
   /** People may switch web search on for a question. */
   web_search?: boolean;
+  /** People may switch the code interpreter on for a question. */
+  code?: boolean;
 };
 
 export const CSRF_HEADERS = { "x-veyntora-csrf": "1" } as const;

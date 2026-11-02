@@ -12,8 +12,10 @@ PostgreSQL, so a revoked or deleted document disappears at once, before the inde
 
 from __future__ import annotations
 
+import base64
 import dataclasses
 import hashlib
+import json
 import re
 import time
 from collections.abc import Callable, Sequence
@@ -33,6 +35,8 @@ from veyntora_providers.interfaces import (
     Hit,
     Hosting,
     HybridQuery,
+    ToolCall,
+    ToolSpec,
     Usage,
 )
 from veyntora_providers.netguard import EndpointNotAllowedError, check_public_https
@@ -163,6 +167,8 @@ class RunContext:
     attachments: tuple[Attached, ...] = ()
     # The asker switched web search on for this question (and the chatbot offers it).
     web_search: bool = False
+    # The asker switched the code interpreter on (and the chatbot offers it).
+    code: bool = False
 
     def hosting(self, instance_id: UUID | None) -> Hosting | None:
         """External if the instance or a fallback it may use is external (reported on the
@@ -224,6 +230,8 @@ class Answer:
     no_sources: bool = False
     # The model's reasoning, when thinking was on and the model returns it.
     reasoning: str = ""
+    # Code the model ran in the sandbox, with its output and charts (ADR 0030).
+    code_runs: list[dict[str, Any]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------- context
@@ -407,6 +415,7 @@ async def _context(
             # Models people may choose: data rules apply to every model a run may use.
             *spec.chat.llm_instance_ids,
             spec.chat.web_search_instance_id,
+            spec.chat.code_instance_id,
             # Agent and router models: data rules apply to every model a run may use.
             spec.agent.llm_instance_id,
             spec.router.router_instance_id,
@@ -462,15 +471,22 @@ async def _context(
 
 
 def with_choices(
-    ctx: RunContext, model: str | None, thinking: bool | None, web_search: bool | None = None
+    ctx: RunContext,
+    model: str | None,
+    thinking: bool | None,
+    web_search: bool | None = None,
+    code: bool | None = None,
 ) -> RunContext:
     """The asker's choices for one question: a model the chatbot offers (ChatSpec), thinking
-    on or off where the chatbot allows the switch, and web search where it offers one."""
+    on or off where the chatbot allows the switch, and web search and the code interpreter
+    where it offers them."""
     spec = ctx.spec
     # Where people may switch thinking, no choice means off; elsewhere the model decides.
     choose_thinking = bool(thinking) if spec.chat.thinking else None
     web = bool(web_search) and spec.chat.web_search_instance_id is not None
-    ctx = dataclasses.replace(ctx, web_search=web)
+    ctx = dataclasses.replace(
+        ctx, web_search=web, code=bool(code) and spec.chat.code_instance_id is not None
+    )
     if not model or model == str(spec.generation.llm_instance_id):
         return dataclasses.replace(ctx, thinking=choose_thinking)
     offered = {str(i) for i in spec.chat.llm_instance_ids}
@@ -803,6 +819,79 @@ def sources_block(sources: Sequence[Source]) -> str:
     return "<sources>\n" + "\n\n".join(parts) + "\n</sources>"
 
 
+# ---------------------------------------------------------------- code interpreter
+
+# Code runs the model may make for one answer (ADR 0030).
+MAX_CODE_RUNS = 4
+_TOOL_OUTPUT_CHARS = 4000
+# Charts shown with the answer: images only, up to this size each.
+_SHOWN_FILE_BYTES = 700_000
+
+RUN_PYTHON = ToolSpec(
+    "run_python",
+    "Run Python 3 code in a sandbox without internet access and get back what it prints. "
+    "numpy, pandas and matplotlib are installed. Save charts with plt.savefig('name.png'); "
+    "they are shown to the person. Each run starts empty: nothing is kept between runs.",
+    {
+        "type": "object",
+        "properties": {"code": {"type": "string", "description": "The Python code to run."}},
+        "required": ["code"],
+    },
+)
+
+_CODE_NOTE = """
+You can run Python with the run_python tool. Use it for calculations, data analysis and
+charts instead of working numbers out in your head, then answer with the results. Print
+what you need to see."""
+
+
+async def _run_code(
+    adapters: AdapterSource, ctx: RunContext, run: _Run, call: ToolCall, masker: Masker | None
+) -> str:
+    """Runs one tool call in the sandbox; returns what the model sees and records the run
+    (with personal data put back, for the person) for the answer."""
+    try:
+        code = str(json.loads(call.arguments or "{}").get("code") or "")
+    except ValueError:
+        code = ""
+    if call.name != RUN_PYTHON.name or not code.strip():
+        return "Error: call run_python with the code to run."
+    reveal = masker.unmask if masker is not None else (lambda t: t)
+    t0 = time.perf_counter()
+    try:
+        out = await (await _adapter(adapters, ctx.spec.chat.code_instance_id)).run(code)
+    except Exception as exc:  # the sandbox being down must not cost the answer
+        log.warning("code.failed", error=type(exc).__name__)
+        run.warning = run.warning or "The code interpreter was not available for this answer."
+        return "Error: the sandbox is not available; answer without running code."
+    run.steps["code"] = run.steps.get("code", 0) + round((time.perf_counter() - t0) * 1000)
+    images = [f for f in out.files if f.mime.startswith("image/")]
+    run.code_runs.append(
+        {
+            "code": reveal(code),
+            "stdout": reveal(out.stdout)[-_TOOL_OUTPUT_CHARS:],
+            "stderr": reveal(out.stderr)[-_TOOL_OUTPUT_CHARS:],
+            "exit_code": out.exit_code,
+            "timed_out": out.timed_out,
+            "files": [
+                {
+                    "name": f.name,
+                    "mime": f.mime,
+                    "base64": base64.b64encode(f.content).decode(),
+                }
+                for f in images
+                if len(f.content) <= _SHOWN_FILE_BYTES
+            ][:3],
+        }
+    )
+    written = ", ".join(f.name for f in out.files) or "none"
+    status = "stopped: took too long" if out.timed_out else f"exit code {out.exit_code}"
+    return (
+        f"{status}\nstdout:\n{out.stdout[-_TOOL_OUTPUT_CHARS:]}\n"
+        f"stderr:\n{out.stderr[-_TOOL_OUTPUT_CHARS:]}\nfiles written: {written}"
+    )
+
+
 # What a model may spend on thinking, on top of the answer's own limit.
 THINKING_TOKENS = 8000
 # How often held-back reasoning is shown again (the whole text so far each time).
@@ -819,11 +908,14 @@ async def _complete(
     reasoning: list[str] | None = None,
     held: Emit | None = None,
     reveal: Callable[[str], str] | None = None,
+    tools: Sequence[ToolSpec] | None = None,
+    calls: list[ToolCall] | None = None,
 ) -> tuple[str, Usage]:
     """The answer text; the model's reasoning (when it returns any) goes to `reasoning`.
 
     While the answer is held back (`emit` is None, e.g. masked), `held` still shows the
-    reasoning so far, with personal data put back by `reveal`, at most twice a second."""
+    reasoning so far, with personal data put back by `reveal`, at most twice a second.
+    Tool calls the model makes (when `tools` are offered) go to `calls`."""
     text: list[str] = []
     shown = 0.0
     usage = Usage(0, 0)
@@ -831,7 +923,11 @@ async def _complete(
     opts: dict[str, Any] = {"max_tokens": max_tokens + (THINKING_TOKENS if thinking else 0)}
     if thinking is not None:
         opts["thinking"] = thinking
+    if tools:
+        opts["tools"] = list(tools)
     async for chunk in llm.chat(messages, **opts):
+        if chunk.tool_calls and calls is not None:
+            calls.extend(chunk.tool_calls)
         if getattr(chunk, "reasoning", "") and reasoning is not None:
             reasoning.append(chunk.reasoning)
             if emit is not None:
@@ -927,6 +1023,7 @@ class _Run:
     skipped: bool = False
     calls: list[tuple[UUID | None, Usage]] = field(default_factory=list)
     reasoning: list[str] = field(default_factory=list)
+    code_runs: list[dict[str, Any]] = field(default_factory=list)
 
     def call(
         self, adapters: AdapterSource, instance_id: UUID | None, usage: Usage, own: Any = None
@@ -952,6 +1049,7 @@ class _Run:
         result.warning = result.warning or self.warning
         result.latency_ms = round((time.perf_counter() - self.started) * 1000)
         result.reasoning = result.reasoning or "".join(self.reasoning).strip()
+        result.code_runs = result.code_runs or self.code_runs
         return result
 
 
@@ -1305,23 +1403,41 @@ async def _generate(
             for m, spans in zip(turns, found[2:], strict=True)
         ]
     messages = [
-        ChatMessage("system", system_prompt(ctx, gen.answer_language, rules)),
+        ChatMessage(
+            "system",
+            system_prompt(ctx, gen.answer_language, rules + (_CODE_NOTE if ctx.code else "")),
+        ),
         *turns,
         ChatMessage("user", f"{block}\n\nQuestion: {question}" if block else question),
     ]
     llm, own = await _llm(adapters, ctx)
     t0 = time.perf_counter()
     with tr.step("generate", generation=True) as step:
-        text, u = await _complete(
-            llm,
-            messages,
-            gen.max_answer_tokens,
-            emit,
-            thinking=ctx.thinking,
-            reasoning=run.reasoning,
-            held=progress if emit is None else None,
-            reveal=masker.unmask if masker is not None else None,
-        )
+        u = Usage(0, 0)
+        # With the code interpreter the model may run Python, see the output and go on.
+        for turn in range(MAX_CODE_RUNS + 1):
+            calls: list[ToolCall] = []
+            text, used = await _complete(
+                llm,
+                messages,
+                gen.max_answer_tokens,
+                emit,
+                thinking=ctx.thinking,
+                reasoning=run.reasoning,
+                held=progress if emit is None else None,
+                reveal=masker.unmask if masker is not None else None,
+                tools=[RUN_PYTHON] if ctx.code else None,
+                calls=calls,
+            )
+            u = _add(u, used)
+            if not calls or turn == MAX_CODE_RUNS:
+                break
+            messages = [*messages, ChatMessage("assistant", text, tool_calls=tuple(calls))]
+            for call in calls:
+                if progress is not None:
+                    progress({"type": "status", "step": "running_code"})
+                result = await _run_code(adapters, ctx, run, call, masker)
+                messages.append(ChatMessage("tool", result, tool_call_id=call.id, name=call.name))
         step.set(
             **_usage_attrs(ctx, gen.llm_instance_id, u),
             streamed=emit is not None,

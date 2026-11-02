@@ -7,6 +7,7 @@ from veyntora_providers.adapters import (  # noqa: F401
     hosted,
     openai_compat,
     qdrant_store,
+    sandbox,
     tei,
     websearch,
 )

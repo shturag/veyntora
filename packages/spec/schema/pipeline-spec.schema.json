@@ -77,6 +77,19 @@
           "title": "Attachments",
           "type": "boolean"
         },
+        "code_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code Instance Id"
+        },
         "llm_instance_ids": {
           "items": {
             "format": "uuid",

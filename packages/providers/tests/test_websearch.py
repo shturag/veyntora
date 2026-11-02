@@ -95,3 +95,39 @@ async def test_brave_and_tavily_send_their_keys() -> None:
 async def test_brave_needs_a_key() -> None:
     with pytest.raises(KeyRejectedError):
         await _searcher("brave", key=False).search("q")
+
+
+@respx.mock
+async def test_the_sandbox_adapter_runs_code_and_decodes_files() -> None:
+    import base64  # noqa: PLC0415
+
+    route = respx.post("http://sandbox:8090/run").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "stdout": "45\n",
+                "stderr": "",
+                "exit_code": 0,
+                "timed_out": False,
+                "files": [
+                    {
+                        "name": "c.png",
+                        "mime": "image/png",
+                        "base64": base64.b64encode(b"PNG").decode(),
+                    }
+                ],
+            },
+        )
+    )
+    cfg = ProviderInstanceConfig(
+        id=uuid.uuid4(),
+        capability=Capability.CODE_INTERPRETER,
+        adapter="sandbox",
+        name="sandbox",
+        hosting=Hosting.SELF_HOSTED,
+    )
+    out = await registry.create(cfg, Key()).run("print(45)")
+    assert out.stdout == "45\n" and out.files[0].content == b"PNG"
+    assert "authorization" not in route.calls[0].request.headers
+    # Health runs a known calculation and checks its answer.
+    assert not (await registry.create(cfg, Key()).health()).ok

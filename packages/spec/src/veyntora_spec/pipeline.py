@@ -225,6 +225,9 @@ class ChatSpec(_Spec):
     # People may switch web search on for a question: this provider searches with the
     # question, and the results go with it as sources (ADR 0029). None: no web search.
     web_search_instance_id: InstanceRef | None = None
+    # People may switch the code interpreter on for a question: the model may run Python in
+    # this sandbox (ADR 0030). None: no code interpreter.
+    code_instance_id: InstanceRef | None = None
 
     @field_validator("llm_instance_ids")
     @classmethod
