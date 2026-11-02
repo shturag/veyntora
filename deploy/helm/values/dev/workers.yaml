@@ -2,7 +2,7 @@
 nameOverride: workers
 image:
   repository: ghcr.io/shturag/veyntora-api
-  tag: "964fd296d5432dc1decb2872de74405fe5dd5e1d"
+  tag: "8fd97fac1888577d10f51a7270bd8623c6ee371c"
 replicas: 1
 port: 8000
 healthPath: /
