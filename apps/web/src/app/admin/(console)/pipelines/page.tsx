@@ -27,7 +27,7 @@ export default async function PipelinesIndex() {
           {bots.map((b) => (
             <li key={b.id}>
               <Link
-                href={`/admin/pipelines/${b.id}`}
+                href={`/admin/chatbots/${b.id}/settings`}
                 className="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3 text-fg no-underline hover:bg-sunken"
               >
                 <span className="font-medium">{b.name}</span>

@@ -1,9 +1,9 @@
 import type { PipelineSpec } from "@veyntora/spec";
-import { Badge, buttonVariants } from "@veyntora/ui";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BotHeader } from "@/components/bots/bot-header";
 import { Forbidden } from "@/components/forbidden";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
@@ -11,10 +11,13 @@ import { GuidedPanel } from "@/components/bots/guided-panel";
 import { PublishChecklist } from "@/components/pipeline/publish-checklist";
 import { SECTIONS, sectionHref, type SectionKey } from "@/lib/pipeline";
 
-import { PublishButton } from "./publish-button";
+import { PipelineToolbar } from "./view-switch";
 import { SpecForm, type ProviderOption, type ToolOption } from "./spec-form";
 
-/** One Pipeline page (prototype: Pipeline*.html): header, steps, the section's form, checks. */
+/**
+ * The chatbot's pipeline as settings (prototype: Pipeline*.html), under the chatbot's header
+ * and tabs: the view switch, steps, the section's form and the publish checks.
+ */
 export async function PipelinePage({
   botId,
   sectionKey,
@@ -46,47 +49,8 @@ export async function PipelinePage({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <nav aria-label="Breadcrumb" className="text-sm text-fg-muted">
-            <Link href="/admin/pipelines" className="underline">
-              {t("title")}
-            </Link>{" "}
-            / {bot.name}
-          </nav>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="m-0 text-2xl font-bold">{bot.name}</h1>
-            <Badge tone="accent">{t("draftBadge", { version: bot.draft.number })}</Badge>
-            <Badge tone={bot.live_version ? "green" : "neutral"}>
-              {bot.live_version ? t("liveBadge", { version: bot.live_version }) : t("notLive")}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          {/* The same draft as a picture: steps and connections. */}
-          <Link
-            href={`/admin/chatbots/${bot.id}/flow`}
-            className={buttonVariants({ variant: "secondary" })}
-          >
-            {t("visualEditor")}
-          </Link>
-          {canEdit ? (
-            <>
-              <Link
-                href={`/admin/playground?bot=${bot.id}`}
-                className={buttonVariants({ variant: "secondary" })}
-              >
-                {t("testInPlayground")}
-              </Link>
-              <PublishButton
-                botId={bot.id}
-                draft={bot.draft.number}
-                blocked={bot.publish_problems.length > 0}
-              />
-            </>
-          ) : null}
-        </div>
-      </div>
+      <BotHeader bot={bot} tab="pipeline" canEdit={canEdit} />
+      <PipelineToolbar bot={bot} current="settings" canEdit={canEdit} />
       {canEdit ? (
         <GuidedPanel
           botId={bot.id}

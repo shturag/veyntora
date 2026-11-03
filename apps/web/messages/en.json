@@ -1466,7 +1466,12 @@
     "noTools": "No tools are enabled yet. Register an MCP server under Tools (MCP) and enable its tools.",
     "toolGone": "not available any more (publishing names it)",
     "visualEditor": "Visual editor",
-    "wrongKind": "{name} (not usable here: choose another)"
+    "wrongKind": "{name} (not usable here: choose another)",
+    "views": "Pipeline views",
+    "view": {
+      "visual": "Visual",
+      "settings": "Settings"
+    }
   },
   "playground": {
     "title": "Playground",
@@ -2270,7 +2275,7 @@
     "done": "Linked. Go back to {platform} and ask your question."
   },
   "flow": {
-    "standardNote": "Runs the standard pipeline: Router, then Fast or Agent. Change its settings on the forms; to change the steps themselves, switch to Custom flow.",
+    "standardNote": "Runs the standard pipeline: Router, then Fast or Agent. Change its settings in the Settings view; to change the steps themselves, switch to Custom flow.",
     "customNote": "Runs exactly this flow. Drag from the dot under a step to the top of another to connect them; the flow is checked before publishing.",
     "save": "Save draft",
     "saved": "Draft saved.",
@@ -2406,7 +2411,7 @@
       "sparse": "Keywords only"
     },
     "inspectorEmpty": "Select a step on the canvas to change it, or a connection to change its branch. To connect two steps, drag from the dot under one step to the top of another.",
-    "inspectorReadOnly": "Select a step to see what it does. The standard pipeline's settings are on the forms.",
+    "inspectorReadOnly": "Select a step to see what it does. The standard pipeline's settings are in the Settings view.",
     "comesFrom": "Comes from",
     "goesTo": "Goes to",
     "connectHint": "The same as dragging between two steps, for keyboards and screen readers.",

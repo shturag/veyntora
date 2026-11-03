@@ -1466,7 +1466,12 @@
     "noTools": "Noch keine Tools aktiv. Registriere einen MCP-Server unter Tools (MCP) und aktiviere seine Tools.",
     "toolGone": "nicht mehr verfügbar (beim Veröffentlichen genannt)",
     "visualEditor": "Visueller Editor",
-    "wrongKind": "{name} (hier nicht nutzbar: einen anderen wählen)"
+    "wrongKind": "{name} (hier nicht nutzbar: einen anderen wählen)",
+    "views": "Ansichten der Pipeline",
+    "view": {
+      "visual": "Visuell",
+      "settings": "Einstellungen"
+    }
   },
   "playground": {
     "title": "Playground",
@@ -2270,7 +2275,7 @@
     "done": "Verknüpft. Geh zurück zu {platform} und stelle deine Frage."
   },
   "flow": {
-    "standardNote": "Läuft mit der Standard-Pipeline: Router, dann Schnell oder Agent. Ihre Einstellungen änderst du in den Formularen; um die Schritte selbst zu ändern, wechsle zu „Eigener Ablauf“.",
+    "standardNote": "Läuft mit der Standard-Pipeline: Router, dann Schnell oder Agent. Ihre Einstellungen änderst du in der Ansicht „Einstellungen“; um die Schritte selbst zu ändern, wechsle zu „Eigener Ablauf“.",
     "customNote": "Läuft genau mit diesem Ablauf. Zieh vom Punkt unter einem Schritt nach oben auf einen anderen, um sie zu verbinden; der Ablauf wird vor dem Veröffentlichen geprüft.",
     "save": "Entwurf speichern",
     "saved": "Entwurf gespeichert.",
@@ -2406,7 +2411,7 @@
       "sparse": "Nur Stichwörter"
     },
     "inspectorEmpty": "Wähle einen Schritt auf der Fläche, um ihn zu ändern, oder eine Verbindung, um ihren Zweig zu ändern. Um zwei Schritte zu verbinden, zieh vom Punkt unter einem Schritt auf den oberen Rand eines anderen.",
-    "inspectorReadOnly": "Wähle einen Schritt, um zu sehen, was er tut. Die Einstellungen der Standard-Pipeline stehen in den Formularen.",
+    "inspectorReadOnly": "Wähle einen Schritt, um zu sehen, was er tut. Die Einstellungen der Standard-Pipeline stehen in der Ansicht „Einstellungen“.",
     "comesFrom": "Kommt von",
     "goesTo": "Geht zu",
     "connectHint": "Dasselbe wie Ziehen zwischen zwei Schritten, für Tastatur und Screenreader.",

@@ -25,7 +25,7 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
       <h1 className="m-0 text-2xl font-bold">{t("wizardPipeline", { name: bot.name })}</h1>
       <p className="m-0 text-sm text-fg-secondary">
         {t("pipelineIntro")}{" "}
-        <Link href={`/admin/pipelines/${bot.id}`} className="underline">
+        <Link href={`/admin/chatbots/${bot.id}/settings`} className="underline">
           {t("allSettings")}
         </Link>
       </p>

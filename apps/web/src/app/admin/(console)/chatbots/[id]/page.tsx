@@ -59,7 +59,7 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
       <div className="grid grid-cols-2 gap-4 max-[1000px]:grid-cols-1">
         <section className={card} aria-labelledby="ov-pipeline">
           <h2 id="ov-pipeline" className="m-0 text-sm font-semibold">
-            <Link href={`/admin/pipelines/${o.id}`}>{t("tabNames.pipeline")}</Link>
+            <Link href={`/admin/chatbots/${o.id}/flow`}>{t("tabNames.pipeline")}</Link>
           </h2>
           <p className="m-0 text-sm">
             {t("pipelineLine", {
@@ -75,13 +75,13 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
         </section>
         <section className={card} aria-labelledby="ov-chat">
           <h2 id="ov-chat" className="m-0 text-sm font-semibold">
-            <Link href={`/admin/pipelines/${o.id}/chat`}>{t("chatFeatures")}</Link>
+            <Link href={`/admin/chatbots/${o.id}/settings/chat`}>{t("chatFeatures")}</Link>
           </h2>
           <p className="m-0 text-sm">{offered.join(" · ") || t("chatFeaturesNone")}</p>
           {o.draft_version ? (
             <p className="m-0 text-xs text-amber">
               {t("chatFeaturesDraft")}{" "}
-              <Link href={`/admin/pipelines/${o.id}`} className="font-medium">
+              <Link href={`/admin/chatbots/${o.id}/flow`} className="font-medium">
                 {t("publishNow", { version: o.draft_version })}
               </Link>
             </p>

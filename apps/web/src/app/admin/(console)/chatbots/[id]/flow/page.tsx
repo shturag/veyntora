@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { BotHeader } from "@/components/bots/bot-header";
 import { FlowEditor } from "@/components/flow/flow-editor";
+import { PipelineToolbar } from "@/components/pipeline/view-switch";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { areaAccess } from "@/lib/admin";
@@ -27,6 +28,7 @@ export default async function BotFlowPage({ params }: { params: Promise<{ id: st
   return (
     <div className="flex flex-col gap-5">
       <BotHeader bot={bot} tab="pipeline" canEdit={access.level !== "viewer"} />
+      <PipelineToolbar bot={bot} current="visual" canEdit={access.level !== "viewer"} />
       <FlowEditor
         key={bot.version}
         botId={bot.id}

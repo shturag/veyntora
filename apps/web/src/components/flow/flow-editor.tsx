@@ -38,7 +38,6 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
@@ -464,9 +463,6 @@ export function FlowEditor({
           ) : null}
           <Button size="sm" onClick={tidy}>
             {t("tidy")}
-          </Button>
-          <Button asChild size="sm">
-            <Link href={`/admin/pipelines/${botId}`}>{t("formView")}</Link>
           </Button>
           {canEdit ? (
             <Button size="sm" variant="primary" disabled={busy || !dirty} onClick={save}>

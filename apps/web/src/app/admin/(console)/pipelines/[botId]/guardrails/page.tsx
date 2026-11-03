@@ -1,8 +1,9 @@
-import { PipelinePage } from "@/components/pipeline/pipeline-page";
-import { screenMetadata } from "@/components/screen-placeholder";
+import { redirect } from "next/navigation";
 
-export const generateMetadata = () => screenMetadata("pipelineGuardrails");
+import { SECTIONS, sectionHref } from "@/lib/pipeline";
 
+/** Moved: the pipeline's settings live in the chatbot (Pipeline tab, Settings view). */
 export default async function Page({ params }: { params: Promise<{ botId: string }> }) {
-  return <PipelinePage botId={(await params).botId} sectionKey="guardrails" />;
+  const section = SECTIONS.find((s) => s.key === "guardrails");
+  redirect(section ? sectionHref((await params).botId, section) : "/admin/pipelines");
 }

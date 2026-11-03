@@ -32,7 +32,7 @@ test.describe("flow editor as a platform admin", () => {
     await connect.getByRole("combobox", { name: "To", exact: true }).selectOption({ index: 2 });
     await connect.getByRole("button", { name: "Connect" }).click();
     await expect(page.getByText("Unsaved changes")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Settings as forms" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
     await expectNoA11yViolations(page);
   });
 });

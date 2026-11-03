@@ -32,7 +32,7 @@ export type Field =
 export type Section = {
   key: SectionKey;
   spec: keyof PipelineSpec;
-  /** URL segment under /admin/pipelines/[botId]; retrieval is the overview page. */
+  /** URL segment under /admin/chatbots/[id]/settings; retrieval is the first page. */
   path: string;
   /** Runtime arrives in this phase; settings are saved now. */
   runtimePhase?: number;
@@ -206,5 +206,5 @@ export function section(key: SectionKey): Section {
 }
 
 export function sectionHref(botId: string, s: Section): string {
-  return `/admin/pipelines/${botId}${s.path ? `/${s.path}` : ""}`;
+  return `/admin/chatbots/${botId}/settings${s.path ? `/${s.path}` : ""}`;
 }
