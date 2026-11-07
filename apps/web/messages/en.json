@@ -1543,11 +1543,11 @@
         "hint": "Up to three questions under a grounded answer (one small extra model call). People can turn them off in Settings."
       },
       "llm_instance_ids": {
-        "label": "Models people may choose",
-        "hint": "The Generation model is the default and always offered. External models need this chatbot's data rule."
+        "label": "Models people can switch to",
+        "hint": "The model for answers is the default and always offered. External models need this chatbot's data rule."
       },
       "thinking": {
-        "label": "Thinking switch for people",
+        "label": "Thinking switch",
         "hint": "People can turn thinking on for a question, with models that support it; the reasoning is shown folded above the answer."
       },
       "attachments": {
@@ -1636,7 +1636,8 @@
       "missing": "{count, plural, one {Draft misses # setting} other {Draft misses # settings}}",
       "upToDate": "Draft matches live",
       "draftChanges": "Draft v{version}: {count, plural, one {# change} other {# changes}}"
-    }
+    },
+    "defaultModel": "default, always offered"
   },
   "playground": {
     "title": "Playground",
@@ -4265,15 +4266,6 @@
     "saveContinue": "Save and continue",
     "afterwards": "Applies the modes, steps and providers above to the draft; nothing goes live until you publish.",
     "failed": "That did not work: {reason}",
-    "models": {
-      "title": "Also offer in the chat",
-      "hint": "People can switch from the model above to these. External ones need the data rule.",
-      "none": "Add more LLM providers to offer a choice."
-    },
-    "thinking": {
-      "title": "Thinking switch",
-      "hint": "People can turn thinking on for a question, with models that support it (set the Thinking switch on the provider). The reasoning is shown folded."
-    },
     "saveTune": "Save and fine-tune",
     "rules": {
       "noDocsAllowed": "Answers without documents are allowed by this chatbot's data rule.",

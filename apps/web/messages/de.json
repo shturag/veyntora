@@ -1543,11 +1543,11 @@
         "hint": "Bis zu drei Fragen unter einer belegten Antwort (ein kleiner zusätzlicher Modellaufruf). Personen können sie in den Einstellungen ausschalten."
       },
       "llm_instance_ids": {
-        "label": "Modelle zur Auswahl",
-        "hint": "Das Modell der Generierung ist der Standard und immer dabei. Externe Modelle brauchen die Datenregel dieses Chatbots."
+        "label": "Modelle zum Wechseln",
+        "hint": "Das Modell für Antworten ist der Standard und immer dabei. Externe Modelle brauchen die Datenregel dieses Chatbots."
       },
       "thinking": {
-        "label": "Denk-Schalter für Menschen",
+        "label": "Denk-Schalter",
         "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können; die Überlegungen erscheinen eingeklappt über der Antwort."
       },
       "attachments": {
@@ -1636,7 +1636,8 @@
       "missing": "{count, plural, one {Entwurf fehlt # Einstellung} other {Entwurf fehlen # Einstellungen}}",
       "upToDate": "Entwurf entspricht Live",
       "draftChanges": "Entwurf v{version}: {count, plural, one {# Änderung} other {# Änderungen}}"
-    }
+    },
+    "defaultModel": "Standard, immer dabei"
   },
   "playground": {
     "title": "Playground",
@@ -4265,15 +4266,6 @@
     "saveContinue": "Speichern und weiter",
     "afterwards": "Übernimmt Modi, Schritte und Anbieter in den Entwurf; live geht erst etwas, wenn Sie veröffentlichen.",
     "failed": "Das hat nicht funktioniert: {reason}",
-    "models": {
-      "title": "Im Chat zusätzlich anbieten",
-      "hint": "Nutzer können vom Modell oben zu diesen wechseln. Externe brauchen die Datenregel.",
-      "none": "Füge weitere LLM-Anbieter hinzu, um eine Auswahl anzubieten."
-    },
-    "thinking": {
-      "title": "Denk-Schalter",
-      "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können (Denk-Schalter beim Anbieter setzen). Die Überlegungen erscheinen eingeklappt."
-    },
     "saveTune": "Speichern und feinjustieren",
     "rules": {
       "noDocsAllowed": "Die Datenregel dieses Chatbots erlaubt Antworten ohne Dokumente.",

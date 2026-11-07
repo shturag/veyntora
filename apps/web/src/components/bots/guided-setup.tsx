@@ -26,7 +26,13 @@ type Draft = {
   agent: { llm_instance_id: Ref };
   router: { allowed_modes: Mode[]; default_mode: Mode };
   flow: { custom: boolean; nodes: FlowNode[]; edges: FlowEdge[] };
-  chat: { llm_instance_ids: string[]; thinking: boolean };
+  chat: {
+    llm_instance_ids: string[];
+    thinking: boolean;
+    attachments: boolean;
+    web_search_instance_id: Ref;
+    code_instance_id: Ref;
+  };
 };
 type FlowNode = {
   id: string;
@@ -132,6 +138,8 @@ export function GuidedSetup({
   onDone?: () => void;
 }) {
   const t = useTranslations("guided");
+  // Chat features use the Settings page's own labels, so both read the same.
+  const tp = useTranslations("pipeline");
   const router = useRouter();
   const draft = spec as unknown as Draft;
   const [docs, setDocs] = useState(draft.retrieval.enabled !== false);
@@ -170,6 +178,9 @@ export function GuidedSetup({
   // General chat: models people may switch between, and the thinking switch.
   const [choices, setChoices] = useState<string[]>(draft.chat?.llm_instance_ids ?? []);
   const [thinkingSwitch, setThinkingSwitch] = useState(Boolean(draft.chat?.thinking));
+  const [attachments, setAttachments] = useState(draft.chat?.attachments ?? true);
+  const [webSearch, setWebSearch] = useState(draft.chat?.web_search_instance_id ?? "");
+  const [code, setCode] = useState(draft.chat?.code_instance_id ?? "");
   // What the data rule should allow as well, ticked here by governance editors.
   const [allowNoDocs, setAllowNoDocs] = useState(false);
   const [allowExternal, setAllowExternal] = useState<string[]>([]);
@@ -196,6 +207,7 @@ export function GuidedSetup({
   const external = [
     ...needed.map((n) => picked[n.key]),
     ...(docs ? [] : choices.filter((id) => id !== picked.llm)),
+    webSearch,
   ]
     .map((id) => providers.find((p) => p.id === id))
     .filter((p): p is Provider => !!p && p.hosting === "external");
@@ -229,6 +241,11 @@ export function GuidedSetup({
     next_.router.allowed_modes = modes;
     next_.flow = picture(docs, docs && rerank, tasks, (k) => t(k));
     next_.chat = {
+      // Settings the questions don't ask about stay as they are.
+      ...next_.chat,
+      attachments,
+      web_search_instance_id: ref(webSearch),
+      code_instance_id: ref(code),
       llm_instance_ids: docs
         ? (next_.chat?.llm_instance_ids ?? [])
         : choices.filter((i) => i !== picked.llm),
@@ -351,11 +368,22 @@ export function GuidedSetup({
               onChange={(e) => setThinkingSwitch(e.target.checked)}
             />
             <span className="flex flex-col">
-              <span className="font-medium">{t("thinking.title")}</span>
-              <span className="text-xs text-fg-muted">{t("thinking.hint")}</span>
+              <span className="font-medium">{tp("f.thinking.label")}</span>
+              <span className="text-xs text-fg-muted">{tp("f.thinking.hint")}</span>
             </span>
           </label>
         ) : null}
+        <label className={card(attachments)}>
+          <input
+            type="checkbox"
+            checked={attachments}
+            onChange={(e) => setAttachments(e.target.checked)}
+          />
+          <span className="flex flex-col">
+            <span className="font-medium">{tp("f.attachments.label")}</span>
+            <span className="text-xs text-fg-muted">{tp("f.attachments.hint")}</span>
+          </span>
+        </label>
         {docs ? (
           <label className={card(rerank)}>
             <input type="checkbox" checked={rerank} onChange={(e) => setRerank(e.target.checked)} />
@@ -457,8 +485,10 @@ export function GuidedSetup({
         </div>
         {!docs && picked.llm && others.length ? (
           <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
-            <legend className="p-0 text-[13px] font-medium">{t("models.title")}</legend>
-            <span className="text-xs text-fg-muted">{t("models.hint")}</span>
+            <legend className="p-0 text-[13px] font-medium">
+              {tp("f.llm_instance_ids.label")}
+            </legend>
+            <span className="text-xs text-fg-muted">{tp("f.llm_instance_ids.hint")}</span>
             <span className="mt-1 flex flex-wrap gap-x-5 gap-y-1.5">
               {others.map((p) => (
                 <label key={p.id} className="flex items-center gap-1.5 text-sm">
@@ -479,6 +509,32 @@ export function GuidedSetup({
               ))}
             </span>
           </fieldset>
+        ) : null}
+        {of("web_search").length || of("code_interpreter").length ? (
+          <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
+            {(
+              [
+                ["web_search", "web_search_instance_id", webSearch, setWebSearch],
+                ["code_interpreter", "code_instance_id", code, setCode],
+              ] as const
+            ).map(([cap, name, value, set]) =>
+              of(cap).length ? (
+                <label key={cap} className={field}>
+                  {tp(`f.${name}.label`)}
+                  <select value={value} onChange={(e) => set(e.target.value)} className={control}>
+                    <option value="">{tp("none")}</option>
+                    {of(cap).map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                        {p.hosting === "external" ? ` · ${t("external")}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-xs font-normal text-fg-muted">{tp(`f.${name}.hint`)}</span>
+                </label>
+              ) : null,
+            )}
+          </div>
         ) : null}
         {blocked.length ? (
           <div role="note" className={canAllow ? ruleNote : ruleBlocked}>

@@ -255,7 +255,15 @@ export function SpecForm({
       }
       case "instances": {
         const chosen = (v as string[] | undefined) ?? [];
-        const options = providers.filter((p) => p.capability === f.capability && p.enabled);
+        // Models people can switch to: the model for answers is always offered, so it is shown
+        // first, ticked and fixed, and is not one of the choices.
+        const fixed =
+          f.name === "llm_instance_ids"
+            ? providers.find((p) => p.id === spec.generation?.llm_instance_id)
+            : undefined;
+        const options = providers.filter(
+          (p) => p.capability === f.capability && p.enabled && p.id !== fixed?.id,
+        );
         return (
           // A list of providers: the whole row, so long names do not run into the next field.
           <fieldset
@@ -263,7 +271,16 @@ export function SpecForm({
             className="col-span-full m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0"
           >
             <legend className="mb-1 text-[13px] font-medium">{title}</legend>
-            {options.length === 0 ? (
+            {fixed ? (
+              <label className="flex min-w-0 items-start gap-2 text-sm text-fg-secondary">
+                <input type="checkbox" checked disabled className="mt-1" />
+                <span className="min-w-0 break-words">
+                  {fixed.name}
+                  <span className="text-xs text-fg-muted"> · {t("defaultModel")}</span>
+                </span>
+              </label>
+            ) : null}
+            {options.length === 0 && !fixed ? (
               <p className="m-0 text-sm text-fg-muted">{t("none")}</p>
             ) : (
               options.map((p) => (
