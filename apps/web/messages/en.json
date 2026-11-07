@@ -2283,8 +2283,7 @@
     "draftNote": "The chatbot is created as a draft; nobody sees it until you publish it and give access.",
     "wizardKnowledge": "Knowledge for {name}",
     "wizardPipeline": "Pipeline for {name}",
-    "pipelineIntro": "Choose the providers it uses. Everything else starts with sensible defaults.",
-    "allSettings": "All pipeline settings",
+    "pipelineIntro": "Choose the providers it uses. Everything else starts with sensible defaults; “Save and fine-tune” opens every setting.",
     "none": "None",
     "choose": "Choose…",
     "external": "external",
@@ -2407,6 +2406,13 @@
       "whatPeople": "{count, plural, =0 {Goes live, but nobody has access yet.} one {Goes live for # person with access.} other {Goes live for the # people with access.}}",
       "whatRollback": "Earlier versions stay under Versions; you can roll back any time.",
       "whatAudit": "Publishing is recorded in the audit log."
+    },
+    "tune": {
+      "back": "Back to the questions",
+      "title": "Fine-tune the pipeline for {name}",
+      "intro": "Every setting, one step at a time. Each step is saved on its own; nothing goes live until you publish.",
+      "next": "Optional: the defaults work. Next: who may use the chatbot.",
+      "continue": "Continue to Access"
     }
   },
   "widget": {
@@ -4260,7 +4266,8 @@
     "thinking": {
       "title": "Thinking switch",
       "hint": "People can turn thinking on for a question, with models that support it (set the Thinking switch on the provider). The reasoning is shown folded."
-    }
+    },
+    "saveTune": "Save and fine-tune"
   },
   "setup": {
     "title": "Set up Veyntora",

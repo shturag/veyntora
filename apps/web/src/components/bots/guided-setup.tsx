@@ -100,6 +100,7 @@ export function GuidedSetup({
   providers,
   experts,
   next,
+  tune,
   onDone,
 }: {
   botId: string;
@@ -110,6 +111,8 @@ export function GuidedSetup({
   experts: { teams: Group[]; groups: Group[] } | null;
   /** Where to go after saving (the wizard); otherwise the page refreshes. */
   next?: string;
+  /** Where "Save and fine-tune" goes after saving (the wizard's advanced settings). */
+  tune?: string;
   onDone?: () => void;
 }) {
   const t = useTranslations("guided");
@@ -163,6 +166,8 @@ export function GuidedSetup({
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const target = submitter?.value === "tune" && tune ? tune : next;
     const next_ = structuredClone(draft);
     const ref = (v: string) => v || null;
     next_.retrieval.enabled = docs;
@@ -204,7 +209,7 @@ export function GuidedSetup({
           body: JSON.stringify({ group_ids: docs && handoff ? teams : [] }),
         });
       }
-      if (next) router.push(next);
+      if (target) router.push(target);
       else {
         router.refresh();
         onDone?.();
@@ -429,6 +434,11 @@ export function GuidedSetup({
         <Button type="submit" variant="primary" disabled={busy}>
           {next ? t("saveContinue") : t("apply")}
         </Button>
+        {tune ? (
+          <Button type="submit" value="tune" disabled={busy}>
+            {t("saveTune")}
+          </Button>
+        ) : null}
         <span className="text-xs text-fg-muted">{t("afterwards")}</span>
       </div>
     </form>

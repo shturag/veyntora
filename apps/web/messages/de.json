@@ -2283,8 +2283,7 @@
     "draftNote": "Der Chatbot wird als Entwurf angelegt; niemand sieht ihn, bis du ihn veröffentlichst und Zugriff gibst.",
     "wizardKnowledge": "Wissen für {name}",
     "wizardPipeline": "Pipeline für {name}",
-    "pipelineIntro": "Wähle die Anbieter, die er nutzt. Alles andere startet mit sinnvollen Standardwerten.",
-    "allSettings": "Alle Pipeline-Einstellungen",
+    "pipelineIntro": "Wählen Sie die Anbieter. Alles andere startet mit sinnvollen Standards; „Speichern und feinjustieren“ öffnet alle Einstellungen.",
     "none": "Keiner",
     "choose": "Wählen…",
     "external": "extern",
@@ -2407,6 +2406,13 @@
       "whatPeople": "{count, plural, =0 {Geht live, aber noch hat niemand Zugriff.} one {Geht live für # Person mit Zugriff.} other {Geht live für die # Personen mit Zugriff.}}",
       "whatRollback": "Frühere Versionen bleiben unter „Versionen“; Sie können jederzeit zurückrollen.",
       "whatAudit": "Das Veröffentlichen wird im Audit-Log festgehalten."
+    },
+    "tune": {
+      "back": "Zurück zu den Fragen",
+      "title": "Pipeline für {name} feinjustieren",
+      "intro": "Alle Einstellungen, Schritt für Schritt. Jeder Schritt wird einzeln gespeichert; live geht erst, was Sie veröffentlichen.",
+      "next": "Optional: die Standards funktionieren. Weiter: wer den Chatbot nutzen darf.",
+      "continue": "Weiter zu Zugriff"
     }
   },
   "widget": {
@@ -4260,7 +4266,8 @@
     "thinking": {
       "title": "Denk-Schalter",
       "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können (Denk-Schalter beim Anbieter setzen). Die Überlegungen erscheinen eingeklappt."
-    }
+    },
+    "saveTune": "Speichern und feinjustieren"
   },
   "setup": {
     "title": "Veyntora einrichten",

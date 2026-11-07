@@ -1,6 +1,5 @@
 import type { PipelineSpec } from "@veyntora/spec";
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
 
 import { GuidedSetup } from "@/components/bots/guided-setup";
 import { wizardBot } from "@/components/bots/wizard-bot";
@@ -23,12 +22,7 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
   return (
     <div className="flex flex-col gap-4">
       <h1 className="m-0 text-2xl font-bold">{t("wizardPipeline", { name: bot.name })}</h1>
-      <p className="m-0 text-sm text-fg-secondary">
-        {t("pipelineIntro")}{" "}
-        <Link href={`/admin/chatbots/${bot.id}/settings`} className="underline">
-          {t("allSettings")}
-        </Link>
-      </p>
+      <p className="m-0 text-sm text-fg-secondary">{t("pipelineIntro")}</p>
       <GuidedSetup
         botId={bot.id}
         version={bot.version}
@@ -38,6 +32,7 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
           .map((p) => ({ id: p.id, name: p.name, capability: p.capability, hosting: p.hosting }))}
         experts={experts ?? null}
         next={`/admin/chatbots/new/access?id=${bot.id}`}
+        tune={`/admin/chatbots/new/pipeline/advanced?id=${bot.id}`}
       />
     </div>
   );

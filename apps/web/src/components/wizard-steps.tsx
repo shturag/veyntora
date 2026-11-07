@@ -22,7 +22,8 @@ export function WizardSteps() {
   return (
     <ol aria-label={t("steps")} className="m-0 flex list-none flex-wrap gap-1.5 p-0 text-[13px]">
       {STEPS.map((s, i) => {
-        const current = pathname === s.href;
+        // Step 3's fine-tuning page (…/pipeline/advanced) still counts as step 3.
+        const current = pathname === s.href || (i > 0 && pathname.startsWith(`${s.href}/`));
         if (i > 0 && !botId) {
           return (
             <li key={s.href}>

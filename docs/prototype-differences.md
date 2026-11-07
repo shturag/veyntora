@@ -42,6 +42,7 @@ The prototype (`design/prototype`, rag-platform-ui-v11) is the reference for scr
 
 - The rail lists only the areas the signed-in person may open (OpenFGA). A platform admin sees the full prototype list.
 - **Pipelines** in the rail opens `/admin/pipelines` (choose a chatbot). The prototype jumps straight to one chatbot (`/admin/pipelines/[botId]`).
+- **New chatbot, step 3:** “Save and fine-tune” opens every pipeline setting inside the wizard (`/admin/chatbots/new/pipeline/advanced`), with a way back to the questions and on to Access. The prototype links out of the wizard to the pipeline editor.
 
 ## Automations (Phase 5)
 
