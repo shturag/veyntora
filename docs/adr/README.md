@@ -37,3 +37,4 @@
 | [0033](0033-infrastructure-you-host.md) | Veyntora runs on infrastructure you host |
 | [0034](0034-infrastructure-set-up-in-the-browser.md) | The infrastructure is set up in the browser |
 | [0035](0035-knowledge-tools-and-grounded-agents.md) | Knowledge tools, and agents that look things up |
+| [0036](0036-more-connected-sources.md) | More connected sources: Nextcloud, SharePoint Server, CMIS, Git, ServiceNow, Jira |

@@ -95,6 +95,7 @@ export async function PipelinePage({
             botId={bot.id}
             problems={bot.publish_problems}
             headingId="checks"
+            unchangedSince={bot.draft_changes === 0 ? bot.live_version : null}
             narrow
           />
         </div>

@@ -24,6 +24,7 @@ from veyntora_api.auth.deps import (
     require_admin_area,
     require_relation,
 )
+from veyntora_api.chatbots import rollout
 from veyntora_api.chatbots import service as svc
 from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus, PipelineVersion
 from veyntora_api.db.models.governance import GovernanceRule
@@ -81,6 +82,8 @@ class GovernanceOut(svc.GovernanceInput):
 class ChatbotDetail(ChatbotOut):
     draft: VersionOut
     publish_problems: list[str]
+    # Settings the draft changes compared with the live version (None: nothing is live).
+    draft_changes: int | None = None
     sources: list[AttachmentOut]
     governance: GovernanceOut
 
@@ -136,6 +139,12 @@ def _version(v: PipelineVersion) -> VersionOut:
     )
 
 
+async def _draft_changes(db: DbSession, bot: Chatbot, draft: PipelineVersion) -> int | None:
+    """How many settings the draft changes compared with what is live."""
+    live = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
+    return len(rollout.diff(live.spec, draft.spec)) if live else None
+
+
 async def _detail(db: DbSession, bot: Chatbot) -> ChatbotDetail:
     live, draft_number = await _numbers(db, bot)
     draft = await svc.draft_of(db, bot)
@@ -162,6 +171,7 @@ async def _detail(db: DbSession, bot: Chatbot) -> ChatbotDetail:
         **_out(bot, live, draft_number).model_dump(),
         draft=_version(draft),
         publish_problems=await svc.publish_problems(db, bot),
+        draft_changes=await _draft_changes(db, bot, draft),
         sources=[AttachmentOut.of(a) for a in attachments],
         governance=governance,
     )
@@ -285,6 +295,11 @@ async def publish(
     bot_id: UUID, principal: CurrentPrincipal, ctx: Ctx, db: DbSession, state: State
 ) -> ChatbotDetail:
     bot = await _guarded(db, state, principal, bot_id, "can_publish")
+    # Publishing a copy of what is live would only add an empty version.
+    if await _draft_changes(db, bot, await svc.draft_of(db, bot)) == 0:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "The draft has no changes compared with the live version"
+        )
     await svc.publish(db, ctx, bot, principal.user_id)
     detail = await _detail(db, bot)
     await db.commit()

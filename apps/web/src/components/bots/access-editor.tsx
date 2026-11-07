@@ -184,7 +184,7 @@ export function AccessEditor({
           ) : null
         }
       >
-        <div className="overflow-x-auto rounded-md border border-line">
+        <div className="relative overflow-x-auto rounded-md border border-line">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="bg-sunken text-left text-xs font-semibold text-fg-muted">

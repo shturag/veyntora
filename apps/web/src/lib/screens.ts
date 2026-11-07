@@ -1,10 +1,9 @@
 /**
  * Every screen of design/prototype mapped to its route.
  *
- * This is the single source for navigation guards, Phase 0 placeholders and the Playwright
- * route sweep. `file` is the prototype file; `phase` is the delivery phase that builds the
- * screen (0 means built now). Titles and summaries live in messages/{en,de}.json under
- * `screens.<key>`.
+ * This is the single source for navigation guards and the Playwright route sweep. `file` is
+ * the prototype file; `phase` is the delivery phase that built the screen. Titles and
+ * summaries live in messages/{en,de}.json under `screens.<key>`.
  */
 
 export type Shell = "public" | "user" | "admin" | "wizard";
@@ -38,8 +37,6 @@ export type Screen = {
   area?: AdminArea;
   /** For screens that are states of another route rather than their own page. */
   stateOf?: string;
-  /** Built with real data (no longer a phase placeholder); covered by its own e2e tests. */
-  built?: true;
 };
 
 export const SAMPLE_ID = "00000000-0000-0000-0000-000000000000";
@@ -49,11 +46,11 @@ export const SCREENS: readonly Screen[] = [
   { key: "landing", file: "index.html", route: "/", shell: "public", phase: 0 },
   { key: "signIn", file: "SignIn.html", route: "/sign-in", shell: "public", phase: 0 },
   { key: "status", file: "Status.html", route: "/status", shell: "public", phase: 0 },
-  { key: "help", file: "Help.html", route: "/help", shell: "public", phase: 1, built: true },
+  { key: "help", file: "Help.html", route: "/help", shell: "public", phase: 1 },
 
   // user app
-  { key: "home", file: "Home.html", route: "/home", shell: "user", phase: 1, built: true },
-  { key: "chat", file: "Main.html", route: "/chat/[id]", shell: "user", phase: 1, built: true },
+  { key: "home", file: "Home.html", route: "/home", shell: "user", phase: 1 },
+  { key: "chat", file: "Main.html", route: "/chat/[id]", shell: "user", phase: 1 },
   {
     key: "chatFast",
     file: "ChatFast.html",
@@ -92,16 +89,14 @@ export const SCREENS: readonly Screen[] = [
     route: "/source/[id]",
     shell: "user",
     phase: 1,
-    built: true,
   },
-  { key: "library", file: "Library.html", route: "/library", shell: "user", phase: 1, built: true },
+  { key: "library", file: "Library.html", route: "/library", shell: "user", phase: 1 },
   {
     key: "savedAnswers",
     file: "SavedAnswers.html",
     route: "/library/saved",
     shell: "user",
     phase: 5,
-    built: true,
   },
   {
     key: "approvals",
@@ -109,16 +104,14 @@ export const SCREENS: readonly Screen[] = [
     route: "/approvals",
     shell: "user",
     phase: 3,
-    built: true,
   },
-  { key: "handoff", file: "Handoff.html", route: "/handoff", shell: "user", phase: 5, built: true },
+  { key: "handoff", file: "Handoff.html", route: "/handoff", shell: "user", phase: 5 },
   {
     key: "settings",
     file: "Settings.html",
     route: "/settings",
     shell: "user",
     phase: 2,
-    built: true,
   },
 
   // admin: overview and chatbots
@@ -128,7 +121,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "overview",
   },
   {
@@ -137,7 +129,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -146,7 +137,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -155,7 +145,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/flow",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -164,7 +153,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/knowledge",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -173,7 +161,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/access",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -182,7 +169,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/[id]/versions",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "chatbots",
   },
 
@@ -193,7 +179,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new",
     shell: "wizard",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -202,7 +187,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/knowledge",
     shell: "wizard",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -211,7 +195,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/pipeline",
     shell: "wizard",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -220,7 +203,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/access",
     shell: "wizard",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
   {
@@ -229,7 +211,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/chatbots/new/publish",
     shell: "wizard",
     phase: 4,
-    built: true,
     area: "chatbots",
   },
 
@@ -241,7 +222,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "pipelineIngestion",
@@ -250,7 +230,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "pipelineRerank",
@@ -259,7 +238,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "pipelineGeneration",
@@ -268,7 +246,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "pipelineAgent",
@@ -277,7 +254,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "pipelineRouter",
@@ -286,7 +262,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "pipelineGuardrails",
@@ -295,7 +270,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "pipelines",
-    built: true,
   },
   {
     key: "playground",
@@ -304,7 +278,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "playground",
-    built: true,
   },
 
   // admin: data, providers, tools, channels
@@ -315,7 +288,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 1,
     area: "sources",
-    built: true,
   },
   {
     key: "connectSource",
@@ -324,7 +296,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 1,
     area: "sources",
-    built: true,
   },
   {
     key: "sourceDetail",
@@ -333,7 +304,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 1,
     area: "sources",
-    built: true,
   },
   {
     key: "providers",
@@ -342,7 +312,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "providers",
-    built: true,
   },
   {
     key: "addProvider",
@@ -351,7 +320,6 @@ export const SCREENS: readonly Screen[] = [
     shell: "admin",
     phase: 2,
     area: "providers",
-    built: true,
   },
   {
     key: "mcpServers",
@@ -359,7 +327,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/tools",
     shell: "admin",
     phase: 3,
-    built: true,
     area: "tools",
   },
   {
@@ -368,7 +335,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/tools/new",
     shell: "admin",
     phase: 3,
-    built: true,
     area: "tools",
   },
   {
@@ -377,7 +343,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/tools/[id]",
     shell: "admin",
     phase: 3,
-    built: true,
     area: "tools",
   },
   {
@@ -386,7 +351,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/channels",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "channels",
   },
 
@@ -397,7 +361,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "automations",
   },
   {
@@ -406,7 +369,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/new",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "automations",
   },
   {
@@ -415,7 +377,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "automations",
   },
   {
@@ -424,7 +385,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]/trigger",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "automations",
   },
   {
@@ -433,7 +393,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]/agent-step/[stepId]",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "automations",
   },
   {
@@ -442,7 +401,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/automations/[id]/approval-step/[stepId]",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "automations",
   },
   {
@@ -451,7 +409,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/runs/[id]",
     shell: "admin",
     phase: 3,
-    built: true,
     area: "automations",
   },
 
@@ -462,7 +419,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/conversations",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "conversations",
   },
   {
@@ -471,7 +427,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/knowledge-health",
     shell: "admin",
     phase: 5,
-    built: true,
     area: "knowledge_health",
   },
   {
@@ -480,7 +435,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/evaluation",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "evaluation",
   },
   {
@@ -489,7 +443,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/evaluation/sets",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "evaluation",
   },
   {
@@ -498,7 +451,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/monitoring",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "monitoring",
   },
   {
@@ -507,7 +459,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/usage",
     shell: "admin",
     phase: 6,
-    built: true,
     area: "usage",
   },
 
@@ -518,7 +469,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/users",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "users",
   },
   {
@@ -527,7 +477,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/users/[id]",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "users",
   },
   {
@@ -536,7 +485,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/groups/[id]",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "users",
   },
   {
@@ -545,7 +493,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/groups/new",
     shell: "admin",
     phase: 4,
-    built: true,
     area: "users",
   },
   {
@@ -554,7 +501,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/governance",
     shell: "admin",
     phase: 7,
-    built: true,
     area: "governance",
   },
   {
@@ -563,7 +509,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/governance/gdpr/[id]",
     shell: "admin",
     phase: 7,
-    built: true,
     area: "governance",
   },
   {
@@ -572,7 +517,6 @@ export const SCREENS: readonly Screen[] = [
     route: "/admin/audit",
     shell: "admin",
     phase: 7,
-    built: true,
     area: "audit",
   },
 ] as const;

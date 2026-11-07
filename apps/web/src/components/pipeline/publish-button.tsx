@@ -11,10 +11,13 @@ export function PublishButton({
   botId,
   draft,
   blocked,
+  unchanged = false,
 }: {
   botId: string;
   draft: number;
   blocked: boolean;
+  /** The draft is a copy of what is live: there is nothing to publish. */
+  unchanged?: boolean;
 }) {
   const t = useTranslations("pipeline");
   const router = useRouter();
@@ -34,7 +37,12 @@ export function PublishButton({
   }
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button variant="primary" disabled={busy || blocked} onClick={publish}>
+      <Button
+        variant="primary"
+        disabled={busy || blocked || unchanged}
+        title={unchanged ? t("nothingToPublish") : undefined}
+        onClick={publish}
+      >
         {t("publish", { version: draft })}
       </Button>
       {error ? (

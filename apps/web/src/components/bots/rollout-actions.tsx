@@ -23,7 +23,10 @@ function Confirm({
   done,
   children,
   disabled,
+  quiet,
 }: {
+  /** An outlined button, for actions repeated in a list. */
+  quiet?: boolean;
   label: string;
   title: string;
   description?: string;
@@ -42,7 +45,7 @@ function Confirm({
     <>
       <Button
         size="sm"
-        variant={danger ? "danger" : undefined}
+        variant={danger ? (quiet ? "danger-outline" : "danger") : undefined}
         disabled={disabled}
         onClick={() => setOpen(true)}
       >
@@ -177,7 +180,8 @@ export function RollbackTo({ botId, number }: { botId: string; number: number })
   const t = useTranslations("versions");
   return (
     <Confirm
-      label={t("rollbackTo", { n: number })}
+      label={t("rollbackShort")}
+      quiet
       title={t("rollbackTitle", { n: number })}
       description={t("rollbackText", { n: number })}
       submit={t("rollback")}
@@ -194,14 +198,65 @@ export function RollbackTo({ botId, number }: { botId: string; number: number })
   );
 }
 
-export function Compare({ botId, a, b }: { botId: string; a: number; b: number }) {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** One changed setting as people read it: the label from Pipeline settings, names for ids. */
+function useReadable(names: Record<string, string>) {
+  const tv = useTranslations("versions");
+  const tp = useTranslations("pipeline");
+  const field = (path: string): [string, string] => {
+    const [section = path, ...rest] = path.split(".");
+    const sectionName = tp.has(`sections.${section}`) ? tp(`sections.${section}`) : section;
+    const key = rest.join(".");
+    const label = tp.has(`f.${key}.label`)
+      ? tp(`f.${key}.label`)
+      : key.replace(/[._]/g, " ").replace(/^\w/, (c) => c.toUpperCase()) || section;
+    return [sectionName, label];
+  };
+  const value = (v: unknown): string => {
+    if (v === null || v === undefined || v === "") return "—";
+    if (typeof v === "boolean") return v ? tv("on") : tv("off");
+    if (typeof v === "number") return String(v);
+    if (typeof v === "string") {
+      if (UUID.test(v)) return names[v] ?? tv("unknownId", { id: v.slice(0, 8) });
+      return tp.has(`o.${v}`) ? tp(`o.${v}`) : v;
+    }
+    if (Array.isArray(v)) {
+      if (v.length === 0) return tv("none");
+      return v
+        .map((x) =>
+          x && typeof x === "object" && "tool_id" in x
+            ? value((x as { tool_id: string }).tool_id)
+            : value(x),
+        )
+        .join(", ");
+    }
+    return JSON.stringify(v);
+  };
+  return { field, value };
+}
+
+/** What changes between the live version and another one, setting by setting. */
+export function Compare({
+  botId,
+  a,
+  b,
+  names,
+}: {
+  botId: string;
+  a: number;
+  b: number;
+  names: Record<string, string>;
+}) {
   const t = useTranslations("versions");
+  const { field, value } = useReadable(names);
   const [open, setOpen] = useState(false);
   const [changes, setChanges] = useState<Change[] | null>(null);
   return (
     <>
       <Button
         size="sm"
+        variant="ghost"
         onClick={async () => {
           setOpen(true);
           setChanges(
@@ -211,29 +266,61 @@ export function Compare({ botId, a, b }: { botId: string; a: number; b: number }
           );
         }}
       >
-        {t("compareWith", { n: a })}
+        {t("compare")}
       </Button>
       <Dialog
         open={open}
         onOpenChange={setOpen}
         title={t("changes", { a, b })}
+        description={changes?.length ? t("changesText", { count: changes.length, b }) : undefined}
         closeLabel={t("close")}
+        wide
       >
         {changes === null ? (
-          <p className="m-0 text-sm text-fg-muted">…</p>
+          <p className="m-0 text-sm text-fg-muted">{t("loading")}</p>
         ) : changes.length === 0 ? (
           <p className="m-0 text-sm">{t("noChanges")}</p>
         ) : (
-          <pre
-            tabIndex={0}
-            className="m-0 max-h-[60vh] overflow-auto rounded-md bg-sunken p-3 text-xs"
-          >
-            {changes
-              .map(
-                (c) => `${c.path}:\n-  ${JSON.stringify(c.before)}\n+  ${JSON.stringify(c.after)}`,
-              )
-              .join("\n")}
-          </pre>
+          <div className="overflow-hidden rounded-md border border-line">
+            <table className="w-full table-fixed border-collapse text-sm">
+              <thead>
+                <tr className="bg-sunken text-left text-xs text-fg-muted">
+                  <th scope="col" className="w-[34%] px-3 py-2 font-semibold">
+                    {t("setting")}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
+                    v{a} · {t("live")}
+                  </th>
+                  <th scope="col" className="px-3 py-2 font-semibold">
+                    v{b}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((c) => {
+                  const [section, label] = field(c.path);
+                  return (
+                    <tr key={c.path} className="border-t border-line align-top">
+                      <th scope="row" className="px-3 py-2.5 text-left font-normal">
+                        <span className="block text-xs text-fg-muted">{section}</span>
+                        <span className="font-medium">{label}</span>
+                      </th>
+                      <td className="px-3 py-2.5">
+                        <span className="line-clamp-6 break-words whitespace-pre-wrap text-red">
+                          {value(c.before)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <span className="line-clamp-6 break-words whitespace-pre-wrap text-green">
+                          {value(c.after)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </Dialog>
     </>

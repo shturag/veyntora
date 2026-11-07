@@ -1,9 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
-import { UserSidebar } from "@/components/user-sidebar";
+import { cookies } from "next/headers";
+
+import { CHAT_SIDEBAR, UserSidebar } from "@/components/user-sidebar";
 import { serverApi } from "@/lib/api/server";
 import { requireMe } from "@/lib/session";
+import { SIDEBAR_COOKIE, sidebarLayout } from "@/lib/sidebar-layout";
 
 export default async function UserLayout({ children }: { children: ReactNode }) {
   const me = await requireMe();
@@ -21,7 +24,15 @@ export default async function UserLayout({ children }: { children: ReactNode }) 
       >
         {t("skipToContent")}
       </a>
-      <UserSidebar me={me} recent={recent ?? []} unread={notes?.unread ?? 0} />
+      <UserSidebar
+        me={me}
+        recent={recent ?? []}
+        unread={notes?.unread ?? 0}
+        layout={sidebarLayout(
+          (await cookies()).get(`${SIDEBAR_COOKIE}${CHAT_SIDEBAR.id}`)?.value,
+          CHAT_SIDEBAR,
+        )}
+      />
       <main id="main" className="min-w-0 flex-1 px-8 py-7 max-[640px]:px-4">
         {children}
       </main>

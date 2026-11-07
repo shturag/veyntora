@@ -11,9 +11,12 @@ export function NavLink({
   exact = false,
   className,
   activeClassName,
+  title,
   children,
 }: {
   href: string;
+  /** A tooltip (the folded sidebar shows icons only). */
+  title?: string;
   exact?: boolean;
   className: string;
   activeClassName: string;
@@ -25,6 +28,7 @@ export function NavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
+      title={title}
       className={cn(className, active && activeClassName)}
     >
       {children}

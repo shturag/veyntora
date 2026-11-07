@@ -10,7 +10,7 @@ from typing import Annotated, Any
 from uuid import UUID
 
 import sqlalchemy as sa
-from fastapi import APIRouter, Depends, Header, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, SecretStr
 
 from veyntora_api.auth.deps import Ctx, DbSession, Principal, State, require_admin_area
@@ -60,6 +60,12 @@ class ConnectionOut(BaseModel):
     confluence: connectors.ConfluenceSettings | None
     database: connectors.DatabaseSettings | None
     smb: connectors.SmbSettings | None
+    webdav: connectors.WebdavSettings | None
+    sharepoint_server: connectors.SharePointServerSettings | None
+    cmis: connectors.CmisSettings | None
+    git: connectors.GitSettings | None
+    servicenow: connectors.ServiceNowSettings | None
+    jira: connectors.JiraSettings | None
     folders: list[connectors.FolderReaders]
     unmapped: list[str]
     has_secret: bool
@@ -151,19 +157,18 @@ async def _source_out(db: DbSession, s: DataSource) -> SourceOut:
 def _connection(s: DataSource) -> ConnectionOut | None:
     if s.type not in connectors.CONNECTED:
         return None
-    settings = connectors.settings_of(s)
-    return ConnectionOut(
-        s3=settings if isinstance(settings, connectors.S3Settings) else None,
-        website=settings if isinstance(settings, connectors.WebsiteSettings) else None,
-        confluence=settings if isinstance(settings, connectors.ConfluenceSettings) else None,
-        database=settings if isinstance(settings, connectors.DatabaseSettings) else None,
-        smb=settings if isinstance(settings, connectors.SmbSettings) else None,
-        unmapped=list(s.config.get("unmapped") or []),
-        folders=[connectors.FolderReaders.model_validate(f) for f in s.config.get("folders") or []],
-        has_secret=s.secret_ref is not None,
-        secret_last4=s.secret_last4,
-        secret_expires_at=s.secret_expires_at,
-        last_test=s.config.get("last_test"),
+    # The settings under the type's name; every other kind is None.
+    settings = {k: None for k in connectors.KINDS} | {s.type.value: connectors.settings_of(s)}
+    return ConnectionOut.model_validate(
+        {
+            **settings,
+            "unmapped": list(s.config.get("unmapped") or []),
+            "folders": s.config.get("folders") or [],
+            "has_secret": s.secret_ref is not None,
+            "secret_last4": s.secret_last4,
+            "secret_expires_at": s.secret_expires_at,
+            "last_test": s.config.get("last_test"),
+        }
     )
 
 
@@ -419,19 +424,100 @@ async def delete_source(
 
 @router.get("/{source_id}/documents", summary="Documents of a source")
 async def list_documents(
-    source_id: UUID, _: Viewer, db: DbSession, limit: int = 200, offset: int = 0
+    source_id: UUID,
+    _: Viewer,
+    db: DbSession,
+    limit: int = 200,
+    offset: int = 0,
+    q: str | None = None,
+    status_filter: Annotated[DocumentStatus | None, Query(alias="status")] = None,
 ) -> list[DocumentOut]:
     await _source(db, source_id)
+    query = sa.select(Document).where(
+        Document.source_id == source_id, Document.status != DocumentStatus.DELETED
+    )
+    if status_filter is not None:
+        query = query.where(Document.status == status_filter)
+    if q and q.strip():
+        like = f"%{q.strip()}%"
+        query = query.where(sa.or_(Document.title.ilike(like), Document.path.ilike(like)))
     rows = (
-        await db.execute(
-            sa.select(Document)
-            .where(Document.source_id == source_id, Document.status != DocumentStatus.DELETED)
-            .order_by(Document.path)
-            .limit(min(limit, 1000))
-            .offset(offset)
-        )
+        await db.execute(query.order_by(Document.path).limit(min(limit, 1000)).offset(offset))
     ).scalars()
     return [await _document_out(db, d) for d in rows]
+
+
+class ErrorGroup(BaseModel):
+    error: str
+    count: int
+
+
+class DocumentSummary(BaseModel):
+    total: int
+    by_status: dict[str, int]
+    chunks: int
+    # The most common reasons documents failed, most frequent first.
+    errors: list[ErrorGroup]
+
+
+@router.get("/{source_id}/documents/summary", summary="Counts of a source's documents")
+async def documents_summary(source_id: UUID, _: Viewer, db: DbSession) -> DocumentSummary:
+    await _source(db, source_id)
+    live = (Document.source_id == source_id, Document.status != DocumentStatus.DELETED)
+    by_status = {
+        str(st.value): int(n)
+        for st, n in (
+            await db.execute(
+                sa.select(Document.status, sa.func.count()).where(*live).group_by(Document.status)
+            )
+        ).all()
+    }
+    chunks = await db.scalar(
+        sa.select(sa.func.coalesce(sa.func.sum(Document.chunk_count), 0)).where(*live)
+    )
+    errors = (
+        await db.execute(
+            sa.select(Document.error, sa.func.count())
+            .where(*live, Document.status == DocumentStatus.FAILED, Document.error.is_not(None))
+            .group_by(Document.error)
+            .order_by(sa.func.count().desc())
+            .limit(5)
+        )
+    ).all()
+    return DocumentSummary(
+        total=sum(by_status.values()),
+        by_status=by_status,
+        chunks=int(chunks or 0),
+        errors=[ErrorGroup(error=str(e), count=int(n)) for e, n in errors],
+    )
+
+
+class Requeued(BaseModel):
+    queued: int
+
+
+@router.post(
+    "/{source_id}/documents/reindex-failed",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Parse and index every failed document again",
+)
+async def reindex_failed(source_id: UUID, principal: Editor, ctx: Ctx, db: DbSession) -> Requeued:
+    await _source(db, source_id)
+    failed = (
+        (
+            await db.execute(
+                sa.select(Document).where(
+                    Document.source_id == source_id, Document.status == DocumentStatus.FAILED
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    for doc in failed:
+        await svc.reindex_document(db, ctx, doc, principal.user_id)
+    await db.commit()
+    return Requeued(queued=len(failed))
 
 
 class UploadResult(BaseModel):

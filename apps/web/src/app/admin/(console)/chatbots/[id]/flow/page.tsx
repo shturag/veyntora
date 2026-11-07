@@ -42,6 +42,7 @@ export default async function BotFlowPage({ params }: { params: Promise<{ id: st
           access: x.access,
         }))}
         problems={bot.publish_problems}
+        unchangedSince={bot.draft_changes === 0 ? bot.live_version : null}
         canEdit={access.level !== "viewer"}
       />
     </div>

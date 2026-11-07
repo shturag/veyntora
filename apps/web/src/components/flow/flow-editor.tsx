@@ -172,6 +172,7 @@ export function FlowEditor({
   llms,
   tools,
   problems,
+  unchangedSince = null,
   canEdit,
 }: {
   botId: string;
@@ -180,6 +181,8 @@ export function FlowEditor({
   llms: { id: string; name: string }[];
   tools: { id: string; name: string; server: string; access: string }[];
   problems: string[];
+  /** The live version, when the draft is still a copy of it. */
+  unchangedSince?: number | null;
   canEdit: boolean;
 }) {
   const t = useTranslations("flow");
@@ -472,7 +475,12 @@ export function FlowEditor({
         </div>
       </div>
 
-      <PublishChecklist botId={botId} problems={problems} headingId="flow-checks" />
+      <PublishChecklist
+        botId={botId}
+        problems={problems}
+        headingId="flow-checks"
+        unchangedSince={unchangedSince}
+      />
 
       <div className="grid grid-cols-[220px_minmax(0,1fr)_320px] items-start gap-4 max-[1200px]:grid-cols-[minmax(0,1fr)_300px] max-[860px]:grid-cols-1">
         <nav

@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, CircleCheck } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleDot } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -12,15 +12,34 @@ export function PublishChecklist({
   problems,
   headingId,
   narrow = false,
+  unchangedSince = null,
 }: {
   botId: string;
   problems: string[];
   headingId: string;
+  /** The live version, when the draft is still a copy of it: nothing to publish. */
+  unchangedSince?: number | null;
   /** In a side column: one item per line. */
   narrow?: boolean;
 }) {
   const t = useTranslations("checklist");
   const tp = useTranslations("pipeline");
+  if (problems.length === 0 && unchangedSince != null) {
+    return (
+      <section
+        aria-labelledby={headingId}
+        className="flex items-start gap-2 rounded-lg border border-line bg-surface px-4 py-3 text-sm"
+      >
+        <CircleDot aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-muted" />
+        <div className="flex flex-col gap-0.5">
+          <h2 id={headingId} className="m-0 text-sm font-semibold">
+            {t("unchanged", { live: unchangedSince })}
+          </h2>
+          <p className="m-0 text-xs text-fg-muted">{t("unchangedText")}</p>
+        </div>
+      </section>
+    );
+  }
   if (problems.length === 0) {
     return (
       <section

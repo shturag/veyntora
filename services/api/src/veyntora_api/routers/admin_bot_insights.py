@@ -25,6 +25,7 @@ from veyntora_api.auth.deps import (
     require_relation,
 )
 from veyntora_api.authz.fga import Authz
+from veyntora_api.chatbots import rollout
 from veyntora_api.chatbots import service as svc
 from veyntora_api.db.models.chatbots import Chatbot, PipelineVersion
 from veyntora_api.db.models.conversations import (
@@ -36,6 +37,8 @@ from veyntora_api.db.models.conversations import (
 )
 from veyntora_api.db.models.identity import Group, Membership, User
 from veyntora_api.db.models.knowledge import DataSource, Document, DocumentStatus, SourceAttachment
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.tools import McpServer, Tool
 
 router = APIRouter(prefix="/v1/admin/chatbots", tags=["admin: chatbots"])
 
@@ -83,6 +86,11 @@ async def _group_names(db: DbSession, grants: list[svc.Grant]) -> dict[str, str]
 
 
 async def _helpful(db: DbSession, bot_id: UUID, since: datetime) -> float | None:
+    return (await _ratings(db, bot_id, since))[0]
+
+
+async def _ratings(db: DbSession, bot_id: UUID, since: datetime) -> tuple[float | None, int]:
+    """(share rated helpful, number of ratings) since the given time."""
     rows = dict(
         (
             await db.execute(
@@ -95,11 +103,18 @@ async def _helpful(db: DbSession, bot_id: UUID, since: datetime) -> float | None
         ).all()
     )
     total = sum(rows.values())
-    return rows.get(Rating.UP, 0) / total if total else None
+    return (rows.get(Rating.UP, 0) / total if total else None), total
 
 
 def _spec(version: PipelineVersion | None) -> PipelineSpec | None:
     return PipelineSpec.model_validate(version.spec) if version else None
+
+
+def _tools(spec: PipelineSpec | None) -> int:
+    """MCP tools the chatbot uses: the agent's and its knowledge tools, each once."""
+    if spec is None:
+        return 0
+    return len({b.tool_id for b in spec.agent.tools if b.enabled} | set(spec.retrieval.tool_ids))
 
 
 class BotCard(BaseModel):
@@ -162,13 +177,144 @@ async def cards(principal: CurrentPrincipal, state: State, db: DbSession) -> lis
                 helpful=await _helpful(db, bot.id, since),
                 modes=[m.value for m in spec.router.allowed_modes] if spec else [],
                 default_mode=spec.router.default_mode.value if spec else "auto",
-                tools=sum(1 for b in spec.agent.tools if b.enabled) if spec else 0,
+                tools=_tools(spec),
                 visible_to=sorted(
                     {names.get(g.principal, "?") for g in grants if g.role == "user"}
                 ),
             )
         )
     return out
+
+
+class PipelineRow(BaseModel):
+    """One chatbot's pipeline on the Pipelines page: what runs, and the draft's state."""
+
+    id: UUID
+    name: str
+    status: str
+    live_version: int | None
+    published_at: datetime | None
+    draft_version: int | None
+    # Settings the draft changes against the live version (None: nothing is live yet).
+    draft_changes: int | None
+    # Settings still missing before the draft can be published.
+    draft_problems: int
+    canary_percent: int
+    answer_model: str | None
+    modes: list[str]
+    default_mode: str
+    documents: bool
+    search_type: str
+    top_k: int
+    rerank_top_n: int | None
+    sources: int
+    tools: int
+    if_ungrounded: str
+    custom_flow: bool
+
+
+@router.get("/pipelines", summary="Pipelines of the chatbots the caller may see")
+async def pipelines(principal: CurrentPrincipal, state: State, db: DbSession) -> list[PipelineRow]:
+    ids = await _visible_ids(state, principal)
+    if not ids:
+        return []
+    bots = (
+        (await db.execute(sa.select(Chatbot).where(Chatbot.id.in_(ids)).order_by(Chatbot.name)))
+        .scalars()
+        .all()
+    )
+    sources = dict(
+        (
+            await db.execute(
+                sa.select(SourceAttachment.chatbot_id, sa.func.count())
+                .where(SourceAttachment.chatbot_id.in_(ids), SourceAttachment.enabled.is_(True))
+                .group_by(SourceAttachment.chatbot_id)
+            )
+        ).all()
+    )
+    rows: list[tuple[Chatbot, PipelineVersion | None, PipelineVersion | None]] = []
+    for bot in bots:
+        live = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
+        try:
+            draft = await svc.draft_of(db, bot)
+        except svc.ChatbotError:
+            draft = None
+        rows.append((bot, live, draft))
+    specs = {bot.id: _spec(live) or _spec(draft) for bot, live, draft in rows}
+    models = {s.generation.llm_instance_id for s in specs.values() if s}
+    names = (
+        {
+            # The instance name, with its model when the name does not already say it.
+            i: f"{n} · {m}" if m and m not in n else n
+            for i, n, m in (
+                await db.execute(
+                    sa.select(
+                        ProviderInstance.id, ProviderInstance.name, ProviderInstance.model
+                    ).where(ProviderInstance.id.in_([m for m in models if m]))
+                )
+            ).all()
+        }
+        if any(models)
+        else {}
+    )
+    out = []
+    for bot, live, draft in rows:
+        spec = specs[bot.id]
+        draft_spec = _spec(draft)
+        out.append(
+            PipelineRow(
+                id=bot.id,
+                name=bot.name,
+                status=bot.status.value,
+                live_version=live.number if live else None,
+                published_at=live.published_at if live else None,
+                draft_version=draft.number if draft else None,
+                draft_changes=(
+                    len(rollout.diff(live.spec, draft.spec)) if live and draft else None
+                ),
+                draft_problems=len(draft_spec.publish_problems()) if draft_spec else 0,
+                canary_percent=bot.canary_percent,
+                answer_model=(
+                    names.get(spec.generation.llm_instance_id)
+                    if spec and spec.generation.llm_instance_id
+                    else None
+                ),
+                modes=[m.value for m in spec.router.allowed_modes] if spec else [],
+                default_mode=spec.router.default_mode.value if spec else "auto",
+                documents=spec.retrieval.enabled if spec else False,
+                search_type=spec.retrieval.search_type.value if spec else "hybrid",
+                top_k=spec.retrieval.top_k if spec else 0,
+                rerank_top_n=spec.rerank.top_n if spec and spec.rerank.enabled else None,
+                sources=int(sources.get(bot.id, 0)),
+                tools=_tools(spec),
+                if_ungrounded=spec.generation.if_ungrounded.value if spec else "no_answer",
+                custom_flow=spec.flow.custom if spec else False,
+            )
+        )
+    return out
+
+
+class OverviewSource(BaseModel):
+    id: UUID
+    name: str
+    type: str
+    status: str
+    documents: int
+    last_synced_at: datetime | None
+
+
+class OverviewTool(BaseModel):
+    id: UUID
+    name: str
+    server: str
+    # Searched for every question (a knowledge tool), else only offered to the agent.
+    knowledge: bool
+
+
+class OverviewGrant(BaseModel):
+    name: str
+    kind: str  # user | group
+    role: str
 
 
 class Overview(BaseModel):
@@ -189,6 +335,47 @@ class Overview(BaseModel):
     draft_version: int | None
     modes: list[str]
     tools: int
+    requests_prev_7d: int = 0
+    ratings_30d: int = 0
+    knowledge_sources: list[OverviewSource] = Field(default_factory=list)
+    tool_list: list[OverviewTool] = Field(default_factory=list)
+    access: list[OverviewGrant] = Field(default_factory=list)
+
+
+async def _answers(db: DbSession, bot_id: UUID, start: datetime, end: datetime) -> int:
+    return int(
+        await db.scalar(
+            sa.select(sa.func.count())
+            .select_from(Message)
+            .join(Conversation, Conversation.id == Message.conversation_id)
+            .where(
+                Conversation.chatbot_id == bot_id,
+                Message.role == MessageRole.ASSISTANT,
+                Message.created_at >= start,
+                Message.created_at < end,
+            )
+        )
+        or 0
+    )
+
+
+async def _tool_list(db: DbSession, spec: PipelineSpec | None) -> list[OverviewTool]:
+    if spec is None:
+        return []
+    knowledge = set(spec.retrieval.tool_ids)
+    ids = {b.tool_id for b in spec.agent.tools if b.enabled} | knowledge
+    if not ids:
+        return []
+    rows = await db.execute(
+        sa.select(Tool.id, Tool.name, McpServer.name)
+        .join(McpServer, McpServer.id == Tool.server_id)
+        .where(Tool.id.in_(ids))
+        .order_by(McpServer.name, Tool.name)
+    )
+    return [
+        OverviewTool(id=i, name=n, server=server, knowledge=i in knowledge)
+        for i, n, server in rows.all()
+    ]
 
 
 @router.get("/{bot_id}/overview", summary="Overview of one chatbot")
@@ -203,16 +390,9 @@ async def overview(
     grants = await svc.read_access(authz, bot.id)
     names = await _group_names(db, grants)
     now = datetime.now(UTC)
-    requests = await db.scalar(
-        sa.select(sa.func.count())
-        .select_from(Message)
-        .join(Conversation, Conversation.id == Message.conversation_id)
-        .where(
-            Conversation.chatbot_id == bot.id,
-            Message.role == MessageRole.ASSISTANT,
-            Message.created_at >= now - timedelta(days=7),
-        )
-    )
+    week = timedelta(days=7)
+    requests = await _answers(db, bot.id, now - week, now + timedelta(minutes=1))
+    requests_prev = await _answers(db, bot.id, now - 2 * week, now - week)
     to_review = await db.scalar(
         sa.select(sa.func.count())
         .select_from(Feedback)
@@ -236,15 +416,21 @@ async def overview(
         .scalars()
         .all()
     )
-    documents = (
-        await db.scalar(
-            sa.select(sa.func.count()).where(
-                Document.source_id.in_([s.id for s in attached]),
-                Document.status != DocumentStatus.DELETED,
-            )
+    per_source: dict[UUID, int] = (
+        dict(
+            (
+                await db.execute(
+                    sa.select(Document.source_id, sa.func.count())
+                    .where(
+                        Document.source_id.in_([s.id for s in attached]),
+                        Document.status != DocumentStatus.DELETED,
+                    )
+                    .group_by(Document.source_id)
+                )
+            ).all()
         )
         if attached
-        else 0
+        else {}
     )
     synced = max((s.last_synced_at for s in attached if s.last_synced_at), default=None)
     live = await db.get(PipelineVersion, bot.live_version_id) if bot.live_version_id else None
@@ -254,24 +440,50 @@ async def overview(
         draft = None
     spec = _spec(live) or _spec(draft)
     owner = await db.get(User, bot.owner_id) if bot.owner_id else None
+    helpful, ratings = await _ratings(db, bot.id, now - timedelta(days=30))
     return Overview(
         id=bot.id,
         name=bot.name,
         status=bot.status.value,
         owner=(owner.display_name or owner.email) if owner else None,
         users=len(await _people_with(db, grants, set(svc.ROLES))),
-        requests_7d=int(requests or 0),
-        helpful=await _helpful(db, bot.id, now - timedelta(days=30)),
+        requests_7d=requests,
+        requests_prev_7d=requests_prev,
+        helpful=helpful,
+        ratings_30d=ratings,
         feedback_to_review=int(to_review or 0),
         sources=[s.name for s in attached],
-        documents=int(documents or 0),
+        documents=sum(per_source.values()),
         last_synced_at=synced,
         roles=sorted(f"{names.get(g.principal, '?')} ({g.role})" for g in grants),
         canary_percent=bot.canary_percent,
         live_version=live.number if live else None,
         draft_version=draft.number if draft else None,
         modes=[m.value for m in spec.router.allowed_modes] if spec else [],
-        tools=sum(1 for b in spec.agent.tools if b.enabled) if spec else 0,
+        tools=_tools(spec),
+        knowledge_sources=[
+            OverviewSource(
+                id=s.id,
+                name=s.name,
+                type=s.type.value,
+                status=s.status.value,
+                documents=per_source.get(s.id, 0),
+                last_synced_at=s.last_synced_at,
+            )
+            for s in attached
+        ],
+        tool_list=await _tool_list(db, spec),
+        access=sorted(
+            (
+                OverviewGrant(
+                    name=names.get(g.principal, "?"),
+                    kind=g.principal.split(":", 1)[0],
+                    role=g.role,
+                )
+                for g in grants
+            ),
+            key=lambda g: (svc.ROLES.index(g.role), g.kind, g.name.lower()),  # type: ignore[arg-type]
+        ),
     )
 
 

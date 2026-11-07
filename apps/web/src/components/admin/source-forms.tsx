@@ -1,11 +1,18 @@
 "use client";
 
-import { Button, cn } from "@veyntora/ui";
+import { Button } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useState } from "react";
 
-import { api } from "@/lib/chat";
+import {
+  cmisFrom,
+  gitFrom,
+  jiraFrom,
+  serviceNowFrom,
+  sharePointServerFrom,
+  webdavFrom,
+} from "./connector-fields";
+import { GroupMap, mapFrom } from "./group-map";
 
 export type GroupOption = { id: string; name: string; path: string | null };
 export type SharePointSettings = {
@@ -140,71 +147,6 @@ function ScheduleSelect({ value }: { value: string | null }) {
   );
 }
 
-/** Rows of "entra:<id>" / "site:<name>" (or a Confluence group, a SID) -> Veyntora group. */
-function GroupMap({
-  groups,
-  value,
-  legend,
-  hint,
-  placeholder = "entra:… / site:…",
-}: {
-  groups: GroupOption[];
-  value: Record<string, string>;
-  legend?: string;
-  hint?: string;
-  placeholder?: string;
-}) {
-  const t = useTranslations("sources");
-  const [rows, setRows] = useState(
-    Object.entries(value).length ? Object.entries(value) : [["", ""]],
-  );
-  return (
-    <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-      <legend className="mb-1 text-[13px] font-medium">{legend ?? t("groupMap")}</legend>
-      <p className="m-0 text-xs text-fg-muted">{hint ?? t("groupMapHint")}</p>
-      {rows.map(([key, group], i) => (
-        <div key={i} className="grid grid-cols-[1fr_1fr] gap-2 max-[640px]:grid-cols-1">
-          <input
-            name="map_key"
-            aria-label={t("mapKey")}
-            defaultValue={key}
-            placeholder={placeholder}
-            className={`${input} font-mono`}
-          />
-          <select
-            name="map_group"
-            aria-label={t("mapGroup")}
-            defaultValue={group}
-            className={input}
-          >
-            <option value="">{t("chooseGroup")}</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      ))}
-      <div>
-        <Button type="button" size="sm" onClick={() => setRows([...rows, ["", ""]])}>
-          {t("addMapping")}
-        </Button>
-      </div>
-    </fieldset>
-  );
-}
-
-function mapFrom(form: FormData): Record<string, string> {
-  const keys = form.getAll("map_key").map(String);
-  const groups = form.getAll("map_group").map(String);
-  const out: Record<string, string> = {};
-  keys.forEach((k, i) => {
-    if (k.trim() && groups[i]) out[k.trim()] = groups[i]!;
-  });
-  return out;
-}
-
 export function sharePointFrom(form: FormData): SharePointSettings {
   const group_map = mapFrom(form);
   return {
@@ -223,10 +165,13 @@ export function SharePointFields({
   groups,
   value,
   schedule,
+  withSchedule = true,
 }: {
   groups: GroupOption[];
   value?: SharePointSettings;
   schedule?: string | null;
+  /** False where the page shows the schedule elsewhere. */
+  withSchedule?: boolean;
 }) {
   const t = useTranslations("sources");
   return (
@@ -273,7 +218,7 @@ export function SharePointFields({
           className="rounded-md border border-line-strong bg-surface p-3 font-mono text-sm"
         />
       </label>
-      <ScheduleSelect value={schedule ?? null} />
+      {withSchedule ? <ScheduleSelect value={schedule ?? null} /> : null}
       <GroupMap groups={groups} value={value?.group_map ?? {}} />
     </>
   );
@@ -752,195 +697,27 @@ export function FolderRules({ groups, value }: { groups: GroupOption[]; value: F
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5">
-      <h2 className="m-0 text-base font-bold">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-const KINDS = ["upload", "sharepoint", "s3", "website", "confluence", "database", "smb"] as const;
-type Kind = (typeof KINDS)[number];
-const CONNECTED: Kind[] = ["s3", "website", "confluence", "database", "smb"];
 // Their permissions come from the system itself (mapped); the others use Veyntora readers.
-const OWN_PERMISSIONS: Kind[] = ["confluence", "smb"];
+export const OWN_PERMISSIONS: string[] = ["confluence", "smb", "sharepoint_server", "cmis"];
+// Readers can be set per folder (a path inside the source).
+export const FOLDER_RULES: string[] = ["s3", "website", "webdav", "git", "servicenow", "jira"];
 
-/** Connect data source (prototype: ConnectSource.html). */
-export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
-  const t = useTranslations("sources");
-  const router = useRouter();
-  const [type, setType] = useState<Kind>("upload");
-  const { error, busy, run } = useAction();
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    void run(async () => {
-      const name = String(form.get("name"));
-      let created: { id: string };
-      if (type === "upload") {
-        created = await api("/v1/admin/sources", {
-          method: "POST",
-          body: JSON.stringify({
-            name,
-            acl: { groups: form.getAll("readers").map(String), users: [] },
-          }),
-        });
-      } else if (CONNECTED.includes(type)) {
-        const expires = String(form.get("expires") || "");
-        const settings = {
-          s3: type === "s3" ? s3From(form) : null,
-          website: type === "website" ? websiteFrom(form) : null,
-          confluence: type === "confluence" ? confluenceFrom(form) : null,
-          database: type === "database" ? databaseFrom(form) : null,
-          smb: type === "smb" ? smbFrom(form) : null,
-        };
-        created = await api("/v1/admin/sources/connected", {
-          method: "POST",
-          body: JSON.stringify({
-            name,
-            type,
-            ...settings,
-            acl: { groups: form.getAll("readers").map(String), users: [] },
-            folders: foldersFrom(form),
-            secret: type === "website" ? null : String(form.get("client_secret")),
-            secret_expires_at: expires ? new Date(`${expires}T00:00:00Z`).toISOString() : null,
-            schedule: String(form.get("schedule") || "") || null,
-          }),
-        });
-      } else {
-        const expires = String(form.get("expires") || "");
-        created = await api("/v1/admin/sources/sharepoint", {
-          method: "POST",
-          body: JSON.stringify({
-            name,
-            settings: sharePointFrom(form),
-            client_secret: String(form.get("client_secret")),
-            secret_expires_at: expires ? new Date(`${expires}T00:00:00Z`).toISOString() : null,
-            schedule: String(form.get("schedule") || "") || null,
-          }),
-        });
-      }
-      router.push(`/admin/sources/${created.id}`);
-      router.refresh();
-    });
-  }
-
-  const option = (on: boolean) =>
-    cn(
-      "flex flex-col items-start gap-1 rounded-lg bg-surface p-3 text-left",
-      on ? "border-2 border-accent" : "border border-line-strong",
-    );
-  return (
-    <form onSubmit={submit} className="flex max-w-[860px] flex-col gap-5">
-      <Section title={t("step1")}>
-        <div
-          role="radiogroup"
-          aria-label={t("type")}
-          className="grid grid-cols-3 gap-2.5 max-[760px]:grid-cols-1"
-        >
-          {KINDS.map((k) => (
-            <button
-              key={k}
-              type="button"
-              role="radio"
-              aria-checked={type === k}
-              onClick={() => setType(k)}
-              className={option(type === k)}
-            >
-              <span className="text-sm font-semibold">{t(`types.${k}`)}</span>
-              <span className="text-xs text-fg-muted">{t(`typeHints.${k}`)}</span>
-            </button>
-          ))}
-        </div>
-      </Section>
-      <Section title={t("step2")}>
-        <label className={label}>
-          {t("name")}
-          <input name="name" required maxLength={255} className={input} />
-        </label>
-        {type === "upload" ? (
-          <GroupPicker groups={groups} selected={[]} name="readers" />
-        ) : CONNECTED.includes(type) ? (
-          <>
-            {type === "s3" ? <S3Fields /> : null}
-            {type === "website" ? <WebsiteFields /> : null}
-            {type === "confluence" ? <ConfluenceFields groups={groups} /> : null}
-            {type === "database" ? <DatabaseFields /> : null}
-            {type === "smb" ? <SmbFields groups={groups} /> : null}
-            <ScheduleSelect value={null} />
-            {OWN_PERMISSIONS.includes(type) ? null : (
-              <GroupPicker groups={groups} selected={[]} name="readers" />
-            )}
-            {type === "s3" || type === "website" ? (
-              <FolderRules groups={groups} value={[]} />
-            ) : null}
-            {type !== "website" ? (
-              <>
-                <div className="grid grid-cols-[1fr_auto] gap-3 max-[760px]:grid-cols-1">
-                  <label className={label}>
-                    {t(`secretLabel.${type as "s3"}`)}
-                    <input
-                      name="client_secret"
-                      type="password"
-                      autoComplete="off"
-                      required
-                      className={input}
-                    />
-                  </label>
-                  <label className={label}>
-                    {t("expires")}
-                    <input name="expires" type="date" className={input} />
-                  </label>
-                </div>
-                <p className="m-0 text-xs text-fg-muted">{t("secretHint")}</p>
-              </>
-            ) : (
-              <p role="note" className="m-0 rounded-md bg-info-soft px-3 py-2 text-sm text-info">
-                {t("websiteNote")}
-              </p>
-            )}
-          </>
-        ) : (
-          <>
-            <SharePointFields groups={groups} />
-            <div className="grid grid-cols-[1fr_auto] gap-3 max-[760px]:grid-cols-1">
-              <label className={label}>
-                {t("clientSecret")}
-                <input
-                  name="client_secret"
-                  type="password"
-                  autoComplete="off"
-                  required
-                  className={input}
-                />
-              </label>
-              <label className={label}>
-                {t("expires")}
-                <input name="expires" type="date" className={input} />
-              </label>
-            </div>
-            <p className="m-0 text-xs text-fg-muted">{t("secretHint")}</p>
-            <p role="note" className="m-0 rounded-md bg-info-soft px-3 py-2 text-sm text-info">
-              {t("sharepointPermissions")}
-            </p>
-          </>
-        )}
-      </Section>
-      {error ? (
-        <p role="alert" className="m-0 text-sm text-red">
-          {error}
-        </p>
-      ) : null}
-      <div>
-        <Button type="submit" variant="primary" size="lg" disabled={busy}>
-          {type === "upload" ? t("createUpload") : t("connect")}
-        </Button>
-      </div>
-    </form>
-  );
+/** Every connected kind's settings: the chosen one filled in, the others null. */
+export function connectionFrom(type: string, form: FormData) {
+  const pick = <T,>(kind: string, from: (f: FormData) => T) => (type === kind ? from(form) : null);
+  return {
+    s3: pick("s3", s3From),
+    website: pick("website", websiteFrom),
+    confluence: pick("confluence", confluenceFrom),
+    database: pick("database", databaseFrom),
+    smb: pick("smb", smbFrom),
+    webdav: pick("webdav", webdavFrom),
+    sharepoint_server: pick("sharepoint_server", sharePointServerFrom),
+    cmis: pick("cmis", cmisFrom),
+    git: pick("git", gitFrom),
+    servicenow: pick("servicenow", serviceNowFrom),
+    jira: pick("jira", jiraFrom),
+  };
 }
 
 export { ScheduleSelect, useAction, input as inputClass, label as labelClass };

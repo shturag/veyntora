@@ -67,6 +67,16 @@ async def test_cards_overview_duplicate_and_preview(db: AsyncSession) -> None:
 
     view = await insights.overview(bot.id, me, state, db)
     assert view.sources == [source.name] and view.users == 1
+    [shown] = view.knowledge_sources
+    assert shown.id == source.id and shown.documents == view.documents
+    # Access grouped by role: the owner first, then people who can chat.
+    assert [(g.role, g.kind) for g in view.access] == [("owner", "user"), ("user", "group")]
+    assert view.access[1].name == "support"
+    assert view.ratings_30d == 0 and view.helpful is None and view.requests_prev_7d == 0
+
+    [row] = await insights.pipelines(me, state, db)
+    assert row.id == bot.id and row.sources == 1 and row.live_version is None
+    assert row.draft_changes is None and row.documents and "agent" in row.modes
 
     created = await insights.duplicate(
         bot.id,

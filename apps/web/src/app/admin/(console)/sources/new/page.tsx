@@ -2,7 +2,8 @@ import { PageHeader } from "@veyntora/ui";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
-import { ConnectSourceForm, type GroupOption } from "@/components/admin/source-forms";
+import { ConnectSourceForm } from "@/components/admin/connect-source";
+import type { GroupOption } from "@/components/admin/source-forms";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { areaAccess } from "@/lib/admin";
@@ -18,9 +19,12 @@ export default async function ConnectSourcePage() {
   return (
     <div className="flex flex-col gap-5">
       <nav aria-label="Breadcrumb" className="text-sm text-fg-muted">
-        <Link href="/admin/sources" className="underline">{t("title")}</Link> / {t("connectTitle")}
+        <Link href="/admin/sources" className="underline">
+          {t("title")}
+        </Link>{" "}
+        / {t("connectTitle")}
       </nav>
-      <PageHeader title={t("connectTitle")} />
+      <PageHeader title={t("connectTitle")} subtitle={t("connectSubtitle")} />
       <ConnectSourceForm groups={(data ?? []) as GroupOption[]} />
     </div>
   );

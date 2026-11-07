@@ -591,6 +591,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots/pipelines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pipelines of the chatbots the caller may see */
+        get: operations["pipelines_v1_admin_chatbots_pipelines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots/{bot_id}": {
         parameters: {
             query?: never;
@@ -2339,6 +2356,40 @@ export interface paths {
         put?: never;
         /** Upload files (scanned, then indexed) */
         post: operations["upload_documents_v1_admin_sources__source_id__documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/documents/reindex-failed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Parse and index every failed document again */
+        post: operations["reindex_failed_v1_admin_sources__source_id__documents_reindex_failed_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/documents/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Counts of a source's documents */
+        get: operations["documents_summary_v1_admin_sources__source_id__documents_summary_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4834,6 +4885,8 @@ export interface components {
             /** Description */
             description: string;
             draft: components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"];
+            /** Draft Changes */
+            draft_changes?: number | null;
             /** Draft Version */
             draft_version: number | null;
             governance: components["schemas"]["GovernanceOut"];
@@ -4989,6 +5042,26 @@ export interface components {
          * @enum {string}
          */
         CitationPolicy: "required" | "optional";
+        /** CmisSettings */
+        CmisSettings: {
+            /** Browser Url */
+            browser_url: string;
+            /** Folders */
+            folders: string[];
+            /** Group Map */
+            group_map?: {
+                [key: string]: string;
+            };
+            /**
+             * Max Documents
+             * @default 10000
+             */
+            max_documents: number;
+            /** Repository Id */
+            repository_id?: string | null;
+            /** Username */
+            username: string;
+        };
         /** ComponentOut */
         ComponentOut: {
             /** Key */
@@ -5103,10 +5176,13 @@ export interface components {
         /** ConnectedSourceInput */
         ConnectedSourceInput: {
             acl?: components["schemas"]["SourceAcl"];
+            cmis?: components["schemas"]["CmisSettings"] | null;
             confluence?: components["schemas"]["ConfluenceSettings"] | null;
             database?: components["schemas"]["DatabaseSettings"] | null;
             /** Folders */
             folders?: components["schemas"]["FolderReaders"][];
+            git?: components["schemas"]["GitSettings"] | null;
+            jira?: components["schemas"]["JiraSettings"] | null;
             /** Name */
             name: string;
             s3?: components["schemas"]["S3Settings"] | null;
@@ -5116,22 +5192,31 @@ export interface components {
             secret?: string | null;
             /** Secret Expires At */
             secret_expires_at?: string | null;
+            servicenow?: components["schemas"]["ServiceNowSettings"] | null;
+            sharepoint_server?: components["schemas"]["SharePointServerSettings"] | null;
             smb?: components["schemas"]["SmbSettings"] | null;
             /**
              * Type
              * @enum {string}
              */
-            type: "s3" | "website" | "confluence" | "database" | "smb";
+            type: "s3" | "website" | "confluence" | "database" | "smb" | "webdav" | "sharepoint_server" | "cmis" | "git" | "servicenow" | "jira";
+            webdav?: components["schemas"]["WebdavSettings"] | null;
             website?: components["schemas"]["WebsiteSettings"] | null;
         };
         /** ConnectedUpdate */
         ConnectedUpdate: {
+            cmis?: components["schemas"]["CmisSettings"] | null;
             confluence?: components["schemas"]["ConfluenceSettings"] | null;
             database?: components["schemas"]["DatabaseSettings"] | null;
             /** Folders */
             folders?: components["schemas"]["FolderReaders"][] | null;
+            git?: components["schemas"]["GitSettings"] | null;
+            jira?: components["schemas"]["JiraSettings"] | null;
             s3?: components["schemas"]["S3Settings"] | null;
+            servicenow?: components["schemas"]["ServiceNowSettings"] | null;
+            sharepoint_server?: components["schemas"]["SharePointServerSettings"] | null;
             smb?: components["schemas"]["SmbSettings"] | null;
+            webdav?: components["schemas"]["WebdavSettings"] | null;
             website?: components["schemas"]["WebsiteSettings"] | null;
         };
         /**
@@ -5140,12 +5225,15 @@ export interface components {
          *     last sync could not map.
          */
         ConnectionOut: {
+            cmis: components["schemas"]["CmisSettings"] | null;
             confluence: components["schemas"]["ConfluenceSettings"] | null;
             database: components["schemas"]["DatabaseSettings"] | null;
             /** Folders */
             folders: components["schemas"]["FolderReaders"][];
+            git: components["schemas"]["GitSettings"] | null;
             /** Has Secret */
             has_secret: boolean;
+            jira: components["schemas"]["JiraSettings"] | null;
             /** Last Test */
             last_test: {
                 [key: string]: unknown;
@@ -5155,9 +5243,12 @@ export interface components {
             secret_expires_at: string | null;
             /** Secret Last4 */
             secret_last4: string | null;
+            servicenow: components["schemas"]["ServiceNowSettings"] | null;
+            sharepoint_server: components["schemas"]["SharePointServerSettings"] | null;
             smb: components["schemas"]["SmbSettings"] | null;
             /** Unmapped */
             unmapped: string[];
+            webdav: components["schemas"]["WebdavSettings"] | null;
             website: components["schemas"]["WebsiteSettings"] | null;
         };
         /** ConsoleServiceOut */
@@ -5453,6 +5544,19 @@ export interface components {
          * @enum {string}
          */
         DocumentStatus: "pending" | "indexed" | "failed" | "deleted";
+        /** DocumentSummary */
+        DocumentSummary: {
+            /** By Status */
+            by_status: {
+                [key: string]: number;
+            };
+            /** Chunks */
+            chunks: number;
+            /** Errors */
+            errors: components["schemas"]["ErrorGroup"][];
+            /** Total */
+            total: number;
+        };
         /** DocumentView */
         DocumentView: {
             /** Has Original */
@@ -5559,6 +5663,13 @@ export interface components {
              * Format: date-time
              */
             ts: string;
+        };
+        /** ErrorGroup */
+        ErrorGroup: {
+            /** Count */
+            count: number;
+            /** Error */
+            error: string;
         };
         /**
          * EvalCaseOrigin
@@ -5995,6 +6106,23 @@ export interface components {
              * @default 0.2
              */
             temperature: number;
+        };
+        /** GitSettings */
+        GitSettings: {
+            /** Base Url */
+            base_url?: string | null;
+            /** Branch */
+            branch?: string | null;
+            /** Include Paths */
+            include_paths?: string[];
+            /**
+             * Provider
+             * @default github
+             * @enum {string}
+             */
+            provider: "github" | "gitlab";
+            /** Repositories */
+            repositories: string[];
         };
         /** GovRef */
         GovRef: {
@@ -7013,6 +7141,41 @@ export interface components {
          * @enum {string}
          */
         IssueStatus: "open" | "notified" | "resolved" | "dismissed";
+        /** JiraSettings */
+        JiraSettings: {
+            /** Base Url */
+            base_url: string;
+            /** Email */
+            email?: string | null;
+            /**
+             * Flavour
+             * @default cloud
+             * @enum {string}
+             */
+            flavour: "cloud" | "datacenter";
+            /**
+             * Include Comments
+             * @default true
+             */
+            include_comments: boolean;
+            /**
+             * Include Secured
+             * @default false
+             */
+            include_secured: boolean;
+            /**
+             * Jql
+             * @default statusCategory = Done
+             */
+            jql: string;
+            /**
+             * Max Issues
+             * @default 5000
+             */
+            max_issues: number;
+            /** Projects */
+            projects: string[];
+        };
         /** JobOut */
         JobOut: {
             /** Attempts */
@@ -7550,6 +7713,8 @@ export interface components {
         };
         /** Overview */
         Overview: {
+            /** Access */
+            access?: components["schemas"]["OverviewGrant"][];
             /** Canary Percent */
             canary_percent: number;
             /** Documents */
@@ -7565,6 +7730,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Knowledge Sources */
+            knowledge_sources?: components["schemas"]["OverviewSource"][];
             /** Last Synced At */
             last_synced_at: string | null;
             /** Live Version */
@@ -7575,18 +7742,39 @@ export interface components {
             name: string;
             /** Owner */
             owner: string | null;
+            /**
+             * Ratings 30D
+             * @default 0
+             */
+            ratings_30d: number;
             /** Requests 7D */
             requests_7d: number;
+            /**
+             * Requests Prev 7D
+             * @default 0
+             */
+            requests_prev_7d: number;
             /** Roles */
             roles: string[];
             /** Sources */
             sources: string[];
             /** Status */
             status: string;
+            /** Tool List */
+            tool_list?: components["schemas"]["OverviewTool"][];
             /** Tools */
             tools: number;
             /** Users */
             users: number;
+        };
+        /** OverviewGrant */
+        OverviewGrant: {
+            /** Kind */
+            kind: string;
+            /** Name */
+            name: string;
+            /** Role */
+            role: string;
         };
         /** OverviewOut */
         OverviewOut: {
@@ -7618,6 +7806,38 @@ export interface components {
             requests: number;
             /** Spend */
             spend: string;
+        };
+        /** OverviewSource */
+        OverviewSource: {
+            /** Documents */
+            documents: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Synced At */
+            last_synced_at: string | null;
+            /** Name */
+            name: string;
+            /** Status */
+            status: string;
+            /** Type */
+            type: string;
+        };
+        /** OverviewTool */
+        OverviewTool: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Knowledge */
+            knowledge: boolean;
+            /** Name */
+            name: string;
+            /** Server */
+            server: string;
         };
         /** PanelOut */
         PanelOut: {
@@ -7770,6 +7990,55 @@ export interface components {
          * @enum {string}
          */
         PiiAction: "mask" | "block" | "off";
+        /**
+         * PipelineRow
+         * @description One chatbot's pipeline on the Pipelines page: what runs, and the draft's state.
+         */
+        PipelineRow: {
+            /** Answer Model */
+            answer_model: string | null;
+            /** Canary Percent */
+            canary_percent: number;
+            /** Custom Flow */
+            custom_flow: boolean;
+            /** Default Mode */
+            default_mode: string;
+            /** Documents */
+            documents: boolean;
+            /** Draft Changes */
+            draft_changes: number | null;
+            /** Draft Problems */
+            draft_problems: number;
+            /** Draft Version */
+            draft_version: number | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** If Ungrounded */
+            if_ungrounded: string;
+            /** Live Version */
+            live_version: number | null;
+            /** Modes */
+            modes: string[];
+            /** Name */
+            name: string;
+            /** Published At */
+            published_at: string | null;
+            /** Rerank Top N */
+            rerank_top_n: number | null;
+            /** Search Type */
+            search_type: string;
+            /** Sources */
+            sources: number;
+            /** Status */
+            status: string;
+            /** Tools */
+            tools: number;
+            /** Top K */
+            top_k: number;
+        };
         /** PipelineSpec */
         PipelineSpec: {
             agent?: components["schemas"]["AgentSpec"];
@@ -8132,6 +8401,11 @@ export interface components {
             summary: {
                 [key: string]: unknown;
             };
+        };
+        /** Requeued */
+        Requeued: {
+            /** Queued */
+            queued: number;
         };
         /**
          * RerankFallback
@@ -9133,6 +9407,25 @@ export interface components {
              */
             status: "active" | "disabled";
         };
+        /** ServiceNowSettings */
+        ServiceNowSettings: {
+            /**
+             * Include Restricted
+             * @default false
+             */
+            include_restricted: boolean;
+            /** Instance Url */
+            instance_url: string;
+            /** Knowledge Bases */
+            knowledge_bases?: string[];
+            /**
+             * Max Articles
+             * @default 10000
+             */
+            max_articles: number;
+            /** Username */
+            username: string;
+        };
         /** SessionInfo */
         SessionInfo: {
             /** Signed In */
@@ -9244,6 +9537,27 @@ export interface components {
             tenant_id: string;
             /** Unmapped */
             unmapped: string[];
+        };
+        /** SharePointServerSettings */
+        SharePointServerSettings: {
+            /**
+             * Auth
+             * @default ntlm
+             * @enum {string}
+             */
+            auth: "ntlm" | "basic";
+            /** Group Map */
+            group_map?: {
+                [key: string]: string;
+            };
+            /** Include Paths */
+            include_paths?: string[];
+            /** Libraries */
+            libraries?: string[];
+            /** Site Url */
+            site_url: string;
+            /** Username */
+            username: string;
         };
         /**
          * SharePointSettings
@@ -9419,7 +9733,7 @@ export interface components {
          * SourceType
          * @enum {string}
          */
-        SourceType: "sharepoint" | "confluence" | "smb" | "s3" | "website" | "database" | "upload";
+        SourceType: "sharepoint" | "confluence" | "smb" | "s3" | "website" | "database" | "upload" | "webdav" | "sharepoint_server" | "cmis" | "git" | "servicenow" | "jira";
         /** SourceUpdate */
         SourceUpdate: {
             acl?: components["schemas"]["SourceAcl"] | null;
@@ -9964,6 +10278,21 @@ export interface components {
              * @enum {string}
              */
             type: "watcher";
+        };
+        /** WebdavSettings */
+        WebdavSettings: {
+            /** Base Url */
+            base_url: string;
+            /**
+             * Flavour
+             * @default nextcloud
+             * @enum {string}
+             */
+            flavour: "nextcloud" | "generic";
+            /** Include Paths */
+            include_paths?: string[];
+            /** Username */
+            username: string;
         };
         /** WebsiteSettings */
         WebsiteSettings: {
@@ -11564,6 +11893,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BotCard"][];
+                };
+            };
+        };
+    };
+    pipelines_v1_admin_chatbots_pipelines_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineRow"][];
                 };
             };
         };
@@ -15370,6 +15719,8 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
+                q?: string | null;
+                status?: components["schemas"]["DocumentStatus"] | null;
             };
             header?: never;
             path: {
@@ -15421,6 +15772,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UploadResult"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reindex_failed_v1_admin_sources__source_id__documents_reindex_failed_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Requeued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    documents_summary_v1_admin_sources__source_id__documents_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentSummary"];
                 };
             };
             /** @description Validation Error */

@@ -46,16 +46,21 @@ export function AccountMenu({
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         className={cn(
-          "flex w-full items-center gap-2.5 rounded-md p-2.5 text-left",
+          "flex w-full items-center gap-2.5 rounded-md p-2.5 text-left min-[901px]:group-data-[collapsed]/side:justify-center min-[901px]:group-data-[collapsed]/side:p-1.5",
           tone === "light" ? "hover:bg-sunken" : "text-nav-fg hover:bg-nav-active",
         )}
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-avatar text-[13px] font-semibold text-accent">
           {initials}
         </span>
-        <span className="min-w-0 text-[13px]">
+        <span className="min-w-0 text-[13px] min-[901px]:group-data-[collapsed]/side:sr-only">
           <span className="block truncate font-medium">{name}</span>
-          <span className={cn("block truncate", tone === "light" ? "text-fg-muted" : "text-nav-heading")}>
+          <span
+            className={cn(
+              "block truncate",
+              tone === "light" ? "text-fg-muted" : "text-nav-heading",
+            )}
+          >
             {detail}
           </span>
         </span>
@@ -95,7 +100,9 @@ export function AccountMenu({
           <DropdownMenu.RadioGroup value={theme ?? "system"} onValueChange={setTheme}>
             {(["light", "dark", "system"] as const).map((value) => (
               <DropdownMenu.RadioItem key={value} value={value} className={item}>
-                {t(value === "light" ? "themeLight" : value === "dark" ? "themeDark" : "themeSystem")}
+                {t(
+                  value === "light" ? "themeLight" : value === "dark" ? "themeDark" : "themeSystem",
+                )}
                 <DropdownMenu.ItemIndicator>✓</DropdownMenu.ItemIndicator>
               </DropdownMenu.RadioItem>
             ))}

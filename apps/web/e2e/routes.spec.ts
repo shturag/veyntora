@@ -1,28 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import en from "../messages/en.json" with { type: "json" };
 import { samplePath, SCREENS } from "../src/lib/screens";
 import { expectNoA11yViolations, signIn, USERS } from "./fixtures";
 
-const titles = en.screens as Record<string, { title: string }>;
 // One entry per route; screens that are states of another route are covered by it.
 const routed = SCREENS.filter((s) => !s.stateOf && s.shell !== "public");
-// Built screens show real data and are covered by their own specs (chat.spec.ts, ...).
-const placeholders = routed.filter((s) => !s.built);
 
 test.describe("as a platform admin", () => {
   test.use({ storageState: USERS.admin.state });
-
-  for (const s of placeholders) {
-    test(`${s.file} → ${s.route}`, async ({ page }) => {
-      await page.goto(samplePath(s.route));
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[s.key]!.title);
-      await expect(page.getByTestId("phase-placeholder")).toHaveAttribute(
-        "data-phase",
-        String(s.phase),
-      );
-    });
-  }
 
   test("admin rail lists every area", async ({ page }) => {
     await page.goto("/admin");
@@ -53,12 +38,16 @@ test.describe("as a platform admin", () => {
     await page.getByRole("button", { name: /Account menu/ }).click();
     await page.getByRole("menuitemradio", { name: "Deutsch" }).click();
     await expect(
-      page.getByRole("navigation", { name: "Hauptmenü" }).getByRole("link", { name: "Start" }),
+      page
+        .getByRole("navigation", { name: "Hauptmenü" })
+        .getByRole("link", { name: "Start", exact: true }),
     ).toBeVisible();
     await page.getByRole("button", { name: /Kontomenü/ }).click();
     await page.getByRole("menuitemradio", { name: "English" }).click();
     await expect(
-      page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Home" }),
+      page
+        .getByRole("navigation", { name: "Main" })
+        .getByRole("link", { name: "Home", exact: true }),
     ).toBeVisible();
   });
 });
@@ -66,18 +55,10 @@ test.describe("as a platform admin", () => {
 test.describe("as an employee without admin roles", () => {
   test.use({ storageState: USERS.employee.state });
 
-  test("user routes open", async ({ page }) => {
-    for (const s of placeholders.filter((x) => x.shell === "user")) {
-      await page.goto(samplePath(s.route));
-      await expect(page.getByRole("heading", { level: 1 })).toHaveText(titles[s.key]!.title);
-    }
-  });
-
   test("admin routes are refused", async ({ page }) => {
     for (const s of routed.filter((x) => x.shell === "admin" || x.shell === "wizard")) {
       await page.goto(samplePath(s.route));
       await expect(page.getByTestId("forbidden"), s.route).toBeVisible();
-      await expect(page.getByTestId("phase-placeholder")).toHaveCount(0);
     }
   });
 

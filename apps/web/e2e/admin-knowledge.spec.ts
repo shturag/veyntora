@@ -80,7 +80,7 @@ test.describe("providers and data sources as a platform admin", () => {
     const first = page.getByRole("table").getByRole("link").first();
     if ((await first.count()) === 0) test.skip(true, "no sources in this database");
     await first.click();
-    await expect(page.getByRole("heading", { level: 2, name: /documents?$/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Documents", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Sync now" })).toBeVisible();
   });
 

@@ -19,6 +19,8 @@ export async function BotHeader({
     status: string;
     live_version: number | null;
     draft_version: number | null;
+    /** Settings the draft changes against the live version; 0 means nothing to publish. */
+    draft_changes?: number | null;
   };
   tab: BotTab;
   canEdit: boolean;
@@ -48,7 +50,7 @@ export async function BotHeader({
             {t(`statuses.${bot.status}` as "statuses.live")}
             {bot.live_version ? ` v${bot.live_version}` : ""}
           </Badge>
-          {bot.draft_version && bot.draft_version !== bot.live_version ? (
+          {bot.draft_version && bot.draft_version !== bot.live_version && bot.draft_changes !== 0 ? (
             <Badge tone="accent">{t("draft", { version: bot.draft_version })}</Badge>
           ) : null}
         </div>

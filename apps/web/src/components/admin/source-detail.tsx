@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@veyntora/ui";
+import { RotateCw, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
@@ -9,13 +10,20 @@ import type { components } from "@/lib/api/schema";
 import { api, CSRF_HEADERS } from "@/lib/chat";
 
 import {
+  CmisFields,
+  GitFields,
+  JiraFields,
+  ServiceNowFields,
+  SharePointServerFields,
+  WebdavFields,
+} from "./connector-fields";
+import {
   ConfluenceFields,
+  FOLDER_RULES,
+  connectionFrom,
   DatabaseFields,
   FolderRules,
   SmbFields,
-  confluenceFrom,
-  databaseFrom,
-  smbFrom,
   GroupPicker,
   S3Fields,
   ScheduleSelect,
@@ -24,10 +32,8 @@ import {
   foldersFrom,
   inputClass,
   labelClass,
-  s3From,
   sharePointFrom,
   useAction,
-  websiteFrom,
   type GroupOption,
   type SharePointSettings,
 } from "./source-forms";
@@ -316,12 +322,8 @@ export function ConnectionSettingsForm({
       await api(`/v1/admin/sources/${source.id}/connection`, {
         method: "PATCH",
         body: JSON.stringify({
-          s3: source.type === "s3" ? s3From(form) : null,
-          website: source.type === "website" ? websiteFrom(form) : null,
-          confluence: source.type === "confluence" ? confluenceFrom(form) : null,
-          database: source.type === "database" ? databaseFrom(form) : null,
-          smb: source.type === "smb" ? smbFrom(form) : null,
-          folders: source.type === "s3" || source.type === "website" ? foldersFrom(form) : [],
+          ...connectionFrom(source.type, form),
+          folders: FOLDER_RULES.includes(source.type) ? foldersFrom(form) : [],
         }),
       });
       setDone(t("settingsSaved"));
@@ -375,8 +377,18 @@ export function ConnectionSettingsForm({
             }}
           />
         ) : null}
+        {c.webdav ? <WebdavFields value={c.webdav} /> : null}
+        {c.sharepoint_server ? (
+          <SharePointServerFields groups={groups} value={c.sharepoint_server} />
+        ) : null}
+        {c.cmis ? <CmisFields groups={groups} value={c.cmis} /> : null}
+        {c.git ? <GitFields value={c.git} /> : null}
+        {c.servicenow ? <ServiceNowFields value={c.servicenow} /> : null}
+        {c.jira ? <JiraFields value={c.jira} /> : null}
         <ScheduleSelect value={source.schedule} />
-        {c.s3 || c.website ? <FolderRules groups={groups} value={c.folders} /> : null}
+        {FOLDER_RULES.includes(source.type) ? (
+          <FolderRules groups={groups} value={c.folders} />
+        ) : null}
         <div>
           <Button type="submit" disabled={busy}>
             {t("saveSettings")}
@@ -456,9 +468,11 @@ export function UploadFiles({ sourceId }: { sourceId: string }) {
 export function DocumentActions({
   sourceId,
   documentId,
+  name,
 }: {
   sourceId: string;
   documentId: string;
+  name: string;
 }) {
   const t = useTranslations("sources");
   const router = useRouter();
@@ -468,23 +482,67 @@ export function DocumentActions({
       await api(path, { method, ...(method === "POST" ? { body: "{}" } : {}) });
       router.refresh();
     });
+  const icon = "size-8 px-0";
   return (
-    <div className="flex gap-1.5">
+    <div className="flex justify-end gap-1">
       <Button
         size="sm"
+        variant="ghost"
+        className={icon}
         disabled={busy}
+        aria-label={t("reindexOne", { name })}
+        title={t("reindex")}
         onClick={() => act(`/v1/admin/sources/${sourceId}/documents/${documentId}/reindex`, "POST")}
       >
-        {t("reindex")}
+        <RotateCw aria-hidden className="size-4" />
       </Button>
       <Button
         size="sm"
         variant="ghost"
-        className="text-red"
+        className={`${icon} text-red`}
         disabled={busy}
+        aria-label={t("removeOne", { name })}
+        title={t("remove")}
         onClick={() => act(`/v1/admin/sources/${sourceId}/documents/${documentId}`, "DELETE")}
       >
-        {t("remove")}
+        <Trash2 aria-hidden className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+/** Queue every failed document of the source for parsing and indexing again. */
+export function ReindexFailed({ sourceId, count }: { sourceId: string; count: number }) {
+  const t = useTranslations("sources");
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<number | null>(null);
+  return (
+    <div className="flex items-center gap-2">
+      {done !== null ? (
+        <span role="status" className="text-sm">
+          {t("requeued", { count: done })}
+        </span>
+      ) : null}
+      <Button
+        size="sm"
+        disabled={busy || done !== null}
+        onClick={async () => {
+          setBusy(true);
+          try {
+            const r = await api<{ queued: number }>(
+              `/v1/admin/sources/${sourceId}/documents/reindex-failed`,
+              { method: "POST", body: "{}" },
+            );
+            setDone(r.queued);
+            router.refresh();
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <RotateCw aria-hidden className="size-4" />
+        {t("reindexFailed", { count })}
       </Button>
     </div>
   );

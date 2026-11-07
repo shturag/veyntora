@@ -10,10 +10,6 @@ The prototype (`design/prototype`, rag-platform-ui-v11) is the reference for scr
 - **German UI** alongside English, switchable on the sign-in page and in the account menu.
 - **Account menu** in the sidebar footer (language, theme, admin console link for admins, sign out). The prototype's footer shows a name and team only.
 
-## Phase 0 placeholders
-
-Screens built in later phases show their real title and summary plus a "This screen arrives in Phase N" card. The routes, navigation and permission checks are live.
-
 ## Routes that are states of another screen
 
 `ChatFast.html`, `AgentRunning.html`, `ChatStates.html` and `Mobile.html` are states of the chat screen (`/chat/[id]`), not separate routes.

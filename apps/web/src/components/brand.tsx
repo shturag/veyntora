@@ -47,7 +47,16 @@ export function BrandLogo({
 }
 
 /** The symbol alone, where the name is already written next to it or space is tight. */
-export function BrandMark({ size = 32, className }: { size?: number; className?: string }) {
+export function BrandMark({
+  size = 32,
+  className,
+  eager = false,
+}: {
+  size?: number;
+  className?: string;
+  /** Load at once, e.g. where it appears without a page load (a folded sidebar). */
+  eager?: boolean;
+}) {
   return (
     <Image
       src="/brand/veyntora-mark.png"
@@ -55,6 +64,7 @@ export function BrandMark({ size = 32, className }: { size?: number; className?:
       aria-hidden
       width={size}
       height={size}
+      loading={eager ? "eager" : undefined}
       className={cn("block shrink-0", className)}
     />
   );

@@ -26,6 +26,12 @@ class SourceType(StrEnum):
     WEBSITE = "website"
     DATABASE = "database"
     UPLOAD = "upload"
+    WEBDAV = "webdav"
+    SHAREPOINT_SERVER = "sharepoint_server"
+    CMIS = "cmis"
+    GIT = "git"
+    SERVICENOW = "servicenow"
+    JIRA = "jira"
 
 
 class SourceStatus(StrEnum):

@@ -51,7 +51,12 @@ export async function PipelineToolbar({
   current,
   canEdit,
 }: {
-  bot: { id: string; draft: { number: number }; publish_problems: string[] };
+  bot: {
+    id: string;
+    draft: { number: number };
+    publish_problems: string[];
+    draft_changes?: number | null;
+  };
   current: "visual" | "settings";
   canEdit: boolean;
 }) {
@@ -71,6 +76,7 @@ export async function PipelineToolbar({
             botId={bot.id}
             draft={bot.draft.number}
             blocked={bot.publish_problems.length > 0}
+            unchanged={bot.draft_changes === 0}
           />
         </div>
       ) : null}

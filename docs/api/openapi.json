@@ -3174,6 +3174,17 @@
           "draft": {
             "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
           },
+          "draft_changes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Changes"
+          },
           "draft_version": {
             "anyOf": [
               {
@@ -3654,6 +3665,66 @@
         "title": "CitationPolicy",
         "type": "string"
       },
+      "CmisSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "browser_url": {
+            "maxLength": 1024,
+            "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+            "title": "Browser Url",
+            "type": "string"
+          },
+          "folders": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Folders",
+            "type": "array"
+          },
+          "group_map": {
+            "additionalProperties": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Group Map",
+            "type": "object"
+          },
+          "max_documents": {
+            "default": 10000,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Documents",
+            "type": "integer"
+          },
+          "repository_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repository Id"
+          },
+          "username": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "browser_url",
+          "username",
+          "folders"
+        ],
+        "title": "CmisSettings",
+        "type": "object"
+      },
       "ComponentOut": {
         "properties": {
           "key": {
@@ -3970,6 +4041,16 @@
           "acl": {
             "$ref": "#/components/schemas/SourceAcl"
           },
+          "cmis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CmisSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "confluence": {
             "anyOf": [
               {
@@ -3997,6 +4078,26 @@
             "maxItems": 100,
             "title": "Folders",
             "type": "array"
+          },
+          "git": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GitSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jira": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JiraSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "name": {
             "maxLength": 255,
@@ -4050,6 +4151,26 @@
             ],
             "title": "Secret Expires At"
           },
+          "servicenow": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceNowSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sharepoint_server": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharePointServerSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "smb": {
             "anyOf": [
               {
@@ -4066,10 +4187,26 @@
               "website",
               "confluence",
               "database",
-              "smb"
+              "smb",
+              "webdav",
+              "sharepoint_server",
+              "cmis",
+              "git",
+              "servicenow",
+              "jira"
             ],
             "title": "Type",
             "type": "string"
+          },
+          "webdav": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebdavSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "website": {
             "anyOf": [
@@ -4092,6 +4229,16 @@
       "ConnectedUpdate": {
         "additionalProperties": false,
         "properties": {
+          "cmis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CmisSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "confluence": {
             "anyOf": [
               {
@@ -4127,6 +4274,26 @@
             ],
             "title": "Folders"
           },
+          "git": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GitSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jira": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JiraSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "s3": {
             "anyOf": [
               {
@@ -4137,10 +4304,40 @@
               }
             ]
           },
+          "servicenow": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceNowSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sharepoint_server": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharePointServerSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "smb": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/SmbSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "webdav": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebdavSettings"
               },
               {
                 "type": "null"
@@ -4164,6 +4361,16 @@
       "ConnectionOut": {
         "description": "Connection settings without the secret; folder readers, the last test and what the\nlast sync could not map.",
         "properties": {
+          "cmis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CmisSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "confluence": {
             "anyOf": [
               {
@@ -4191,9 +4398,29 @@
             "title": "Folders",
             "type": "array"
           },
+          "git": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GitSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "has_secret": {
             "title": "Has Secret",
             "type": "boolean"
+          },
+          "jira": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JiraSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "last_test": {
             "anyOf": [
@@ -4240,6 +4467,26 @@
             ],
             "title": "Secret Last4"
           },
+          "servicenow": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceNowSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sharepoint_server": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharePointServerSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "smb": {
             "anyOf": [
               {
@@ -4256,6 +4503,16 @@
             },
             "title": "Unmapped",
             "type": "array"
+          },
+          "webdav": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WebdavSettings"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "website": {
             "anyOf": [
@@ -4274,6 +4531,12 @@
           "confluence",
           "database",
           "smb",
+          "webdav",
+          "sharepoint_server",
+          "cmis",
+          "git",
+          "servicenow",
+          "jira",
           "folders",
           "unmapped",
           "has_secret",
@@ -5138,6 +5401,40 @@
         "title": "DocumentStatus",
         "type": "string"
       },
+      "DocumentSummary": {
+        "properties": {
+          "by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Status",
+            "type": "object"
+          },
+          "chunks": {
+            "title": "Chunks",
+            "type": "integer"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorGroup"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "by_status",
+          "chunks",
+          "errors"
+        ],
+        "title": "DocumentSummary",
+        "type": "object"
+      },
       "DocumentView": {
         "properties": {
           "has_original": {
@@ -5465,6 +5762,24 @@
           "target_id"
         ],
         "title": "EntryRow",
+        "type": "object"
+      },
+      "ErrorGroup": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "error": {
+            "title": "Error",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "count"
+        ],
+        "title": "ErrorGroup",
         "type": "object"
       },
       "EvalCaseOrigin": {
@@ -6471,6 +6786,67 @@
           }
         },
         "title": "GenerationSpec",
+        "type": "object"
+      },
+      "GitSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "base_url": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "branch": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch"
+          },
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "provider": {
+            "default": "github",
+            "enum": [
+              "github",
+              "gitlab"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "repositories": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Repositories",
+            "type": "array"
+          }
+        },
+        "required": [
+          "repositories"
+        ],
+        "title": "GitSettings",
         "type": "object"
       },
       "GovRef": {
@@ -8988,6 +9364,76 @@
         "title": "IssueStatus",
         "type": "string"
       },
+      "JiraSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "base_url": {
+            "maxLength": 1024,
+            "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+            "title": "Base Url",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 320,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "flavour": {
+            "default": "cloud",
+            "enum": [
+              "cloud",
+              "datacenter"
+            ],
+            "title": "Flavour",
+            "type": "string"
+          },
+          "include_comments": {
+            "default": true,
+            "title": "Include Comments",
+            "type": "boolean"
+          },
+          "include_secured": {
+            "default": false,
+            "title": "Include Secured",
+            "type": "boolean"
+          },
+          "jql": {
+            "default": "statusCategory = Done",
+            "maxLength": 2000,
+            "title": "Jql",
+            "type": "string"
+          },
+          "max_issues": {
+            "default": 5000,
+            "maximum": 50000.0,
+            "minimum": 1.0,
+            "title": "Max Issues",
+            "type": "integer"
+          },
+          "projects": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Projects",
+            "type": "array"
+          }
+        },
+        "required": [
+          "base_url",
+          "projects"
+        ],
+        "title": "JiraSettings",
+        "type": "object"
+      },
       "JobOut": {
         "properties": {
           "attempts": {
@@ -10394,6 +10840,13 @@
       },
       "Overview": {
         "properties": {
+          "access": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewGrant"
+            },
+            "title": "Access",
+            "type": "array"
+          },
           "canary_percent": {
             "title": "Canary Percent",
             "type": "integer"
@@ -10432,6 +10885,13 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "knowledge_sources": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewSource"
+            },
+            "title": "Knowledge Sources",
+            "type": "array"
           },
           "last_synced_at": {
             "anyOf": [
@@ -10478,8 +10938,18 @@
             ],
             "title": "Owner"
           },
+          "ratings_30d": {
+            "default": 0,
+            "title": "Ratings 30D",
+            "type": "integer"
+          },
           "requests_7d": {
             "title": "Requests 7D",
+            "type": "integer"
+          },
+          "requests_prev_7d": {
+            "default": 0,
+            "title": "Requests Prev 7D",
             "type": "integer"
           },
           "roles": {
@@ -10499,6 +10969,13 @@
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "tool_list": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewTool"
+            },
+            "title": "Tool List",
+            "type": "array"
           },
           "tools": {
             "title": "Tools",
@@ -10529,6 +11006,29 @@
           "tools"
         ],
         "title": "Overview",
+        "type": "object"
+      },
+      "OverviewGrant": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "role"
+        ],
+        "title": "OverviewGrant",
         "type": "object"
       },
       "OverviewOut": {
@@ -10620,6 +11120,82 @@
           "can_post_notice"
         ],
         "title": "OverviewOut",
+        "type": "object"
+      },
+      "OverviewSource": {
+        "properties": {
+          "documents": {
+            "title": "Documents",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_synced_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Synced At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "status",
+          "documents",
+          "last_synced_at"
+        ],
+        "title": "OverviewSource",
+        "type": "object"
+      },
+      "OverviewTool": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "knowledge": {
+            "title": "Knowledge",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "server": {
+            "title": "Server",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "server",
+          "knowledge"
+        ],
+        "title": "OverviewTool",
         "type": "object"
       },
       "PanelOut": {
@@ -11077,6 +11653,162 @@
         ],
         "title": "PiiAction",
         "type": "string"
+      },
+      "PipelineRow": {
+        "description": "One chatbot's pipeline on the Pipelines page: what runs, and the draft's state.",
+        "properties": {
+          "answer_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Model"
+          },
+          "canary_percent": {
+            "title": "Canary Percent",
+            "type": "integer"
+          },
+          "custom_flow": {
+            "title": "Custom Flow",
+            "type": "boolean"
+          },
+          "default_mode": {
+            "title": "Default Mode",
+            "type": "string"
+          },
+          "documents": {
+            "title": "Documents",
+            "type": "boolean"
+          },
+          "draft_changes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Changes"
+          },
+          "draft_problems": {
+            "title": "Draft Problems",
+            "type": "integer"
+          },
+          "draft_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Version"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "if_ungrounded": {
+            "title": "If Ungrounded",
+            "type": "string"
+          },
+          "live_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Live Version"
+          },
+          "modes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "rerank_top_n": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rerank Top N"
+          },
+          "search_type": {
+            "title": "Search Type",
+            "type": "string"
+          },
+          "sources": {
+            "title": "Sources",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tools": {
+            "title": "Tools",
+            "type": "integer"
+          },
+          "top_k": {
+            "title": "Top K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "live_version",
+          "published_at",
+          "draft_version",
+          "draft_changes",
+          "draft_problems",
+          "canary_percent",
+          "answer_model",
+          "modes",
+          "default_mode",
+          "documents",
+          "search_type",
+          "top_k",
+          "rerank_top_n",
+          "sources",
+          "tools",
+          "if_ungrounded",
+          "custom_flow"
+        ],
+        "title": "PipelineRow",
+        "type": "object"
       },
       "PipelineSpec": {
         "additionalProperties": false,
@@ -12037,6 +12769,19 @@
           "summary"
         ],
         "title": "RequestRow",
+        "type": "object"
+      },
+      "Requeued": {
+        "properties": {
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "queued"
+        ],
+        "title": "Requeued",
         "type": "object"
       },
       "RerankFallback": {
@@ -14926,6 +15671,49 @@
         "title": "ServerStatusIn",
         "type": "object"
       },
+      "ServiceNowSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "include_restricted": {
+            "default": false,
+            "title": "Include Restricted",
+            "type": "boolean"
+          },
+          "instance_url": {
+            "maxLength": 1024,
+            "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "knowledge_bases": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Knowledge Bases",
+            "type": "array"
+          },
+          "max_articles": {
+            "default": 10000,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Articles",
+            "type": "integer"
+          },
+          "username": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "instance_url",
+          "username"
+        ],
+        "title": "ServiceNowSettings",
+        "type": "object"
+      },
       "SessionInfo": {
         "properties": {
           "signed_in": {
@@ -15244,6 +16032,62 @@
           "unmapped"
         ],
         "title": "SharePointOut",
+        "type": "object"
+      },
+      "SharePointServerSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "auth": {
+            "default": "ntlm",
+            "enum": [
+              "ntlm",
+              "basic"
+            ],
+            "title": "Auth",
+            "type": "string"
+          },
+          "group_map": {
+            "additionalProperties": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Group Map",
+            "type": "object"
+          },
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "libraries": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Libraries",
+            "type": "array"
+          },
+          "site_url": {
+            "maxLength": 1024,
+            "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+            "title": "Site Url",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "site_url",
+          "username"
+        ],
+        "title": "SharePointServerSettings",
         "type": "object"
       },
       "SharePointSettings": {
@@ -15743,7 +16587,13 @@
           "s3",
           "website",
           "database",
-          "upload"
+          "upload",
+          "webdav",
+          "sharepoint_server",
+          "cmis",
+          "git",
+          "servicenow",
+          "jira"
         ],
         "title": "SourceType",
         "type": "string"
@@ -17251,6 +18101,46 @@
           "once_per"
         ],
         "title": "WatcherTrigger",
+        "type": "object"
+      },
+      "WebdavSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "base_url": {
+            "maxLength": 1024,
+            "pattern": "^https?://[^/\\s]+(/\\S*)?$",
+            "title": "Base Url",
+            "type": "string"
+          },
+          "flavour": {
+            "default": "nextcloud",
+            "enum": [
+              "nextcloud",
+              "generic"
+            ],
+            "title": "Flavour",
+            "type": "string"
+          },
+          "include_paths": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include Paths",
+            "type": "array"
+          },
+          "username": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base_url",
+          "username"
+        ],
+        "title": "WebdavSettings",
         "type": "object"
       },
       "WebsiteSettings": {
@@ -20157,6 +21047,31 @@
           }
         },
         "summary": "Chatbot cards for the Chatbots page",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/pipelines": {
+      "get": {
+        "operationId": "pipelines_v1_admin_chatbots_pipelines_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PipelineRow"
+                  },
+                  "title": "Response Pipelines V1 Admin Chatbots Pipelines Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pipelines of the chatbots the caller may see",
         "tags": [
           "admin: chatbots"
         ]
@@ -25713,6 +26628,38 @@
               "title": "Offset",
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
           }
         ],
         "responses": {
@@ -25797,6 +26744,92 @@
           }
         },
         "summary": "Upload files (scanned, then indexed)",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/documents/reindex-failed": {
+      "post": {
+        "operationId": "reindex_failed_v1_admin_sources__source_id__documents_reindex_failed_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requeued"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Parse and index every failed document again",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/documents/summary": {
+      "get": {
+        "operationId": "documents_summary_v1_admin_sources__source_id__documents_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Counts of a source's documents",
         "tags": [
           "admin: sources"
         ]

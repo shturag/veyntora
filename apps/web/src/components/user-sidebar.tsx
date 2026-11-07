@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import type { Me } from "@/lib/session";
+import type { SidebarLayout } from "@/lib/sidebar-layout";
 import { initialsOf } from "@/lib/initials";
 
 import { AccountMenu } from "./account-menu";
@@ -43,14 +44,19 @@ const MENU: { href: string; key: string; icon: LucideIcon }[] = [
  * The user app's left sidebar (prototype: Home.html): the menu stays put; the most recent
  * chats scroll under it, above the account. Both sections fold.
  */
+/** The chat sidebar's width: dragged between these (long chat titles need room). */
+export const CHAT_SIDEBAR = { id: "chat", min: 232, max: 420, initial: 272 };
+
 export function UserSidebar({
   me,
   recent,
   unread = 0,
+  layout,
 }: {
   me: Me;
   recent: Recent[];
   unread?: number;
+  layout: SidebarLayout;
 }) {
   const t = useTranslations();
   return (
@@ -58,10 +64,22 @@ export function UserSidebar({
       label={t("nav.main")}
       menuLabel={t("nav.openMenu")}
       closeLabel={t("nav.closeMenu")}
-      className="border-line bg-surface min-[901px]:w-[272px] min-[901px]:border-r"
+      sizing={{
+        ...CHAT_SIDEBAR,
+        ...layout,
+        collapsible: false,
+        labels: { resize: t("nav.resize"), collapse: t("nav.collapse"), expand: t("nav.expand") },
+      }}
+      className="border-line bg-surface min-[901px]:border-r"
       top={
         <>
-          <BrandLogo height={30} />
+          <Link
+            href="/home"
+            aria-label={t("nav.homeLink")}
+            className="-m-1 self-start rounded-md p-1 no-underline hover:bg-sunken"
+          >
+            <BrandLogo height={30} decorative />
+          </Link>
           <Link
             href="/home"
             className="flex h-10 items-center justify-center gap-2 rounded-md border border-line-strong bg-surface text-sm font-medium text-fg no-underline hover:bg-sunken hover:text-fg max-[900px]:hidden"

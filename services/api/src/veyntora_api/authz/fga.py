@@ -220,7 +220,3 @@ def bootstrap_tuples(mapping: dict[str, Any]) -> list[Tuple]:
 
 def user_ref(user_id: object) -> str:
     return f"user:{user_id}"
-
-
-def group_member_ref(group_id: object) -> str:
-    return f"group:{group_id}#member"

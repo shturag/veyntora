@@ -1139,3 +1139,49 @@ async def test_a_source_opened_from_an_answer_leads_back_to_its_chat(rag: Rag) -
     someone = Principal(uuid4(), "sub-y", None, "Y", None, "session")
     with pytest.raises(Exception, match="not found"):
         await chat_router.answer_thread(answer_msg.id, someone, db)
+
+
+async def test_a_draft_that_copies_live_has_nothing_to_publish(rag: Rag) -> None:
+    from veyntora_api.routers import admin_chatbots  # noqa: PLC0415
+
+    db = rag.w.db
+    # Publishing starts a new draft that is a copy of what went live.
+    assert await admin_chatbots._draft_changes(db, rag.bot, await bots.draft_of(db, rag.bot)) == 0
+    spec = rag.w.spec()
+    spec.generation.max_answer_tokens = 512
+    await bots.save_draft(db, CTX, rag.bot, spec, expected_version=None)
+    draft = await bots.draft_of(db, rag.bot)
+    assert await admin_chatbots._draft_changes(db, rag.bot, draft) == 1
+
+
+async def test_a_sources_documents_are_counted_filtered_and_grouped_by_error(rag: Rag) -> None:
+    from veyntora_api.db.models.knowledge import Document, DocumentStatus  # noqa: PLC0415
+    from veyntora_api.routers import admin_sources  # noqa: PLC0415
+
+    db, sid = rag.w.db, rag.source.id
+    for n in range(3):
+        db.add(
+            Document(
+                source_id=sid,
+                path=f"page-{n}.html",
+                title=f"Page {n}",
+                status=DocumentStatus.FAILED,
+                error="Docling returned HTTP 401" if n < 2 else "Timeout",
+            )
+        )
+    await db.flush()
+    summary = await admin_sources.documents_summary(sid, None, db)  # type: ignore[arg-type]
+    assert summary.by_status == {"indexed": 1, "failed": 3} and summary.total == 4
+    assert [(e.error, e.count) for e in summary.errors] == [
+        ("Docling returned HTTP 401", 2),
+        ("Timeout", 1),
+    ]
+    failed = await admin_sources.list_documents(
+        sid,
+        None,
+        db,
+        status_filter=DocumentStatus.FAILED,  # type: ignore[arg-type]
+    )
+    assert len(failed) == 3
+    found = await admin_sources.list_documents(sid, None, db, q="page-1")  # type: ignore[arg-type]
+    assert [d.path for d in found] == ["page-1.html"]

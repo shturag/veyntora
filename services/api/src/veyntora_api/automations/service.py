@@ -27,7 +27,6 @@ from veyntora_spec.automation import (
     AgentStep,
     ApprovalStep,
     AutomationSpec,
-    Autonomy,
     FileTrigger,
     NotifyChannel,
     NotifyStep,
@@ -491,7 +490,3 @@ async def run_now(
         after={"run_id": str(run.id), "dry_run": dry_run},
     )
     return run
-
-
-def autonomy_of(row: Automation) -> Autonomy:
-    return spec_of(row).safety.autonomy
