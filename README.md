@@ -49,6 +49,8 @@ open http://localhost:3000        # set up PostgreSQL, Valkey, S3, OpenBao, Open
 
 No services of your own yet? `make env-ci && make up` starts throwaway copies too. Then add a language model, an embedding model, a vector store and a document parser under **Admin → Providers & keys**, connect a data source and create a chatbot.
 
+**Installing for a team or company?** Follow [docs/installation.md](docs/installation.md): requirements, a trial on your computer, a server with Docker Compose, Kubernetes, first steps, updates and backups.
+
 More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md), [docs/runbooks/infrastructure.md](docs/runbooks/infrastructure.md) and [docs/runbooks/external-services.md](docs/runbooks/external-services.md).
 
 ## Layout
@@ -71,7 +73,7 @@ More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md), [docs/runbooks
 | `deploy/openfga` | Authorization model, tests, bootstrap mapping |
 | `deploy/observability` | Prometheus scrape config and a Grafana dashboard for your own monitoring |
 | `design/prototype` | UI reference (read-only) |
-| `docs` | [ADRs](docs/adr/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md), prototype differences |
+| `docs` | [Installation](docs/installation.md), [ADRs](docs/adr/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md), prototype differences |
 
 ## Development
 
