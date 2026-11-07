@@ -42,7 +42,7 @@ from veyntora_api.agent import tools as agent_tools
 from veyntora_api.agent.tools import BoundTool
 from veyntora_api.rag import grounding, pipeline
 from veyntora_api.rag.guard import Masker, check_input, check_output
-from veyntora_api.rag.pipeline import NO_ANSWER_TEXT, Answer, RunContext, Source
+from veyntora_api.rag.pipeline import Answer, RunContext, Source, no_answer_text
 from veyntora_api.rag.tracing import Trace
 
 MAX_TRANSITIONS = 100
@@ -119,6 +119,7 @@ def _sources(fs: FlowState) -> list[Source]:
             text=s["text"],
             page=s.get("page"),
             score=float(s.get("score") or 0.0),
+            url=str(s.get("url") or ""),
         )
         for s in fs.get("sources", [])
     ]
@@ -362,15 +363,8 @@ async def _tool(env: runner.Env, fs: FlowState, node: FlowNode) -> str | None:
         connect=env.connect,
     )
     fs["approved_for"] = None
-    n = len(fs.get("sources", [])) + 1
-    fs.setdefault("sources", []).append(
-        {
-            "n": n,
-            "kind": "tool",
-            "title": f"{tool.server_name}: {tool.tool_name}",
-            "section": "",
-            "text": outcome.text[:6000],
-        }
+    fs.setdefault("sources", []).extend(
+        agent_tools.tool_sources(tool, outcome, len(fs.get("sources", [])) + 1)
     )
     if tool.external:
         fs["external"] = True
@@ -494,7 +488,7 @@ def after_rejection(spec: PipelineSpec, approval_node: str) -> str | None:
 def result(env: runner.Env, fs: FlowState) -> Answer:
     """The stored answer: blocked or no answer when a check failed or nothing was found."""
     spec = env.ctx.spec
-    no_answer = NO_ANSWER_TEXT.get(fs.get("language", "en"), NO_ANSWER_TEXT["en"])
+    no_answer = no_answer_text(env.ctx.spec, fs.get("language", "en"))
     sources = _sources(fs)
     calls = [
         (UUID(c["instance_id"]) if c.get("instance_id") else None, Usage(c["in"], c["out"]))
@@ -520,5 +514,5 @@ def result(env: runner.Env, fs: FlowState) -> Answer:
     check = grounding.check(answer, [s.text for s in sources])
     base.outcome, base.text = "answered", answer
     base.groundedness = check.score
-    base.cited = [(n, sources[n - 1]) for n in check.cited if sources[n - 1].document_id]
+    base.cited = [(n, sources[n - 1]) for n in check.cited if runner._citable(sources[n - 1])]
     return base

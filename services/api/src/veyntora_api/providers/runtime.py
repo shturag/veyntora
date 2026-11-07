@@ -150,6 +150,11 @@ class Adapters:
         self._own: list[Retrying] = []
         self.rows: dict[UUID, ProviderInstance] = {}
 
+    @property
+    def secrets(self) -> SecretReader:
+        """For runtime calls that need a key of their own (knowledge tools)."""
+        return self._secrets
+
     def served_by(self, instance_id: UUID) -> UUID:
         """The instance that served the last call made through `instance_id`'s adapter: its
         fallback when it is disabled or a call fell back, else itself."""

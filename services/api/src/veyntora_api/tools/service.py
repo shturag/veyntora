@@ -9,6 +9,10 @@
   "no approval" can only be chosen for read tools (no write without approval).
 - A description that reads like instructions to the model is flagged; enabling such a tool
   needs an explicit acknowledgement.
+- Changing where or how a server is reached (address, transport, authentication, hosting)
+  makes it another server as far as review goes: it waits for sign-off again and its tools
+  are off until enabled again. A new name changes nothing else.
+- A server is deleted only when no chatbot or automation names its tools.
 """
 
 from __future__ import annotations
@@ -25,6 +29,9 @@ from veyntora_providers.mcp_client import ToolInfo, instruction_flag
 from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService
 from veyntora_api.core.context import RequestContext
+from veyntora_api.db.models.automations import Approval, ApprovalDecision, Automation
+from veyntora_api.db.models.chatbots import Chatbot, PipelineStatus, PipelineVersion
+from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.identity import Group
 from veyntora_api.db.models.tools import (
     McpAuth,
@@ -40,6 +47,10 @@ from veyntora_api.secrets.openbao import SecretWriter
 
 class ToolsError(ValueError):
     pass
+
+
+class ConfigConflictError(ToolsError):
+    """Refused because of the server's current state or what uses it."""
 
 
 class ServerInput(BaseModel):
@@ -172,6 +183,137 @@ async def set_status(
     if status is McpServerStatus.ACTIVE and row.security_signoff_at is None:
         raise ToolsError("a security reviewer must sign the server off first")
     await ConfigService(db, ctx).update(row, {"status": status}, action="mcp_server.status")
+
+
+_KEYED = frozenset({McpAuth.BEARER, McpAuth.OAUTH_CLIENT})
+
+
+async def update_server(
+    db: AsyncSession,
+    ctx: RequestContext,
+    secrets: SecretWriter | None,
+    row: McpServer,
+    data: ServerInput,
+    *,
+    expected_version: int | None,
+) -> bool:
+    """Change a server's settings. True when it must be signed off and discovered again."""
+    if expected_version is not None and expected_version != row.version:
+        raise ConfigConflictError("the server changed; reload and try again")
+    if data.name != row.name and await db.scalar(
+        sa.select(McpServer.id).where(McpServer.name == data.name, McpServer.id != row.id)
+    ):
+        raise ToolsError(f"a server named {data.name!r} already exists")
+    auth_config = _auth_config(data)
+    url = data.url.rstrip("/")
+    reconnect = (
+        url != row.url
+        or data.transport is not row.transport
+        or data.auth is not row.auth
+        or data.hosting != row.hosting
+        or auth_config != (row.auth_config or {})
+    )
+    needs_key = data.auth in _KEYED
+    # A key belongs to one kind of authentication: switching kinds needs a new one.
+    if needs_key and data.secret is None and (row.secret_ref is None or data.auth is not row.auth):
+        raise ToolsError("this authentication needs a key")
+    changes: dict[str, Any] = {
+        "name": data.name,
+        "url": url,
+        "transport": data.transport,
+        "auth": data.auth,
+        "hosting": data.hosting,
+        "auth_config": auth_config,
+    }
+    if reconnect:
+        changes |= {
+            "status": McpServerStatus.PENDING_REVIEW,
+            "security_signoff_by": None,
+            "security_signoff_at": None,
+            "last_error": None,
+        }
+        await db.execute(
+            sa.update(Tool)
+            .where(Tool.server_id == row.id, Tool.enabled.is_(True))
+            .values(enabled=False, version=Tool.version + 1)
+        )
+    await ConfigService(db, ctx).update(row, changes, action="mcp_server.update")
+    if not needs_key and row.secret_ref is not None:
+        if secrets is None:
+            raise ToolsError("the secret store is not available")
+        await secrets.delete(f"mcp/{row.id}")
+        row.secret_ref, row.secret_last4 = None, None
+        await db.flush()
+    if needs_key and data.secret is not None:
+        await set_server_secret(db, ctx, secrets, row, data.secret)
+    return reconnect
+
+
+async def in_use(db: AsyncSession, row: McpServer) -> list[str]:
+    """Chatbots (draft, live or canary pipeline) and automations that name its tools."""
+    tool_ids = [
+        str(t)
+        for t in (await db.execute(sa.select(Tool.id).where(Tool.server_id == row.id))).scalars()
+    ]
+    if not tool_ids:
+        return []
+    bots = await db.execute(
+        sa.select(Chatbot.name)
+        .join(PipelineVersion, PipelineVersion.chatbot_id == Chatbot.id)
+        .where(
+            PipelineVersion.status.in_(
+                [PipelineStatus.DRAFT, PipelineStatus.LIVE, PipelineStatus.CANARY]
+            ),
+            sa.or_(*(sa.cast(PipelineVersion.spec, sa.Text).contains(t) for t in tool_ids)),
+        )
+        .distinct()
+        .order_by(Chatbot.name)
+    )
+    flows = await db.execute(
+        sa.select(Automation.name)
+        .where(sa.or_(*(sa.cast(Automation.spec, sa.Text).contains(t) for t in tool_ids)))
+        .order_by(Automation.name)
+    )
+    return [
+        *(f"chatbot {n}" for n in bots.scalars()),
+        *(f"automation {n}" for n in flows.scalars()),
+    ]
+
+
+async def delete_server(
+    db: AsyncSession, ctx: RequestContext, secrets: SecretWriter | None, row: McpServer
+) -> None:
+    """Delete a server nobody uses, with its tools, policies and key.
+
+    Past calls and approvals keep their rows without the link; the audit log keeps the rest.
+    """
+    if users := await in_use(db, row):
+        raise ConfigConflictError(f"used by {', '.join(users)}: remove its tools there first")
+    waiting = await db.scalar(
+        sa.select(sa.func.count())
+        .select_from(Approval)
+        .join(Tool, Tool.id == Approval.tool_id)
+        .where(Tool.server_id == row.id, Approval.decision == ApprovalDecision.PENDING)
+    )
+    if waiting:
+        raise ConfigConflictError(
+            f"{waiting} approval request(s) for its tools are still open: decide them first"
+        )
+    if row.secret_ref is not None:
+        if secrets is None:
+            raise ToolsError("the secret store is not available")
+        await secrets.delete(f"mcp/{row.id}")
+    # Data rules that allowed this external server no longer name it.
+    await db.execute(
+        sa.update(GovernanceRule)
+        .where(GovernanceRule.allowed_external_mcp_server_ids.contains([row.id]))
+        .values(
+            allowed_external_mcp_server_ids=sa.func.array_remove(
+                GovernanceRule.allowed_external_mcp_server_ids, row.id
+            )
+        )
+    )
+    await ConfigService(db, ctx).delete(row, action="mcp_server.delete")
 
 
 def _access_from(info: ToolInfo) -> ToolAccess:

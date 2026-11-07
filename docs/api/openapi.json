@@ -105,6 +105,11 @@
             ],
             "title": "Llm Instance Id"
           },
+          "lookup_first": {
+            "default": true,
+            "title": "Lookup First",
+            "type": "boolean"
+          },
           "max_steps": {
             "default": 6,
             "maximum": 50.0,
@@ -3167,7 +3172,7 @@
             "type": "string"
           },
           "draft": {
-            "$ref": "#/components/schemas/VersionOut"
+            "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
           },
           "draft_version": {
             "anyOf": [
@@ -3485,6 +3490,24 @@
           }
         },
         "title": "ChatbotUpdate",
+        "type": "object"
+      },
+      "CheckOut": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "detail"
+        ],
+        "title": "CheckOut",
         "type": "object"
       },
       "ChunkMetadata": {
@@ -4261,6 +4284,65 @@
         "title": "ConnectionOut",
         "type": "object"
       },
+      "ConsoleServiceOut": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "health_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Detail"
+          },
+          "health_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Ok"
+          },
+          "href": {
+            "title": "Href",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "configured",
+          "address",
+          "health_ok",
+          "health_detail",
+          "href"
+        ],
+        "title": "ConsoleServiceOut",
+        "type": "object"
+      },
       "ConversationOut": {
         "properties": {
           "chatbot_id": {
@@ -4327,6 +4409,77 @@
           "title"
         ],
         "title": "ConversationRename",
+        "type": "object"
+      },
+      "CoreServiceOut": {
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "health_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Detail"
+          },
+          "health_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Ok"
+          },
+          "key": {
+            "enum": [
+              "postgres",
+              "valkey",
+              "s3",
+              "openbao",
+              "openfga",
+              "keycloak"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "secrets": {
+            "items": {
+              "$ref": "#/components/schemas/SecretOut"
+            },
+            "title": "Secrets",
+            "type": "array"
+          },
+          "settings": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settings"
+          }
+        },
+        "required": [
+          "key",
+          "address",
+          "settings",
+          "secrets",
+          "health_ok",
+          "health_detail"
+        ],
+        "title": "CoreServiceOut",
         "type": "object"
       },
       "Count": {
@@ -8277,6 +8430,84 @@
         "title": "ImportOut",
         "type": "object"
       },
+      "InfrastructureOut": {
+        "properties": {
+          "console": {
+            "items": {
+              "$ref": "#/components/schemas/ConsoleServiceOut"
+            },
+            "title": "Console",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/veyntora_api__routers__admin_infrastructure__VersionOut"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "file",
+              "env"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "saved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saved At"
+          },
+          "saved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saved By"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/CoreServiceOut"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "mode",
+          "version",
+          "saved_at",
+          "saved_by",
+          "services",
+          "console",
+          "history"
+        ],
+        "title": "InfrastructureOut",
+        "type": "object"
+      },
       "IngestJobKind": {
         "enum": [
           "sync",
@@ -11889,6 +12120,19 @@
         "title": "RerankSpec",
         "type": "object"
       },
+      "RestoreIn": {
+        "properties": {
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "RestoreIn",
+        "type": "object"
+      },
       "RestoreInput": {
         "additionalProperties": false,
         "properties": {
@@ -12034,6 +12278,15 @@
             "minimum": 1.0,
             "title": "Sparse Min Term Match",
             "type": "integer"
+          },
+          "tool_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Tool Ids",
+            "type": "array"
           },
           "top_k": {
             "default": 20,
@@ -13580,6 +13833,45 @@
         "title": "Safety",
         "type": "object"
       },
+      "SaveIn": {
+        "properties": {
+          "openbao_admin_token": {
+            "anyOf": [
+              {
+                "format": "password",
+                "maxLength": 4096,
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openbao Admin Token"
+          },
+          "secrets": {
+            "additionalProperties": {
+              "format": "password",
+              "maxLength": 4096,
+              "type": "string",
+              "writeOnly": true
+            },
+            "default": {},
+            "title": "Secrets",
+            "type": "object"
+          },
+          "settings": {
+            "additionalProperties": true,
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "settings"
+        ],
+        "title": "SaveIn",
+        "type": "object"
+      },
       "SavedOut": {
         "properties": {
           "answer": {
@@ -13795,6 +14087,48 @@
         ],
         "title": "ScanStatus",
         "type": "string"
+      },
+      "ScannerOut": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "address",
+          "required"
+        ],
+        "title": "ScannerOut",
+        "type": "object"
+      },
+      "ScannerSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[A-Za-z0-9.-]+:\\d{1,5}$",
+            "title": "Address",
+            "type": "string"
+          }
+        },
+        "required": [
+          "address"
+        ],
+        "title": "ScannerSettings",
+        "type": "object"
       },
       "SchedulePreview": {
         "properties": {
@@ -14023,6 +14357,36 @@
         "title": "SearchType",
         "type": "string"
       },
+      "SecretOut": {
+        "properties": {
+          "last4": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last4"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "set": {
+            "title": "Set",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "set",
+          "last4"
+        ],
+        "title": "SecretOut",
+        "type": "object"
+      },
       "SeriesOut": {
         "properties": {
           "name": {
@@ -14063,6 +14427,17 @@
       },
       "ServerDetail": {
         "properties": {
+          "audience": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audience"
+          },
           "auth": {
             "$ref": "#/components/schemas/McpAuth"
           },
@@ -14223,6 +14598,7 @@
           "token_url",
           "client_id",
           "scopes",
+          "audience",
           "signed_off",
           "signed_off_at",
           "last_discovered_at",
@@ -14341,6 +14717,17 @@
       "ServerOut": {
         "description": "Never contains the key or its OpenBao path.",
         "properties": {
+          "audience": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audience"
+          },
           "auth": {
             "$ref": "#/components/schemas/McpAuth"
           },
@@ -14494,6 +14881,7 @@
           "token_url",
           "client_id",
           "scopes",
+          "audience",
           "signed_off",
           "signed_off_at",
           "last_discovered_at",
@@ -15642,6 +16030,116 @@
         "title": "TemplateOut",
         "type": "object"
       },
+      "TestResult": {
+        "properties": {
+          "advice": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Advice",
+            "type": "array"
+          },
+          "blocks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "chars": {
+            "default": 0,
+            "title": "Chars",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ms"
+          },
+          "ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ok"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/TestSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "title": "TestResult",
+        "type": "object"
+      },
+      "TestSource": {
+        "properties": {
+          "chars": {
+            "title": "Chars",
+            "type": "integer"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "n",
+          "title",
+          "url",
+          "text",
+          "chars"
+        ],
+        "title": "TestSource",
+        "type": "object"
+      },
       "ThreadReply": {
         "properties": {
           "answer": {
@@ -16533,54 +17031,6 @@
         "title": "ValidationError",
         "type": "object"
       },
-      "VersionOut": {
-        "properties": {
-          "change_note": {
-            "title": "Change Note",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "number": {
-            "title": "Number",
-            "type": "integer"
-          },
-          "published_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Published At"
-          },
-          "spec": {
-            "additionalProperties": true,
-            "title": "Spec",
-            "type": "object"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "number",
-          "status",
-          "change_note",
-          "published_at",
-          "spec"
-        ],
-        "title": "VersionOut",
-        "type": "object"
-      },
       "VersionScores": {
         "properties": {
           "gate_passed": {
@@ -16981,6 +17431,59 @@
         "title": "SaveInput",
         "type": "object"
       },
+      "veyntora_api__infra__service__TestIn": {
+        "additionalProperties": false,
+        "description": "One service's settings to try. Passwords left out are the ones in use.",
+        "properties": {
+          "openbao_admin_token": {
+            "anyOf": [
+              {
+                "format": "password",
+                "maxLength": 4096,
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Openbao Admin Token"
+          },
+          "secrets": {
+            "additionalProperties": {
+              "format": "password",
+              "maxLength": 4096,
+              "type": "string",
+              "writeOnly": true
+            },
+            "title": "Secrets",
+            "type": "object"
+          },
+          "service": {
+            "enum": [
+              "postgres",
+              "valkey",
+              "s3",
+              "openbao",
+              "openfga",
+              "keycloak"
+            ],
+            "title": "Service",
+            "type": "string"
+          },
+          "settings": {
+            "additionalProperties": true,
+            "title": "Settings",
+            "type": "object"
+          }
+        },
+        "required": [
+          "service",
+          "settings"
+        ],
+        "title": "TestIn",
+        "type": "object"
+      },
       "veyntora_api__routers__admin_automations__Started": {
         "properties": {
           "run_id": {
@@ -17007,6 +17510,54 @@
           "number"
         ],
         "title": "RollbackInput",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_chatbots__VersionOut": {
+        "properties": {
+          "change_note": {
+            "title": "Change Note",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "spec": {
+            "additionalProperties": true,
+            "title": "Spec",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "change_note",
+          "published_at",
+          "spec"
+        ],
+        "title": "VersionOut",
         "type": "object"
       },
       "veyntora_api__routers__admin_evaluation__FeedbackInput": {
@@ -17127,6 +17678,46 @@
           "finished_at"
         ],
         "title": "RunOut",
+        "type": "object"
+      },
+      "veyntora_api__routers__admin_infrastructure__VersionOut": {
+        "properties": {
+          "changed": {
+            "items": {
+              "enum": [
+                "postgres",
+                "valkey",
+                "s3",
+                "openbao",
+                "openfga",
+                "keycloak"
+              ],
+              "type": "string"
+            },
+            "title": "Changed",
+            "type": "array"
+          },
+          "saved_at": {
+            "format": "date-time",
+            "title": "Saved At",
+            "type": "string"
+          },
+          "saved_by": {
+            "title": "Saved By",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "saved_at",
+          "saved_by",
+          "changed"
+        ],
+        "title": "VersionOut",
         "type": "object"
       },
       "veyntora_api__routers__admin_integrations__SecretInput": {
@@ -17799,6 +18390,18 @@
           "scope"
         ],
         "title": "ShareInput",
+        "type": "object"
+      },
+      "veyntora_api__tools__testing__TestIn": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "additionalProperties": true,
+            "title": "Arguments",
+            "type": "object"
+          }
+        },
+        "title": "TestIn",
         "type": "object"
       }
     }
@@ -20356,7 +20959,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/VersionOut"
+                    "$ref": "#/components/schemas/veyntora_api__routers__admin_chatbots__VersionOut"
                   },
                   "title": "Response List Versions V1 Admin Chatbots  Bot Id  Pipeline Versions Get",
                   "type": "array"
@@ -22739,6 +23342,169 @@
         ]
       }
     },
+    "/v1/admin/infrastructure": {
+      "get": {
+        "operationId": "get_infrastructure_v1_admin_infrastructure_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The services Veyntora runs on, their state and earlier versions",
+        "tags": [
+          "admin: infrastructure"
+        ]
+      }
+    },
+    "/v1/admin/infrastructure/restore": {
+      "post": {
+        "operationId": "restore_infrastructure_v1_admin_infrastructure_restore_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Go back to an earlier version; Veyntora restarts with it",
+        "tags": [
+          "admin: infrastructure"
+        ]
+      }
+    },
+    "/v1/admin/infrastructure/test": {
+      "post": {
+        "operationId": "test_infrastructure_v1_admin_infrastructure_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__infra__service__TestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Test a service's settings before saving them",
+        "tags": [
+          "admin: infrastructure"
+        ]
+      }
+    },
+    "/v1/admin/infrastructure/{key}": {
+      "put": {
+        "operationId": "save_infrastructure_v1_admin_infrastructure__key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "enum": [
+                "postgres",
+                "valkey",
+                "s3",
+                "openbao",
+                "openfga",
+                "keycloak"
+              ],
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfrastructureOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a service's settings; Veyntora restarts with them",
+        "tags": [
+          "admin: infrastructure"
+        ]
+      }
+    },
     "/v1/admin/integrations": {
       "get": {
         "operationId": "list_integrations_v1_admin_integrations_get",
@@ -24394,6 +25160,126 @@
         ]
       }
     },
+    "/v1/admin/scanner": {
+      "delete": {
+        "operationId": "delete_scanner_v1_admin_scanner_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Remove the virus scanner",
+        "tags": [
+          "admin: data sources"
+        ]
+      },
+      "get": {
+        "operationId": "get_scanner_v1_admin_scanner_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The virus scanner",
+        "tags": [
+          "admin: data sources"
+        ]
+      },
+      "put": {
+        "operationId": "put_scanner_v1_admin_scanner_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScannerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set the virus scanner's address",
+        "tags": [
+          "admin: data sources"
+        ]
+      }
+    },
+    "/v1/admin/scanner/test": {
+      "post": {
+        "operationId": "test_scanner_v1_admin_scanner_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScannerSettings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Check that the scanner answers",
+        "tags": [
+          "admin: data sources"
+        ]
+      }
+    },
     "/v1/admin/sources": {
       "get": {
         "operationId": "list_sources_v1_admin_sources_get",
@@ -25333,6 +26219,40 @@
       }
     },
     "/v1/admin/tools/servers/{server_id}": {
+      "delete": {
+        "operationId": "delete_server_v1_admin_tools_servers__server_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a server no chatbot or automation uses, with its tools and key",
+        "tags": [
+          "admin: tools"
+        ]
+      },
       "get": {
         "operationId": "get_server_v1_admin_tools_servers__server_id__get",
         "parameters": [
@@ -25421,6 +26341,73 @@
           }
         },
         "summary": "Enable or disable a server",
+        "tags": [
+          "admin: tools"
+        ]
+      },
+      "put": {
+        "operationId": "update_server_v1_admin_tools_servers__server_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "server_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Server Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change a server's settings (a new address or authentication needs sign-off again)",
         "tags": [
           "admin: tools"
         ]
@@ -25565,6 +26552,49 @@
         ]
       }
     },
+    "/v1/admin/tools/tests/{test_id}": {
+      "get": {
+        "operationId": "tool_test_result_v1_admin_tools_tests__test_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "test_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Test Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The result of a tool test (only for who ran it)",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
     "/v1/admin/tools/{tool_id}": {
       "patch": {
         "operationId": "update_tool_v1_admin_tools__tool_id__patch",
@@ -25629,6 +26659,59 @@
           }
         },
         "summary": "Classify, enable and set the policy of a tool",
+        "tags": [
+          "admin: tools"
+        ]
+      }
+    },
+    "/v1/admin/tools/{tool_id}/test": {
+      "post": {
+        "operationId": "test_tool_v1_admin_tools__tool_id__test_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tool_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Tool Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/veyntora_api__tools__testing__TestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Try a read tool once (runs in a worker; poll the result)",
         "tags": [
           "admin: tools"
         ]

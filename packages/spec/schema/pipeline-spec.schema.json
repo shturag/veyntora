@@ -16,6 +16,11 @@
           "default": null,
           "title": "Llm Instance Id"
         },
+        "lookup_first": {
+          "default": true,
+          "title": "Lookup First",
+          "type": "boolean"
+        },
         "max_steps": {
           "default": 6,
           "maximum": 50,
@@ -687,6 +692,15 @@
           "minimum": 1,
           "title": "Sparse Min Term Match",
           "type": "integer"
+        },
+        "tool_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxItems": 5,
+          "title": "Tool Ids",
+          "type": "array"
         },
         "top_k": {
           "default": 20,

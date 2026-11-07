@@ -42,7 +42,7 @@ from veyntora_workers import (
 )
 from veyntora_workers.ingest import purge_deleted_sources, requeue_stuck, run_pending
 from veyntora_workers.integration_tests import run_queued_integration_tests
-from veyntora_workers.mcp_discovery import run_queued_discovery
+from veyntora_workers.mcp_discovery import run_queued_discovery, run_queued_tool_tests
 from veyntora_workers.provider_tests import run_queued_provider_tests
 from veyntora_workers.sources import run_due_schedules, run_queued_source_tests
 
@@ -69,6 +69,7 @@ app.conf.update(
             "schedule": timedelta(seconds=5),
         },
         "mcp-discovery": {"task": "veyntora.mcp_discovery", "schedule": timedelta(seconds=5)},
+        "mcp-tool-tests": {"task": "veyntora.mcp_tool_tests", "schedule": timedelta(seconds=2)},
         "groups-refresh": {"task": "veyntora.groups_refresh", "schedule": timedelta(hours=1)},
         # Ticks that wait in the broker longer than the interval are dropped, not piled up.
         "ingest": {
@@ -198,6 +199,11 @@ def groups_refresh() -> None:
 @app.task(name="veyntora.mcp_discovery")
 def mcp_discovery() -> int:
     return _run(run_queued_discovery(settings))
+
+
+@app.task(name="veyntora.mcp_tool_tests")
+def mcp_tool_tests() -> int:
+    return _run(run_queued_tool_tests(settings))
 
 
 @app.task(name="veyntora.ingest")

@@ -65,6 +65,53 @@ class BoundTool:
     rate_limit_per_minute: int | None
 
 
+# Tool results become sources whose chunk id starts with this; they are cited like web pages.
+TOOL_SOURCE = "tool:"
+# What one tool call may put in front of the model, over all its parts.
+RESULT_CHARS = 6000
+
+
+def tool_sources(
+    tool: BoundTool, outcome: mcp_client.ToolOutcome, start: int
+) -> list[dict[str, Any]]:
+    """The call's result as numbered sources from `start`: one per page or passage it returned.
+
+    A result without parts (an error, a rate limit) is one source with its text; an empty
+    result is no source.
+    """
+    where = f"{tool.server_name} · {tool.tool_name}"
+    parts = [p for p in outcome.parts if p.text.strip()]
+    if not parts and outcome.text.strip():
+        parts = [mcp_client.ToolPart(outcome.text)]
+    out: list[dict[str, Any]] = []
+    budget = RESULT_CHARS
+    for k, part in enumerate(parts):
+        if budget <= 0:
+            break
+        text = part.text[:budget]
+        budget -= len(text)
+        out.append(
+            {
+                "n": start + k,
+                "kind": "tool",
+                "chunk_id": f"{TOOL_SOURCE}{tool.tool_id}:{k + 1}",
+                "title": part.title or where,
+                "section": where,
+                "text": text,
+                "url": part.url,
+            }
+        )
+    return out
+
+
+def sources_text(sources: list[dict[str, Any]]) -> str:
+    """How tool sources are shown to the model: each with its number, title and address."""
+    return "\n\n".join(
+        f"[{s['n']}] {s['title']}" + (f" ({s['url']})" if s["url"] else "") + f"\n{s['text']}"
+        for s in sources
+    )
+
+
 SEARCH_SPEC = ToolSpec(
     name=SEARCH,
     description=(
@@ -91,6 +138,24 @@ def _offered_name(server: str, tool: str, taken: set[str]) -> str:
 
 async def offered_tools(db: AsyncSession, ctx: RunContext, group_ids: set[str]) -> list[BoundTool]:
     bound = [b.tool_id for b in ctx.spec.agent.tools if b.enabled]
+    # The knowledge tools are the agent's to search as well.
+    bound += [t for t in ctx.spec.retrieval.tool_ids if t not in bound]
+    return await _usable(db, ctx, group_ids, bound)
+
+
+async def knowledge_tools(
+    db: AsyncSession, ctx: RunContext, group_ids: set[str]
+) -> list[BoundTool]:
+    """The chatbot's knowledge tools this asker may use: read-only and without approval."""
+    tools = await _usable(db, ctx, group_ids, list(ctx.spec.retrieval.tool_ids))
+    return [t for t in tools if t.access is ToolAccess.READ and not t.requires_approval]
+
+
+async def _usable(
+    db: AsyncSession, ctx: RunContext, group_ids: set[str], bound: list[UUID]
+) -> list[BoundTool]:
+    """Bound tools that are enabled, not destructive, on an active server, allowed by the
+    data rule (external servers) and open to the asker (caller groups)."""
     if not bound:
         return []
     rule = await db.scalar(
@@ -144,6 +209,54 @@ async def offered_tools(db: AsyncSession, ctx: RunContext, group_ids: set[str]) 
             )
         )
     return out
+
+
+def query_argument(tool: BoundTool) -> str | None:
+    """Where a knowledge tool takes the question: its only required text input, or `query`."""
+    props = tool.input_schema.get("properties") or {}
+    required = [
+        k
+        for k in tool.input_schema.get("required") or []
+        if (props.get(k) or {}).get("type") == "string"
+    ]
+    if len(required) == 1:
+        return str(required[0])
+    return "query" if (props.get("query") or {}).get("type") == "string" else None
+
+
+async def search_with_tools(
+    db: AsyncSession,
+    ctx: RunContext,
+    secrets: SecretReader,
+    query: str,
+    *,
+    masked_query: str,
+    start: int,
+    connect: mcp_client.Connect | None = None,
+) -> tuple[list[dict[str, Any]], bool]:
+    """Search every knowledge tool with the question: (sources numbered from `start`, whether
+    an external server was asked). External servers get `masked_query`."""
+    group_ids = {p.removeprefix("group:") for p in ctx.principals if p.startswith("group:")}
+    found: list[dict[str, Any]] = []
+    external = False
+    # One after the other: the calls share the session that logs them.
+    for tool in await knowledge_tools(db, ctx, group_ids):
+        argument = query_argument(tool)
+        if argument is None or await rate_limited(db, tool, ctx.user_id):
+            continue
+        outcome = await call_mcp(
+            db,
+            tool,
+            {argument: masked_query if tool.external else query},
+            user_id=ctx.user_id,
+            run_id=None,
+            secrets=secrets,
+            connect=connect or mcp_client.connect,
+        )
+        external |= tool.external
+        if not outcome.is_error:
+            found += tool_sources(tool, outcome, start + len(found))
+    return found, external
 
 
 def specs(tools: list[BoundTool]) -> list[ToolSpec]:

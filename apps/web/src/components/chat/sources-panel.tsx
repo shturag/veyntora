@@ -7,12 +7,13 @@ import {
   PanelRightClose,
   PanelRightOpen,
   Paperclip,
+  Wrench,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 
-import { plainText, type CitationMeta } from "@/lib/chat";
+import { isToolSource, plainText, type CitationMeta } from "@/lib/chat";
 
 const FOLDED = "vey.sources.folded";
 
@@ -117,10 +118,12 @@ export function SourcesPanel({
 
 function SourceCard({ citation: c, messageId }: { citation: CitationMeta; messageId?: string }) {
   const t = useTranslations("chat");
-  const kind = c.url ? "web" : c.document_id ? "document" : "file";
-  const Icon = kind === "web" ? Globe : kind === "file" ? Paperclip : FileText;
+  const kind = isToolSource(c) ? "tool" : c.url ? "web" : c.document_id ? "document" : "file";
+  const Icon = { web: Globe, file: Paperclip, document: FileText, tool: Wrench }[kind];
   const title = plainText(c.title);
-  const where = [plainText(c.section), c.page ? t("page", { page: c.page }) : null]
+  // A tool's name is shown as it is ("search_knowledge_base" is not Markdown).
+  const section = kind === "tool" ? c.section : plainText(c.section);
+  const where = [section, c.page ? t("page", { page: c.page }) : null]
     .filter(Boolean)
     .join(" · ");
   return (
@@ -152,7 +155,7 @@ function SourceCard({ citation: c, messageId }: { citation: CitationMeta; messag
         >
           {t("openDocument")}
         </Link>
-      ) : kind === "web" && c.url ? (
+      ) : c.url ? (
         <a
           href={c.url}
           target="_blank"
@@ -163,7 +166,9 @@ function SourceCard({ citation: c, messageId }: { citation: CitationMeta; messag
           <ExternalLink aria-hidden className="size-3" />
         </a>
       ) : (
-        <span className="text-xs text-fg-muted">{t("fromAttachedFile")}</span>
+        <span className="text-xs text-fg-muted">
+          {kind === "tool" ? t("fromTool") : t("fromAttachedFile")}
+        </span>
       )}
     </article>
   );

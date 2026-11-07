@@ -27,7 +27,9 @@ export type Field =
   | { name: string; kind: "list" }
   | { name: string; kind: "multi"; options: readonly string[]; locked?: readonly string[] }
   // MCP tools bound to the agent: [{tool_id, enabled}], chosen from the enabled tools.
-  | { name: string; kind: "tools" };
+  | { name: string; kind: "tools" }
+  // Knowledge tools (ADR 0035): ids of read-only tools searched with every question.
+  | { name: string; kind: "tool_ids" };
 
 export type Section = {
   key: SectionKey;
@@ -78,6 +80,7 @@ export const SECTIONS: readonly Section[] = [
       { name: "german_compound_splitting", kind: "toggle" },
       { name: "query_rewrite", kind: "toggle" },
       { name: "metadata_filter", kind: "text" },
+      { name: "tool_ids", kind: "tool_ids" },
     ],
   },
   {
@@ -117,6 +120,7 @@ export const SECTIONS: readonly Section[] = [
     fields: [
       { name: "llm_instance_id", kind: "instance", capability: "llm", optional: true },
       { name: "tools", kind: "tools" },
+      { name: "lookup_first", kind: "toggle" },
       { name: "max_steps", kind: "number", min: 1, max: 50 },
       { name: "timeout_seconds", kind: "number", min: 5, max: 3600 },
       { name: "token_budget", kind: "number", min: 1000, max: 2000000, step: 1000 },

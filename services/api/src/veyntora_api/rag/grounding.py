@@ -19,7 +19,49 @@ from dataclasses import dataclass
 
 NO_ANSWER = "NO_ANSWER"
 _CITE = re.compile(r"\[(\d{1,2}(?:\s*,\s*\d{1,2})*)\]")
-_SENTENCE = re.compile(r"(?<=[.!?])\s+|\n+")
+_BREAK = re.compile(r"(?<=[.!?])\s+|\n+")
+# A full stop after these does not end a sentence ("bzw. die", "z. B. der", "Nr. 5").
+_ABBREVIATIONS = frozenset(
+    [
+        "bzw",
+        "ca",
+        "vgl",
+        "ggf",
+        "evtl",
+        "inkl",
+        "zzgl",
+        "usw",
+        "etc",
+        "nr",
+        "str",
+        "abs",
+        "art",
+        "bspw",
+        "sog",
+        "tel",
+        "jh",
+        "mio",
+        "mrd",
+        "z",
+        "b",
+        "d",
+        "h",
+        "u",
+        "a",
+        "o",
+        "s",
+        "i",
+        "e",
+        "g",
+        "vs",
+        "dr",
+        "prof",
+        "approx",
+        "no",
+        "fig",
+    ]
+)
+_LAST_WORD = re.compile(r"(\w+)\.$")
 _WORD = re.compile(r"[^\W\d_]{3,}", re.UNICODE)
 _STEM = 5
 _SUPPORT = 0.5
@@ -123,12 +165,32 @@ def citations_in(text: str) -> list[int]:
     return out
 
 
+def split_sentences(text: str) -> list[str]:
+    """The text split into sentences and lines; abbreviations and numbers ("15.07.",
+    "1. Januar") do not end a sentence."""
+    out: list[str] = []
+    start = 0
+    for m in _BREAK.finditer(text):
+        before = text[start : m.start()]
+        last = _LAST_WORD.search(before)
+        if (
+            "\n" not in m.group()
+            and last
+            and (last.group(1).lower() in _ABBREVIATIONS or last.group(1).isdigit())
+        ):
+            continue
+        out.append(before)
+        start = m.end()
+    out.append(text[start:])
+    return [s for s in out if s.strip()]
+
+
 def check(answer: str, sources: Sequence[str]) -> Grounding:
     cited_all = citations_in(answer)
     valid = set(range(1, len(sources) + 1))
     source_terms = [_terms(s) for s in sources]
     sentences = supported = 0
-    for sentence in _SENTENCE.split(answer):
+    for sentence in split_sentences(answer):
         words = _terms(_CITE.sub(" ", sentence))
         if len(words) < _MIN_WORDS:
             continue  # greetings, list labels, "Steps:" and the like

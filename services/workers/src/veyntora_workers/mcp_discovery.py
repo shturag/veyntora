@@ -1,7 +1,9 @@
-"""Discover the tools of MCP servers queued by the API (only runtime services hold keys)."""
+"""Discover the tools of MCP servers, and run tool tests, queued by the API (only runtime
+services hold keys)."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from uuid import UUID
 
@@ -13,7 +15,7 @@ from veyntora_api.db.models.tools import McpAuth, McpServer
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.routers.admin_tools import DISCOVER_QUEUE
 from veyntora_api.settings import Settings, get_settings
-from veyntora_api.tools import delegation
+from veyntora_api.tools import delegation, testing
 from veyntora_api.tools.service import apply_discovery
 from veyntora_api.tools.targets import audience_of, target_of
 from veyntora_providers import mcp_client
@@ -69,6 +71,33 @@ async def run_queued_discovery(settings: Settings, limit: int = 5) -> int:
                 await discover(db, server, reader)
                 await db.commit()
                 done += 1
+    finally:
+        await redis.aclose()
+    return done
+
+
+async def run_queued_tool_tests(settings: Settings, limit: int = 5) -> int:
+    """Run "Try this tool" tests queued from a server's page; results are read by the API."""
+    redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    reader = OpenBaoReader(settings.openbao_url, Path(settings.openbao_token_file))
+    done = 0
+    try:
+        for _ in range(limit):
+            test_id = await redis.lpop(testing.QUEUE)
+            if test_id is None:
+                break
+            key = testing.KEY.format(test_id)
+            raw = await redis.get(key)
+            if raw is None:
+                continue  # expired before a worker got to it
+            job = json.loads(raw)
+            async with get_sessionmaker()() as db:
+                result = await testing.run(db, job, reader)
+                await db.commit()
+            job |= {"status": "done", "result": result.model_dump()}
+            await redis.set(key, json.dumps(job), ex=testing.KEEP_SECONDS)
+            log.info("mcp.tool_tested", tool_id=job["tool_id"], ok=result.ok, ms=result.ms)
+            done += 1
     finally:
         await redis.aclose()
     return done

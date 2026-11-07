@@ -1,6 +1,7 @@
 /* Generated from packages/spec (PipelineSpec). Do not edit; run pnpm gen. */
 
 export type LlmInstanceId = string | null;
+export type LookupFirst = boolean;
 export type MaxSteps = number;
 export type TimeoutSeconds = number;
 export type TokenBudget = number;
@@ -100,6 +101,16 @@ export type MetadataFilter = string;
 export type QueryRewrite = boolean;
 export type SearchType = "dense" | "sparse" | "hybrid";
 export type SparseMinTermMatch = number;
+/**
+ * @maxItems 5
+ */
+export type ToolIds =
+  | []
+  | [string]
+  | [string, string]
+  | [string, string, string]
+  | [string, string, string, string]
+  | [string, string, string, string, string];
 export type TopK = number;
 export type VectorStoreInstanceId = string | null;
 export type AgentWhenAction = boolean;
@@ -128,6 +139,7 @@ export interface PipelineSpec {
 }
 export interface AgentSpec {
   llm_instance_id?: LlmInstanceId;
+  lookup_first?: LookupFirst;
   max_steps?: MaxSteps;
   timeout_seconds?: TimeoutSeconds;
   token_budget?: TokenBudget;
@@ -226,6 +238,7 @@ export interface RetrievalSpec {
   query_rewrite?: QueryRewrite;
   search_type?: SearchType;
   sparse_min_term_match?: SparseMinTermMatch;
+  tool_ids?: ToolIds;
   top_k?: TopK;
   vector_store_instance_id?: VectorStoreInstanceId;
 }

@@ -197,11 +197,9 @@ async def mark_stale(db: AsyncSession) -> list[SavedAnswer]:
     rows = (await db.execute(sa.select(SavedAnswer).where(SavedAnswer.stale.is_(False)))).scalars()
     for row in rows:
         for cite in row.citations or []:
-            doc = (
-                await db.get(Document, UUID(cite["document_id"]))
-                if cite.get("document_id")
-                else None
-            )
+            if not cite.get("document_id"):
+                continue  # a web page or tool result: nothing to compare it with
+            doc = await db.get(Document, UUID(cite["document_id"]))
             if doc is None or doc.status is DocumentStatus.DELETED or doc.hash != cite.get("hash"):
                 row.stale = True
                 changed.append(row)

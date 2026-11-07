@@ -48,3 +48,20 @@ def test_no_answer_sentinel_and_language() -> None:
     assert not grounding.is_no_answer("The answer is no.")
     assert language_of("Wie kann ich das Passwort ändern?") == "de"
     assert language_of("How do I reset my password?") == "en"
+
+
+def test_abbreviations_and_numbers_do_not_end_a_sentence() -> None:
+    text = (
+        "Die Anmeldung geht über BundID bzw. das Unternehmenskonto online [1]. "
+        "Seit dem 15.07. 2017 gilt z. B. die Online-Ausweisfunktion [2].\n"
+        "Termin am 1. Januar [1]."
+    )
+    assert grounding.split_sentences(text) == [
+        "Die Anmeldung geht über BundID bzw. das Unternehmenskonto online [1].",
+        "Seit dem 15.07. 2017 gilt z. B. die Online-Ausweisfunktion [2].",
+        "Termin am 1. Januar [1].",
+    ]
+    source = "Die Anmeldung geht über BundID bzw. das Unternehmenskonto auch online."
+    # Split at "bzw.", the second half had no citation and counted as unsupported.
+    first = "Die Anmeldung geht über BundID bzw. das Unternehmenskonto online [1]."
+    assert grounding.check(first, [source]).score == 1.0

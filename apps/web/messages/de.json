@@ -60,7 +60,8 @@
       "users": "Benutzer & Gruppen",
       "governance": "Governance",
       "audit": "Audit-Log",
-      "integrations": "Integrationen"
+      "integrations": "Integrationen",
+      "infrastructure": "Infrastruktur"
     }
   },
   "wizard": {
@@ -743,7 +744,11 @@
     "sourcesFor": "Zu: {question}",
     "sourcesNone": "Diese Antwort zitiert keine Quellen.",
     "sourcesHide": "Quellen ausblenden",
-    "sourcesShow": "{count, plural, =0 {Quellen zeigen} one {# Quelle zeigen} other {# Quellen zeigen}}"
+    "sourcesShow": "{count, plural, =0 {Quellen zeigen} one {# Quelle zeigen} other {# Quellen zeigen}}",
+    "answeredFromTools": "{count, plural, one {Beantwortet aus # Tool-Ergebnis} other {Beantwortet aus # Tool-Ergebnissen}}",
+    "fromTool": "Von einem Tool für diese Frage geliefert",
+    "stepLookItUp": "Ohne Nachschlagen geantwortet: zurück zur Suche geschickt",
+    "stepFromMemory": "Wieder aus dem Gedächtnis geantwortet: nicht gezeigt"
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -775,7 +780,6 @@
     "tabs": "Bibliothek",
     "chats": "Chats",
     "saved": "Gespeicherte Antworten",
-    "approvals": "Freigaben",
     "search": "Chats durchsuchen",
     "searchPlaceholder": "Chats durchsuchen…",
     "empty": "Stell auf der Startseite eine Frage, um einen zu beginnen. Deine Chats stehen dann hier, die neuesten zuerst.",
@@ -1318,7 +1322,8 @@
         "label": "Zitate"
       },
       "if_ungrounded": {
-        "label": "Wenn die Antwort nicht belegt ist"
+        "label": "Wenn die Antwort nicht belegt ist",
+        "hint": "Wirkt zusammen mit Schutzregeln → „Unter der Schwelle“: Hält eine der beiden die Antwort zurück, wird sie zurückgehalten. Für eine Antwort mit Warnung in beiden „Mit Warnung anzeigen“ wählen."
       },
       "answer_language": {
         "label": "Antwortsprache"
@@ -1385,7 +1390,8 @@
         "label": "Schwelle für Belegtheit"
       },
       "groundedness_action": {
-        "label": "Unter der Schwelle"
+        "label": "Unter der Schwelle",
+        "hint": "Für Fast- und Agent-Antworten. Wirkt zusammen mit Antwort → „Wenn die Antwort nicht belegt ist“: In beiden „Mit Warnung anzeigen“ wählen, um die Antwort zu zeigen."
       },
       "citation_required": {
         "label": "Zitate verlangen"
@@ -1428,6 +1434,14 @@
       "code_instance_id": {
         "label": "Code-Interpreter",
         "hint": "Personen können den Code-Interpreter für eine Frage einschalten: Das Modell darf Python (numpy, pandas, matplotlib) in dieser Sandbox ohne Internet ausführen, um zu rechnen, Daten auszuwerten und Diagramme zu zeichnen. Code und Ausgabe stehen bei der Antwort."
+      },
+      "tool_ids": {
+        "label": "Wissens-Tools",
+        "hint": "Nur lesende MCP-Tools, die wie die Dokumente bei jeder Frage durchsucht werden (zum Beispiel eine Website-Suche). Jede gelieferte Seite ist eine Quelle, die die Antwort zitiert. Sie funktionieren auch bei ausgeschalteter Suche, und auch der Agent kann sie nutzen."
+      },
+      "lookup_first": {
+        "label": "Vor dem Antworten nachschlagen",
+        "hint": "Im Chat wird eine Antwort, die vor jeder Tool- oder Dokumentsuche geschrieben wurde, einmal zum Nachschlagen zurückgeschickt; kommt sie dann noch aus dem Gedächtnis, erhält die Person „Keine Antwort gefunden“. Automatisierungen sind nicht betroffen."
       }
     },
     "o": {
@@ -1717,7 +1731,59 @@
     "save": "Speichern",
     "saved": "Gespeichert.",
     "audience": "Audience (Client-ID des Tools in Keycloak)",
-    "audienceNote": "Jeder Aufruf nutzt ein Token der fragenden Person, getauscht aus ihrer Veyntora-Anmeldung (kein Schlüssel wird gespeichert). Ein Admin muss diese Audience für Veyntora in Keycloak erlauben. Automatisierungen und App-Schlüssel können solche Tools nicht nutzen."
+    "audienceNote": "Jeder Aufruf nutzt ein Token der fragenden Person, getauscht aus ihrer Veyntora-Anmeldung (kein Schlüssel wird gespeichert). Ein Admin muss diese Audience für Veyntora in Keycloak erlauben. Automatisierungen und App-Schlüssel können solche Tools nicht nutzen.",
+    "reviewTitle": "Wartet auf Sicherheitsfreigabe",
+    "reviewText": "Lesen Sie die Beschreibung jedes Tools: Genau diese sehen die Agenten. Nach der Freigabe können Tools einzeln aktiviert werden.",
+    "connection": "Verbindung",
+    "address": "Adresse",
+    "key": "Schlüssel",
+    "noKey": "Keiner",
+    "signOffLabel": "Sicherheitsfreigabe",
+    "signedOffOn": "Freigegeben am {date}",
+    "discoveredLabel": "Tools erkannt",
+    "notYet": "Noch nicht",
+    "callsLabel": "Aufrufe, letzte 7 Tage",
+    "latency": "Antwortzeit (p95)",
+    "keyTitle": "Schlüssel ersetzen",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "agentSees": "Beschreibung, die der Agent sieht",
+    "on": "An",
+    "offBadge": "Aus",
+    "enabledHint": "Agenten können dieses Tool aufrufen.",
+    "offHint": "Agenten sehen dieses Tool nicht.",
+    "enableAfterSignOff": "Kann nach der Freigabe aktiviert werden.",
+    "blockedHint": "Destruktive Tools werden Agenten nie angeboten.",
+    "noLimit": "Kein Limit",
+    "toolsSummary": "{enabled} von {total} aktiviert",
+    "policy": "Richtlinie",
+    "edit": "Bearbeiten",
+    "editTitle": "{name} bearbeiten",
+    "editSubtitle": "Name, Adresse und wie Veyntora sich beim Server anmeldet.",
+    "saveChanges": "Änderungen speichern",
+    "keepKey": "Leer lassen, um den aktuellen Schlüssel zu behalten. Ein neuer Schlüssel wird in OpenBao gespeichert; niemand kann ihn wieder auslesen.",
+    "reconnectNote": "Eine neue Adresse, Übertragung, Anmeldung oder ein anderer Betriebsort macht dies für die Prüfung zu einem anderen Server: Er wartet erneut auf die Sicherheitsfreigabe, und seine Tools sind aus, bis sie wieder aktiviert werden. Eine reine Namensänderung behält alles bei.",
+    "delete": "Löschen",
+    "deleteTitle": "{name} löschen?",
+    "deleteText": "Seine Tools, deren Einstellungen und sein Schlüssel werden entfernt. Frühere Aufrufe bleiben im Audit-Log. Das lässt sich nicht rückgängig machen. Ein Server, dessen Tools ein Chatbot oder eine Automatisierung noch nutzt, kann nicht gelöscht werden.",
+    "deleteConfirm": "Server löschen",
+    "notDeleted": "Nicht gelöscht: {reason}",
+    "testTitle": "Tool testen",
+    "testText": "Ein lesendes Tool einmal aufrufen und genau sehen, was Veyntora davon erhält: die nummerierten Quellen, die das Modell zitieren würde, und was sich am Tool verbessern lässt.",
+    "testTool": "Tool",
+    "testReadOnly": "hier nicht testbar",
+    "testWriteNote": "Hier lassen sich nur lesende Tools testen: Schreibende und destruktive Tools ändern echte Daten und brauchen eine Freigabe.",
+    "testRun": "Ausführen",
+    "testRunning": "Läuft…",
+    "testLogged": "Läuft als Sie und erscheint unter „Letzte Aufrufe“.",
+    "testBadJson": "Eine Eingabe ist kein gültiges JSON.",
+    "testTimeout": "Noch kein Ergebnis: Der Worker ist vielleicht beschäftigt. Gleich noch einmal versuchen.",
+    "testOk": "Erfolgreich",
+    "testFailed": "Fehlgeschlagen",
+    "testSummary": "{sources, plural, =0 {keine Quellen} one {# Quelle} other {# Quellen}} · {pages, plural, =0 {} one {# Seite · } other {# Seiten · }}{texts, plural, =0 {} one {# Textblock · } other {# Textblöcke · }}{chars, number} Zeichen",
+    "testGood": "Sieht gut aus: Jedes Ergebnis ist eine Quelle, die Veyntora zitieren kann.",
+    "testChars": "{chars, number} Zeichen",
+    "testNoAddress": "Keine Adresse: wird ohne „Seite öffnen“ gezeigt."
   },
   "approvals": {
     "title": "Genehmigungen",
@@ -2067,7 +2133,7 @@
     "addWhoHint": "Namen einer Gruppe oder Person eingeben",
     "previewTitle": "Vorschau als Person",
     "previewHint": "Zeigt, welche Chatbots eine Person sieht und mit welchen Rollen. Niemand wird als diese Person angemeldet.",
-    "previewSearch": "Gib oben einen Namen ein, um die Vorschau zu sehen.",
+    "previewSearch": "Wählen Sie eine Person, um ihre Chatbots zu sehen.",
     "previewNone": "{name} sieht keinen Chatbot.",
     "wizardBasics": "Grunddaten",
     "description": "Beschreibung",
@@ -2111,7 +2177,8 @@
       "text": "Wenn der Assistent nicht antworten kann, können Personen ihre Frage an eine dieser Gruppen senden. Deren Mitglieder antworten in Veyntora.",
       "save": "Speichern",
       "saved": "Gespeichert.",
-      "failed": "Hat nicht funktioniert: {reason}"
+      "failed": "Hat nicht funktioniert: {reason}",
+      "chosen": "{count} von {total} Gruppen"
     },
     "archive": "Archivieren",
     "archiveConfirm": "{name} archivieren? Er antwortet nicht mehr und ist für Menschen ausgeblendet. Nichts geht verloren, und du kannst ihn wiederherstellen.",
@@ -2133,7 +2200,15 @@
       "attachments": "Anhänge"
     },
     "publishNow": "Prüfen und v{version} veröffentlichen →",
-    "copySourcesHint": "Der neue Chatbot antwortet aus denselben Datenquellen wie der kopierte (die Dokumente werden geteilt, nicht verdoppelt). Abwählen, um die Quellen im nächsten Schritt zu wählen."
+    "copySourcesHint": "Der neue Chatbot antwortet aus denselben Datenquellen wie der kopierte (die Dokumente werden geteilt, nicht verdoppelt). Abwählen, um die Quellen im nächsten Schritt zu wählen.",
+    "whoCol": "Gruppe oder Person",
+    "removeWho": "{name} entfernen",
+    "unsaved": "Ungespeicherte Änderungen",
+    "nobodyYet": "Noch niemand kann diesen Chatbot nutzen. Fügen Sie unten eine Gruppe oder Person hinzu.",
+    "add": "Hinzufügen",
+    "previewPerson": "Person",
+    "previewPlaceholder": "Namen einer Person eingeben",
+    "noPrincipalMatch": "Keine Treffer."
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",
@@ -3764,7 +3839,7 @@
   },
   "integrations": {
     "title": "Integrationen",
-    "subtitle": "Wohin Veyntora Traces sendet und welche Grafana-Dashboards das Monitoring zeigt. Schlüssel liegen in OpenBao.",
+    "subtitle": "Wohin Veyntora Traces sendet, welche Grafana-Dashboards Monitoring zeigt und welcher Virenscanner Uploads prüft. Schlüssel liegen in OpenBao.",
     "unavailable": "Integrationen konnten nicht geladen werden.",
     "kinds": {
       "langfuse": {
@@ -3829,7 +3904,25 @@
     "testQueued": "Test gestartet. Das Ergebnis erscheint hier in wenigen Sekunden (neu laden).",
     "remove": "Entfernen",
     "removeConfirm": "Die Einstellungen für {name} entfernen und den Schlüssel löschen?",
-    "removed": "Entfernt."
+    "removed": "Entfernt.",
+    "scanner": {
+      "title": "Virenscanner",
+      "summary": "Jede hochgeladene Datei und jeder Anhang wird vor der Indexierung mit ClamAV (clamd) geprüft.",
+      "on": "An",
+      "notSetUp": "Nicht eingerichtet",
+      "requiredNote": "Die Prüfung ist Pflicht: Uploads warten und Anhänge werden abgelehnt, bis ein Scanner eingerichtet ist.",
+      "address": "Adresse (Host:Port)",
+      "addressHint": "Wo Veyntoras Dienste clamd erreichen. Ein Dienst auf diesem Rechner ist host.docker.internal.",
+      "save": "Speichern",
+      "setUp": "Einrichten",
+      "test": "Verbindung testen",
+      "remove": "Entfernen",
+      "saved": "Gespeichert.",
+      "removed": "Entfernt. Uploads warten, bis ein Scanner eingerichtet ist.",
+      "reachable": "clamd hat geantwortet.",
+      "unreachable": "Nicht erreichbar: {detail}",
+      "failed": "Das hat nicht funktioniert."
+    }
   },
   "dataRules": {
     "title": "Datenregel",
@@ -3852,7 +3945,9 @@
     "failed": "Das hat nicht funktioniert: {reason}",
     "readOnly": "Governance-Bearbeiter ändern Datenregeln.",
     "noDocuments": "Antworten ohne Dokumente erlauben (allgemeiner Chat)",
-    "noDocumentsHint": "Eine Ausnahme von „belegt oder still“: Antworten lassen sich nicht prüfen und sind als „Ohne Quellen“ markiert. Gilt nur, wenn der Abruf des Chatbots aus ist."
+    "noDocumentsHint": "Eine Ausnahme von „belegt oder still“: Antworten lassen sich nicht prüfen und sind als „Ohne Quellen“ markiert. Gilt nur, wenn der Abruf des Chatbots aus ist.",
+    "retention": "Aufbewahrung",
+    "privacy": "Datenschutz und Antworten"
   },
   "checklist": {
     "ready": "Bereit zum Veröffentlichen: Alle nötigen Einstellungen sind gesetzt.",
@@ -3958,5 +4053,145 @@
       "title": "Denk-Schalter",
       "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können (Denk-Schalter beim Anbieter setzen). Die Überlegungen erscheinen eingeklappt."
     }
+  },
+  "setup": {
+    "title": "Veyntora einrichten",
+    "apiDown": "Die API von Veyntora antwortet noch nicht. Warten Sie kurz und laden Sie die Seite neu.",
+    "codeIntro": "Damit sicher ist, dass Sie es sind: Geben Sie den Einrichtungscode aus dem Log der API ein. Auf dem Rechner, auf dem Veyntora läuft:",
+    "code": "Einrichtungscode",
+    "continue": "Weiter",
+    "intro": "Veyntora läuft auf sechs Diensten, die Sie betreiben. Geben Sie an, wie die Container jeden erreichen (ein Dienst auf demselben Rechner ist unter host.docker.internal), und testen Sie die Verbindung. Passwörter kommen in OpenBao und werden nie wieder angezeigt.",
+    "retryNote": "Der Start mit den letzten Einstellungen ist fehlgeschlagen. Korrigieren Sie sie und speichern Sie erneut; die Passwörter müssen neu eingegeben werden.",
+    "save": "Veyntora einrichten",
+    "saving": "Wird eingerichtet …",
+    "checksFailed": "Einige Dienste haben ihren Test nicht bestanden. Korrigieren Sie sie und versuchen Sie es erneut.",
+    "failed": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+    "starting": "Veyntora startet …",
+    "restarting": "Veyntora startet mit neuen Einstellungen neu …",
+    "startingDetail": "Datenbanktabellen, Berechtigungsmodell und Speicher-Buckets werden angelegt, dann Benutzer und Gruppen aus Keycloak gelesen. Das dauert etwa eine Minute.",
+    "startFailed": "Veyntora konnte mit diesen Einstellungen nicht starten",
+    "change": "Einstellungen ändern",
+    "goBackIntro": "Zu Einstellungen zurückkehren, die funktioniert haben. Geben Sie den Einrichtungscode aus dem Log der API ein (make setup-code) und wählen Sie eine Version.",
+    "goBack": "Zurück zu Version {version}",
+    "readyBadge": "Bereit",
+    "ready": "Veyntora ist eingerichtet. Melden Sie sich mit einem Konto der Plattform-Admin-Gruppe (/platform-admins) an, um die Admin-Konsole zu öffnen.",
+    "signIn": "Anmelden"
+  },
+  "infra": {
+    "title": "Infrastruktur",
+    "subtitle": "Die Dienste, auf denen Veyntora läuft. Änderungen werden vor dem Speichern getestet, jede Version bleibt erhalten, Passwörter liegen in OpenBao.",
+    "unavailable": "Die Infrastruktur konnte nicht geladen werden.",
+    "names": {
+      "postgres": "PostgreSQL",
+      "valkey": "Valkey",
+      "s3": "S3-Speicher",
+      "openbao": "OpenBao",
+      "openfga": "OpenFGA",
+      "keycloak": "Keycloak",
+      "presidio": "Presidio",
+      "searxng": "SearXNG",
+      "qdrant": "Qdrant",
+      "docling": "Docling",
+      "sandbox": "Code-Sandbox",
+      "clamav": "Virenscanner (ClamAV)",
+      "email": "E-Mail (SMTP)"
+    },
+    "summaries": {
+      "postgres": "Einstellungen, Chats und Metadaten der Dokumente: drei Datenbanken. Die Dienste nutzen die Laufzeitrolle; Migrationen laufen als Eigentümer.",
+      "valkey": "Sitzungen, Jobs und die Warteschlange des Graph-Servers.",
+      "s3": "Hochgeladene Dokumente und das unveränderliche Audit-Archiv. Fehlende Buckets werden angelegt.",
+      "openbao": "Bewahrt alle Schlüssel und Passwörter. Ein Token, das Richtlinien anlegen darf, wird einmal zum Einrichten genutzt und nicht gespeichert.",
+      "openfga": "Wer was sehen und tun darf. Veyntora legt seinen Store und sein Modell an.",
+      "keycloak": "Anmeldung. Der Realm braucht die Clients veyntora und veyntora-sync (deploy/compose/keycloak/veyntora-realm.json)."
+    },
+    "fields": {
+      "postgres": {
+        "host": "Host",
+        "port": "Port",
+        "database": "Datenbank",
+        "owner_user": "Eigentümerrolle (Migrationen)",
+        "user": "Laufzeitrolle",
+        "aegra_database": "Datenbank des Graph-Servers",
+        "aegra_user": "Rolle des Graph-Servers",
+        "ssl": "TLS verlangen"
+      },
+      "valkey": {
+        "host": "Host",
+        "port": "Port",
+        "username": "Benutzername (optional)",
+        "db": "Datenbank",
+        "graphs_db": "Datenbank des Graph-Servers",
+        "tls": "TLS verwenden"
+      },
+      "s3": {
+        "endpoint": "Endpunkt",
+        "region": "Region",
+        "bucket": "Bucket für Dokumente",
+        "audit_bucket": "Bucket für das Audit-Archiv (Object Lock)",
+        "access_key": "Zugriffsschlüssel"
+      },
+      "openbao": {
+        "url": "Adresse",
+        "kv_mount": "KV-v2-Engine"
+      },
+      "openfga": {
+        "url": "Adresse",
+        "store_name": "Name des Stores"
+      },
+      "keycloak": {
+        "issuer": "Issuer (wie Browser ihn erreichen)",
+        "internal_base": "Adresse für die Container (optional)",
+        "client_id": "Anmelde-Client",
+        "sync_client_id": "Sync-Client"
+      }
+    },
+    "secrets": {
+      "postgres-owner-password": "Passwort des Eigentümers",
+      "postgres-password": "Passwort der Laufzeitrolle",
+      "postgres-aegra-password": "Passwort des Graph-Servers",
+      "valkey-password": "Passwort (optional)",
+      "s3-secret-key": "Geheimer Schlüssel",
+      "keycloak-client-secret": "Secret des Anmelde-Clients",
+      "keycloak-sync-client-secret": "Secret des Sync-Clients"
+    },
+    "keepSecret": "Leer lassen, um …{last4} zu behalten",
+    "keepSet": "gesetzt",
+    "adminToken": "Admin-Token",
+    "adminTokenHint": "Ein Token, das Richtlinien schreiben und Tokens anlegen darf (zum Beispiel das Root-Token). Wird einmal genutzt, um die drei Tokens von Veyntora anzulegen; nicht gespeichert.",
+    "test": "Verbindung testen",
+    "notSetUp": "Nicht eingerichtet",
+    "healthy": "In Ordnung",
+    "down": "Ausgefallen",
+    "unknown": "Nicht geprüft",
+    "change": "Ändern",
+    "save": "Speichern und neu starten",
+    "cancel": "Abbrechen",
+    "failed": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+    "confirmSave": "Veyntora startet mit diesen Einstellungen neu. Fortfahren?",
+    "confirmKeycloak": "Veyntora startet mit diesen Einstellungen neu, und alle werden abgemeldet. Fortfahren?",
+    "confirmRestore": "Zu Version {version} zurückkehren? Veyntora startet damit neu.",
+    "reissue": "Admin-Token, um neue Tokens auszustellen (optional)",
+    "reissueHint": "Leer lassen, um die Tokens von Veyntora zu behalten. Die Adresse muss auf das OpenBao zeigen, das die Schlüssel von Veyntora enthält.",
+    "moveNote": {
+      "postgres": "Eine andere Datenbank anzugeben, verschiebt die Daten nicht. Kopieren Sie sie zuerst (docs/runbooks/infrastructure.md).",
+      "s3": "Einen anderen Speicher anzugeben, verschiebt die Dokumente nicht. Kopieren Sie sie zuerst (docs/runbooks/infrastructure.md)."
+    },
+    "restarting": "Veyntora startet mit den neuen Einstellungen neu …",
+    "envMode": "Diese Dienste werden hier über die Umgebung gesetzt (CI oder Helm) und lassen sich nicht im Browser ändern.",
+    "versionLine": "Version {version}, gespeichert {when} von {who}.",
+    "coreTitle": "Diese braucht Veyntora zum Start",
+    "coreSummary": "Beim Speichern wird die Änderung zuerst getestet; dann starten die Dienste von Veyntora damit neu.",
+    "consoleTitle": "In der Konsole eingerichtet",
+    "consoleSummary": "Dort hinzugefügt, wo sie genutzt werden: Anbieter, der Virenscanner und E-Mail.",
+    "service": "Dienst",
+    "address": "Adresse",
+    "state": "Zustand",
+    "where": "Wo er eingerichtet wird",
+    "open": "Öffnen",
+    "setUp": "Einrichten",
+    "historyTitle": "Versionen",
+    "versionN": "Version {version}",
+    "inUse": "In Verwendung",
+    "restore": "Hierhin zurückkehren"
   }
 }

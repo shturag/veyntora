@@ -114,6 +114,7 @@ class _Turn:
             group_ids=await self.groups(),
             emit=get_stream_writer(),
             connect=CONNECT,
+            lookup_first=self.ctx.spec.agent.lookup_first,
         )
 
 
@@ -636,7 +637,13 @@ async def think_node(state: State, config: RunnableConfig) -> Command[Any]:
             await turn.adapters.close()
         await _save_steps(db, st)
         await db.commit()
-    goto = "act" if st.get("pending") and not st.get("stopped") else "finish"
+    if st.get("stopped"):
+        goto = "finish"
+    elif st.get("pending"):
+        goto = "act"
+    else:
+        # Sent back to look something up first (spec.agent.lookup_first): another turn.
+        goto = "think" if st.get("final") is None else "finish"
     return Command(goto=goto, update={"agent": st})
 
 
@@ -807,7 +814,7 @@ builder.add_node("flow_step", flow_step_node, destinations=("flow_approve", END)
 builder.add_node("flow_approve", flow_approve_node, destinations=("flow_step", "flow_approve", END))
 builder.add_node("fast", fast_node, destinations=("agent_start", END))
 builder.add_node("agent_start", agent_start_node, destinations=("think", END))
-builder.add_node("think", think_node, destinations=("act", "finish", END))
+builder.add_node("think", think_node, destinations=("act", "think", "finish", END))
 builder.add_node("act", act_node, destinations=("approve", "think", END))
 builder.add_node("approve", approve_node, destinations=("act", "approve", END))
 builder.add_node("finish", finish_node, destinations=(END,))

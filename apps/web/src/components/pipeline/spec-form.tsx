@@ -46,6 +46,8 @@ function read(field: Field, form: FormData): unknown {
       return form.getAll(field.name).map(String);
     case "tools":
       return form.getAll(field.name).map((id) => ({ tool_id: String(id), enabled: true }));
+    case "tool_ids":
+      return form.getAll(field.name).map(String);
     default:
       return String(raw ?? "");
   }
@@ -287,18 +289,24 @@ export function SpecForm({
           </fieldset>
         );
       }
-      case "tools": {
-        const bound = ((v as { tool_id: string; enabled?: boolean }[] | undefined) ?? [])
-          .filter((b) => b.enabled !== false)
-          .map((b) => b.tool_id);
-        const gone = bound.filter((id) => !tools.some((tool) => tool.id === id));
+      case "tools":
+      case "tool_ids": {
+        const bound =
+          f.kind === "tool_ids"
+            ? ((v as string[] | undefined) ?? [])
+            : ((v as { tool_id: string; enabled?: boolean }[] | undefined) ?? [])
+                .filter((b) => b.enabled !== false)
+                .map((b) => b.tool_id);
+        // Knowledge tools only read: they run with every question, without an approval.
+        const choices = f.kind === "tool_ids" ? tools.filter((x) => x.access === "read") : tools;
+        const gone = bound.filter((id) => !choices.some((tool) => tool.id === id));
         return (
           <fieldset key={f.name} className="m-0 flex flex-col gap-1.5 border-0 p-0">
             <legend className="mb-1 text-[13px] font-medium">{title}</legend>
-            {tools.length === 0 && gone.length === 0 ? (
+            {choices.length === 0 && gone.length === 0 ? (
               <p className="m-0 text-sm text-fg-muted">{t("noTools")}</p>
             ) : null}
-            {tools.map((tool) => (
+            {choices.map((tool) => (
               <label key={tool.id} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"

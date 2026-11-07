@@ -27,6 +27,10 @@ export type CitationMeta = {
   quote: string;
 };
 
+/** A page or passage an MCP tool returned (its chunk id starts with "tool:"). */
+export const isToolSource = (c: Pick<CitationMeta, "chunk_id">) =>
+  (c.chunk_id ?? "").startsWith("tool:");
+
 export type AnswerMeta = {
   outcome: Outcome;
   message_id?: string;

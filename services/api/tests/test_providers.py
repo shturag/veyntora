@@ -50,6 +50,10 @@ class FakeWriter:
     async def destroy_version(self, ref: str) -> None:
         self.destroyed.append(ref)
 
+    async def delete(self, path: str) -> None:
+        self.stored.pop(path, None)
+        self.destroyed.append(path)
+
 
 def _input(**kw: object) -> ProviderInput:
     base: dict[str, object] = {

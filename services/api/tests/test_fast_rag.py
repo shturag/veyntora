@@ -243,6 +243,31 @@ async def test_warn_mode_shows_the_answer_with_a_warning(rag: Rag) -> None:
     assert result.outcome == "answered" and result.warning is not None
 
 
+async def test_warn_mode_also_shows_a_masked_answer_with_a_warning(rag: Rag) -> None:
+    # Masked answers are not streamed; that must not turn "warn" into "block".
+    spec = rag.w.spec()
+    spec.generation.if_ungrounded = "warn"  # type: ignore[assignment]
+    spec.guardrails.groundedness_action = "warn"  # type: ignore[assignment]
+    assert spec.guardrails.pii == "mask"
+    await bots.save_draft(rag.w.db, CTX, rag.bot, spec, expected_version=None)
+    await bots.publish(rag.w.db, CTX, rag.bot, None)
+    rag.llm.reply = "Refunds for digital products are possible within one year."
+    result = await rag.ask("Can digital products be refunded?")
+    assert result.outcome == "answered" and result.warning is not None
+
+
+async def test_an_invented_citation_is_blocked_even_in_warn_mode(rag: Rag) -> None:
+    spec = rag.w.spec()
+    spec.generation.if_ungrounded = "warn"  # type: ignore[assignment]
+    spec.guardrails.groundedness_action = "warn"  # type: ignore[assignment]
+    await bots.save_draft(rag.w.db, CTX, rag.bot, spec, expected_version=None)
+    await bots.publish(rag.w.db, CTX, rag.bot, None)
+    rag.llm.reply = "Digital products can't be refunded once downloaded [1] [7]."
+    result = await rag.ask("Can digital products be refunded?")
+    assert result.outcome == "blocked"
+    assert result.warning == "The answer cited sources that were not provided."
+
+
 async def test_model_saying_no_answer_gives_the_no_answer_text(rag: Rag) -> None:
     rag.llm.reply = "NO_ANSWER"
     result = await rag.ask("Wie ist die Kantine geöffnet und was kann ich essen?")

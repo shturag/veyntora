@@ -38,7 +38,9 @@ export async function PipelinePage({
   if (!bot) notFound();
   const [{ data: providers }, { data: tools }, { data: experts }, grants] = await Promise.all([
     api.GET("/v1/admin/providers"),
-    sectionKey === "agent" ? api.GET("/v1/admin/tools/available") : Promise.resolve({ data: [] }),
+    sectionKey === "agent" || sectionKey === "retrieval"
+      ? api.GET("/v1/admin/tools/available")
+      : Promise.resolve({ data: [] }),
     api.GET("/v1/admin/chatbots/{bot_id}/experts", { params: { path: { bot_id: botId } } }),
     // Choosing expert teams needs can_manage_access, like the Access page.
     api.GET("/v1/admin/chatbots/{bot_id}/access", { params: { path: { bot_id: botId } } }),

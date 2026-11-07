@@ -19,6 +19,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.background import BackgroundTask
 
+from veyntora_api.agent.tools import TOOL_SOURCE
 from veyntora_api.auth.deps import CurrentPrincipal, DbSession, Principal, State
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.conversations import (
@@ -471,7 +472,8 @@ async def citations(
         )
     ).all()
     # A quote stays visible only while the user may still read its document; attached files
-    # are the asker's own (and gone with their conversation).
+    # are the asker's own (and gone with their conversation), and so are the tool results
+    # their own question brought.
     return [
         CitationOut(
             n=c.ordinal,
@@ -485,6 +487,7 @@ async def citations(
         if (doc is not None and may_read(principals, doc))
         or c.attachment_id is not None
         or c.url is not None
+        or c.chunk_id.startswith(TOOL_SOURCE)
     ]
 
 

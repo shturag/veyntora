@@ -33,3 +33,7 @@
 | [0029](0029-web-search.md) | Web search in the chat |
 | [0030](0030-code-interpreter.md) | Code interpreter: a sandbox in the stack |
 | [0031](0031-embedding-and-rerank-costs.md) | Embedding and reranker usage and prices |
+| [0032](0032-external-model-data-and-observability-services.md) | Model, data and observability services are not bundled |
+| [0033](0033-infrastructure-you-host.md) | Veyntora runs on infrastructure you host |
+| [0034](0034-infrastructure-set-up-in-the-browser.md) | The infrastructure is set up in the browser |
+| [0035](0035-knowledge-tools-and-grounded-agents.md) | Knowledge tools, and agents that look things up |

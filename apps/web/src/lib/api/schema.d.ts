@@ -1543,6 +1543,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/infrastructure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The services Veyntora runs on, their state and earlier versions */
+        get: operations["get_infrastructure_v1_admin_infrastructure_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/infrastructure/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Go back to an earlier version; Veyntora restarts with it */
+        post: operations["restore_infrastructure_v1_admin_infrastructure_restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/infrastructure/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test a service's settings before saving them */
+        post: operations["test_infrastructure_v1_admin_infrastructure_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/infrastructure/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save a service's settings; Veyntora restarts with them */
+        put: operations["save_infrastructure_v1_admin_infrastructure__key__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/integrations": {
         parameters: {
             query?: never;
@@ -2118,6 +2186,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/scanner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The virus scanner */
+        get: operations["get_scanner_v1_admin_scanner_get"];
+        /** Set the virus scanner's address */
+        put: operations["put_scanner_v1_admin_scanner_put"];
+        post?: never;
+        /** Remove the virus scanner */
+        delete: operations["delete_scanner_v1_admin_scanner_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/scanner/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check that the scanner answers */
+        post: operations["test_scanner_v1_admin_scanner_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/sources": {
         parameters: {
             query?: never;
@@ -2404,9 +2508,11 @@ export interface paths {
         };
         /** One MCP server with its tools and recent calls */
         get: operations["get_server_v1_admin_tools_servers__server_id__get"];
-        put?: never;
+        /** Change a server's settings (a new address or authentication needs sign-off again) */
+        put: operations["update_server_v1_admin_tools_servers__server_id__put"];
         post?: never;
-        delete?: never;
+        /** Delete a server no chatbot or automation uses, with its tools and key */
+        delete: operations["delete_server_v1_admin_tools_servers__server_id__delete"];
         options?: never;
         head?: never;
         /** Enable or disable a server */
@@ -2464,6 +2570,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/tools/tests/{test_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The result of a tool test (only for who ran it) */
+        get: operations["tool_test_result_v1_admin_tools_tests__test_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/tools/{tool_id}": {
         parameters: {
             query?: never;
@@ -2479,6 +2602,23 @@ export interface paths {
         head?: never;
         /** Classify, enable and set the policy of a tool */
         patch: operations["update_tool_v1_admin_tools__tool_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/tools/{tool_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Try a read tool once (runs in a worker; poll the result) */
+        post: operations["test_tool_v1_admin_tools__tool_id__test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admin/usage": {
@@ -3592,6 +3732,11 @@ export interface components {
             /** Llm Instance Id */
             llm_instance_id?: string | null;
             /**
+             * Lookup First
+             * @default true
+             */
+            lookup_first: boolean;
+            /**
              * Max Steps
              * @default 6
              */
@@ -4688,7 +4833,7 @@ export interface components {
             answer_language: string;
             /** Description */
             description: string;
-            draft: components["schemas"]["VersionOut"];
+            draft: components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"];
             /** Draft Version */
             draft_version: number | null;
             governance: components["schemas"]["GovernanceOut"];
@@ -4793,6 +4938,13 @@ export interface components {
             status?: ("live" | "paused" | "archived") | null;
             /** Welcome Message */
             welcome_message?: string | null;
+        };
+        /** CheckOut */
+        CheckOut: {
+            /** Detail */
+            detail: string;
+            /** Ok */
+            ok: boolean;
         };
         /**
          * ChunkMetadata
@@ -5008,6 +5160,21 @@ export interface components {
             unmapped: string[];
             website: components["schemas"]["WebsiteSettings"] | null;
         };
+        /** ConsoleServiceOut */
+        ConsoleServiceOut: {
+            /** Address */
+            address: string | null;
+            /** Configured */
+            configured: boolean;
+            /** Health Detail */
+            health_detail: string | null;
+            /** Health Ok */
+            health_ok: boolean | null;
+            /** Href */
+            href: string;
+            /** Key */
+            key: string;
+        };
         /** ConversationOut */
         ConversationOut: {
             /**
@@ -5041,6 +5208,26 @@ export interface components {
         ConversationRename: {
             /** Title */
             title: string;
+        };
+        /** CoreServiceOut */
+        CoreServiceOut: {
+            /** Address */
+            address: string;
+            /** Health Detail */
+            health_detail: string | null;
+            /** Health Ok */
+            health_ok: boolean | null;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "postgres" | "valkey" | "s3" | "openbao" | "openfga" | "keycloak";
+            /** Secrets */
+            secrets: components["schemas"]["SecretOut"][];
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            } | null;
         };
         /** Count */
         Count: {
@@ -6641,6 +6828,26 @@ export interface components {
             /** Skipped */
             skipped: number;
         };
+        /** InfrastructureOut */
+        InfrastructureOut: {
+            /** Console */
+            console: components["schemas"]["ConsoleServiceOut"][];
+            /** History */
+            history: components["schemas"]["veyntora_api__routers__admin_infrastructure__VersionOut"][];
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "file" | "env";
+            /** Saved At */
+            saved_at: string | null;
+            /** Saved By */
+            saved_by: string | null;
+            /** Services */
+            services: components["schemas"]["CoreServiceOut"][];
+            /** Version */
+            version: number | null;
+        };
         /**
          * IngestJobKind
          * @enum {string}
@@ -7965,6 +8172,11 @@ export interface components {
              */
             top_n: number;
         };
+        /** RestoreIn */
+        RestoreIn: {
+            /** Version */
+            version: number;
+        };
         /** RestoreInput */
         RestoreInput: {
             /** Number */
@@ -8039,6 +8251,8 @@ export interface components {
              * @default 1
              */
             sparse_min_term_match: number;
+            /** Tool Ids */
+            tool_ids?: string[];
             /**
              * Top K
              * @default 20
@@ -8577,6 +8791,22 @@ export interface components {
              */
             retries: number;
         };
+        /** SaveIn */
+        SaveIn: {
+            /** Openbao Admin Token */
+            openbao_admin_token?: string | null;
+            /**
+             * Secrets
+             * @default {}
+             */
+            secrets: {
+                [key: string]: string;
+            };
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+        };
         /** SavedOut */
         SavedOut: {
             /** Answer */
@@ -8649,6 +8879,18 @@ export interface components {
          * @enum {string}
          */
         ScanStatus: "pending" | "clean" | "infected" | "skipped" | "not_required";
+        /** ScannerOut */
+        ScannerOut: {
+            /** Address */
+            address: string | null;
+            /** Required */
+            required: boolean;
+        };
+        /** ScannerSettings */
+        ScannerSettings: {
+            /** Address */
+            address: string;
+        };
         /** SchedulePreview */
         SchedulePreview: {
             /** Next Runs */
@@ -8734,6 +8976,15 @@ export interface components {
          * @enum {string}
          */
         SearchType: "dense" | "sparse" | "hybrid";
+        /** SecretOut */
+        SecretOut: {
+            /** Last4 */
+            last4: string | null;
+            /** Name */
+            name: string;
+            /** Set */
+            set: boolean;
+        };
         /** SeriesOut */
         SeriesOut: {
             /** Name */
@@ -8746,6 +8997,8 @@ export interface components {
         };
         /** ServerDetail */
         ServerDetail: {
+            /** Audience */
+            audience: string | null;
             auth: components["schemas"]["McpAuth"];
             /** Calls 7D */
             calls_7d: number;
@@ -8821,6 +9074,8 @@ export interface components {
          * @description Never contains the key or its OpenBao path.
          */
         ServerOut: {
+            /** Audience */
+            audience: string | null;
             auth: components["schemas"]["McpAuth"];
             /** Calls 7D */
             calls_7d: number;
@@ -9247,6 +9502,43 @@ export interface components {
             /** Trigger */
             trigger: string;
         };
+        /** TestResult */
+        TestResult: {
+            /** Advice */
+            advice?: string[];
+            /** Blocks */
+            blocks?: string[];
+            /**
+             * Chars
+             * @default 0
+             */
+            chars: number;
+            /** Error */
+            error?: string | null;
+            /** Id */
+            id: string;
+            /** Ms */
+            ms?: number | null;
+            /** Ok */
+            ok?: boolean | null;
+            /** Sources */
+            sources?: components["schemas"]["TestSource"][];
+            /** Status */
+            status: string;
+        };
+        /** TestSource */
+        TestSource: {
+            /** Chars */
+            chars: number;
+            /** N */
+            n: number;
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+        };
         /** ThreadReply */
         ThreadReply: {
             /** Answer */
@@ -9582,26 +9874,6 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** VersionOut */
-        VersionOut: {
-            /** Change Note */
-            change_note: string;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Number */
-            number: number;
-            /** Published At */
-            published_at: string | null;
-            /** Spec */
-            spec: {
-                [key: string]: unknown;
-            };
-            /** Status */
-            status: string;
-        };
         /** VersionScores */
         VersionScores: {
             /** Gate Passed */
@@ -9769,6 +10041,27 @@ export interface components {
             name?: string | null;
             spec: components["schemas"]["AutomationSpec-Input"];
         };
+        /**
+         * TestIn
+         * @description One service's settings to try. Passwords left out are the ones in use.
+         */
+        veyntora_api__infra__service__TestIn: {
+            /** Openbao Admin Token */
+            openbao_admin_token?: string | null;
+            /** Secrets */
+            secrets?: {
+                [key: string]: string;
+            };
+            /**
+             * Service
+             * @enum {string}
+             */
+            service: "postgres" | "valkey" | "s3" | "openbao" | "openfga" | "keycloak";
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+        };
         /** Started */
         veyntora_api__routers__admin_automations__Started: {
             /**
@@ -9781,6 +10074,26 @@ export interface components {
         veyntora_api__routers__admin_chatbots__RollbackInput: {
             /** Number */
             number: number;
+        };
+        /** VersionOut */
+        veyntora_api__routers__admin_chatbots__VersionOut: {
+            /** Change Note */
+            change_note: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: number;
+            /** Published At */
+            published_at: string | null;
+            /** Spec */
+            spec: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
         };
         /** FeedbackInput */
         veyntora_api__routers__admin_evaluation__FeedbackInput: {
@@ -9822,6 +10135,20 @@ export interface components {
             status: components["schemas"]["JobStatus"];
             /** Version */
             version: number | null;
+        };
+        /** VersionOut */
+        veyntora_api__routers__admin_infrastructure__VersionOut: {
+            /** Changed */
+            changed: ("postgres" | "valkey" | "s3" | "openbao" | "openfga" | "keycloak")[];
+            /**
+             * Saved At
+             * Format: date-time
+             */
+            saved_at: string;
+            /** Saved By */
+            saved_by: string;
+            /** Version */
+            version: number;
         };
         /** SecretInput */
         veyntora_api__routers__admin_integrations__SecretInput: {
@@ -10043,6 +10370,13 @@ export interface components {
             thread_id: string;
             /** User Ids */
             user_ids?: string[];
+        };
+        /** TestIn */
+        veyntora_api__tools__testing__TestIn: {
+            /** Arguments */
+            arguments?: {
+                [key: string]: unknown;
+            };
         };
     };
     responses: never;
@@ -11755,7 +12089,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VersionOut"][];
+                    "application/json": components["schemas"]["veyntora_api__routers__admin_chatbots__VersionOut"][];
                 };
             };
             /** @description Validation Error */
@@ -13365,6 +13699,127 @@ export interface operations {
             };
         };
     };
+    get_infrastructure_v1_admin_infrastructure_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InfrastructureOut"];
+                };
+            };
+        };
+    };
+    restore_infrastructure_v1_admin_infrastructure_restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InfrastructureOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_infrastructure_v1_admin_infrastructure_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__infra__service__TestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_infrastructure_v1_admin_infrastructure__key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: "postgres" | "valkey" | "s3" | "openbao" | "openfga" | "keycloak";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InfrastructureOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_integrations_v1_admin_integrations_get: {
         parameters: {
             query?: never;
@@ -14527,6 +14982,112 @@ export interface operations {
             };
         };
     };
+    get_scanner_v1_admin_scanner_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerOut"];
+                };
+            };
+        };
+    };
+    put_scanner_v1_admin_scanner_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScannerSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_scanner_v1_admin_scanner_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScannerOut"];
+                };
+            };
+        };
+    };
+    test_scanner_v1_admin_scanner_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScannerSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_sources_v1_admin_sources_get: {
         parameters: {
             query?: never;
@@ -15191,6 +15752,72 @@ export interface operations {
             };
         };
     };
+    update_server_v1_admin_tools_servers__server_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_server_v1_admin_tools_servers__server_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                server_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_server_status_v1_admin_tools_servers__server_id__patch: {
         parameters: {
             query?: never;
@@ -15323,6 +15950,37 @@ export interface operations {
             };
         };
     };
+    tool_test_result_v1_admin_tools_tests__test_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                test_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_tool_v1_admin_tools__tool_id__patch: {
         parameters: {
             query?: never;
@@ -15347,6 +16005,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ToolOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_tool_v1_admin_tools__tool_id__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tool_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["veyntora_api__tools__testing__TestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestResult"];
                 };
             };
             /** @description Validation Error */

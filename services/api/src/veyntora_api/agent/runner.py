@@ -32,12 +32,13 @@ from veyntora_api.agent.tools import SEARCH, BoundTool
 from veyntora_api.rag import grounding
 from veyntora_api.rag.guard import Masker, check_output, find_pii
 from veyntora_api.rag.pipeline import (
-    NO_ANSWER_TEXT,
     Answer,
     RunContext,
     Source,
     _adapter,
     _llm,
+    blocks_ungrounded,
+    no_answer_text,
     rerank,
     retrieve,
     system_prompt,
@@ -55,6 +56,10 @@ Only take the actions the user asked for. Actions that change something need a p
 approval; if one is rejected, say so and do not try another way around it.
 If the tools do not give you the answer, say that you could not find it."""
 
+LOOK_IT_UP = """You answered without looking anything up. Use your tools to find the answer first,
+then answer only from what they return, citing it by number. If no tool fits the question,
+say that you could not find it."""
+
 
 class AgentState(TypedDict, total=False):
     run_id: str
@@ -68,6 +73,7 @@ class AgentState(TypedDict, total=False):
     tokens_in: int
     tokens_out: int
     thinks: int
+    nudged: bool
     active_ms: int
     need_mask: bool
     mask: dict[str, str]
@@ -86,6 +92,8 @@ class Env:
     group_ids: set[str]
     emit: Emit = field(default=lambda _e: None)
     connect: mcp_client.Connect = mcp_client.connect
+    # Chat answers must come from something looked up (spec.agent.lookup_first, ADR 0035).
+    lookup_first: bool = False
 
 
 # ---------------------------------------------------------------- state helpers
@@ -259,13 +267,35 @@ async def think(env: Env, st: AgentState) -> AgentState:
         )
         st["pending"] = [{"id": c.id, "name": c.name, "arguments": c.arguments} for c in calls]
         _step(st, "think", "plan", status="done", ms=ms, detail=", ".join(c.name for c in calls))
+    elif env.lookup_first and not _looked_up(st):
+        if st.get("nudged"):
+            # Asked once to look it up and answered from memory again: no answer.
+            st["final"] = ""
+            st["warning"] = "The assistant answered without looking anything up."
+            _step(st, "think", "answer", status="rejected", ms=ms, detail="nothing looked up")
+        else:
+            st["nudged"] = True
+            st["transcript"] += [
+                {"role": "assistant", "content": reply},
+                {"role": "user", "content": LOOK_IT_UP},
+            ]
+            _step(st, "think", "look_it_up", status="done", ms=ms)
     else:
         st["final"] = reply
         _step(st, "think", "answer", status="done", ms=ms)
     return st
 
 
+def _looked_up(st: AgentState) -> bool:
+    """Whether the answer has something to stand on: a search or tool call, or given sources."""
+    return bool(st.get("sources")) or any(s["kind"] == "tool" for s in st.get("steps", []))
+
+
 # ---------------------------------------------------------------- act
+
+
+def _citable(source: Source) -> bool:
+    return bool(source.document_id) or source.chunk_id.startswith(agent_tools.TOOL_SOURCE)
 
 
 def _add_source(st: AgentState, **source: Any) -> int:
@@ -345,9 +375,9 @@ async def run_tool(env: Env, st: AgentState, call: dict[str, Any], tool: BoundTo
     started = time.perf_counter()
     env.emit({"type": "step", "kind": "tool", "name": tool.tool_name, "status": "running"})
     if await agent_tools.rate_limited(env.db, tool, env.ctx.user_id):
-        text, ok = (
+        outcome = mcp_client.ToolOutcome(
             f"Not run: the limit of {tool.rate_limit_per_minute} calls per minute was reached.",
-            False,
+            is_error=True,
         )
     else:
         outcome = await agent_tools.call_mcp(
@@ -359,13 +389,13 @@ async def run_tool(env: Env, st: AgentState, call: dict[str, Any], tool: BoundTo
             secrets=env.secrets,
             connect=env.connect,
         )
-        text, ok = outcome.text[:_RESULT_CHARS], not outcome.is_error
+    ok = not outcome.is_error
     if tool.external:
         st["external"] = True
-    n = _add_source(
-        st, kind="tool", title=f"{tool.server_name}: {tool.tool_name}", section="", text=text
-    )
-    _result(st, call["id"], await _masked(env, st, f"[{n}] {text}"))
+    # Each page or passage the tool returned is a source of its own, cited by its number.
+    found = agent_tools.tool_sources(tool, outcome, len(st.get("sources", [])) + 1)
+    st.setdefault("sources", []).extend(found)
+    _result(st, call["id"], await _masked(env, st, agent_tools.sources_text(found)))
     ms = round((time.perf_counter() - started) * 1000)
     st["active_ms"] = st.get("active_ms", 0) + ms
     _step(
@@ -412,7 +442,7 @@ def tool_of(offered: list[BoundTool], name: str) -> BoundTool | None:
 async def finish(env: Env, st: AgentState) -> Answer:
     """Check the final answer like a Fast answer: citations, groundedness, output check."""
     spec = env.ctx.spec
-    no_answer = NO_ANSWER_TEXT.get(st.get("language", "en"), NO_ANSWER_TEXT["en"])
+    no_answer = no_answer_text(env.ctx.spec, st.get("language", "en"))
     text = _masker(st).unmask(st.get("final") or "").strip()
     sources = [
         Source(
@@ -445,7 +475,7 @@ async def finish(env: Env, st: AgentState) -> Answer:
         if st.get("stopped"):
             base.warning = f"The agent stopped at its {st['stopped']}."
         return base
-    result, problem, check = verdict(spec, text, sources, blocking=True)
+    result, problem, check = verdict(spec, text, sources, blocking=blocks_ungrounded(spec))
     base.groundedness = check.score
     if result == "blocked":
         base.outcome, base.warning = "blocked", problem
@@ -460,7 +490,7 @@ async def finish(env: Env, st: AgentState) -> Answer:
         )
         return base
     base.outcome, base.text = "answered", text
-    # Tool results count for groundedness; only document passages become stored citations.
-    base.cited = [(n, sources[n - 1]) for n in check.cited if sources[n - 1].document_id]
+    # Document passages and tool results are cited; the panel shows them beside the answer.
+    base.cited = [(n, sources[n - 1]) for n in check.cited if _citable(sources[n - 1])]
     base.warning = problem or base.warning
     return base

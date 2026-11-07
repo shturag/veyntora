@@ -8,6 +8,9 @@ key is read through a SecretReader at call time, as for providers.
   at the configured token URL for each connection.
 - Tool results are reduced to text (images and other blocks are named, not passed on) and
   capped, so a server cannot flood the model.
+- Each text block of a result is kept as its own part, so a tool that returns several pages
+  gives several sources. An embedded text resource (`resource`) or a `resource_link` carries
+  its address; its title comes from `_meta.title`, the resource's title, or its address.
 """
 
 from __future__ import annotations
@@ -59,9 +62,19 @@ class ToolInfo:
 
 
 @dataclass(frozen=True, slots=True)
+class ToolPart:
+    """One block of a tool result: a page or passage, with its address when it has one."""
+
+    text: str
+    url: str = ""
+    title: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class ToolOutcome:
     text: str
     is_error: bool
+    parts: tuple[ToolPart, ...] = ()
 
 
 # Instruction-like phrases in a tool description: shown to admins before enabling.
@@ -152,15 +165,40 @@ async def list_tools(client: Client) -> list[ToolInfo]:
             return out
 
 
+def _http(uri: object) -> str:
+    value = str(uri or "")
+    return value if value.startswith(("http://", "https://")) else ""
+
+
+def _part(block: Any) -> ToolPart:
+    kind = getattr(block, "type", "content")
+    if kind == "text":
+        return ToolPart(text=block.text)
+    if kind == "resource" and isinstance(getattr(block.resource, "text", None), str):
+        res = block.resource
+        meta = res.meta or block.meta or {}
+        url = _http(res.uri)
+        return ToolPart(text=res.text, url=url, title=str(meta.get("title") or url))
+    if kind == "resource_link":
+        url = _http(block.uri)
+        title = block.title or block.name or url
+        return ToolPart(text=block.description or title, url=url, title=title)
+    return ToolPart(text=f"[{kind}]")
+
+
 async def call_tool(client: Client, name: str, arguments: dict[str, Any]) -> ToolOutcome:
     result = await client.call_tool(name, arguments)
-    parts: list[str] = []
-    for block in result.content:
-        text = getattr(block, "text", None)
-        parts.append(text if isinstance(text, str) else f"[{getattr(block, 'type', 'content')}]")
+    parts = [_part(block) for block in result.content]
     if not parts and result.structured_content is not None:
-        parts.append(str(result.structured_content))
-    text = "\n".join(parts)
-    if len(text) > MAX_RESULT_CHARS:
-        text = text[:MAX_RESULT_CHARS] + "\n[result shortened]"
-    return ToolOutcome(text=text, is_error=bool(result.is_error))
+        parts.append(ToolPart(text=str(result.structured_content)))
+    kept: list[ToolPart] = []
+    budget = MAX_RESULT_CHARS
+    for part in parts:
+        if budget <= 0:
+            break
+        short = len(part.text) > budget
+        text = part.text[:budget] + "\n[result shortened]" if short else part.text
+        kept.append(ToolPart(text, part.url, part.title))
+        budget -= len(text)
+    text = "\n".join(p.text for p in kept)
+    return ToolOutcome(text=text, is_error=bool(result.is_error), parts=tuple(kept))

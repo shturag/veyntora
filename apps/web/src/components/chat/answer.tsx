@@ -9,6 +9,7 @@ import { Fragment, useState, type ReactNode } from "react";
 
 import {
   api,
+  isToolSource,
   parseBlocks,
   plainText,
   type Inline,
@@ -17,6 +18,7 @@ import {
   type CitationMeta,
   type CodeRun,
 } from "@/lib/chat";
+import { useSmoothText } from "@/lib/smooth-text";
 
 const chip =
   "mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-accent-soft px-1.5 align-baseline text-xs font-semibold text-accent no-underline hover:bg-accent-soft-strong";
@@ -76,7 +78,17 @@ function CitationChip({
   );
 }
 
-function AnswerText({ text, meta }: { text: string; meta: AnswerMeta }) {
+/** The answer's text: paragraphs, headings, lists, code, tables and citation chips. With
+ * `typing`, a cursor follows the last line (the text is still arriving). */
+export function AnswerText({
+  text,
+  meta,
+  typing = false,
+}: {
+  text: string;
+  meta: AnswerMeta;
+  typing?: boolean;
+}) {
   const byN = new Map((meta.citations ?? []).map((c) => [c.n, c]));
   const line = (parts: Inline[]) =>
     parts.map((part, j) => (
@@ -93,7 +105,7 @@ function AnswerText({ text, meta }: { text: string; meta: AnswerMeta }) {
       </Fragment>
     ));
   return (
-    <div className="flex flex-col gap-3 text-base leading-[1.7]">
+    <div className={cn("flex flex-col gap-3 text-base leading-[1.7]", typing && "vey-typing")}>
       {parseBlocks(text).map((block, i) => {
         switch (block.kind) {
           case "heading": {
@@ -294,7 +306,7 @@ function SaveAnswer({ messageId }: { messageId: string }) {
       </Button>
       {state === "saved" ? (
         <span role="status" className="self-center text-xs text-fg-muted">
-          <Link href="/saved" className="underline">
+          <Link href="/library/saved" className="underline">
             {t("savedLink")}
           </Link>
         </span>
@@ -338,6 +350,10 @@ function AgentSteps({ steps, reason }: { steps: AgentStep[]; reason?: string | n
 }
 
 function stepLabel(t: ReturnType<typeof useTranslations<"chat">>, s: AgentStep): string {
+  if (s.kind === "think" && s.name === "look_it_up") return t("stepLookItUp");
+  if (s.kind === "think" && s.name === "answer" && s.status === "rejected") {
+    return t("stepFromMemory");
+  }
   if (s.kind === "think") return s.name === "answer" ? t("stepAnswer") : t("stepPlan");
   if (s.kind === "approval") return t("stepApproval", { tool: s.name });
   if (s.kind === "limit") return t("stepLimit", { limit: s.name });
@@ -351,9 +367,12 @@ export function AnswerBlock({
   onAsk,
   onShowSources,
   sourcesShown = false,
+  revealFrom,
 }: {
   text: string;
   meta: AnswerMeta;
+  /** Just streamed: reveal the rest from this many characters, where the live text was. */
+  revealFrom?: number;
   /** Show this answer's sources in the panel beside the chat (wide screens). */
   onShowSources?: () => void;
   sourcesShown?: boolean;
@@ -363,6 +382,9 @@ export function AnswerBlock({
 }) {
   const t = useTranslations("chat");
   const [copied, setCopied] = useState(false);
+  const shownText = useSmoothText(text, revealFrom !== undefined, revealFrom ?? 0);
+  // Still typing out: the actions and suggestions come once the text is all there.
+  const typing = shownText.length < text.length;
   if (meta.outcome === "refused") {
     return (
       <div
@@ -375,9 +397,11 @@ export function AnswerBlock({
   }
   const cited = meta.citations ?? [];
   const documents = new Set(cited.filter((c) => c.document_id).map((c) => c.document_id)).size;
-  // Attached files and web pages are cited too (ADR 0028, 0029); they are not documents.
-  const files = cited.filter((c) => !c.document_id && !c.url).length;
-  const pages = cited.filter((c) => c.url).length;
+  // Attached files, web pages and tool results are cited too (ADR 0028, 0029); they are not
+  // documents.
+  const tools = cited.filter(isToolSource).length;
+  const files = cited.filter((c) => !c.document_id && !c.url && !isToolSource(c)).length;
+  const pages = cited.filter((c) => c.url && !isToolSource(c)).length;
   const seconds = meta.latency_ms ? (meta.latency_ms / 1000).toFixed(1) : null;
   const answered = meta.outcome === "answered";
   return (
@@ -393,11 +417,13 @@ export function AnswerBlock({
           {meta.no_sources
             ? t("noSources")
             : answered
-              ? documents || !(files || pages)
+              ? documents || !(files || pages || tools)
                 ? t("answeredFrom", { count: documents })
                 : files
                   ? t("answeredFromFiles", { count: files })
-                  : t("answeredFromWeb", { count: pages })
+                  : pages
+                    ? t("answeredFromWeb", { count: pages })
+                    : t("answeredFromTools", { count: tools })
               : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
         </SourcesLabel>
@@ -426,8 +452,8 @@ export function AnswerBlock({
       {meta.code_runs?.length ? <CodeRuns runs={meta.code_runs} /> : null}
       {answered ? (
         <>
-          <AnswerText text={text} meta={meta} />
-          {meta.cut_off ? (
+          <AnswerText text={shownText} meta={meta} typing={typing} />
+          {meta.cut_off && !typing ? (
             <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
               {t("cutOff")}
             </p>
@@ -442,12 +468,12 @@ export function AnswerBlock({
           ) : null}
         </div>
       )}
-      {answered && meta.warning ? (
+      {answered && meta.warning && !typing ? (
         <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
           {t("groundingWarning")}
         </p>
       ) : null}
-      {meta.message_id ? (
+      {meta.message_id && !typing ? (
         <div className="flex flex-wrap gap-1.5">
           {answered ? <Feedback messageId={meta.message_id} /> : null}
           {answered ? <SaveAnswer messageId={meta.message_id} /> : null}
@@ -472,7 +498,7 @@ export function AnswerBlock({
           ) : null}
         </div>
       ) : null}
-      {answered && onAsk && meta.follow_ups?.length ? (
+      {answered && onAsk && meta.follow_ups?.length && !typing ? (
         <ul aria-label={t("followUps")} className="m-0 flex list-none flex-wrap gap-2 p-0">
           {meta.follow_ups.map((q) => (
             <li key={q}>

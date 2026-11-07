@@ -1,13 +1,15 @@
-import { Badge } from "@veyntora/ui";
+import { Badge, Card, CardTitle } from "@veyntora/ui";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { statusTone } from "@/components/tools/labels";
-import { ServerActions } from "@/components/tools/server-actions";
+import { ReplaceKey, ServerActions, SignOffBanner } from "@/components/tools/server-actions";
 import { ToolRow } from "@/components/tools/tool-row";
+import { ToolTester } from "@/components/tools/tool-tester";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
 
@@ -29,62 +31,110 @@ export default async function ServerPage({ params }: { params: Promise<{ id: str
   if (!s) notFound();
   const canEdit = access.level === "editor";
   const reviewer = access.me.roles.security_reviewer || access.me.roles.platform_admin;
+  const when = (iso: string, time = false) =>
+    format.dateTime(
+      new Date(iso),
+      time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" },
+    );
+  const enabledCount = s.tools.filter((tool) => tool.enabled).length;
+  const facts: { label: string; value: ReactNode; wide?: boolean; mono?: boolean }[] = [
+    { label: t("address"), value: s.url, wide: true, mono: true },
+    { label: t("transport"), value: t(`transports.${s.transport}`) },
+    { label: t("hosting"), value: t(`hostings.${s.hosting}`) },
+    { label: t("authentication"), value: t(`auths.${s.auth}`) },
+    {
+      label: t("key"),
+      value:
+        s.auth === "bearer" || s.auth === "oauth_client" ? (
+          <span className="flex flex-wrap items-center gap-3">
+            <span className="font-mono">
+              {s.has_secret ? `••••${s.secret_last4 ?? ""}` : t("noKey")}
+            </span>
+            {canEdit ? <ReplaceKey server={s} /> : null}
+          </span>
+        ) : (
+          t("noKey")
+        ),
+    },
+    {
+      label: t("signOffLabel"),
+      value: s.signed_off_at
+        ? t("signedOffOn", { date: when(s.signed_off_at) })
+        : t("notSignedOff"),
+    },
+    {
+      label: t("discoveredLabel"),
+      value: s.last_discovered_at ? when(s.last_discovered_at, true) : t("notYet"),
+    },
+    { label: t("callsLabel"), value: format.number(s.calls_7d) },
+    { label: t("latency"), value: s.p95_ms != null ? `${format.number(s.p95_ms)} ms` : "—" },
+  ];
   return (
-    <div className="flex flex-col gap-5">
-      <nav aria-label="Breadcrumb" className="text-sm text-fg-muted">
-        <Link href="/admin/tools" className="underline">
-          {t("title")}
-        </Link>{" "}
-        / {s.name}
-      </nav>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="flex max-w-[1200px] flex-col gap-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1.5">
+          <nav aria-label="Breadcrumb" className="text-sm text-fg-muted">
+            <Link href="/admin/tools" className="text-fg-muted hover:text-fg hover:underline">
+              {t("title")}
+            </Link>{" "}
+            / {s.name}
+          </nav>
+          <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="m-0 text-2xl font-bold">{s.name}</h1>
             <Badge tone={statusTone(s.status)}>{t(`statuses.${s.status}`)}</Badge>
             {s.hosting === "external" ? <Badge tone="amber">{t("hostings.external")}</Badge> : null}
           </div>
-          <span className="font-mono text-xs text-fg-muted">
-            {s.url} · {t(`auths.${s.auth}`)}
-            {s.has_secret ? ` · ••••${s.secret_last4 ?? ""}` : ""}
-          </span>
-          <span className="text-xs text-fg-muted">
-            {s.signed_off_at
-              ? t("signedOff", {
-                  date: format.dateTime(new Date(s.signed_off_at), { dateStyle: "medium" }),
-                })
-              : t("notSignedOff")}
-            {" · "}
-            {s.last_discovered_at
-              ? t("discovered", {
-                  date: format.dateTime(new Date(s.last_discovered_at), {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  }),
-                })
-              : t("discovering")}
-            {s.p95_ms != null ? ` · ${t("p95", { ms: s.p95_ms })}` : ""}
-            {` · ${t("calls7d", { count: s.calls_7d })}`}
-          </span>
         </div>
-        {canEdit ? <ServerActions server={s} reviewer={reviewer} /> : null}
+        {canEdit ? <ServerActions server={s} /> : null}
       </div>
+
       {s.last_error ? (
-        <p role="alert" className="m-0 rounded-md bg-red-soft px-3 py-2 text-sm text-red">
+        <p
+          role="alert"
+          className="m-0 rounded-lg border border-red/30 bg-red-soft px-5 py-3 text-sm text-red"
+        >
           {s.last_error}
         </p>
       ) : null}
-      <section aria-labelledby="tools-title" className="flex flex-col gap-3">
-        <h2 id="tools-title" className="m-0 text-base font-semibold">
-          {t("tools")}
-        </h2>
-        <p className="m-0 text-sm text-fg-secondary">{t("reviewHint")}</p>
+      {!s.signed_off && canEdit ? <SignOffBanner server={s} reviewer={reviewer} /> : null}
+
+      <Card aria-labelledby="connection-title" className="flex flex-col gap-4">
+        <CardTitle id="connection-title">{t("connection")}</CardTitle>
+        <dl className="m-0 grid grid-cols-4 gap-x-6 gap-y-4 max-[1000px]:grid-cols-2 max-[600px]:grid-cols-1">
+          {facts.map((f) => (
+            <div key={f.label} className={f.wide ? "col-span-2 max-[600px]:col-span-1" : undefined}>
+              <dt className="text-xs font-medium text-fg-muted">{f.label}</dt>
+              <dd className={`m-0 mt-1 text-sm break-all ${f.mono ? "font-mono" : ""}`}>
+                {f.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </Card>
+
+      <section
+        aria-labelledby="tools-title"
+        className="flex flex-col rounded-lg border border-line bg-surface"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-5 py-4">
+          <div className="flex flex-col gap-1">
+            <h2 id="tools-title" className="m-0 text-base font-bold">
+              {t("tools")}
+            </h2>
+            <p className="m-0 text-sm text-fg-muted">{t("reviewHint")}</p>
+          </div>
+          {s.tools.length > 0 ? (
+            <span className="text-sm text-fg-muted">
+              {t("toolsSummary", { enabled: enabledCount, total: s.tools.length })}
+            </span>
+          ) : null}
+        </div>
         {s.tools.length === 0 ? (
-          <p className="m-0 rounded-lg border border-line bg-surface p-5 text-sm text-fg-secondary">
+          <p className="m-0 p-5 text-sm text-fg-secondary">
             {s.last_discovered_at ? t("noTools") : t("discovering")}
           </p>
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+          <ul className="m-0 flex list-none flex-col p-0">
             {s.tools.map((tool) => (
               <ToolRow
                 key={`${tool.id}-${tool.version}`}
@@ -97,18 +147,19 @@ export default async function ServerPage({ params }: { params: Promise<{ id: str
           </ul>
         )}
       </section>
-      <section aria-labelledby="calls-title" className="flex flex-col gap-2">
-        <h2 id="calls-title" className="m-0 text-base font-semibold">
-          {t("recentCalls")}
-        </h2>
+
+      {canEdit && s.tools.length > 0 ? <ToolTester tools={s.tools} /> : null}
+
+      <Card aria-labelledby="calls-title" className="flex flex-col gap-3">
+        <CardTitle id="calls-title">{t("recentCalls")}</CardTitle>
         {s.recent_calls.length === 0 ? (
           <p className="m-0 text-sm text-fg-muted">{t("noCalls")}</p>
         ) : (
-          <ul className="m-0 flex list-none flex-col rounded-lg border border-line bg-surface p-0">
+          <ul className="m-0 flex list-none flex-col p-0">
             {s.recent_calls.map((c, i) => (
               <li
                 key={i}
-                className="flex justify-between gap-3 border-t border-line px-4 py-2 text-sm first:border-t-0"
+                className="flex justify-between gap-3 border-t border-line py-2.5 text-sm first:border-t-0"
               >
                 <span className="min-w-0 truncate">
                   <span className="font-mono">{c.tool}</span>
@@ -123,7 +174,7 @@ export default async function ServerPage({ params }: { params: Promise<{ id: str
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

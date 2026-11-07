@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
-import { RegisterServerForm } from "@/components/tools/register-form";
+import { ServerForm } from "@/components/tools/server-form";
 import { areaAccess } from "@/lib/admin";
 
 export const generateMetadata = () => screenMetadata("mcpRegister");
@@ -23,7 +23,7 @@ export default async function RegisterServerPage() {
         / {t("registerTitle")}
       </nav>
       <PageHeader title={t("registerTitle")} subtitle={t("registerSubtitle")} />
-      <RegisterServerForm />
+      <ServerForm />
     </div>
   );
 }

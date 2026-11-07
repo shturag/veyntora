@@ -101,6 +101,9 @@ class RetrievalSpec(_Spec):
     # Admin-defined filter expression. ACL filters are added on top and cannot be removed.
     metadata_filter: str = ""
     query_rewrite: bool = False
+    # Knowledge tools (ADR 0035): read-only MCP tools searched with every question, like the
+    # documents. Each page or passage they return is a source of the answer.
+    tool_ids: list[UUID] = Field(default_factory=list, max_length=5)
 
     @property
     def sparse_weight(self) -> float:
@@ -176,6 +179,9 @@ class AgentSpec(_Spec):
     max_steps: int = Field(6, ge=1, le=50)
     timeout_seconds: int = Field(60, ge=5, le=3600)
     token_budget: int = Field(40_000, ge=1_000, le=2_000_000)
+    # Answers in chat must come from something the agent looked up (ADR 0035): an answer
+    # written before any tool or search is sent back once, then treated as "no answer".
+    lookup_first: bool = True
 
 
 # ---------------------------------------------------------------- router
