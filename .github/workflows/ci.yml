@@ -189,9 +189,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: scripts/gen-env.sh
-      # The model servers (TEI, Docling) and Langfuse are not needed for Phase 0 flows and
-      # would download several GB per run; `web` pulls in everything it depends on.
+      # Throwaway copies of PostgreSQL, Keycloak, OpenBao, ... (deploy/compose/ci-infra.yaml).
+      - run: scripts/ci-env.sh
+      # `web` pulls in everything it depends on.
       - name: Start the stack
         run: docker compose up -d --build --wait web graphs workers scheduler
       - run: uv sync --all-packages --frozen

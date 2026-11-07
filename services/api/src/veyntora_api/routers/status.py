@@ -18,6 +18,7 @@ from veyntora_api.db.models.platform import (
 from veyntora_api.governance import service as governance
 from veyntora_api.health.checks import Level, build_probes, overall, roll_up, run_probes
 from veyntora_api.integrations import service as integrations
+from veyntora_api.knowledge import scanner
 
 router = APIRouter(tags=["status"])
 
@@ -80,8 +81,15 @@ async def system_status(state: State, db: DbSession) -> StatusOut:
         return cached[1]
 
     langfuse_url = await integrations.service_url(db, IntegrationKind.LANGFUSE)
+    clamav_address = await scanner.scanner_address(db)
     results = await run_probes(
-        build_probes(state.settings, state.http, state.redis, langfuse_url=langfuse_url),
+        build_probes(
+            state.settings,
+            state.http,
+            state.redis,
+            langfuse_url=langfuse_url,
+            clamav_address=clamav_address,
+        ),
         state.settings.status_timeout_seconds,
     )
     levels = roll_up(results)

@@ -22,7 +22,7 @@ from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.chatbots import Chatbot, PipelineVersion
 from veyntora_api.db.models.conversations import ChatAttachment
 from veyntora_api.db.models.providers import ProviderInstance
-from veyntora_api.knowledge import clamd
+from veyntora_api.knowledge import clamd, scanner
 from veyntora_api.rag import attachments as files
 
 router = APIRouter(prefix="/v1/me/chatbots", tags=["me"])
@@ -89,13 +89,14 @@ async def _scan(
     settings = state.settings
     if not settings.scan_required:
         return
-    if not settings.clamav_address:
+    address = await scanner.scanner_address(db)
+    if not address:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "Files can't be attached: no virus scanner is configured.",
         )
     try:
-        scan = await clamd.scan_bytes(settings.clamav_address, data)
+        scan = await clamd.scan_bytes(address, data)
     except clamd.ScannerUnavailableError as exc:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE, "The virus scanner is unavailable; try again."

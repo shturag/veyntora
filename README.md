@@ -9,11 +9,13 @@ Self-hosted enterprise knowledge platform. Employees ask questions and get answe
 ## Quick start
 
 ```bash
-make up                           # writes .env with random passwords on first run
-open http://localhost:3000        # admin or employee; passwords: grep _PASSWORD .env
+make env                          # .env with the config keys
+make up                           # builds and starts Veyntora's own services
+make setup-code                   # the code for the Setup page
+open http://localhost:3000        # set up PostgreSQL, Valkey, S3, OpenBao, OpenFGA, Keycloak
 ```
 
-Give Docker at least 16 GB of memory. More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md). To use your own Keycloak, Langfuse or Grafana, see [docs/runbooks/external-services.md](docs/runbooks/external-services.md).
+No services of your own yet? `make env-ci && make up` starts throwaway copies too. More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md) and [docs/runbooks/external-services.md](docs/runbooks/external-services.md).
 
 ## Layout
 

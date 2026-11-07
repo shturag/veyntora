@@ -24,7 +24,35 @@ async function frameAncestors(pathname: string): Promise<string> {
   }
 }
 
+// Until Veyntora is set up, every page is the Setup page (ADR 0034). "ready" is trusted
+// for a while so a running Veyntora is not asked on every page.
+let readyUntil = 0;
+async function setupState(): Promise<string | null> {
+  if (Date.now() < readyUntil) return "ready";
+  const base = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
+  try {
+    const res = await fetch(`${base}/v1/setup`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!res.ok) return null;
+    const state = ((await res.json()) as { state?: string }).state ?? null;
+    if (state === "ready") readyUntil = Date.now() + 30_000;
+    return state;
+  } catch {
+    return null; // the API is down: pages say so themselves
+  }
+}
+
 export async function proxy(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  // Pages only: files (the logo, icons) are served as they are.
+  if (!path.startsWith("/widget/") && !/\.[a-z0-9]+$/i.test(path)) {
+    const state = await setupState();
+    if (state && state !== "ready" && path !== "/setup") {
+      return NextResponse.redirect(new URL("/setup", request.url));
+    }
+  }
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const dev = process.env.NODE_ENV !== "production";
   const csp = [

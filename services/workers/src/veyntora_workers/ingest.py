@@ -44,6 +44,7 @@ from veyntora_api.knowledge import clamd as scan
 from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.connectors import CONNECTED
 from veyntora_api.knowledge.profiles import index_plan
+from veyntora_api.knowledge.scanner import scanner_address
 from veyntora_api.knowledge.service import principals_of, source_acl
 from veyntora_api.providers.runtime import Adapters, ProviderUnavailableError
 from veyntora_api.rag.record import record_indexing
@@ -229,11 +230,12 @@ class Ingestor:
             doc.scan_status, doc.scan_detail = ScanStatus.SKIPPED, "scanning is switched off"
             doc.scanned_at = datetime.now(UTC)
             return True
-        if not self.settings.clamav_address:
+        address = await scanner_address(self.db)
+        if not address:
             raise scan.ScannerUnavailableError(
-                "no virus scanner configured (VEY_CLAMAV_ADDRESS); uploads wait until one is"
+                "no virus scanner set up (Admin → Integrations); uploads wait until one is"
             )
-        result = await scan.scan_bytes(self.settings.clamav_address, await self._content(doc, work))
+        result = await scan.scan_bytes(address, await self._content(doc, work))
         doc.scanned_at = datetime.now(UTC)
         if result.clean:
             doc.scan_status, doc.scan_detail = ScanStatus.CLEAN, None

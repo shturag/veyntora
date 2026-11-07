@@ -62,18 +62,14 @@ class Settings(BaseSettings):
     scan_required: bool = True
     upload_max_bytes: int = 50 * 1024 * 1024
 
-    # Health targets for the status page. Empty means the component is not deployed.
-    qdrant_url: str = "http://localhost:6333"
-    litellm_url: str = "http://localhost:4000"
+    # Health targets for the status page. Empty means the component is not deployed. The
+    # vector store, models and parser are providers (ADR 0032): their health is checked there.
     graphs_url: str = "http://localhost:2026"
     # How runtime services reach the API inside the network (delegated tool tokens).
     api_internal_url: str = "http://localhost:8000"
-    docling_url: str = "http://localhost:5001"
-    tei_embed_url: str = ""
-    tei_rerank_url: str = ""
     # Langfuse and Grafana are configured in the admin console (Integrations, ADR 0024).
     # These only seed it: `veyntora-api bootstrap` imports them once, when nothing is set
-    # up yet (the bundled services in compose). Later changes are made in the console.
+    # up yet. Later changes are made in the console.
     langfuse_url: str = ""
     langfuse_browser_url: str = ""
     langfuse_public_key: str = ""

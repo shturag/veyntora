@@ -61,8 +61,8 @@ Model keys, connector secrets and people's own keys are never in Kubernetes. The
 ```bash
 bao auth enable kubernetes
 bao write auth/kubernetes/config kubernetes_host="https://$KUBERNETES_SERVICE_HOST"
-bao policy write veyntora-api deploy/compose/openbao/api-policy.hcl          # write-only
-bao policy write veyntora-runtime deploy/compose/openbao/runtime-policy.hcl  # read
+bao policy write veyntora-api services/api/src/veyntora_api/infra/policies/api.hcl # write-only
+bao policy write veyntora-runtime services/api/src/veyntora_api/infra/policies/runtime.hcl  # read
 # One namespace per environment (veyntora-dev, veyntora-staging, veyntora-prod).
 bao write auth/kubernetes/role/veyntora-api \
   bound_service_account_names=api bound_service_account_namespaces=veyntora-prod \

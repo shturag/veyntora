@@ -48,8 +48,8 @@ bao secrets list -format=json | tr -d ' \n' | grep -q '"transit/"' ||
 bao read transit/keys/veyntora >/dev/null 2>&1 ||
   bao write -f transit/keys/veyntora >/dev/null
 
-bao policy write veyntora-api /policies/api-policy.hcl >/dev/null
-bao policy write veyntora-runtime /policies/runtime-policy.hcl >/dev/null
+bao policy write veyntora-api /policies/api.hcl >/dev/null
+bao policy write veyntora-runtime /policies/runtime.hcl >/dev/null
 
 issue() {
   # Re-issue only if the stored token no longer works.

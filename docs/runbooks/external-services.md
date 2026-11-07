@@ -1,28 +1,12 @@
 # Your own Keycloak, Langfuse and Grafana
 
-The local stack brings its own Keycloak, Langfuse and Grafana. Each one can be replaced by an instance you already run. How you connect them differs:
+None of these is bundled (ADR 0032, ADR 0033): Veyntora connects to the ones you run. The vector store, parser and models are providers, added under **Providers & keys**. How you connect them differs:
 
 | Service | Configured in | Why |
 |---|---|---|
 | Langfuse | Admin console → **Integrations** | Configuration lives in PostgreSQL, keys in OpenBao (ADR 0024) |
 | Grafana | Admin console → **Integrations** | Same |
-| Keycloak | Deployment settings (`.env`, Helm values) | You need Keycloak to sign in to the admin console |
-
-## Leave the bundled services out (compose)
-
-`make env` writes this line into `.env`:
-
-```bash
-COMPOSE_PROFILES=bundled-keycloak,bundled-langfuse,bundled-grafana
-```
-
-Remove a name to stop compose from starting that service. For example, with your own Keycloak and Langfuse:
-
-```bash
-COMPOSE_PROFILES=bundled-grafana
-```
-
-Then run `make up`. An `.env` from before this change gets the line added the next time you run `make env` or `make up`.
+| Keycloak | The Setup page, then **Admin → Infrastructure** (ADR 0034); Helm values | You need Keycloak to sign in to the admin console, so it is set before (Setup page) |
 
 ## Langfuse
 
@@ -39,9 +23,9 @@ New answers are traced within a minute, with no restart.
 
 **External Langfuse** (for example Langfuse Cloud): traces contain questions and answers, so sending them there is data egress. A chatbot's traces go there only when its data rule allows it: **Chatbot → Access → Data rule → Send traces to an external Langfuse**. Personal data in those traces is always masked. The Governance page lists the chatbots that allow it.
 
-The bundled stack does this for you. `veyntora-api bootstrap` reads `VEY_LANGFUSE_URL`, `VEY_LANGFUSE_PUBLIC_KEY` and `VEY_LANGFUSE_SECRET_KEY` and imports them once, but only when Langfuse is not set up yet. After that, changing those variables does nothing; make changes in the console. To skip the import, set `VEY_LANGFUSE_URL=` (empty) in `.env`.
+To set it up from `.env` instead, `veyntora-api bootstrap` reads `VEY_LANGFUSE_URL`, `VEY_LANGFUSE_PUBLIC_KEY` and `VEY_LANGFUSE_SECRET_KEY` and imports them once, but only when Langfuse is not set up yet. After that, changing those variables does nothing; make changes in the console. They are empty by default, so nothing is imported.
 
-The services' own spans (HTTP requests and timings, never answers) go from the OTel collector to `VEY_OTLP_TRACES_ENDPOINT`, which is the bundled Langfuse by default. Without the bundled Langfuse, point this at a collector or Langfuse inside your network, and set `VEY_LANGFUSE_OTLP_AUTH` to match.
+Only answers are traced. The services do not send their own spans anywhere.
 
 ## Grafana
 
@@ -99,7 +83,9 @@ The file contains the two secrets. Delete it after the import.
 
 ### 2. Point Veyntora at it
 
-Compose: set these in `.env`, and leave `bundled-keycloak` out of `COMPOSE_PROFILES`:
+Compose: enter them on the Setup page (first start) or in **Admin → Infrastructure → Keycloak**: the issuer (exactly the "issuer" Keycloak reports), the address for the containers if different, and the two clients' secrets. The platform admin group stays `VEY_BOOTSTRAP_ADMIN_GROUP` in `.env` (default `/platform-admins`).
+
+With settings from the environment (CI), these are the variables:
 
 ```bash
 VEY_OIDC_ISSUER=https://sso.example.com/realms/veyntora          # exactly the "issuer" Keycloak reports

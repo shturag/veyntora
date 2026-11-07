@@ -1,9 +1,0 @@
-apiVersion: 1
-providers:
-  # Dashboards shipped with the stack; read-only in Grafana, edited in the repository.
-  - name: veyntora
-    folder: Veyntora
-    type: file
-    allowUiUpdates: false
-    options:
-      path: /etc/grafana/dashboards

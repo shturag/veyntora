@@ -9,14 +9,6 @@ import { api } from "@/lib/chat";
 
 export type AdapterOption = { capability: string; adapter: string; external_only: boolean };
 
-// Endpoints of the services in the local stack; external APIs use their built-in default.
-const DEFAULT_ENDPOINT: Record<string, string> = {
-  "vector_store/qdrant": "http://qdrant:6333",
-  "parser/docling": "http://docling:5001",
-  "embedding/tei": "http://tei-embed:80",
-  "reranker/tei": "http://tei-rerank:80",
-  "code_interpreter/sandbox": "http://sandbox:8090",
-};
 const ENDPOINT_OPTIONAL = new Set([
   "llm/anthropic",
   "embedding/voyage",
@@ -160,7 +152,6 @@ export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
               name="endpoint"
               type="url"
               required={!ENDPOINT_OPTIONAL.has(key)}
-              defaultValue={DEFAULT_ENDPOINT[key] ?? ""}
               className={`${input} font-mono`}
             />
             <span className="text-xs font-normal text-fg-muted">{t("endpointHint")}</span>

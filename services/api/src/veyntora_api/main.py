@@ -21,6 +21,7 @@ from veyntora_api.core.config_service import VersionConflictError
 from veyntora_api.core.logging import configure_logging
 from veyntora_api.core.state import AppState
 from veyntora_api.db.session import get_sessionmaker
+from veyntora_api.infra.config import Store
 from veyntora_api.knowledge.service import KnowledgeError
 from veyntora_api.providers.service import purge_replaced_keys
 from veyntora_api.routers import (
@@ -33,6 +34,7 @@ from veyntora_api.routers import (
     admin_conversations,
     admin_evaluation,
     admin_governance,
+    admin_infrastructure,
     admin_integrations,
     admin_knowledge_health,
     admin_notify,
@@ -43,6 +45,7 @@ from veyntora_api.routers import (
     admin_reviews,
     admin_rollout,
     admin_runs,
+    admin_scanner,
     admin_sources,
     admin_tools,
     admin_usage,
@@ -128,6 +131,11 @@ def build_lifespan(settings: Settings) -> Callable[[FastAPI], AsyncIterator[None
             secrets=await _connect_optional("openbao", writer),
         )
         app.state.vey = state
+        # Set up and running: the setup code has done its job (ADR 0034).
+        store = Store()
+        if store.load() is not None:
+            store.mark_set_up()
+            store.setup_code.unlink(missing_ok=True)
         purger = asyncio.create_task(_purge_replaced_keys(state.secrets)) if state.secrets else None
         try:
             yield
@@ -193,6 +201,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # Domain checks that failed (unknown source, external provider not allowed, ...).
         return JSONResponse({"detail": str(exc)}, status_code=422)
 
+    @app.get("/v1/setup", include_in_schema=False)
+    async def setup_state() -> dict[str, str]:
+        # The web app asks before each page; the Setup app answers otherwise (ADR 0034).
+        return {"state": "ready"}
+
     @app.get("/metrics", include_in_schema=False)
     async def metrics() -> Response:
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
@@ -206,10 +219,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(chat.router)
     app.include_router(admin_providers.router)
     app.include_router(admin_integrations.router)
+    app.include_router(admin_infrastructure.router)
     app.include_router(admin_runs.router)
     app.include_router(admin_automations.router)
     app.include_router(hooks.router)
     app.include_router(admin_notify.router)
+    app.include_router(admin_scanner.router)
     app.include_router(admin_knowledge_health.router)
     app.include_router(me_notifications.router)
     app.include_router(me_saved.router)

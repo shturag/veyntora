@@ -30,7 +30,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable --package veyntora-graphs
 
 FROM python:3.12.16-slim-trixie
-RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app
+RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app \
+    && mkdir -p /var/lib/veyntora && chown app:app /var/lib/veyntora
 COPY --from=build /opt/venv /opt/venv
 # Aegra loads graphs by file path relative to aegra.json.
 COPY services/graphs/aegra.json /app/services/graphs/aegra.json

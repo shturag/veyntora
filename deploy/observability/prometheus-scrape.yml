@@ -1,3 +1,6 @@
+# Example scrape jobs for your own Prometheus (ADR 0032). The API and graph server expose
+# /metrics; OpenFGA on 2112. Replace the targets with the addresses your Prometheus reaches.
+# grafana-veyntora-services.json is a dashboard for these jobs (Import dashboard in Grafana).
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -9,9 +12,6 @@ scrape_configs:
   - job_name: graphs
     static_configs:
       - targets: ["graphs:2026"]
-  - job_name: otel-collector
-    static_configs:
-      - targets: ["otel-collector:8889"]
   - job_name: openfga
     static_configs:
       - targets: ["openfga:2112"]

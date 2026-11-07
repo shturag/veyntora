@@ -1,7 +1,7 @@
 """Write-only secret storage in OpenBao (KV v2).
 
 The API can create, replace and delete secrets but never read them back: this class has no
-read method, and the OpenBao policy for the API token (deploy/compose/openbao/api-policy.hcl)
+read method, and the OpenBao policy for the API token (veyntora_api/infra/policies/api.hcl)
 denies `read` on kv/data/*. Only graphs and workers hold a reader token.
 """
 
@@ -21,7 +21,11 @@ _PATH = re.compile(
     r"|mcp/[0-9a-f-]{36}"
     r"|sources/[0-9a-f-]{36}"
     r"|channels/[0-9a-f-]{36}"
-    r"|integrations/(?:langfuse|grafana))$"
+    r"|integrations/(?:langfuse|grafana)"
+    # The email relay's password (notify.service.SMTP_PATH).
+    r"|platform/smtp"
+    # Connection passwords of the services Veyntora runs on (ADR 0034).
+    r"|veyntora/infra/[a-z0-9-]{1,64})$"
 )
 _MIN_LEN_FOR_LAST4 = 12
 

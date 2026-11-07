@@ -7,7 +7,7 @@ PNPM ?= pnpm
 # Explicit import paths so local runs never depend on editable-install .pth files
 # (macOS can flag them hidden; see docs/runbooks/local-dev.md).
 export PYTHONPATH := $(ROOT)/packages/spec/src:$(ROOT)/packages/providers/src:$(ROOT)/services/api/src:$(ROOT)/services/graphs/src:$(ROOT)/services/workers/src:$(ROOT)/services/channels/src services/sandbox/server.py
-# Dev user passwords for Playwright when .env exists (scripts/gen-env.sh).
+# Dev user passwords for Playwright when .env exists.
 ifneq (,$(wildcard .env))
 include .env
 export VEY_DEV_ADMIN_PASSWORD VEY_DEV_EMPLOYEE_PASSWORD
@@ -27,15 +27,29 @@ sync: ## Install Python and JS dependencies from the lock files
 	$(PNPM) install --frozen-lockfile
 
 .PHONY: env
-env: ## Create .env with random secrets (keeps an existing .env)
-	@scripts/gen-env.sh
+env: ## Create .env with new config keys (ADR 0034); keeps an existing .env
+	@if [ -f .env ]; then echo ".env exists; leaving it unchanged"; else \
+	  docker compose build -q api && \
+	  { echo "# Config keys for the settings set up in the browser (ADR 0034). Keep a copy safe: without"; \
+	    echo "# them the settings on the config volume cannot be read. Do not commit."; \
+	    docker run --rm veyntora/api:local veyntora-api keys; } > .env.tmp && \
+	  chmod 600 .env.tmp && mv .env.tmp .env && echo "wrote .env"; fi
+
+.PHONY: env-ci
+env-ci: ## Create .env for throwaway services (deploy/compose/ci-infra.yaml); keeps an existing .env
+	@scripts/ci-env.sh
 
 # ------------------------------------------------------------------ stack
 
 .PHONY: up
-up: env ## Build and start the whole local stack
+up: ## Build and start Veyntora; on first start, set it up at http://localhost:3000/setup
+	@test -f .env || { echo "No .env: run make env (then set Veyntora up in the browser), or make env-ci for throwaway services."; exit 1; }
 	docker compose up -d --build
-	@echo "Web: http://localhost:3000  Keycloak: http://localhost:8080  Langfuse: http://localhost:3001  Grafana: http://localhost:3003"
+	@echo "Web: http://localhost:3000 (first start: the Setup page; its code: make setup-code)"
+
+.PHONY: setup-code
+setup-code: ## The code the Setup page asks for (until Veyntora is set up)
+	@docker compose exec api cat /var/lib/veyntora/setup-code 2>/dev/null && echo || echo "No setup code: Veyntora is set up (or the API is not running)."
 
 .PHONY: down
 down: ## Stop the stack (keeps data)
@@ -90,9 +104,10 @@ fga-test: ## OpenFGA model tests
 	$(FGA_CLI) model test --tests model.tests.fga.yaml
 
 .PHONY: test-integration
-test-integration: ## Tests against the running stack (secrets policy)
-	VEY_IT_OPENBAO_API_TOKEN=$$(docker run --rm -v veyntora_openbao-api-token:/t:ro alpine:3.22 cat /t/api.token) \
-	VEY_IT_OPENBAO_RUNTIME_TOKEN=$$(docker run --rm -v veyntora_openbao-runtime-token:/t:ro alpine:3.22 cat /t/runtime.token) \
+test-integration: ## Tests against the running stack (secrets policy); OpenBao from .env
+	set -a; . ./.env; set +a; \
+	VEY_IT_OPENBAO_API_TOKEN=$$(docker run --rm -v $$VEY_OPENBAO_API_TOKEN_VOLUME:/t:ro alpine:3.22 cat /t/api.token) \
+	VEY_IT_OPENBAO_RUNTIME_TOKEN=$$(docker run --rm -v $$VEY_OPENBAO_RUNTIME_TOKEN_VOLUME:/t:ro alpine:3.22 cat /t/runtime.token) \
 	$(UV) run --no-sync pytest -q services/api/tests/integration
 
 .PHONY: e2e

@@ -13,7 +13,9 @@ import aioboto3
 import httpx
 import sqlalchemy as sa
 from redis.asyncio import Redis
+from veyntora_providers.interfaces import Capability
 
+from veyntora_api.db.models.providers import HealthStatus, ProviderInstance
 from veyntora_api.db.session import get_engine
 from veyntora_api.knowledge import clamd
 from veyntora_api.settings import Settings
@@ -36,6 +38,17 @@ class ProbeResult:
 
 Probe = Callable[[], Awaitable[None]]
 
+# The vector store, models and parser are providers (ADR 0032), not bundled services: the status
+# page uses their last checked health (Providers, "Test connection").
+# A reranker is optional: none set up is not a failure.
+_PROVIDER_PROBES = {
+    "vector_store": (Capability.VECTOR_STORE, True),
+    "models": (Capability.LLM, True),
+    "embedding": (Capability.EMBEDDING, True),
+    "reranker": (Capability.RERANKER, False),
+    "parser": (Capability.PARSER, True),
+}
+
 
 async def _timed(name: str, probe: Probe, limit_s: float) -> ProbeResult:
     start = time.perf_counter()
@@ -57,14 +70,42 @@ def _http(http: httpx.AsyncClient, url: str, ok: tuple[int, ...] = (200,)) -> Pr
     return probe
 
 
+def _provider(capability: Capability, required: bool) -> Probe:
+    """Fails when every enabled provider with the capability was found down, or when there
+    is none and the capability is `required`."""
+
+    async def probe() -> None:
+        async with get_engine().connect() as conn:
+            states = (
+                (
+                    await conn.execute(
+                        sa.select(ProviderInstance.health_status).where(
+                            ProviderInstance.capability == capability,
+                            ProviderInstance.enabled.is_(True),
+                        )
+                    )
+                )
+                .scalars()
+                .all()
+            )
+        if not states and required:
+            raise RuntimeError(f"no {capability.value} provider")
+        if states and all(s is HealthStatus.DOWN for s in states):
+            raise RuntimeError(f"every {capability.value} provider is down")
+
+    return probe
+
+
 def build_probes(
     settings: Settings,
     http: httpx.AsyncClient,
     redis: Redis,
     *,
     langfuse_url: str | None = None,
+    clamav_address: str = "",
 ) -> dict[str, Probe]:
-    """`langfuse_url`: from Integrations; without it Langfuse is not probed."""
+    """`langfuse_url` (Integrations) and `clamav_address` (the scanner setting): without
+    them, Langfuse and the scanner are not probed."""
 
     async def postgres() -> None:
         async with get_engine().connect() as conn:
@@ -100,24 +141,18 @@ def build_probes(
         "openfga": _http(http, f"{settings.openfga_url.rstrip('/')}/healthz"),
         # 200 = active, 429 = standby; sealed (503) or uninitialised (501) are failures.
         "openbao": _http(http, f"{settings.openbao_url.rstrip('/')}/v1/sys/health", (200, 429)),
-        "qdrant": _http(http, f"{settings.qdrant_url.rstrip('/')}/readyz"),
-        "litellm": _http(http, f"{settings.litellm_url.rstrip('/')}/health/liveliness"),
         "graphs": _http(http, f"{settings.graphs_url.rstrip('/')}/health"),
-        "docling": _http(http, f"{settings.docling_url.rstrip('/')}/health"),
+        **{name: _provider(cap, required) for name, (cap, required) in _PROVIDER_PROBES.items()},
     }
     if langfuse_url:
         probes["langfuse"] = _http(http, f"{langfuse_url.rstrip('/')}/api/public/health")
-    if settings.clamav_address:
+    if clamav_address:
 
         async def clamav() -> None:
-            if not await clamd.ping(settings.clamav_address):
+            if not await clamd.ping(clamav_address):
                 raise RuntimeError("clamd did not answer PING")
 
         probes["clamav"] = clamav
-    if settings.tei_embed_url:
-        probes["tei_embed"] = _http(http, f"{settings.tei_embed_url.rstrip('/')}/health")
-    if settings.tei_rerank_url:
-        probes["tei_rerank"] = _http(http, f"{settings.tei_rerank_url.rstrip('/')}/health")
     return probes
 
 
@@ -125,14 +160,14 @@ def build_probes(
 # component down; "degrading" failures make it slower or partial.
 COMPONENTS: dict[str, dict[str, tuple[str, ...]]] = {
     "chat": {
-        "required": ("postgres", "valkey", "litellm", "graphs", "qdrant", "openfga"),
-        "degrading": ("tei_embed", "tei_rerank", "langfuse"),
+        "required": ("postgres", "valkey", "models", "graphs", "vector_store", "openfga"),
+        "degrading": ("embedding", "reranker", "langfuse"),
     },
-    "agent": {"required": ("postgres", "valkey", "litellm", "graphs", "openfga"), "degrading": ()},
+    "agent": {"required": ("postgres", "valkey", "models", "graphs", "openfga"), "degrading": ()},
     "documents": {
-        "required": ("postgres", "workers", "s3", "qdrant"),
+        "required": ("postgres", "workers", "s3", "vector_store"),
         # Without the scanner, uploads wait in the queue; existing documents still work.
-        "degrading": ("docling", "tei_embed", "clamav"),
+        "degrading": ("parser", "embedding", "clamav"),
     },
     "signin": {"required": ("keycloak", "postgres", "valkey"), "degrading": ()},
 }

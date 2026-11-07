@@ -1,0 +1,247 @@
+# Throwaway copies of the services Veyntora needs, for CI and for trying Veyntora on a
+# machine without your own (ADR 0033). Not for real use: your own services are set up on
+# the Setup page (ADR 0034). Their settings are passed in the environment (.env written by
+# scripts/ci-env.sh), so the Setup page is skipped.
+#
+#   scripts/ci-env.sh                      # .env pointing at these services
+#   COMPOSE_FILE=deploy/compose/compose.yaml:deploy/compose/ci-infra.yaml docker compose up -d
+#
+# Ports bind to 127.0.0.1 only.
+
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    command: ["postgres", "-c", "max_connections=300"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${CI_PG_SUPERUSER_PASSWORD:?run scripts/ci-env.sh}
+      VEY_DATABASES: >-
+        veyntora:${CI_DB_PASSWORD},keycloak:${CI_KEYCLOAK_DB_PASSWORD},openfga:${CI_OPENFGA_DB_PASSWORD},aegra:${CI_AEGRA_DB_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/10-databases.sh:ro
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d veyntora"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # The runtime role (no ownership) the services use; idempotent on every start.
+  postgres-roles:
+    image: postgres:16.15-alpine
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${CI_PG_SUPERUSER_PASSWORD}
+      RUNTIME_PASSWORD: ${CI_RUNTIME_DB_PASSWORD}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        psql -v ON_ERROR_STOP=1 -d veyntora -v pw="$$RUNTIME_PASSWORD" <<'SQL'
+        SELECT format('CREATE ROLE veyntora_runtime LOGIN PASSWORD %L', :'pw')
+          WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'veyntora_runtime') \gexec
+        SELECT format('ALTER ROLE veyntora_runtime LOGIN PASSWORD %L', :'pw') \gexec
+        GRANT CONNECT ON DATABASE veyntora TO veyntora_runtime;
+        -- Table privileges and defaults are granted by the owner in migration 0020.
+        SQL
+    restart: "no"
+
+  valkey:
+    image: valkey/valkey:9.1.3-alpine
+    command: ["valkey-server", "--requirepass", "${CI_VALKEY_PASSWORD}", "--appendonly", "yes"]
+    environment:
+      VALKEY_PASSWORD: ${CI_VALKEY_PASSWORD}
+    volumes: [valkey:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -a \"$${VALKEY_PASSWORD}\" --no-auth-warning ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.51
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        cat > /tmp/s3.json <<EOF
+        {"identities": [
+          {"name": "veyntora", "credentials": [{"accessKey": "$${VEY_S3_ACCESS_KEY}", "secretKey": "$${VEY_S3_SECRET_KEY}"}],
+           "actions": ["Read:veyntora", "Write:veyntora", "List:veyntora", "Tagging:veyntora",
+                       "Read:veyntora-audit", "Write:veyntora-audit", "List:veyntora-audit",
+                       "PutObjectRetention:veyntora-audit"]}
+        ]}
+        EOF
+        # A fixed number of small volumes: "-volume.max=0" leaves one on a CI runner.
+        exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/s3.json \
+          -volume.max=64 -master.volumeSizeLimitMB=1024
+    environment:
+      VEY_S3_ACCESS_KEY: ${VEY_S3_ACCESS_KEY}
+      VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY}
+    volumes: [seaweedfs:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status && wget -q -S -O /dev/null http://127.0.0.1:8333/ 2>&1 | grep -q 'HTTP/'"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+  seaweedfs-init:
+    image: chrislusf/seaweedfs:4.51
+    depends_on:
+      seaweedfs: { condition: service_healthy }
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        echo "s3.bucket.create -name veyntora" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
+        echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 | grep -q "veyntora"
+        # The write-once audit archive: Object Lock is only possible when created.
+        echo "s3.bucket.create -name veyntora-audit -withLock" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
+        echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 | grep -q "veyntora-audit"
+        echo "buckets ready"
+    restart: "no"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: kcadmin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${CI_KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${CI_KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      # Placeholders in the realm import file.
+      VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
+      VEY_OIDC_CLIENT_SECRET: ${VEY_OIDC_CLIENT_SECRET}
+      VEY_KEYCLOAK_SYNC_CLIENT_SECRET: ${VEY_KEYCLOAK_SYNC_CLIENT_SECRET}
+      VEY_DEV_ADMIN_PASSWORD: ${VEY_DEV_ADMIN_PASSWORD}
+      VEY_DEV_EMPLOYEE_PASSWORD: ${VEY_DEV_EMPLOYEE_PASSWORD}
+    volumes:
+      - ./keycloak/veyntora-realm.json:/opt/keycloak/data/import/veyntora-realm.json:ro
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000 && printf \"GET /health/ready HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 20s
+
+  openfga-migrate:
+    image: openfga/openfga:v1.22.1
+    command: ["migrate"]
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://openfga:${CI_OPENFGA_DB_PASSWORD}@postgres:5432/openfga?sslmode=disable
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  openfga:
+    image: openfga/openfga:v1.22.1
+    command: ["run"]
+    environment:
+      OPENFGA_DATASTORE_ENGINE: postgres
+      OPENFGA_DATASTORE_URI: postgres://openfga:${CI_OPENFGA_DB_PASSWORD}@postgres:5432/openfga?sslmode=disable
+      OPENFGA_PLAYGROUND_ENABLED: "false"
+      OPENFGA_LOG_FORMAT: json
+    depends_on:
+      openfga-migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=127.0.0.1:8081"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  openbao:
+    image: openbao/openbao:2.7.1
+    entrypoint: ["bao", "server", "-config=/etc/openbao/config.hcl"]
+    volumes:
+      - ./openbao/config.hcl:/etc/openbao/config.hcl:ro
+      - openbao-data:/openbao/file
+    ports: ["127.0.0.1:8200:8200"]
+    healthcheck:
+      # Healthy once it answers at all; openbao-init unseals it.
+      test: ["CMD-SHELL", "wget -q -S -O /dev/null 'http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200' 2>&1 | grep -q 'HTTP/'"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  # Initialises and unseals OpenBao and writes the API (write-only) and runtime (read)
+  # tokens into the volumes Veyntora mounts.
+  openbao-init:
+    image: openbao/openbao:2.7.1
+    entrypoint: ["/bin/sh", "/init.sh"]
+    user: "0:0"
+    environment:
+      BAO_ADDR: http://openbao:8200
+    volumes:
+      - ./openbao/init.sh:/init.sh:ro
+      - ../../services/api/src/veyntora_api/infra/policies:/policies:ro
+      - openbao-root:/state/root
+      - openbao-api-token:/state/api
+      - openbao-runtime-token:/state/runtime
+    depends_on:
+      openbao: { condition: service_healthy }
+    restart: "no"
+
+  clamav:
+    image: clamav/clamav-debian:1.5.1
+    volumes: [clamav:/var/lib/clamav]
+    healthcheck:
+      test: ["CMD", "clamdcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+
+  # Veyntora's services wait for these, and get the OpenBao tokens openbao-init wrote.
+  migrate:
+    depends_on:
+      postgres-roles: { condition: service_completed_successfully }
+      keycloak: { condition: service_healthy }
+      openfga: { condition: service_healthy }
+      seaweedfs-init: { condition: service_completed_successfully }
+      openbao-init: { condition: service_completed_successfully }
+    volumes:
+      - openbao-api-token:/run/openbao:ro
+  api:
+    depends_on:
+      valkey: { condition: service_healthy }
+    volumes:
+      - openbao-api-token:/run/openbao:ro
+  workers:
+    depends_on:
+      valkey: { condition: service_healthy }
+    volumes:
+      - openbao-runtime-token:/run/openbao:ro
+  channels:
+    volumes:
+      - openbao-runtime-token:/run/openbao:ro
+  scheduler:
+    depends_on:
+      valkey: { condition: service_healthy }
+  graphs:
+    depends_on:
+      valkey: { condition: service_healthy }
+    volumes:
+      - openbao-runtime-token:/run/openbao:ro
+
+volumes:
+  postgres:
+  valkey:
+  seaweedfs:
+  openbao-data:
+  openbao-root:
+  clamav:
+  openbao-api-token:
+  openbao-runtime-token:

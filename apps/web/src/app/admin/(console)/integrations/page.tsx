@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { IntegrationEditor, type IntegrationRow } from "@/components/admin/integration-editor";
+import { ScannerEditor } from "@/components/admin/scanner-editor";
 import { Forbidden } from "@/components/forbidden";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
@@ -12,12 +13,18 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-/** Langfuse and Grafana: where Veyntora sends traces and which dashboards Monitoring shows. */
+/** Langfuse and Grafana (traces, the dashboards Monitoring shows) and the virus scanner. */
 export default async function IntegrationsPage() {
   const access = await areaAccess("monitoring");
   if (!access) return <Forbidden />;
   const t = await getTranslations("integrations");
-  const { data, response } = await (await serverApi()).GET("/v1/admin/integrations");
+  const api = await serverApi();
+  // The scanner guards uploads: shown to Data sources admins, changed by its editors.
+  const sources = await areaAccess("sources");
+  const [{ data, response }, scanner] = await Promise.all([
+    api.GET("/v1/admin/integrations"),
+    sources ? api.GET("/v1/admin/scanner").then((r) => r.data) : Promise.resolve(undefined),
+  ]);
   if (!data)
     return response.status === 403 ? (
       <Forbidden />
@@ -32,6 +39,7 @@ export default async function IntegrationsPage() {
         {(data as IntegrationRow[]).map((row) => (
           <IntegrationEditor key={row.kind} integration={row} canEdit={canEdit} />
         ))}
+        {scanner ? <ScannerEditor scanner={scanner} canEdit={sources?.level === "editor"} /> : null}
       </div>
     </div>
   );

@@ -1,6 +1,10 @@
 """Operational commands.
 
 veyntora-api serve       run the API (uvicorn)
+veyntora-api launch <role> -- <cmd>   run a service with the infrastructure set up in the
+                         browser, restarting it when that changes (ADR 0034)
+veyntora-api serve-setup the Setup page's API, until Veyntora is set up (the launcher runs it)
+veyntora-api keys        new config keys for .env (ADR 0034)
 veyntora-api bootstrap   migrate the database, create the OpenFGA store/model and bootstrap
                          tuples, create the S3 bucket, sync Keycloak and grant the bootstrap
                          admin group. Idempotent; runs as the compose `migrate` job and as the
@@ -123,6 +127,7 @@ async def bootstrap(s: Settings) -> None:
 
         await _ensure_bucket(s)
         await seed_integrations(s)
+        await seed_scanner(s)
         # Keycloak can briefly fail right after a database restart; retry with backoff.
         for attempt in range(1, 6):
             try:
@@ -192,6 +197,22 @@ async def seed_integrations(s: Settings) -> None:
                     await writer.close()
             await db.commit()
             log.info("bootstrap.integration_seeded", kind=kind.value, url=url)
+
+
+async def seed_scanner(s: Settings) -> None:
+    """Import the virus scanner's address from the environment once, when none is set up;
+    from then on it is a setting in the admin console (ADR 0033)."""
+    from veyntora_api.knowledge import scanner  # noqa: PLC0415
+
+    if not s.clamav_address:
+        return
+    async with get_sessionmaker()() as db:
+        if await scanner.scanner_address(db):
+            return
+        data = scanner.ScannerSettings(address=s.clamav_address)
+        await scanner.save_scanner(db, _cli_ctx(), data)
+        await db.commit()
+        log.info("bootstrap.scanner_seeded", address=s.clamav_address)
 
 
 def _cli_ctx() -> RequestContext:
@@ -278,6 +299,14 @@ def _parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="0.0.0.0")  # noqa: S104 - container entrypoint
     serve.add_argument("--port", type=int, default=8000)
     serve.add_argument("--reload", action="store_true")
+    sub.add_parser("serve-setup")
+    launch = sub.add_parser("launch")
+    launch.add_argument("role", choices=["api", "owner", "runtime", "graphs", "scheduler"])
+    launch.add_argument("command", nargs=argparse.REMAINDER)
+    sub.add_parser("keys", help="new config keys, as .env lines")
+    health = sub.add_parser("healthcheck", help="container health while the launcher waits")
+    health.add_argument("--bootstrapped", action="store_true", help="migrate: bootstrap done")
+    health.add_argument("--url", help="healthy when this answers 200, or while still waiting")
     sub.add_parser("bootstrap")
     sub.add_parser("migrate")
     sub.add_parser("sync-identities")
@@ -304,8 +333,31 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _standalone(args: argparse.Namespace) -> bool:
+    """Commands that run before any setting is known (ADR 0034)."""
+    if args.cmd == "keys":
+        from veyntora_api.infra import keys  # noqa: PLC0415
+
+        for name, value in keys.generate().items():
+            sys.stdout.write(f"{name}={value}\n")
+        return True
+    if args.cmd == "healthcheck":
+        from veyntora_api.infra import launcher  # noqa: PLC0415
+
+        sys.exit(0 if launcher.healthy(bootstrapped=args.bootstrapped, url=args.url) else 1)
+    if args.cmd == "launch":
+        from veyntora_api.infra import launcher  # noqa: PLC0415
+
+        configure_logging(os.environ.get("VEY_LOG_LEVEL", "INFO"), json=False)
+        command = args.command[1:] if args.command[:1] == ["--"] else args.command
+        sys.exit(launcher.main(args.role, command))
+    return False
+
+
 def main() -> None:
     args = _parser().parse_args()
+    if _standalone(args):
+        return
 
     settings = get_settings()
     configure_logging(settings.log_level, json=settings.environment != "local")
@@ -318,6 +370,16 @@ def main() -> None:
             reload=args.reload,
             proxy_headers=True,
             # Only the web app and the ingress may say who the client is.
+            forwarded_allow_ips=settings.trusted_proxies,
+            log_config=None,
+        )
+    elif args.cmd == "serve-setup":
+        uvicorn.run(
+            "veyntora_api.infra.setup_app:create_setup_app",
+            factory=True,
+            host="0.0.0.0",  # noqa: S104 - container entrypoint
+            port=8000,
+            proxy_headers=True,
             forwarded_allow_ips=settings.trusted_proxies,
             log_config=None,
         )

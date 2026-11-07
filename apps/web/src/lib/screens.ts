@@ -98,7 +98,7 @@ export const SCREENS: readonly Screen[] = [
   {
     key: "savedAnswers",
     file: "SavedAnswers.html",
-    route: "/saved",
+    route: "/library/saved",
     shell: "user",
     phase: 5,
     built: true,
@@ -589,9 +589,14 @@ export function samplePath(route: string): string {
 }
 
 /** Admin console navigation, grouped as in the prototype's dark rail. */
+/** An item is shown to holders of its area, or (platformAdmin) to platform admins only. */
+export type AdminNavItem = { key: string; href: string } & (
+  { area: AdminArea; platformAdmin?: never } | { area?: never; platformAdmin: true }
+);
+
 export const ADMIN_NAV: readonly {
   section: string | null;
-  items: { key: string; href: string; area: AdminArea }[];
+  items: AdminNavItem[];
 }[] = [
   { section: null, items: [{ key: "overview", href: "/admin", area: "overview" }] },
   {
@@ -615,6 +620,7 @@ export const ADMIN_NAV: readonly {
       { key: "evaluation", href: "/admin/evaluation", area: "evaluation" },
       { key: "monitoring", href: "/admin/monitoring", area: "monitoring" },
       { key: "integrations", href: "/admin/integrations", area: "monitoring" },
+      { key: "infrastructure", href: "/admin/infrastructure", platformAdmin: true },
       { key: "usage", href: "/admin/usage", area: "usage" },
     ],
   },

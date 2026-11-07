@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from veyntora_api.auth.oidc import new_pkce
 from veyntora_api.health.checks import Level, ProbeResult, overall, roll_up
 from veyntora_api.main import create_app
+from veyntora_api.notify.service import SMTP_PATH
 from veyntora_api.routers.auth import safe_return_to
 from veyntora_api.secrets.openbao import SecretPathError, SecretWriter, last4
 from veyntora_api.settings import Settings
@@ -80,6 +81,8 @@ def test_secret_refs_with_a_version_are_parsed_strictly() -> None:
         "",
         "integrations/other",
         "integrations/langfuse/x",
+        "platform/other",
+        "platform/smtp/x",
     ],
 )
 async def test_put_rejects_paths_outside_allowed_locations(path: str) -> None:
@@ -87,6 +90,16 @@ async def test_put_rejects_paths_outside_allowed_locations(path: str) -> None:
     with pytest.raises(SecretPathError):
         await writer.put(path, "value-0123456789")
     await writer.close()
+
+
+async def test_put_accepts_the_smtp_password_location() -> None:
+    with respx.mock() as mock:
+        mock.post(f"{BAO}/v1/kv/data/{SMTP_PATH}").respond(200, json={"data": {"version": 1}})
+        mock.post(f"{BAO}/v1/kv/metadata/{SMTP_PATH}").respond(204)
+        writer = SecretWriter(BAO, "t")
+        ref = await writer.put(SMTP_PATH, "smtp-password-0123")
+        await writer.close()
+    assert ref.ref == f"kv/{SMTP_PATH}"
 
 
 def test_short_values_reveal_nothing() -> None:
@@ -133,20 +146,22 @@ def test_status_roll_up() -> None:
     names = [
         "postgres",
         "valkey",
-        "litellm",
+        "models",
         "graphs",
-        "qdrant",
+        "vector_store",
         "openfga",
         "keycloak",
         "workers",
         "s3",
-        "docling",
+        "parser",
+        "embedding",
+        "reranker",
         "langfuse",
     ]
     healthy = {n: ok(n) for n in names}
     assert set(roll_up(healthy).values()) == {Level.OPERATIONAL}
 
-    degraded = {**healthy, "docling": ok("docling", False)}
+    degraded = {**healthy, "parser": ok("parser", False)}
     levels = roll_up(degraded)
     assert levels["documents"] is Level.DEGRADED
     assert levels["chat"] is Level.OPERATIONAL
@@ -154,6 +169,11 @@ def test_status_roll_up() -> None:
 
     no_idp = {**healthy, "keycloak": ok("keycloak", False)}
     assert roll_up(no_idp)["signin"] is Level.DOWN
+
+    no_store = roll_up({**healthy, "vector_store": ok("vector_store", False)})
+    assert no_store["chat"] is Level.DOWN
+    assert no_store["documents"] is Level.DOWN
+    assert no_store["agent"] is Level.OPERATIONAL
 
 
 async def test_writer_reports_store_errors() -> None:

@@ -1,10 +1,19 @@
-# Veyntora local stack. Start from the repository root with `docker compose up`.
+# Veyntora's own services. Start from the repository root with `docker compose up` (or
+# `make up`).
 #
-# Every value below has a development default so the stack starts without setup. The
-# defaults are for local use only; run `make env` to generate random secrets into .env,
-# and never reuse these values elsewhere. Helm (deploy/helm) has no defaults for secrets.
+# Everything they need runs elsewhere, as services you host:
+# - Set up in the browser (ADR 0034): PostgreSQL, Valkey, S3, OpenBao, OpenFGA and Keycloak.
+#   On first start the Setup page asks for them (http://localhost:3000/setup, with the code
+#   from `make setup-code`); later, Admin -> Infrastructure changes them. They are kept on
+#   the `config` volume, passwords in OpenBao. .env only holds the keys (`make env`).
+# - Added in the admin console: models, vector store, parser, guardrails, web search, the
+#   code sandbox (Providers & keys), the virus scanner, Langfuse and Grafana
+#   (Integrations), email (Channels & API).
 #
-# Ports bind to 127.0.0.1 only. Profiles: `gpu` adds vLLM (needs an NVIDIA GPU).
+# Every service runs through `veyntora-api launch`, which starts it with those settings
+# and restarts it when they change. Inside the containers, a service on this machine is
+# at host.docker.internal. CI starts throwaway services with ci-infra.yaml and passes
+# their settings in the environment instead.
 
 name: veyntora
 
@@ -12,562 +21,100 @@ x-app-env: &app-env
   VEY_ENVIRONMENT: local
   VEY_LOG_LEVEL: ${VEY_LOG_LEVEL:-INFO}
   VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
-  # Services connect as the runtime role (rows only); migrations use the owner (migrate).
-  VEY_DATABASE_URL: postgresql+asyncpg://veyntora_runtime:${VEY_RUNTIME_DB_PASSWORD:-dev-veyntora-runtime}@postgres:5432/veyntora
-  VEY_REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/0
-  # Keycloak: the bundled one by default; see docs/runbooks/external-keycloak.md.
-  VEY_OIDC_ISSUER: ${VEY_OIDC_ISSUER:-http://localhost:8080/realms/veyntora}
-  VEY_OIDC_INTERNAL_BASE: ${VEY_OIDC_INTERNAL_BASE-http://keycloak:8080/realms/veyntora}
-  VEY_OIDC_CLIENT_SECRET: ${VEY_OIDC_CLIENT_SECRET:-dev-oidc-client-secret}
-  VEY_KEYCLOAK_SYNC_CLIENT_SECRET: ${VEY_KEYCLOAK_SYNC_CLIENT_SECRET:-dev-keycloak-sync-secret}
+  VEY_CONFIG_DIR: /var/lib/veyntora
   VEY_BOOTSTRAP_ADMIN_GROUP: ${VEY_BOOTSTRAP_ADMIN_GROUP:-/platform-admins}
-  # API -> graph server tokens for app keys and the widget (ADR 0020).
-  VEY_INTERNAL_TOKEN_SECRET: ${VEY_INTERNAL_TOKEN_SECRET:-dev-internal-token-secret-0123456789abcdef}
-  VEY_OPENFGA_URL: http://openfga:8080
   VEY_OPENFGA_MODEL_PATH: /app/deploy/openfga/model.json
-  VEY_OPENBAO_URL: http://openbao:8200
   VEY_OPENBAO_TOKEN_FILE: /run/openbao/api.token
-  VEY_S3_ENDPOINT: http://seaweedfs:8333
-  VEY_S3_ACCESS_KEY: ${VEY_S3_ACCESS_KEY:-dev-veyntora-s3}
-  VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY:-dev-veyntora-s3-secret}
-  VEY_S3_BUCKET: veyntora
-  VEY_AUDIT_ARCHIVE_BUCKET: veyntora-audit
   # The web app reaches the API over the compose network (private addresses).
   VEY_TRUSTED_PROXIES: "127.0.0.1,::1,172.16.0.0/12,192.168.0.0/16,10.0.0.0/8"
-  VEY_QDRANT_URL: http://qdrant:6333
-  VEY_LITELLM_URL: http://litellm:4000
   VEY_GRAPHS_URL: http://graphs:2026
   VEY_API_INTERNAL_URL: http://api:8000
-  VEY_DOCLING_URL: http://docling:5001
-  VEY_CLAMAV_ADDRESS: clamav:3310
-  # Set to false only on machines that cannot run ClamAV; documents then show "not scanned".
+  # Set to false only where no virus scanner is set up; documents then show "not scanned".
   VEY_SCAN_REQUIRED: ${VEY_SCAN_REQUIRED:-true}
-  # Local model servers are opt-in (profile local-models); set these when you run them.
-  VEY_TEI_EMBED_URL: ${VEY_TEI_EMBED_URL:-}
-  VEY_TEI_RERANK_URL: ${VEY_TEI_RERANK_URL:-}
-  # Seed for Integrations (ADR 0024): imported once by `bootstrap` when nothing is set up;
-  # afterwards Langfuse and Grafana are changed in the admin console. Empty: not seeded.
-  VEY_LANGFUSE_URL: ${VEY_LANGFUSE_URL-http://langfuse:3000}
-  VEY_LANGFUSE_BROWSER_URL: ${VEY_LANGFUSE_BROWSER_URL-http://localhost:3001}
-  VEY_GRAFANA_URL: ${VEY_GRAFANA_URL-http://grafana:3000}
-  VEY_GRAFANA_BROWSER_URL: ${VEY_GRAFANA_BROWSER_URL-http://localhost:3003}
+  # Settings from the environment instead of the Setup page (CI: ci-infra.yaml). Empty
+  # here: the launcher fills them in from the config volume.
+  VEY_DATABASE_URL: ${VEY_DATABASE_URL-}
+  VEY_REDIS_URL: ${VEY_REDIS_URL-}
+  VEY_OIDC_ISSUER: ${VEY_OIDC_ISSUER-}
+  VEY_OIDC_INTERNAL_BASE: ${VEY_OIDC_INTERNAL_BASE-}
+  VEY_OIDC_CLIENT_SECRET: ${VEY_OIDC_CLIENT_SECRET-}
+  VEY_KEYCLOAK_SYNC_CLIENT_SECRET: ${VEY_KEYCLOAK_SYNC_CLIENT_SECRET-}
+  VEY_INTERNAL_TOKEN_SECRET: ${VEY_INTERNAL_TOKEN_SECRET-}
+  VEY_OPENFGA_URL: ${VEY_OPENFGA_URL-}
+  VEY_OPENBAO_URL: ${VEY_OPENBAO_URL-}
+  VEY_S3_ENDPOINT: ${VEY_S3_ENDPOINT-}
+  VEY_S3_ACCESS_KEY: ${VEY_S3_ACCESS_KEY-}
+  VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY-}
+  VEY_S3_BUCKET: ${VEY_S3_BUCKET:-veyntora}
+  VEY_AUDIT_ARCHIVE_BUCKET: ${VEY_AUDIT_ARCHIVE_BUCKET:-veyntora-audit}
+  # Seeds, imported once by `bootstrap` when not set up yet; afterwards they are changed
+  # in the admin console. Empty: not seeded.
+  VEY_CLAMAV_ADDRESS: ${VEY_CLAMAV_ADDRESS-}
+  VEY_LANGFUSE_URL: ${VEY_LANGFUSE_URL-}
+  VEY_LANGFUSE_BROWSER_URL: ${VEY_LANGFUSE_BROWSER_URL-}
+  VEY_GRAFANA_URL: ${VEY_GRAFANA_URL-}
+  VEY_GRAFANA_BROWSER_URL: ${VEY_GRAFANA_BROWSER_URL-}
   VEY_ALEMBIC_INI: /app/services/api/alembic.ini
-  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+
+# The config keys (ADR 0034): each container gets only those its role may hold, so no
+# service can open another's OpenBao token. Written to .env by `make env`.
+x-keys-api: &keys-api
+  VEY_CONFIG_KEY: ${VEY_CONFIG_KEY-}
+  VEY_CONFIG_API_KEY: ${VEY_CONFIG_API_KEY-}
+  VEY_CONFIG_RUNTIME_PUBLIC_KEY: ${VEY_CONFIG_RUNTIME_PUBLIC_KEY-}
+x-keys-owner: &keys-owner
+  VEY_CONFIG_KEY: ${VEY_CONFIG_KEY-}
+  VEY_CONFIG_API_KEY: ${VEY_CONFIG_API_KEY-}
+x-keys-runtime: &keys-runtime
+  VEY_CONFIG_KEY: ${VEY_CONFIG_KEY-}
+  VEY_CONFIG_RUNTIME_PRIVATE_KEY: ${VEY_CONFIG_RUNTIME_PRIVATE_KEY-}
+x-keys-scheduler: &keys-scheduler
+  VEY_CONFIG_KEY: ${VEY_CONFIG_KEY-}
+
+# host.docker.internal also on Linux (Docker Desktop has it already).
+x-host: &host
+  extra_hosts: ["host.docker.internal:host-gateway"]
 
 services:
-  # ------------------------------------------------------------------ data stores
-  postgres:
-    image: postgres:16.15-alpine
-    command: ["postgres", "-c", "max_connections=300"]
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${VEY_PG_SUPERUSER_PASSWORD:-dev-postgres}
-      VEY_DATABASES: >-
-        veyntora:${VEY_DB_PASSWORD:-dev-veyntora-db},keycloak:${VEY_KEYCLOAK_DB_PASSWORD:-dev-keycloak-db},openfga:${VEY_OPENFGA_DB_PASSWORD:-dev-openfga-db},litellm:${VEY_LITELLM_DB_PASSWORD:-dev-litellm-db},langfuse:${VEY_LANGFUSE_DB_PASSWORD:-dev-langfuse-db},aegra:${VEY_AEGRA_DB_PASSWORD:-dev-aegra-db}
-    volumes:
-      - postgres:/var/lib/postgresql/data
-      - ./postgres/init.sh:/docker-entrypoint-initdb.d/10-databases.sh:ro
-    ports: ["127.0.0.1:5432:5432"]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d veyntora"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-
-  valkey:
-    image: valkey/valkey:9.1.3-alpine
-    command: ["valkey-server", "--requirepass", "${VEY_VALKEY_PASSWORD:-dev-valkey}", "--appendonly", "yes"]
-    volumes: [valkey:/data]
-    ports: ["127.0.0.1:6379:6379"]
-    healthcheck:
-      test: ["CMD-SHELL", "valkey-cli -a \"$${VALKEY_PASSWORD}\" --no-auth-warning ping | grep -q PONG"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-    environment:
-      VALKEY_PASSWORD: ${VEY_VALKEY_PASSWORD:-dev-valkey}
-
-  qdrant:
-    image: qdrant/qdrant:v1.20.0-unprivileged
-    environment:
-      QDRANT__SERVICE__API_KEY: ${VEY_QDRANT_API_KEY:-dev-qdrant-key}
-      QDRANT__TELEMETRY_DISABLED: "true"
-    volumes: [qdrant:/qdrant/storage]
-    ports: ["127.0.0.1:6333:6333"]
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /readyz HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \"200\" <&3'"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-
-  # Local S3. Production uses the customer's S3 (AWS S3, Ceph RGW, NetApp, ...).
-  seaweedfs:
-    image: chrislusf/seaweedfs:4.51
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        cat > /tmp/s3.json <<EOF
-        {"identities": [
-          {"name": "veyntora", "credentials": [{"accessKey": "$${VEY_S3_ACCESS_KEY}", "secretKey": "$${VEY_S3_SECRET_KEY}"}],
-           "actions": ["Read:veyntora", "Write:veyntora", "List:veyntora", "Tagging:veyntora",
-                       "Read:veyntora-audit", "Write:veyntora-audit", "List:veyntora-audit",
-                       "PutObjectRetention:veyntora-audit"]},
-          {"name": "langfuse", "credentials": [{"accessKey": "$${LANGFUSE_S3_ACCESS_KEY}", "secretKey": "$${LANGFUSE_S3_SECRET_KEY}"}],
-           "actions": ["Read:langfuse", "Write:langfuse", "List:langfuse"]}
-        ]}
-        EOF
-        # Each bucket needs its own volumes. A fixed number of small (1 GB, grown on
-        # demand) volumes works on small disks too; "-volume.max=0" sizes the count from
-        # free disk / 30 GB, which leaves one volume on a CI runner and fails the second bucket.
-        exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/s3.json \
-          -volume.max=64 -master.volumeSizeLimitMB=1024
-    environment:
-      VEY_S3_ACCESS_KEY: ${VEY_S3_ACCESS_KEY:-dev-veyntora-s3}
-      VEY_S3_SECRET_KEY: ${VEY_S3_SECRET_KEY:-dev-veyntora-s3-secret}
-      LANGFUSE_S3_ACCESS_KEY: ${VEY_LANGFUSE_S3_ACCESS_KEY:-dev-langfuse-s3}
-      LANGFUSE_S3_SECRET_KEY: ${VEY_LANGFUSE_S3_SECRET_KEY:-dev-langfuse-s3-secret}
-    volumes: [seaweedfs:/data]
-    ports: ["127.0.0.1:8333:8333"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9333/cluster/status && wget -q -S -O /dev/null http://127.0.0.1:8333/ 2>&1 | grep -q 'HTTP/'"]
-      interval: 5s
-      timeout: 5s
-      retries: 40
-
-  seaweedfs-init:
-    image: chrislusf/seaweedfs:4.51
-    depends_on:
-      seaweedfs: { condition: service_healthy }
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        set -e
-        for b in veyntora langfuse; do
-          echo "s3.bucket.create -name $$b" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
-          echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 | grep -q "$$b"
-        done
-        # The write-once audit archive: Object Lock is only possible when created.
-        echo "s3.bucket.create -name veyntora-audit -withLock" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
-        echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 | grep -q "veyntora-audit"
-        echo "buckets ready"
-    restart: "no"
-
-  # ------------------------------------------------------------------ identity and secrets
-  keycloak:
-    # Leave out with an external Keycloak (COMPOSE_PROFILES without bundled-keycloak).
-    profiles: [bundled-keycloak]
-    image: quay.io/keycloak/keycloak:26.8.1
-    command: ["start-dev", "--import-realm"]
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: kcadmin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${VEY_KEYCLOAK_ADMIN_PASSWORD:-dev-keycloak-admin}
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: ${VEY_KEYCLOAK_DB_PASSWORD:-dev-keycloak-db}
-      KC_HOSTNAME: http://localhost:8080
-      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
-      KC_HTTP_ENABLED: "true"
-      KC_HEALTH_ENABLED: "true"
-      # Placeholders in the realm import file.
-      VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
-      VEY_OIDC_CLIENT_SECRET: ${VEY_OIDC_CLIENT_SECRET:-dev-oidc-client-secret}
-      VEY_KEYCLOAK_SYNC_CLIENT_SECRET: ${VEY_KEYCLOAK_SYNC_CLIENT_SECRET:-dev-keycloak-sync-secret}
-      VEY_DEV_ADMIN_PASSWORD: ${VEY_DEV_ADMIN_PASSWORD:-dev-admin}
-      VEY_DEV_EMPLOYEE_PASSWORD: ${VEY_DEV_EMPLOYEE_PASSWORD:-dev-employee}
-    volumes:
-      - ./keycloak/veyntora-realm.json:/opt/keycloak/data/import/veyntora-realm.json:ro
-    ports: ["127.0.0.1:8080:8080"]
-    depends_on:
-      postgres: { condition: service_healthy }
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000 && printf \"GET /health/ready HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3'"]
-      interval: 5s
-      timeout: 5s
-      retries: 60
-      start_period: 20s
-
-  openfga-migrate:
-    image: openfga/openfga:v1.22.1
-    command: ["migrate"]
-    environment:
-      OPENFGA_DATASTORE_ENGINE: postgres
-      OPENFGA_DATASTORE_URI: postgres://openfga:${VEY_OPENFGA_DB_PASSWORD:-dev-openfga-db}@postgres:5432/openfga?sslmode=disable
-    depends_on:
-      postgres: { condition: service_healthy }
-    restart: "no"
-
-  openfga:
-    image: openfga/openfga:v1.22.1
-    command: ["run"]
-    environment:
-      OPENFGA_DATASTORE_ENGINE: postgres
-      OPENFGA_DATASTORE_URI: postgres://openfga:${VEY_OPENFGA_DB_PASSWORD:-dev-openfga-db}@postgres:5432/openfga?sslmode=disable
-      OPENFGA_DATASTORE_MAX_OPEN_CONNS: "10"
-      OPENFGA_DATASTORE_MAX_IDLE_CONNS: "5"
-      OPENFGA_PLAYGROUND_ENABLED: "false"
-      OPENFGA_METRICS_ENABLED: "true"
-      OPENFGA_LOG_FORMAT: json
-    ports: ["127.0.0.1:8082:8080"]
-    depends_on:
-      openfga-migrate: { condition: service_completed_successfully }
-    healthcheck:
-      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=127.0.0.1:8081"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-
-  openbao:
-    image: openbao/openbao:2.7.1
-    entrypoint: ["bao", "server", "-config=/etc/openbao/config.hcl"]
-    volumes:
-      - ./openbao/config.hcl:/etc/openbao/config.hcl:ro
-      - openbao-data:/openbao/file
-    ports: ["127.0.0.1:8200:8200"]
-    healthcheck:
-      # Healthy once it answers at all; openbao-init unseals it.
-      test: ["CMD-SHELL", "wget -q -S -O /dev/null 'http://127.0.0.1:8200/v1/sys/health?sealedcode=200&uninitcode=200' 2>&1 | grep -q 'HTTP/'"]
-      interval: 3s
-      timeout: 3s
-      retries: 40
-
-  openbao-init:
-    image: openbao/openbao:2.7.1
-    entrypoint: ["/bin/sh", "/init.sh"]
-    # Writes into freshly created volumes; this one-shot dev job runs as root.
-    user: "0:0"
-    environment:
-      BAO_ADDR: http://openbao:8200
-    volumes:
-      - ./openbao/init.sh:/init.sh:ro
-      - ./openbao/api-policy.hcl:/policies/api-policy.hcl:ro
-      - ./openbao/runtime-policy.hcl:/policies/runtime-policy.hcl:ro
-      - openbao-root:/state/root
-      - openbao-api-token:/state/api
-      - openbao-runtime-token:/state/runtime
-    depends_on:
-      openbao: { condition: service_healthy }
-    restart: "no"
-
-  # ------------------------------------------------------------------ model serving
-  litellm:
-    image: ghcr.io/berriai/litellm:v1.106.6
-    command: ["--config", "/app/config.yaml", "--port", "4000"]
-    environment:
-      LITELLM_MASTER_KEY: ${VEY_LITELLM_MASTER_KEY:-sk-dev-litellm-master}
-      LITELLM_SALT_KEY: ${VEY_LITELLM_SALT_KEY:-sk-dev-litellm-salt}
-      DATABASE_URL: postgresql://litellm:${VEY_LITELLM_DB_PASSWORD:-dev-litellm-db}@postgres:5432/litellm
-      STORE_MODEL_IN_DB: "True"
-      LITELLM_TELEMETRY: "False"
-    volumes:
-      - ./litellm/config.yaml:/app/config.yaml:ro
-    ports: ["127.0.0.1:4000:4000"]
-    depends_on:
-      postgres: { condition: service_healthy }
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness').status==200 else 1)\""]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-
-  # BGE-M3 dense + sparse embeddings and the cross-encoder reranker on CPU. The local
-  # build only selects the upstream image for this machine's architecture (tei/Dockerfile).
-  tei-embed:
-    profiles: [local-models]
-    build: ./tei
-    image: veyntora/tei-cpu:1.9.4
-    # On CPU, ONNX Runtime keeps the warm-up allocation for max-batch-tokens: about 4.5 GB at
-    # 1024, 6 GB at 2048, more than 8 GB at the 16k default. 1024 fits a 16 GB machine; inputs
-    # above it are truncated for the dense vector only (BM25 sees all text). Chunks default to
-    # 500 tokens. Production sets this per GPU (Helm values).
-    command: ["--model-id", "BAAI/bge-m3", "--port", "80", "--max-client-batch-size", "64", "--max-batch-tokens", "1024"]
-    # BGE-M3 on CPU needs about 4 GB of memory; give Docker Desktop at least 16 GB.
-    restart: on-failure:5
-    volumes: [hf-embed:/data]
-    ports: ["127.0.0.1:8085:80"]
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/80 && printf \"GET /health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \"200\" <&3'"]
-      interval: 10s
-      timeout: 5s
-      retries: 90
-      start_period: 60s
-
-  tei-rerank:
-    profiles: [local-models]
-    # Same image as tei-embed, which builds it.
-    image: veyntora/tei-cpu:1.9.4
-    pull_policy: never
-    # Scores query + chunk (not the parent section), so 1024 tokens is enough; see tei-embed.
-    command: ["--model-id", "BAAI/bge-reranker-v2-m3", "--port", "80", "--max-batch-tokens", "1024"]
-    restart: on-failure:5
-    volumes: [hf-rerank:/data]
-    ports: ["127.0.0.1:8086:80"]
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/80 && printf \"GET /health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \"200\" <&3'"]
-      interval: 10s
-      timeout: 5s
-      retries: 90
-      start_period: 60s
-    # Warm-ups peak together otherwise; start after the embedder is up.
-    depends_on:
-      tei-embed: { condition: service_healthy }
-
-  docling:
-    image: quay.io/docling-project/docling-serve-cpu:v1.38.2
-    environment:
-      DOCLING_SERVE_ENABLE_UI: "false"
-    ports: ["127.0.0.1:5001:5001"]
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5001/health').status==200 else 1)\""]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-
-  sandbox:
-    # Code interpreter (ADR 0030): runs Python for the chat. No internet: it sits only on the
-    # internal "sandbox" network, which the graph server (and workers, for Test connection)
-    # join. Read-only, no capabilities, as nobody, with CPU, memory and process limits.
-    build:
-      context: ../..
-      dockerfile: services/sandbox/Dockerfile
-    image: veyntora/sandbox:local
-    networks: [sandbox]
-    read_only: true
-    tmpfs: ["/tmp:size=256m,mode=1777"]
-    cap_drop: [ALL]
-    security_opt: ["no-new-privileges:true"]
-    pids_limit: 128
-    mem_limit: 1g
-    cpus: 1.0
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/health').status==200 else 1)"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 5s
-
-  clamav:
-    # Virus scan for uploads (clamd INSTREAM on 3310). Downloads signatures on first start,
-    # which takes a few minutes; needs about 1.5 GB of memory.
-    image: clamav/clamav-debian:1.5.1
-    volumes: [clamav:/var/lib/clamav]
-    healthcheck:
-      test: ["CMD", "clamdcheck.sh"]
-      interval: 30s
-      timeout: 10s
-      retries: 20
-      start_period: 300s
-
-  mailpit:
-    # Local mail catcher: set the email relay (Channels & API → Email) to host "mailpit",
-    # port 1025, security "none", and read the mails at http://localhost:8025.
-    image: axllent/mailpit:v1.31.5
-    ports: ["127.0.0.1:8025:8025"]
-    healthcheck:
-      test: ["CMD", "/mailpit", "readyz"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  vllm:
-    profiles: [gpu]
-    image: vllm/vllm-openai:v0.32.0
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        test -n "$${VLLM_MODEL}" || { echo "set VLLM_MODEL to the main model (see docs/runbooks/local-dev.md)"; exit 1; }
-        exec vllm serve "$${VLLM_MODEL}" --port 8000
-    environment:
-      VLLM_MODEL: ${VLLM_MODEL:-}
-    volumes: [hf-cache:/root/.cache/huggingface]
-    deploy:
-      resources:
-        reservations:
-          devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
-
-  # ------------------------------------------------------------------ tracing and eval
-  clickhouse:
-    profiles: [bundled-langfuse]
-    image: clickhouse/clickhouse-server:25.8.33.6
-    environment:
-      CLICKHOUSE_DB: default
-      CLICKHOUSE_USER: langfuse
-      CLICKHOUSE_PASSWORD: ${VEY_CLICKHOUSE_PASSWORD:-dev-clickhouse}
-      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
-    volumes:
-      - clickhouse:/var/lib/clickhouse
-      - clickhouse-logs:/var/log/clickhouse-server
-    ulimits:
-      nofile: { soft: 262144, hard: 262144 }
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8123/ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-
-  langfuse-worker:
-    # Leave out with an external Langfuse (COMPOSE_PROFILES without bundled-langfuse).
-    profiles: [bundled-langfuse]
-    image: langfuse/langfuse-worker:3.225.14
-    environment: &langfuse-env
-      DATABASE_URL: postgresql://langfuse:${VEY_LANGFUSE_DB_PASSWORD:-dev-langfuse-db}@postgres:5432/langfuse?connection_limit=10
-      SALT: ${VEY_LANGFUSE_SALT:-dev-langfuse-salt}
-      ENCRYPTION_KEY: ${VEY_LANGFUSE_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}
-      TELEMETRY_ENABLED: "false"
-      HOSTNAME: 0.0.0.0
-      CLICKHOUSE_URL: http://clickhouse:8123
-      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
-      CLICKHOUSE_USER: langfuse
-      CLICKHOUSE_PASSWORD: ${VEY_CLICKHOUSE_PASSWORD:-dev-clickhouse}
-      CLICKHOUSE_CLUSTER_ENABLED: "false"
-      REDIS_CONNECTION_STRING: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/1
-      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
-      LANGFUSE_S3_EVENT_UPLOAD_REGION: eu-central-1
-      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://seaweedfs:8333
-      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: ${VEY_LANGFUSE_S3_ACCESS_KEY:-dev-langfuse-s3}
-      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${VEY_LANGFUSE_S3_SECRET_KEY:-dev-langfuse-s3-secret}
-      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
-      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
-      NEXTAUTH_URL: http://localhost:3001
-      NEXTAUTH_SECRET: ${VEY_LANGFUSE_NEXTAUTH_SECRET:-dev-langfuse-nextauth}
-      AUTH_DISABLE_SIGNUP: "true"
-      LANGFUSE_INIT_ORG_ID: veyntora
-      LANGFUSE_INIT_ORG_NAME: Veyntora
-      LANGFUSE_INIT_PROJECT_ID: veyntora
-      LANGFUSE_INIT_PROJECT_NAME: Veyntora
-      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${VEY_LANGFUSE_PUBLIC_KEY:-pk-lf-dev}
-      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${VEY_LANGFUSE_SECRET_KEY:-sk-lf-dev}
-      LANGFUSE_INIT_USER_EMAIL: admin@veyntora.local
-      LANGFUSE_INIT_USER_NAME: Platform Admin
-      LANGFUSE_INIT_USER_PASSWORD: ${VEY_LANGFUSE_ADMIN_PASSWORD:-dev-langfuse-admin}
-    depends_on:
-      postgres: { condition: service_healthy }
-      clickhouse: { condition: service_healthy }
-      valkey: { condition: service_healthy }
-      seaweedfs-init: { condition: service_completed_successfully }
-
-  langfuse:
-    profiles: [bundled-langfuse]
-    image: langfuse/langfuse:3.225.14
-    environment: *langfuse-env
-    ports: ["127.0.0.1:3001:3000"]
-    depends_on:
-      postgres: { condition: service_healthy }
-      clickhouse: { condition: service_healthy }
-      valkey: { condition: service_healthy }
-      seaweedfs-init: { condition: service_completed_successfully }
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/public/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
-
-  # ------------------------------------------------------------------ metrics and logs
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.164.0
-    command: ["--config=/etc/otelcol/collector.yaml"]
-    environment:
-      # The services' own spans (not answers: those follow Integrations) go to the bundled
-      # Langfuse. base64("<public key>:<secret key>"); `make env` sets it.
-      LANGFUSE_OTLP_ENDPOINT: ${VEY_OTLP_TRACES_ENDPOINT:-http://langfuse:3000/api/public/otel}
-      LANGFUSE_OTLP_AUTH: ${VEY_LANGFUSE_OTLP_AUTH:-cGstbGYtZGV2OnNrLWxmLWRldg==}
-    volumes:
-      - ./otel/collector.yaml:/etc/otelcol/collector.yaml:ro
-
-  prometheus:
-    image: prom/prometheus:v3.15.1
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus:/prometheus
-    ports: ["127.0.0.1:9090:9090"]
-
-  loki:
-    image: grafana/loki:3.7.9
-    command: ["-config.file=/etc/loki/config.yaml"]
-    volumes:
-      - ./loki/config.yaml:/etc/loki/config.yaml:ro
-      - loki:/loki
-    ports: ["127.0.0.1:3100:3100"]
-
-  grafana:
-    # Leave out with an external Grafana (COMPOSE_PROFILES without bundled-grafana).
-    profiles: [bundled-grafana]
-    image: grafana/grafana:13.3.0
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${VEY_GRAFANA_ADMIN_PASSWORD:-dev-grafana-admin}
-      GF_ANALYTICS_REPORTING_ENABLED: "false"
-      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
-      GF_USERS_ALLOW_SIGN_UP: "false"
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/etc/grafana/dashboards:ro
-      - grafana:/var/lib/grafana
-    ports: ["127.0.0.1:3003:3000"]
-    depends_on: [prometheus, loki]
-
-  # ------------------------------------------------------------------ Veyntora
-  # The runtime role (no ownership) the services use; idempotent on every start.
-  postgres-roles:
-    image: postgres:16.15-alpine
-    depends_on:
-      postgres: { condition: service_healthy }
-    environment:
-      PGHOST: postgres
-      PGUSER: postgres
-      PGPASSWORD: ${VEY_PG_SUPERUSER_PASSWORD:-dev-postgres}
-      RUNTIME_PASSWORD: ${VEY_RUNTIME_DB_PASSWORD:-dev-veyntora-runtime}
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        set -e
-        psql -v ON_ERROR_STOP=1 -d veyntora -v pw="$$RUNTIME_PASSWORD" <<'SQL'
-        SELECT format('CREATE ROLE veyntora_runtime LOGIN PASSWORD %L', :'pw')
-          WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'veyntora_runtime') \gexec
-        SELECT format('ALTER ROLE veyntora_runtime LOGIN PASSWORD %L', :'pw') \gexec
-        GRANT CONNECT ON DATABASE veyntora TO veyntora_runtime;
-        -- Table privileges and defaults are granted by the owner in migration 0020.
-        SQL
-    restart: "no"
-
   migrate:
+    # Runs `bootstrap` (migrations, OpenFGA model, buckets, Keycloak sync) for each new
+    # version of the settings; the other services wait until it has (ADR 0034).
     build: &python-build
       context: ../..
       dockerfile: services/api/Dockerfile
     image: veyntora/api:local
-    command: ["veyntora-api", "bootstrap"]
+    command: ["veyntora-api", "launch", "owner", "--", "veyntora-api", "bootstrap"]
     environment:
-      <<: *app-env
+      <<: [*app-env, *keys-owner]
       VEY_LOG_LEVEL: INFO
-      # The bundled Langfuse's project keys, seeded into Integrations once (ADR 0024).
-      VEY_LANGFUSE_PUBLIC_KEY: ${VEY_LANGFUSE_PUBLIC_KEY-pk-lf-dev}
-      VEY_LANGFUSE_SECRET_KEY: ${VEY_LANGFUSE_SECRET_KEY-sk-lf-dev}
-      VEY_DATABASE_URL: postgresql+asyncpg://veyntora:${VEY_DB_PASSWORD:-dev-veyntora-db}@postgres:5432/veyntora
+      # Your Langfuse project's keys, seeded into Integrations once with the URL (ADR 0024).
+      VEY_LANGFUSE_PUBLIC_KEY: ${VEY_LANGFUSE_PUBLIC_KEY-}
+      VEY_LANGFUSE_SECRET_KEY: ${VEY_LANGFUSE_SECRET_KEY-}
+      VEY_DATABASE_URL: ${VEY_OWNER_DATABASE_URL-}
     volumes:
-      - openbao-api-token:/run/openbao:ro
-    depends_on:
-      postgres-roles: { condition: service_completed_successfully }
-      postgres: { condition: service_healthy }
-      keycloak: { condition: service_healthy, required: false }
-      openfga: { condition: service_healthy }
-      seaweedfs-init: { condition: service_completed_successfully }
-      openbao-init: { condition: service_completed_successfully }
-    restart: "no"
+      - config:/var/lib/veyntora
+    <<: *host
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "veyntora-api", "healthcheck", "--bootstrapped"]
+      interval: 5s
+      timeout: 3s
+      retries: 120
 
   api:
     image: veyntora/api:local
     build: *python-build
-    command: ["veyntora-api", "serve"]
-    environment: *app-env
+    # Until Veyntora is set up, this serves the Setup page's API instead.
+    command: ["veyntora-api", "launch", "api", "--", "veyntora-api", "serve"]
+    environment:
+      <<: [*app-env, *keys-api]
     volumes:
-      - openbao-api-token:/run/openbao:ro
+      - config:/var/lib/veyntora
     ports: ["127.0.0.1:8000:8000"]
+    <<: *host
+    restart: unless-stopped
     depends_on:
-      migrate: { condition: service_completed_successfully }
-      valkey: { condition: service_healthy }
+      migrate: { condition: service_started }
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/readyz').status==200 else 1)"]
       interval: 5s
@@ -577,17 +124,17 @@ services:
   workers:
     image: veyntora/api:local
     build: *python-build
-    command: ["celery", "-A", "veyntora_workers.app", "worker", "--loglevel=INFO", "--concurrency=2"]
+    command: ["veyntora-api", "launch", "runtime", "--", "celery", "-A", "veyntora_workers.app", "worker", "--loglevel=INFO", "--concurrency=2"]
     environment:
-      <<: *app-env
+      <<: [*app-env, *keys-runtime]
       VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
       VEY_DB_NULL_POOL: "true"
     volumes:
-      - openbao-runtime-token:/run/openbao:ro
-    networks: [default, sandbox]
+      - config:/var/lib/veyntora:ro
+    <<: *host
+    restart: unless-stopped
     depends_on:
-      migrate: { condition: service_completed_successfully }
-      valkey: { condition: service_healthy }
+      migrate: { condition: service_started }
 
   channels:
     # Teams and Slack bots (ADR 0020). A runtime service: reads its bots' credentials.
@@ -595,59 +142,66 @@ services:
       context: ../..
       dockerfile: services/channels/Dockerfile
     image: veyntora/channels:local
+    command: ["veyntora-api", "launch", "runtime", "--", "uvicorn", "veyntora_channels.app:app", "--host", "0.0.0.0", "--port", "8010", "--proxy-headers"]
     environment:
-      <<: *app-env
+      <<: [*app-env, *keys-runtime]
       VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
     volumes:
-      - openbao-runtime-token:/run/openbao:ro
+      - config:/var/lib/veyntora:ro
+    <<: *host
+    restart: unless-stopped
     ports: ["127.0.0.1:8010:8010"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/healthz')"]
+      # Healthy while it waits for the setup too: nothing to serve yet.
+      test: ["CMD", "veyntora-api", "healthcheck", "--url", "http://127.0.0.1:8010/healthz"]
       interval: 10s
       timeout: 3s
       retries: 10
     depends_on:
-      migrate: { condition: service_completed_successfully }
+      migrate: { condition: service_started }
       graphs: { condition: service_started }
 
   scheduler:
     image: veyntora/api:local
     build: *python-build
-    command: ["celery", "-A", "veyntora_workers.app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
-    environment: *app-env
+    command: ["veyntora-api", "launch", "scheduler", "--", "celery", "-A", "veyntora_workers.app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    environment:
+      <<: [*app-env, *keys-scheduler]
+    volumes:
+      - config:/var/lib/veyntora:ro
+    <<: *host
+    restart: unless-stopped
     depends_on:
-      migrate: { condition: service_completed_successfully }
-      valkey: { condition: service_healthy }
+      migrate: { condition: service_started }
 
   graphs:
     build:
       context: ../..
       dockerfile: services/graphs/Dockerfile
     image: veyntora/graphs:local
+    command: ["veyntora-api", "launch", "graphs", "--", "aegra", "serve", "--host", "0.0.0.0", "--port", "2026"]
     environment:
       # Veyntora settings (database, OpenFGA, OpenBao reader) for the graphs; see ADR 0012.
-      <<: *app-env
+      <<: [*app-env, *keys-runtime]
       VEY_OPENBAO_TOKEN_FILE: /run/openbao/runtime.token
-      DATABASE_URL: postgresql://aegra:${VEY_AEGRA_DB_PASSWORD:-dev-aegra-db}@postgres:5432/aegra
-      REDIS_URL: redis://:${VEY_VALKEY_PASSWORD:-dev-valkey}@valkey:6379/2
+      # The graph server's own database (threads, checkpoints) and Valkey database; from
+      # the setup, or from the environment (CI).
+      DATABASE_URL: ${VEY_AEGRA_DATABASE_URL-}
+      REDIS_URL: ${VEY_GRAPHS_REDIS_URL-}
       REDIS_BROKER_ENABLED: "true"
       AEGRA_CONFIG: /app/services/graphs/aegra.json
       ENABLE_PROMETHEUS_METRICS: "true"
       ENV_MODE: LOCAL
-      VEY_OIDC_ISSUER: ${VEY_OIDC_ISSUER:-http://localhost:8080/realms/veyntora}
-      VEY_OIDC_INTERNAL_BASE: ${VEY_OIDC_INTERNAL_BASE-http://keycloak:8080/realms/veyntora}
       VEY_OIDC_AUDIENCE: veyntora-api
     volumes:
-      - openbao-runtime-token:/run/openbao:ro
-    networks: [default, sandbox]
+      - config:/var/lib/veyntora:ro
+    <<: *host
+    restart: unless-stopped
     ports: ["127.0.0.1:2026:2026"]
     depends_on:
-      migrate: { condition: service_completed_successfully }
-      postgres: { condition: service_healthy }
-      valkey: { condition: service_healthy }
-      keycloak: { condition: service_healthy, required: false }
+      migrate: { condition: service_started }
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:2026/health').status==200 else 1)"]
+      test: ["CMD", "veyntora-api", "healthcheck", "--url", "http://127.0.0.1:2026/health"]
       interval: 5s
       timeout: 3s
       retries: 40
@@ -662,6 +216,7 @@ services:
       API_INTERNAL_URL: http://api:8000
       VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
     ports: ["127.0.0.1:3000:3000"]
+    restart: unless-stopped
     depends_on:
       api: { condition: service_healthy }
     healthcheck:
@@ -671,26 +226,6 @@ services:
       retries: 30
 
 volumes:
-  postgres:
-  valkey:
-  qdrant:
-  seaweedfs:
-  openbao-data:
-  openbao-root:
-  openbao-api-token:
-  openbao-runtime-token:
-  hf-cache:
-  clamav:
-  hf-embed:
-  hf-rerank:
-  clickhouse:
-  clickhouse-logs:
-  prometheus:
-  loki:
-  grafana:
-
-networks:
-  default: {}
-  # Internal: no route to the internet. Only the graph server and workers reach the sandbox.
-  sandbox:
-    internal: true
+  # The settings set up in the browser, their history and migrate's marker (ADR 0034).
+  # Passwords are not in it: they are in OpenBao.
+  config:

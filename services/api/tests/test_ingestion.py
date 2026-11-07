@@ -33,7 +33,7 @@ from veyntora_api.db.models.knowledge import (
     SourceStatus,
 )
 from veyntora_api.db.models.providers import ProviderInstance
-from veyntora_api.knowledge import clamd
+from veyntora_api.knowledge import clamd, scanner
 from veyntora_api.knowledge import service as knowledge
 from veyntora_api.knowledge.profiles import index_plan, profiles_for_source
 from veyntora_api.settings import Settings
@@ -530,7 +530,8 @@ async def test_infected_upload_is_removed_and_audited(
 
     monkeypatch.setattr(clamd, "scan_bytes", infected)
     ing = world.ingestor()
-    ing.settings = Settings(scan_required=True, clamav_address="clamav:3310")
+    ing.settings = Settings(scan_required=True)
+    await scanner.save_scanner(world.db, CTX, scanner.ScannerSettings(address="clamav:3310"))
     assert await ing.index_document(doc, force=False) == {"skipped": "infected"}
     assert doc.scan_status is ScanStatus.INFECTED and doc.status is DocumentStatus.FAILED
     assert key in world.objects.data, "the original is only deleted after the commit"
@@ -547,7 +548,7 @@ async def test_missing_scanner_retries_instead_of_indexing(world: World) -> None
     _, source = await _bot_with_source(world)
     doc = await _upload(world, source)
     ing = world.ingestor()
-    ing.settings = Settings(scan_required=True, clamav_address="")
+    ing.settings = Settings(scan_required=True)  # and no scanner set up
     with pytest.raises(clamd.ScannerUnavailableError, match="no virus scanner"):
         await ing.index_document(doc, force=False)
     assert world.vectors.of(doc.id) == []
@@ -633,7 +634,8 @@ async def test_scan_result_survives_an_embedding_outage(
 
     monkeypatch.setattr(clamd, "scan_bytes", clean)
     ing = world.ingestor()
-    ing.settings = Settings(scan_required=True, clamav_address="clamav:3310")
+    ing.settings = Settings(scan_required=True)
+    await scanner.save_scanner(world.db, CTX, scanner.ScannerSettings(address="clamav:3310"))
     ing.adapters.by_id[world.embed] = DownEmbedder()  # type: ignore[attr-defined]
     with pytest.raises(httpx.ConnectError):
         await ing.index_document(doc, force=False)
@@ -726,3 +728,16 @@ async def test_indexing_books_the_embedding_tokens_at_the_providers_price(world:
     ).scalars()
     assert row.cost_centre == INDEXING and row.chatbot_id is None and row.tokens_in > 0
     assert float(row.cost) == pytest.approx(row.tokens_in * 20 / 1_000_000)
+
+
+async def test_scanner_is_a_setting(world: World) -> None:
+    assert await scanner.scanner_address(world.db) == ""
+    await scanner.save_scanner(world.db, CTX, scanner.ScannerSettings(address="av.local:3310"))
+    assert await scanner.scanner_address(world.db) == "av.local:3310"
+    assert await world.db.scalar(
+        sa.select(AuditEvent.id).where(AuditEvent.action == "scanner.update")
+    )
+    await scanner.save_scanner(world.db, CTX, None)
+    assert await scanner.scanner_address(world.db) == ""
+    with pytest.raises(ValueError, match="pattern"):
+        scanner.ScannerSettings(address="not an address")

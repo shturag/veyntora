@@ -15,6 +15,7 @@ import {
   Radio,
   Scale,
   ScrollText,
+  Server,
   Users,
   Workflow,
   Wrench,
@@ -52,6 +53,7 @@ const ICONS: Record<string, LucideIcon> = {
   evaluation: ClipboardCheck,
   monitoring: Activity,
   integrations: Plug,
+  infrastructure: Server,
   usage: Gauge,
   users: Users,
   governance: Scale,
@@ -59,7 +61,7 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 /**
- * The admin console's dark rail (prototype: Overview.html): sections that fold, scrolling
+ * The admin console's rail (prototype: Overview.html): sections that fold, scrolling
  * between the logo and the account. Only areas the user may open are listed.
  */
 export function AdminNav({ me }: { me: Me }) {
@@ -70,11 +72,11 @@ export function AdminNav({ me }: { me: Me }) {
       label={t("adminNav.label")}
       menuLabel={t("nav.openMenu")}
       closeLabel={t("nav.closeMenu")}
-      className="bg-nav text-white min-[901px]:w-[240px]"
+      className="border-line bg-nav text-nav-fg min-[901px]:w-[240px] min-[901px]:border-r"
       top={
         <div className="flex flex-col gap-1.5 px-1">
-          {/* The rail is dark in both themes. */}
-          <BrandLogo tone="dark" height={28} />
+          {/* The rail follows the theme: white in light, dark in dark. */}
+          <BrandLogo height={28} />
           <span className="text-[11px] font-semibold tracking-[0.08em] text-nav-heading uppercase">
             {t("adminNav.title")}
           </span>
@@ -100,7 +102,9 @@ export function AdminNav({ me }: { me: Me }) {
       }
     >
       {ADMIN_NAV.map((group) => {
-        const items = group.items.filter((i) => i.area in me.admin_areas);
+        const items = group.items.filter((i) =>
+          i.platformAdmin ? me.roles.platform_admin : i.area in me.admin_areas,
+        );
         if (items.length === 0) return null;
         return (
           <NavSection
