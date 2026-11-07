@@ -16,7 +16,8 @@
     "localeNames": {
       "en": "English",
       "de": "Deutsch"
-    }
+    },
+    "newTab": "(öffnet in einem neuen Tab)"
   },
   "nav": {
     "main": "Hauptmenü",
@@ -4181,7 +4182,7 @@
   },
   "guided": {
     "title": "Was soll dieser Chatbot tun?",
-    "intro": "Beantworte ein paar Fragen; Veyntora setzt Modi und Schritte und fragt nur nach den Anbietern, die dein Chatbot braucht. Danach kannst du alles ändern.",
+    "intro": "Beantworten Sie ein paar Fragen; Veyntora setzt Modi und Schritte und fragt nur nach den Anbietern, die Ihr Chatbot braucht. Danach können Sie alles ändern.",
     "teaser": "Unsicher, welche Einstellungen dieser Chatbot braucht? Beantworte stattdessen ein paar Fragen.",
     "open": "Mit Fragen einrichten",
     "close": "Schließen",
@@ -4198,7 +4199,7 @@
     "general": {
       "title": "Ohne Dokumente (allgemeiner Chat)",
       "hint": "Schreiben, Zusammenfassen, Erklären. Antworten lassen sich nicht an Quellen prüfen.",
-      "rule": "Eine Ausnahme von „belegt oder still“: Jede Antwort ist als „Ohne Quellen“ markiert, und die <link>Datenregel</link> des Chatbots muss es erlauben, bevor du veröffentlichst."
+      "rule": "Eine Ausnahme von „belegt oder still“: Antworten werden nicht gegen Quellen geprüft und sind als „Ohne Quellen“ markiert."
     },
     "tasks": {
       "title": "Aufgaben mit Tools erledigen",
@@ -4213,7 +4214,7 @@
       "hint": "Menschen können eine unbeantwortete Frage an eines dieser Teams senden.",
       "noGroups": "Noch keine Gruppen: Sie kommen aus Keycloak oder Benutzer & Gruppen."
     },
-    "providersHint": "Nur, was deine Antworten oben brauchen. Fehlt einer? Füge ihn unter Anbieter & Schlüssel hinzu.",
+    "providersHint": "Nur, was Ihre Antworten oben brauchen. Fehlt einer? Fügen Sie ihn unter Anbieter & Schlüssel hinzu.",
     "need": {
       "llm": "Modell für Antworten",
       "agent": "Modell für den Agenten",
@@ -4235,7 +4236,6 @@
     "external": "extern",
     "noneYet": "Noch keiner",
     "addProvider": "Hinzufügen",
-    "externalRule": "{names}: extern, Daten verlassen also dein Netzwerk. Erlaube sie vor dem Veröffentlichen in der <link>Datenregel</link> des Chatbots.",
     "promptHint": "Wer der Chatbot ist und wie er spricht. Du kannst '{company}', '{user_name}', '{user_team}' und '{today}' verwenden. Beleg- und Sicherheitsregeln kommen immer dazu.",
     "prompt": {
       "docs": "Du bist der Assistent von '{company}'. Beantworte Fragen aus den Dokumenten des Unternehmens, kurz und klar. Sprich die Person direkt an, ohne die Antwort mit ihrem Namen oder einer Begrüßung zu beginnen.",
@@ -4256,7 +4256,7 @@
     },
     "apply": "Übernehmen",
     "saveContinue": "Speichern und weiter",
-    "afterwards": "Übernimmt Modi, Schritte und Anbieter in den Entwurf; live geht erst etwas, wenn du veröffentlichst.",
+    "afterwards": "Übernimmt Modi, Schritte und Anbieter in den Entwurf; live geht erst etwas, wenn Sie veröffentlichen.",
     "failed": "Das hat nicht funktioniert: {reason}",
     "models": {
       "title": "Menschen das Modell wählen lassen",
@@ -4267,7 +4267,16 @@
       "title": "Denk-Schalter",
       "hint": "Menschen können für eine Frage das Nachdenken einschalten, bei Modellen, die es können (Denk-Schalter beim Anbieter setzen). Die Überlegungen erscheinen eingeklappt."
     },
-    "saveTune": "Speichern und feinjustieren"
+    "saveTune": "Speichern und feinjustieren",
+    "rules": {
+      "noDocsAllowed": "Die Datenregel dieses Chatbots erlaubt Antworten ohne Dokumente.",
+      "allowNoDocs": "Antworten ohne Dokumente für diesen Chatbot erlauben",
+      "allowHint": "Wird beim Speichern in der Datenregel des Chatbots gespeichert. Veröffentlichen geht erst, wenn es erlaubt ist.",
+      "noDocsAsk": "Bevor er veröffentlicht werden kann, muss ein Plattform-Admin oder die Sicherheitsprüfung Antworten ohne Dokumente in der Datenregel dieses Chatbots erlauben.",
+      "external": "Extern, Fragen und Textstellen verlassen also Ihr Netzwerk: {names}.",
+      "allowExternal": "{name} für diesen Chatbot erlauben",
+      "externalAsk": "Extern, Fragen und Textstellen verlassen also Ihr Netzwerk: {names}. Bevor er veröffentlicht werden kann, muss ein Plattform-Admin oder die Sicherheitsprüfung sie in der Datenregel dieses Chatbots erlauben."
+    }
   },
   "setup": {
     "title": "Veyntora einrichten",

@@ -16,6 +16,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { wizardBot } from "@/components/bots/wizard-bot";
+import { NewTabLink } from "@/components/new-tab-link";
 import { PublishButton } from "@/components/pipeline/publish-button";
 import { PublishChecklist } from "@/components/pipeline/publish-checklist";
 import { screenMetadata } from "@/components/screen-placeholder";
@@ -209,7 +210,12 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
           </section>
 
           {!ready ? (
-            <PublishChecklist botId={bot.id} problems={bot.publish_problems} headingId="checks" />
+            <PublishChecklist
+              botId={bot.id}
+              problems={bot.publish_problems}
+              headingId="checks"
+              wizard
+            />
           ) : null}
         </div>
 
@@ -261,10 +267,10 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
           )}
           <div className="flex flex-col gap-2 border-t border-line pt-4">
             <Button asChild>
-              <Link href={`/admin/playground?bot=${bot.id}`}>
+              <NewTabLink href={`/admin/playground?bot=${bot.id}`}>
                 <FlaskConical aria-hidden className="size-4" />
                 {t("testFirst")}
-              </Link>
+              </NewTabLink>
             </Button>
             <div className="[&>div]:items-stretch [&_button]:w-full">
               <PublishButton

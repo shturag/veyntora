@@ -7,6 +7,7 @@ import { BotHeader } from "@/components/bots/bot-header";
 import { Forbidden } from "@/components/forbidden";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
+import { dataRuleOf } from "@/lib/data-rule";
 import { GuidedPanel } from "@/components/bots/guided-panel";
 import { PublishChecklist } from "@/components/pipeline/publish-checklist";
 import { SECTIONS, sectionHref, type SectionKey } from "@/lib/pipeline";
@@ -62,6 +63,8 @@ export async function PipelinePage({
             .filter((p) => p.enabled)
             .map((p) => ({ id: p.id, name: p.name, capability: p.capability, hosting: p.hosting }))}
           experts={experts && grants.response.status === 200 ? experts : null}
+          rule={dataRuleOf(bot.governance)}
+          canAllow={access.me.admin_areas.governance === "editor"}
         />
       ) : null}
       <div className="grid grid-cols-[220px_minmax(0,1fr)_280px] items-start gap-5 max-[1200px]:grid-cols-[200px_minmax(0,1fr)] max-[760px]:grid-cols-1">

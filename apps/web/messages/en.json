@@ -16,7 +16,8 @@
     "localeNames": {
       "en": "English",
       "de": "Deutsch"
-    }
+    },
+    "newTab": "(opens in a new tab)"
   },
   "nav": {
     "main": "Main",
@@ -4198,7 +4199,7 @@
     "general": {
       "title": "Without documents (general chat)",
       "hint": "Writing, summarising, explaining. Answers cannot be checked against sources.",
-      "rule": "An exception to \"grounded or silent\": every answer is labelled \"No sources\", and the chatbot's <link>data rule</link> must allow it before you can publish."
+      "rule": "An exception to “grounded or silent”: answers are not checked against sources and are labelled “No sources”."
     },
     "tasks": {
       "title": "Carry out tasks with tools",
@@ -4235,7 +4236,6 @@
     "external": "external",
     "noneYet": "None yet",
     "addProvider": "Add one",
-    "externalRule": "{names}: external, so data leaves your network. Allow them in the chatbot's <link>data rule</link> before publishing.",
     "promptHint": "Who the chatbot is and how it talks. You can use '{company}', '{user_name}', '{user_team}' and '{today}'. Citation and safety rules are always added.",
     "prompt": {
       "docs": "You are the assistant of '{company}'. Answer questions from the company's documents, briefly and clearly. Speak to the person directly, without opening with their name or a greeting.",
@@ -4267,7 +4267,16 @@
       "title": "Thinking switch",
       "hint": "People can turn thinking on for a question, with models that support it (set the Thinking switch on the provider). The reasoning is shown folded."
     },
-    "saveTune": "Save and fine-tune"
+    "saveTune": "Save and fine-tune",
+    "rules": {
+      "noDocsAllowed": "This chatbot's data rule allows answers without documents.",
+      "allowNoDocs": "Allow answers without documents for this chatbot",
+      "allowHint": "Saved in the chatbot's data rule when you save. Publishing waits until it is allowed.",
+      "noDocsAsk": "Before it can be published, a platform admin or security reviewer must allow answers without documents in this chatbot's data rule.",
+      "external": "External, so questions and passages leave your network: {names}.",
+      "allowExternal": "Allow {name} for this chatbot",
+      "externalAsk": "External, so questions and passages leave your network: {names}. Before it can be published, a platform admin or security reviewer must allow them in this chatbot's data rule."
+    }
   },
   "setup": {
     "title": "Set up Veyntora",

@@ -9,6 +9,7 @@ import { useState } from "react";
 
 import { Panel } from "@/components/admin/panel";
 import { KindIcon } from "@/components/admin/source-icons";
+import { NewTabLink, useRefreshOnFocus } from "@/components/new-tab-link";
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
 
@@ -58,6 +59,10 @@ export function KnowledgeEditor({
   const ts = useTranslations("sources");
   const format = useFormatter();
   const router = useRouter();
+  // In the wizard, links open in a new tab; a source connected there shows up on return.
+  const wizard = !!next;
+  const Out = wizard ? NewTabLink : Link;
+  useRefreshOnFocus(wizard);
   const [saved, setSaved] = useState<Row[]>(() => rowsOf(attached));
   const [rows, setRows] = useState<Row[]>(saved);
   const [query, setQuery] = useState("");
@@ -122,13 +127,13 @@ export function KnowledgeEditor({
         title={t("knowledgeTitle")}
         description={t("knowledgeIntro")}
         aside={
-          <Link
+          <Out
             href={`/admin/playground?bot=${botId}`}
             className="inline-flex items-center gap-1.5 text-sm font-medium no-underline"
           >
             <FlaskConical aria-hidden className="size-4" />
             {t("testRetrieval")}
-          </Link>
+          </Out>
         }
       >
         {rows.length === 0 ? (
@@ -158,12 +163,12 @@ export function KnowledgeEditor({
                       <div className="flex min-w-48 flex-1 basis-48 flex-col">
                         <span className="flex flex-wrap items-center gap-2">
                           {o ? (
-                            <Link
+                            <Out
                               href={`/admin/sources/${r.source_id}`}
                               className="truncate font-semibold text-fg"
                             >
                               {name}
-                            </Link>
+                            </Out>
                           ) : (
                             <span className="truncate font-semibold">{name}</span>
                           )}
@@ -271,13 +276,13 @@ export function KnowledgeEditor({
           title={t("available")}
           description={t("kn.availableText")}
           aside={
-            <Link
+            <Out
               href="/admin/sources/new"
               className="inline-flex items-center gap-1 text-sm font-medium no-underline"
             >
               {t("connectSource")}
-              <ArrowRight aria-hidden className="size-3.5" />
-            </Link>
+              {wizard ? null : <ArrowRight aria-hidden className="size-3.5" />}
+            </Out>
           }
         >
           {free.length === 0 ? (

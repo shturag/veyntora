@@ -3,11 +3,14 @@
 import type { PipelineSpec } from "@veyntora/spec";
 import { Button } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { NewTabLink, useRefreshOnFocus } from "@/components/new-tab-link";
+
 import { api } from "@/lib/chat";
+
+import type { DataRule } from "./data-rules";
 
 type Provider = { id: string; name: string; capability: string; hosting: string };
 type Group = { id: string; name: string };
@@ -88,6 +91,9 @@ function picture(docs: boolean, rerank: boolean, tasks: boolean, t: (k: string) 
   return { custom: false, nodes, edges };
 }
 
+const ruleNote = "m-0 flex flex-col gap-2 rounded-md bg-amber-soft px-3 py-2.5 text-sm text-amber";
+const ruleCheck = "flex items-start gap-2 text-sm font-medium text-fg";
+
 /**
  * Set a chatbot up by saying what it should do: the answers decide its modes, which steps
  * run and which providers it needs, and only those are asked for. Everything can still be
@@ -101,6 +107,8 @@ export function GuidedSetup({
   experts,
   next,
   tune,
+  rule,
+  canAllow,
   onDone,
 }: {
   botId: string;
@@ -113,6 +121,10 @@ export function GuidedSetup({
   next?: string;
   /** Where "Save and fine-tune" goes after saving (the wizard's advanced settings). */
   tune?: string;
+  /** The chatbot's data rule: general chat and external providers need it to allow them. */
+  rule: DataRule;
+  /** Whether the reader may change the data rule (governance editors). */
+  canAllow: boolean;
   onDone?: () => void;
 }) {
   const t = useTranslations("guided");
@@ -138,14 +150,29 @@ export function GuidedSetup({
     [t(docs ? "prompt.docs" : "prompt.general"), tasks ? t("prompt.tasks") : ""]
       .filter(Boolean)
       .join(" ");
-  // The suggestion follows the answers until the admin writes their own prompt.
-  const [prompt, setPrompt] = useState(draft.generation.system_prompt);
+  // The suggestion follows the answers until the admin writes their own prompt; a saved
+  // suggestion still counts as one.
+  const suggestions = [true, false].flatMap((d) =>
+    [false, true].map((k) =>
+      [t(d ? "prompt.docs" : "prompt.general"), k ? t("prompt.tasks") : ""]
+        .filter(Boolean)
+        .join(" "),
+    ),
+  );
+  const [prompt, setPrompt] = useState(
+    suggestions.includes(draft.generation.system_prompt) ? "" : draft.generation.system_prompt,
+  );
   const shownPrompt = prompt || suggested();
   // General chat: models people may switch between, and the thinking switch.
   const [choices, setChoices] = useState<string[]>(draft.chat?.llm_instance_ids ?? []);
   const [thinkingSwitch, setThinkingSwitch] = useState(Boolean(draft.chat?.thinking));
+  // What the data rule should allow as well, ticked here by governance editors.
+  const [allowNoDocs, setAllowNoDocs] = useState(false);
+  const [allowExternal, setAllowExternal] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Providers added in another tab show up when the admin comes back.
+  useRefreshOnFocus();
 
   const of = (cap: string) => providers.filter((p) => p.capability === cap);
   const needed: { key: keyof typeof picked; cap: string; optional?: boolean }[] = [
@@ -163,6 +190,9 @@ export function GuidedSetup({
   const external = needed
     .map((n) => providers.find((p) => p.id === picked[n.key]))
     .filter((p): p is Provider => !!p && p.hosting === "external");
+  const blocked = [...new Map(external.map((p) => [p.id, p])).values()].filter(
+    (p) => !rule.allowed_external_instance_ids.includes(p.id),
+  );
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -209,6 +239,23 @@ export function GuidedSetup({
           body: JSON.stringify({ group_ids: docs && handoff ? teams : [] }),
         });
       }
+      const noDocs = !docs && allowNoDocs && !rule.allow_no_documents;
+      const extra = allowExternal.filter((id) => blocked.some((p) => p.id === id));
+      if (canAllow && (noDocs || extra.length)) {
+        await api(`/v1/admin/chatbots/${botId}/governance`, {
+          method: "PUT",
+          body: JSON.stringify({
+            chat_retention_days: rule.chat_retention_days,
+            trace_retention_days: rule.trace_retention_days,
+            allowed_external_instance_ids: [...rule.allowed_external_instance_ids, ...extra],
+            allowed_external_mcp_server_ids: rule.allowed_external_mcp_server_ids,
+            allow_byok: rule.allow_byok,
+            allow_external_traces: rule.allow_external_traces,
+            allow_no_documents: rule.allow_no_documents || noDocs,
+            mask_pii_before_external: rule.mask_pii_before_external,
+          }),
+        });
+      }
       if (target) router.push(target);
       else {
         router.refresh();
@@ -251,11 +298,27 @@ export function GuidedSetup({
           </label>
         </div>
         {!docs ? (
-          <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
-            {t.rich("general.rule", {
-              link: (c) => <Link href={`/admin/chatbots/${botId}/access`}>{c}</Link>,
-            })}
-          </p>
+          <div role="note" className={ruleNote}>
+            <p className="m-0">{t("general.rule")}</p>
+            {rule.allow_no_documents ? (
+              <p className="m-0 font-medium">{t("rules.noDocsAllowed")}</p>
+            ) : canAllow ? (
+              <label className={ruleCheck}>
+                <input
+                  type="checkbox"
+                  checked={allowNoDocs}
+                  onChange={(e) => setAllowNoDocs(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span className="flex flex-col">
+                  {t("rules.allowNoDocs")}
+                  <span className="text-xs font-normal text-fg-muted">{t("rules.allowHint")}</span>
+                </span>
+              </label>
+            ) : (
+              <p className="m-0">{t("rules.noDocsAsk")}</p>
+            )}
+          </div>
         ) : null}
       </fieldset>
 
@@ -393,9 +456,12 @@ export function GuidedSetup({
                 ) : (
                   <span className="flex h-10 items-center justify-between gap-2 rounded-md border border-dashed border-line-strong px-3 text-sm font-normal text-fg-muted">
                     {t("noneYet")}
-                    <Link href="/admin/providers/new" className="text-sm">
+                    <NewTabLink
+                      href="/admin/providers/new"
+                      className="flex items-center gap-1 text-sm"
+                    >
                       {t("addProvider")}
-                    </Link>
+                    </NewTabLink>
                   </span>
                 )}
                 <span className="text-xs font-normal text-fg-muted">{t(`needHint.${n.key}`)}</span>
@@ -403,13 +469,36 @@ export function GuidedSetup({
             );
           })}
         </div>
-        {external.length ? (
-          <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
-            {t.rich("externalRule", {
-              names: external.map((p) => p.name).join(", "),
-              link: (c) => <Link href={`/admin/chatbots/${botId}/access`}>{c}</Link>,
-            })}
-          </p>
+        {blocked.length ? (
+          <div role="note" className={ruleNote}>
+            {canAllow ? (
+              <>
+                <p className="m-0">
+                  {t("rules.external", { names: blocked.map((p) => p.name).join(", ") })}
+                </p>
+                {blocked.map((p) => (
+                  <label key={p.id} className={ruleCheck}>
+                    <input
+                      type="checkbox"
+                      checked={allowExternal.includes(p.id)}
+                      onChange={(e) =>
+                        setAllowExternal((l) =>
+                          e.target.checked ? [...l, p.id] : l.filter((x) => x !== p.id),
+                        )
+                      }
+                      className="mt-0.5"
+                    />
+                    {t("rules.allowExternal", { name: p.name })}
+                  </label>
+                ))}
+                <span className="text-xs text-fg-muted">{t("rules.allowHint")}</span>
+              </>
+            ) : (
+              <p className="m-0">
+                {t("rules.externalAsk", { names: blocked.map((p) => p.name).join(", ") })}
+              </p>
+            )}
+          </div>
         ) : null}
       </fieldset>
 

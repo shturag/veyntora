@@ -39,11 +39,20 @@ const KNOWN: Record<string, { key: KnownProblem; section: SectionKey }> = {
 
 const MISSING = /^(\w+)\.(\w+) is not set$/;
 
-export function describeProblem(raw: string, botId: string): Problem {
+/** `wizard`: link to the new-chatbot wizard's pages instead of the console's. */
+export function describeProblem(raw: string, botId: string, wizard = false): Problem {
   const href = (key: SectionKey) => {
+    if (wizard) return `/admin/chatbots/new/pipeline/advanced?id=${botId}&section=${key}`;
     const s = SECTIONS.find((x) => x.key === key);
     return s ? sectionHref(botId, s) : `/admin/pipelines/${botId}`;
   };
+  // The data rule: on the chatbot's Access page, or in the wizard's pipeline questions.
+  const rules = wizard
+    ? `/admin/chatbots/new/pipeline?id=${botId}`
+    : `/admin/chatbots/${botId}/access`;
+  const flow = wizard
+    ? `/admin/chatbots/new/pipeline?id=${botId}`
+    : `/admin/chatbots/${botId}/flow`;
   const m = MISSING.exec(raw);
   if (m && SECTIONS.some((s) => s.key === m[1])) {
     const section = m[1] as SectionKey;
@@ -52,13 +61,13 @@ export function describeProblem(raw: string, botId: string): Problem {
   // "<provider or MCP server> is an external …; allow it in this chatbot's data rules"
   const rule =
     /^(.+) is an external (?:provider|MCP server); allow it in this chatbot's data rules/.exec(raw);
-  if (rule) return { kind: "dataRule", name: rule[1]!, href: `/admin/chatbots/${botId}/access` };
+  if (rule) return { kind: "dataRule", name: rule[1]!, href: rules };
   if (raw === "answering without documents needs this chatbot's data rule to allow it") {
     return {
       kind: "known",
       key: "noDocumentsRule",
       section: "retrieval",
-      href: `/admin/chatbots/${botId}/access`,
+      href: rules,
     };
   }
   if (raw === "a chatbot without documents runs the standard pipeline, not a custom flow") {
@@ -66,7 +75,7 @@ export function describeProblem(raw: string, botId: string): Problem {
       kind: "known",
       key: "noDocumentsFlow",
       section: "retrieval",
-      href: `/admin/chatbots/${botId}/flow`,
+      href: flow,
     };
   }
   // "<section>.<field> needs …": a provider in the wrong kind of slot.
@@ -79,7 +88,7 @@ export function describeProblem(raw: string, botId: string): Problem {
   if (known) return { kind: "known", ...known, href: href(known.section) };
   // Flow checks name the step first ("Generate: this step leads nowhere").
   if (/^[^:]{1,80}: /.test(raw) || raw.startsWith("a flow ")) {
-    return { kind: "flow", text: raw, href: `/admin/chatbots/${botId}/flow` };
+    return { kind: "flow", text: raw, href: flow };
   }
   return { kind: "other", text: raw };
 }

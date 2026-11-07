@@ -13,6 +13,7 @@ export function PublishChecklist({
   headingId,
   narrow = false,
   unchangedSince = null,
+  wizard = false,
 }: {
   botId: string;
   problems: string[];
@@ -21,6 +22,8 @@ export function PublishChecklist({
   unchangedSince?: number | null;
   /** In a side column: one item per line. */
   narrow?: boolean;
+  /** In the new-chatbot wizard: the links stay in the wizard. */
+  wizard?: boolean;
 }) {
   const t = useTranslations("checklist");
   const tp = useTranslations("pipeline");
@@ -68,7 +71,7 @@ export function PublishChecklist({
         className={`m-0 grid list-none gap-x-6 gap-y-1.5 p-0 ${narrow ? "grid-cols-1" : "grid-cols-2 max-[900px]:grid-cols-1"}`}
       >
         {problems.map((raw) => {
-          const p = describeProblem(raw, botId);
+          const p = describeProblem(raw, botId, wizard);
           let text: string;
           let href: string | null = null;
           if (p.kind === "missing") {

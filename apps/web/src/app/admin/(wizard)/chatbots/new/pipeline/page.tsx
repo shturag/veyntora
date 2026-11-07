@@ -5,6 +5,8 @@ import { GuidedSetup } from "@/components/bots/guided-setup";
 import { wizardBot } from "@/components/bots/wizard-bot";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
+import { dataRuleOf } from "@/lib/data-rule";
+import { requireMe } from "@/lib/session";
 
 export const generateMetadata = () => screenMetadata("botCreatePipeline");
 
@@ -14,7 +16,8 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
   const bot = await wizardBot((await searchParams).id);
   const t = await getTranslations("bots");
   const api = await serverApi();
-  const [{ data: providers }, { data: experts }] = await Promise.all([
+  const [me, { data: providers }, { data: experts }] = await Promise.all([
+    requireMe(),
     api.GET("/v1/admin/providers"),
     // The creator owns the new chatbot, so they may choose its expert teams.
     api.GET("/v1/admin/chatbots/{bot_id}/experts", { params: { path: { bot_id: bot.id } } }),
@@ -33,6 +36,8 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
         experts={experts ?? null}
         next={`/admin/chatbots/new/access?id=${bot.id}`}
         tune={`/admin/chatbots/new/pipeline/advanced?id=${bot.id}`}
+        rule={dataRuleOf(bot.governance)}
+        canAllow={me.admin_areas.governance === "editor"}
       />
     </div>
   );

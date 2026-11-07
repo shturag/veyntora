@@ -104,4 +104,24 @@ describe("publish checks in people's words", () => {
     ).toMatchObject({ kind: "slot", section: "guardrails", field: "pii_instance_id" });
     expect(describeProblem("something new", "b")).toEqual({ kind: "other", text: "something new" });
   });
+
+  it("keeps the links inside the new-chatbot wizard", () => {
+    expect(describeProblem("ingestion.parser_instance_id is not set", "b", true)).toMatchObject({
+      href: "/admin/chatbots/new/pipeline/advanced?id=b&section=ingestion",
+    });
+    expect(
+      describeProblem(
+        "answering without documents needs this chatbot's data rule to allow it",
+        "b",
+        true,
+      ),
+    ).toMatchObject({ href: "/admin/chatbots/new/pipeline?id=b" });
+    expect(
+      describeProblem(
+        "Cloud embeddings is an external provider; allow it in this chatbot's data rules first",
+        "b",
+        true,
+      ),
+    ).toMatchObject({ href: "/admin/chatbots/new/pipeline?id=b" });
+  });
 });
