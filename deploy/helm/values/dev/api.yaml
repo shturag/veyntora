@@ -2,7 +2,7 @@
 nameOverride: api
 image:
   repository: ghcr.io/shturag/veyntora-api
-  tag: "63817fca52b660c3c6822aa8a37376697f5fdd50"
+  tag: "3c5ecaedddb28c25ecf029d72486f6ccfe2329eb"
 replicas: 1
 port: 8000
 healthPath: /readyz
