@@ -3,9 +3,10 @@
 import { Button } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import { Panel, SaveMessage, checkRow, checkbox } from "@/components/admin/panel";
+import { useStepForm } from "@/components/step-forms";
 import { api } from "@/lib/chat";
 
 export type DataRule = {
@@ -51,15 +52,18 @@ export function DataRules({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
-  function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [dirty, setDirty] = useState(false);
+
+  async function persist() {
+    const el = formRef.current;
+    if (!el) return;
+    if (!el.reportValidity()) throw new Error(t("invalid"));
+    const form = new FormData(el);
     // Entries the caller cannot list are kept as they are.
     const keep = (all: Named[] | null, chosen: string[], field: string) =>
       all === null ? chosen : form.getAll(field).map(String);
-    setBusy(true);
-    setMessage(null);
-    api(`/v1/admin/chatbots/${botId}/governance`, {
+    await api(`/v1/admin/chatbots/${botId}/governance`, {
       method: "PUT",
       body: JSON.stringify({
         chat_retention_days: Number(form.get("chat_retention_days")),
@@ -79,7 +83,17 @@ export function DataRules({
         allow_no_documents: form.get("allow_no_documents") === "on",
         mask_pii_before_external: form.get("mask") === "on",
       }),
-    })
+    });
+    setDirty(false);
+  }
+  // In the wizard, the step saves this with the other panels.
+  const inStep = useStepForm("data-rule", dirty && canEdit, persist);
+
+  function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage(null);
+    persist()
       .then(() => {
         setMessage({ ok: true, text: t("saved") });
         router.refresh();
@@ -142,21 +156,26 @@ export function DataRules({
       title={t("title")}
       description={rule.configured ? t("subtitle") : t("defaults")}
       footer={
-        canEdit ? (
+        !canEdit ? (
+          <span className="mr-auto text-xs text-fg-muted">{t("readOnly")}</span>
+        ) : inStep ? null : (
           <>
             <SaveMessage message={message} />
             <Button type="submit" form="data-rule-form" variant="primary" disabled={busy}>
               {t("save")}
             </Button>
           </>
-        ) : (
-          <span className="mr-auto text-xs text-fg-muted">{t("readOnly")}</span>
         )
       }
     >
       <form
         id="data-rule-form"
+        ref={formRef}
         onSubmit={save}
+        onChange={() => {
+          setDirty(true);
+          setMessage(null);
+        }}
         className="grid grid-cols-2 gap-x-8 gap-y-6 max-[900px]:grid-cols-1"
       >
         <fieldset className={group}>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Panel, SaveMessage, checkRow, checkbox } from "@/components/admin/panel";
+import { useStepForm } from "@/components/step-forms";
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
 
@@ -26,14 +27,21 @@ export function ExpertTeams({
   const [chosen, setChosen] = useState<string[]>(experts.teams.map((g) => g.id));
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  async function persist() {
+    await api(`/v1/admin/chatbots/${botId}/experts`, {
+      method: "PUT",
+      body: JSON.stringify({ group_ids: chosen }),
+    });
+    setDirty(false);
+  }
+  const inStep = useStepForm("experts", dirty, persist);
 
   async function save() {
     setBusy(true);
     try {
-      await api(`/v1/admin/chatbots/${botId}/experts`, {
-        method: "PUT",
-        body: JSON.stringify({ group_ids: chosen }),
-      });
+      await persist();
       setMessage({ ok: true, text: t("saved") });
       router.refresh();
     } catch (e) {
@@ -57,7 +65,7 @@ export function ExpertTeams({
         </span>
       }
       footer={
-        canEdit ? (
+        canEdit && !inStep ? (
           <>
             <SaveMessage message={message} />
             <Button variant="primary" disabled={busy} onClick={save}>
@@ -79,6 +87,7 @@ export function ExpertTeams({
               checked={chosen.includes(g.id)}
               onChange={(e) => {
                 setMessage(null);
+                setDirty(true);
                 setChosen(e.target.checked ? [...chosen, g.id] : chosen.filter((x) => x !== g.id));
               }}
               className={checkbox}

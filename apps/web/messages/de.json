@@ -2414,7 +2414,8 @@
       "intro": "Alle Einstellungen, Schritt für Schritt. Jeder Schritt wird einzeln gespeichert; live geht erst, was Sie veröffentlichen.",
       "next": "Optional: die Standards funktionieren. Weiter: wer den Chatbot nutzen darf.",
       "continue": "Weiter zu Zugriff"
-    }
+    },
+    "accessNext": "Weiter: im Playground testen und veröffentlichen."
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",
@@ -4156,11 +4157,12 @@
     "save": "Datenregel speichern",
     "saved": "Datenregel gespeichert.",
     "failed": "Das hat nicht funktioniert: {reason}",
-    "readOnly": "Governance-Bearbeiter ändern Datenregeln.",
+    "readOnly": "Nur Plattform-Admins und die Sicherheitsprüfung ändern Datenregeln.",
     "noDocuments": "Antworten ohne Dokumente erlauben (allgemeiner Chat)",
     "noDocumentsHint": "Eine Ausnahme von „belegt oder still“: Antworten lassen sich nicht prüfen und sind als „Ohne Quellen“ markiert. Gilt nur, wenn der Abruf des Chatbots aus ist.",
     "retention": "Aufbewahrung",
-    "privacy": "Datenschutz und Antworten"
+    "privacy": "Datenschutz und Antworten",
+    "invalid": "Prüfen Sie die Felder der Datenregel."
   },
   "checklist": {
     "ready": "Bereit zum Veröffentlichen: Alle nötigen Einstellungen sind gesetzt.",

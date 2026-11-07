@@ -2414,7 +2414,8 @@
       "intro": "Every setting, one step at a time. Each step is saved on its own; nothing goes live until you publish.",
       "next": "Optional: the defaults work. Next: who may use the chatbot.",
       "continue": "Continue to Access"
-    }
+    },
+    "accessNext": "Next: test it in the Playground and publish."
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
@@ -4156,11 +4157,12 @@
     "save": "Save data rule",
     "saved": "Data rule saved.",
     "failed": "That did not work: {reason}",
-    "readOnly": "Governance editors change data rules.",
+    "readOnly": "Only platform admins and security reviewers change data rules.",
     "noDocuments": "Allow answers without documents (general chat)",
     "noDocumentsHint": "An exception to \"grounded or silent\": answers cannot be checked and are labelled \"No sources\". Only used when the chatbot's Retrieval is off.",
     "retention": "Retention",
-    "privacy": "Privacy and answers"
+    "privacy": "Privacy and answers",
+    "invalid": "Check the data rule's fields."
   },
   "checklist": {
     "ready": "Ready to publish: every required setting is in place.",

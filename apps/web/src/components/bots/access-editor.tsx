@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Panel, SaveMessage, checkbox } from "@/components/admin/panel";
+import { useStepForm } from "@/components/step-forms";
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
 
@@ -90,13 +91,11 @@ export function AccessEditor({
   grants,
   names,
   canEdit,
-  next,
 }: {
   botId: string;
   grants: { principal: string; role: string }[];
   names: Record<string, string>;
   canEdit: boolean;
-  next?: string;
 }) {
   const t = useTranslations("bots");
   const router = useRouter();
@@ -123,22 +122,25 @@ export function AccessEditor({
     setMessage(null);
   }
 
+  async function persist() {
+    await api(`/v1/admin/chatbots/${botId}/access`, {
+      method: "PUT",
+      body: JSON.stringify(
+        rows.flatMap((r) => r.roles.map((role) => ({ principal: r.principal, role }))),
+      ),
+    });
+    setDirty(false);
+  }
+  // In the wizard, the step saves this with the other panels.
+  const inStep = useStepForm("access", dirty, persist);
+
   async function save() {
     setBusy(true);
     setMessage(null);
     try {
-      await api(`/v1/admin/chatbots/${botId}/access`, {
-        method: "PUT",
-        body: JSON.stringify(
-          rows.flatMap((r) => r.roles.map((role) => ({ principal: r.principal, role }))),
-        ),
-      });
-      setDirty(false);
-      if (next) router.push(next);
-      else {
-        setMessage({ ok: true, text: t("saved") });
-        router.refresh();
-      }
+      await persist();
+      setMessage({ ok: true, text: t("saved") });
+      router.refresh();
     } catch (e) {
       setMessage({
         ok: false,
@@ -171,14 +173,14 @@ export function AccessEditor({
         title={t("whoCanUse")}
         description={t("accessIntro")}
         footer={
-          canEdit ? (
+          canEdit && !inStep ? (
             <>
               <SaveMessage message={message} />
               {dirty && !message ? (
                 <span className="text-sm text-fg-muted">{t("unsaved")}</span>
               ) : null}
               <Button variant="primary" disabled={busy} onClick={save}>
-                {next ? t("saveContinue") : t("save")}
+                {t("save")}
               </Button>
             </>
           ) : null
