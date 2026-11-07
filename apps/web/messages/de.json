@@ -2281,7 +2281,6 @@
     "startFrom": "Ausgangspunkt",
     "blank": "Ein leerer Chatbot",
     "copyOf": "Eine Kopie von {name}",
-    "draftNote": "Der Chatbot wird als Entwurf angelegt; niemand sieht ihn, bis du ihn veröffentlichst und Zugriff gibst.",
     "wizardKnowledge": "Wissen für {name}",
     "wizardPipeline": "Pipeline für {name}",
     "pipelineIntro": "Wählen Sie die Anbieter. Alles andere startet mit sinnvollen Standards; „Speichern und feinjustieren“ öffnet alle Einstellungen.",
@@ -2381,7 +2380,8 @@
       "noMatch": "Keine Quelle passt.",
       "unsaved": "Ungespeicherte Änderungen",
       "wizardNext": "Weiter: wie der Chatbot antwortet.",
-      "upToDate": "Alle Änderungen gespeichert."
+      "upToDate": "Alle Änderungen gespeichert.",
+      "skip": "Ein Assistent ohne Dokumente (allgemeiner Chat)? <link>Diesen Schritt überspringen</link> und als Nächstes „Ohne Dokumente“ wählen."
     },
     "publishStep": {
       "subtitle": "Prüfen Sie, was Nutzende bekommen, testen Sie im Playground und veröffentlichen Sie dann.",
@@ -2415,7 +2415,12 @@
       "next": "Optional: die Standards funktionieren. Weiter: wer den Chatbot nutzen darf.",
       "continue": "Weiter zu Zugriff"
     },
-    "accessNext": "Weiter: im Playground testen und veröffentlichen."
+    "accessNext": "Weiter: im Playground testen und veröffentlichen.",
+    "descriptionPlaceholder": "Zum Beispiel: Urlaub, Gehalt und Benefits",
+    "descriptionHint": "Eine kurze Zeile. Sie steht unter dem Namen, wenn man einen Assistenten wählt.",
+    "welcomePlaceholder": "Zum Beispiel: Hallo! Fragen Sie mich zu Urlaub, Gehalt oder Benefits.",
+    "welcomeHint": "Die erste Nachricht in jedem neuen Chat.",
+    "basicsIntro": "Benennen Sie den Chatbot und sagen Sie, wofür er da ist. Niemand sieht ihn, bevor Sie ihn veröffentlichen und Zugriff geben."
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",
@@ -4191,7 +4196,7 @@
     "q": {
       "knowledge": "Woher kommen seine Antworten?",
       "more": "Was soll er noch tun?",
-      "providers": "Benötigte Anbieter",
+      "providers": "Modelle und Dienste",
       "prompt": "Wie soll er sich verhalten?"
     },
     "docs": {
@@ -4200,8 +4205,8 @@
     },
     "general": {
       "title": "Ohne Dokumente (allgemeiner Chat)",
-      "hint": "Schreiben, Zusammenfassen, Erklären. Antworten lassen sich nicht an Quellen prüfen.",
-      "rule": "Eine Ausnahme von „belegt oder still“: Antworten werden nicht gegen Quellen geprüft und sind als „Ohne Quellen“ markiert."
+      "hint": "Schreiben, zusammenfassen, erklären. Antworten werden nicht gegen Quellen geprüft und sind als „Ohne Quellen“ markiert.",
+      "rule": "Antworten ohne Dokumente sind eine Ausnahme von „belegt oder still“, deshalb muss die Datenregel des Chatbots sie erlauben."
     },
     "tasks": {
       "title": "Aufgaben mit Tools erledigen",
@@ -4216,7 +4221,7 @@
       "hint": "Menschen können eine unbeantwortete Frage an eines dieser Teams senden.",
       "noGroups": "Noch keine Gruppen: Sie kommen aus Keycloak oder Benutzer & Gruppen."
     },
-    "providersHint": "Nur, was Ihre Antworten oben brauchen. Fehlt einer? Fügen Sie ihn unter Anbieter & Schlüssel hinzu.",
+    "providersHint": "Nur, was Ihre Antworten oben brauchen. Fehlt einer? <link>Anbieter & Schlüssel</link>",
     "need": {
       "llm": "Modell für Antworten",
       "agent": "Modell für den Agenten",
@@ -4261,8 +4266,8 @@
     "afterwards": "Übernimmt Modi, Schritte und Anbieter in den Entwurf; live geht erst etwas, wenn Sie veröffentlichen.",
     "failed": "Das hat nicht funktioniert: {reason}",
     "models": {
-      "title": "Menschen das Modell wählen lassen",
-      "hint": "Neben dem Modell für Antworten (Schritt 3) können Menschen im Chat zu diesen wechseln. Externe brauchen die Datenregel.",
+      "title": "Im Chat zusätzlich anbieten",
+      "hint": "Nutzer können vom Modell oben zu diesen wechseln. Externe brauchen die Datenregel.",
       "none": "Füge weitere LLM-Anbieter hinzu, um eine Auswahl anzubieten."
     },
     "thinking": {

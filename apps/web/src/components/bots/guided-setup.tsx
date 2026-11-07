@@ -2,6 +2,7 @@
 
 import type { PipelineSpec } from "@veyntora/spec";
 import { Button } from "@veyntora/ui";
+import { CircleCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -91,7 +92,10 @@ function picture(docs: boolean, rerank: boolean, tasks: boolean, t: (k: string) 
   return { custom: false, nodes, edges };
 }
 
-const ruleNote = "m-0 flex flex-col gap-2 rounded-md bg-amber-soft px-3 py-2.5 text-sm text-amber";
+// Something to decide: neutral. Something only another person can unblock: amber.
+const ruleNote =
+  "m-0 flex flex-col gap-2 rounded-md border border-line bg-sunken px-3 py-2.5 text-sm text-fg-secondary";
+const ruleBlocked = "m-0 rounded-md bg-amber-soft px-3 py-2.5 text-sm text-amber";
 const ruleCheck = "flex items-start gap-2 text-sm font-medium text-fg";
 
 /**
@@ -175,6 +179,8 @@ export function GuidedSetup({
   useRefreshOnFocus();
 
   const of = (cap: string) => providers.filter((p) => p.capability === cap);
+  // General chat: models people may switch to besides the default one.
+  const others = of("llm").filter((p) => p.id !== picked.llm);
   const needed: { key: keyof typeof picked; cap: string; optional?: boolean }[] = [
     { key: "llm", cap: "llm" },
     ...(tasks ? [{ key: "agent" as const, cap: "llm", optional: true }] : []),
@@ -187,8 +193,11 @@ export function GuidedSetup({
         ]
       : []),
   ];
-  const external = needed
-    .map((n) => providers.find((p) => p.id === picked[n.key]))
+  const external = [
+    ...needed.map((n) => picked[n.key]),
+    ...(docs ? [] : choices.filter((id) => id !== picked.llm)),
+  ]
+    .map((id) => providers.find((p) => p.id === id))
     .filter((p): p is Provider => !!p && p.hosting === "external");
   const blocked = [...new Map(external.map((p) => [p.id, p])).values()].filter(
     (p) => !rule.allowed_external_instance_ids.includes(p.id),
@@ -297,29 +306,32 @@ export function GuidedSetup({
             </span>
           </label>
         </div>
-        {!docs ? (
+        {docs ? null : rule.allow_no_documents ? (
+          <p className="m-0 flex items-center gap-2 text-sm text-fg-secondary">
+            <CircleCheck aria-hidden className="size-4 shrink-0 text-green" />
+            {t("rules.noDocsAllowed")}
+          </p>
+        ) : canAllow ? (
           <div role="note" className={ruleNote}>
             <p className="m-0">{t("general.rule")}</p>
-            {rule.allow_no_documents ? (
-              <p className="m-0 font-medium">{t("rules.noDocsAllowed")}</p>
-            ) : canAllow ? (
-              <label className={ruleCheck}>
-                <input
-                  type="checkbox"
-                  checked={allowNoDocs}
-                  onChange={(e) => setAllowNoDocs(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span className="flex flex-col">
-                  {t("rules.allowNoDocs")}
-                  <span className="text-xs font-normal text-fg-muted">{t("rules.allowHint")}</span>
-                </span>
-              </label>
-            ) : (
-              <p className="m-0">{t("rules.noDocsAsk")}</p>
-            )}
+            <label className={ruleCheck}>
+              <input
+                type="checkbox"
+                checked={allowNoDocs}
+                onChange={(e) => setAllowNoDocs(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span className="flex flex-col">
+                {t("rules.allowNoDocs")}
+                <span className="text-xs font-normal text-fg-muted">{t("rules.allowHint")}</span>
+              </span>
+            </label>
           </div>
-        ) : null}
+        ) : (
+          <p role="note" className={ruleBlocked}>
+            {t("rules.noDocsAsk")}
+          </p>
+        )}
       </fieldset>
 
       <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
@@ -331,40 +343,6 @@ export function GuidedSetup({
             <span className="text-xs text-fg-muted">{t("tasks.hint")}</span>
           </span>
         </label>
-        {!docs ? (
-          <div className={card(choices.length > 0)}>
-            <span className="flex flex-1 flex-col gap-2">
-              <span className="flex flex-col">
-                <span className="font-medium">{t("models.title")}</span>
-                <span className="text-xs text-fg-muted">{t("models.hint")}</span>
-              </span>
-              <span className="flex flex-wrap gap-x-4 gap-y-1">
-                {of("llm")
-                  .filter((p) => p.id !== picked.llm)
-                  .map((p) => (
-                    <label key={p.id} className="flex items-center gap-1.5 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={choices.includes(p.id)}
-                        onChange={(e) =>
-                          setChoices((l) =>
-                            e.target.checked ? [...l, p.id] : l.filter((x) => x !== p.id),
-                          )
-                        }
-                      />
-                      {p.name}
-                      {p.hosting === "external" ? (
-                        <span className="text-xs text-fg-muted">· {t("external")}</span>
-                      ) : null}
-                    </label>
-                  ))}
-                {of("llm").filter((p) => p.id !== picked.llm).length === 0 ? (
-                  <span className="text-xs text-fg-muted">{t("models.none")}</span>
-                ) : null}
-              </span>
-            </span>
-          </div>
-        ) : null}
         {!docs ? (
           <label className={card(thinkingSwitch)}>
             <input
@@ -431,7 +409,15 @@ export function GuidedSetup({
 
       <fieldset className="m-0 flex flex-col gap-3 border-0 p-0">
         <legend className="mb-1 p-0 text-sm font-semibold">3. {t("q.providers")}</legend>
-        <p className="m-0 text-xs text-fg-muted">{t("providersHint")}</p>
+        <p className="m-0 text-xs text-fg-muted">
+          {t.rich("providersHint", {
+            link: (c) => (
+              <NewTabLink href="/admin/providers" className="inline-flex items-center gap-1">
+                {c}
+              </NewTabLink>
+            ),
+          })}
+        </p>
         <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
           {needed.map((n) => {
             const options = of(n.cap);
@@ -469,8 +455,33 @@ export function GuidedSetup({
             );
           })}
         </div>
+        {!docs && picked.llm && others.length ? (
+          <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
+            <legend className="p-0 text-[13px] font-medium">{t("models.title")}</legend>
+            <span className="text-xs text-fg-muted">{t("models.hint")}</span>
+            <span className="mt-1 flex flex-wrap gap-x-5 gap-y-1.5">
+              {others.map((p) => (
+                <label key={p.id} className="flex items-center gap-1.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={choices.includes(p.id)}
+                    onChange={(e) =>
+                      setChoices((l) =>
+                        e.target.checked ? [...l, p.id] : l.filter((x) => x !== p.id),
+                      )
+                    }
+                  />
+                  {p.name}
+                  {p.hosting === "external" ? (
+                    <span className="text-xs text-fg-muted">· {t("external")}</span>
+                  ) : null}
+                </label>
+              ))}
+            </span>
+          </fieldset>
+        ) : null}
         {blocked.length ? (
-          <div role="note" className={ruleNote}>
+          <div role="note" className={canAllow ? ruleNote : ruleBlocked}>
             {canAllow ? (
               <>
                 <p className="m-0">

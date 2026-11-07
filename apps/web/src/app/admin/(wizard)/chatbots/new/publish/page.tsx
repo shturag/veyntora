@@ -128,8 +128,10 @@ export default async function Step({ searchParams }: { searchParams: Promise<{ i
             </div>
             <ul className="m-0 flex list-none flex-col divide-y divide-line p-0">
               <StepRow icon={Sparkles} title={tw("basics")} ok edit={tw("edit")}>
-                <span className="font-medium text-fg">{bot.name}</span>
-                {bot.description ? ` · ${bot.description}` : ""}
+                <span className="line-clamp-2">
+                  <span className="font-medium text-fg">{bot.name}</span>
+                  {bot.description ? ` · ${bot.description}` : ""}
+                </span>
                 {bot.welcome_message ? (
                   <span className="mt-1 block truncate text-xs text-fg-muted">
                     “{bot.welcome_message}”

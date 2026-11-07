@@ -2281,7 +2281,6 @@
     "startFrom": "Start from",
     "blank": "A blank chatbot",
     "copyOf": "A copy of {name}",
-    "draftNote": "The chatbot is created as a draft; nobody sees it until you publish it and give access.",
     "wizardKnowledge": "Knowledge for {name}",
     "wizardPipeline": "Pipeline for {name}",
     "pipelineIntro": "Choose the providers it uses. Everything else starts with sensible defaults; “Save and fine-tune” opens every setting.",
@@ -2381,7 +2380,8 @@
       "noMatch": "No source matches.",
       "unsaved": "Unsaved changes",
       "wizardNext": "Next: how the chatbot answers.",
-      "upToDate": "All changes saved."
+      "upToDate": "All changes saved.",
+      "skip": "An assistant without documents (general chat)? <link>Skip this step</link> and choose “Without documents” next."
     },
     "publishStep": {
       "subtitle": "Check what people will get, try it in the Playground, then publish.",
@@ -2415,7 +2415,12 @@
       "next": "Optional: the defaults work. Next: who may use the chatbot.",
       "continue": "Continue to Access"
     },
-    "accessNext": "Next: test it in the Playground and publish."
+    "accessNext": "Next: test it in the Playground and publish.",
+    "descriptionPlaceholder": "For example: Leave, payroll and benefits",
+    "descriptionHint": "One short line. People see it under the name when they choose an assistant.",
+    "welcomePlaceholder": "For example: Hi! Ask me about leave, payroll or benefits.",
+    "welcomeHint": "The first message in every new chat.",
+    "basicsIntro": "Name the chatbot and say what it is for. Nobody sees it until you publish it and give access."
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
@@ -4191,7 +4196,7 @@
     "q": {
       "knowledge": "Where do its answers come from?",
       "more": "What else should it do?",
-      "providers": "Providers it needs",
+      "providers": "Models and services",
       "prompt": "How should it behave?"
     },
     "docs": {
@@ -4200,8 +4205,8 @@
     },
     "general": {
       "title": "Without documents (general chat)",
-      "hint": "Writing, summarising, explaining. Answers cannot be checked against sources.",
-      "rule": "An exception to “grounded or silent”: answers are not checked against sources and are labelled “No sources”."
+      "hint": "Writing, summarising, explaining. Answers are not checked against sources and are labelled “No sources”.",
+      "rule": "Answers without documents are an exception to “grounded or silent”, so the chatbot's data rule has to allow them."
     },
     "tasks": {
       "title": "Carry out tasks with tools",
@@ -4216,7 +4221,7 @@
       "hint": "People can send an unanswered question to one of these teams.",
       "noGroups": "No groups yet: they come from Keycloak or Users & groups."
     },
-    "providersHint": "Only what your answers above need. Missing one? Add it under Providers & keys.",
+    "providersHint": "Only what your answers above need. Missing one? <link>Providers & keys</link>",
     "need": {
       "llm": "Model for answers",
       "agent": "Model for the agent",
@@ -4261,8 +4266,8 @@
     "afterwards": "Applies the modes, steps and providers above to the draft; nothing goes live until you publish.",
     "failed": "That did not work: {reason}",
     "models": {
-      "title": "Let people choose the model",
-      "hint": "Besides the model for answers (step 3), people can switch to these in the chat. External ones need the data rule.",
+      "title": "Also offer in the chat",
+      "hint": "People can switch from the model above to these. External ones need the data rule.",
       "none": "Add more LLM providers to offer a choice."
     },
     "thinking": {
@@ -4271,7 +4276,7 @@
     },
     "saveTune": "Save and fine-tune",
     "rules": {
-      "noDocsAllowed": "This chatbot's data rule allows answers without documents.",
+      "noDocsAllowed": "Answers without documents are allowed by this chatbot's data rule.",
       "allowNoDocs": "Allow answers without documents for this chatbot",
       "allowHint": "Saved in the chatbot's data rule when you save. Publishing waits until it is allowed.",
       "noDocsAsk": "Before it can be published, a platform admin or security reviewer must allow answers without documents in this chatbot's data rule.",

@@ -94,7 +94,13 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
       </div>
       <label className={field}>
         {t("description")}
-        <input name="description" maxLength={2000} className={control} />
+        <input
+          name="description"
+          maxLength={2000}
+          placeholder={t("descriptionPlaceholder")}
+          className={control}
+        />
+        <span className="text-xs font-normal text-fg-muted">{t("descriptionHint")}</span>
       </label>
       <label className={field}>
         {t("welcome")}
@@ -102,8 +108,10 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
           name="welcome"
           rows={2}
           maxLength={2000}
+          placeholder={t("welcomePlaceholder")}
           className="rounded-md border border-line-strong bg-surface p-3 text-sm font-normal"
         />
+        <span className="text-xs font-normal text-fg-muted">{t("welcomeHint")}</span>
       </label>
       <div className="grid grid-cols-2 gap-4 max-[640px]:grid-cols-1">
         <label className={field}>
@@ -141,7 +149,6 @@ export function NewBotForm({ templates }: { templates: { id: string; name: strin
           </span>
         </label>
       ) : null}
-      <p className="m-0 text-xs text-fg-muted">{t("draftNote")}</p>
       {error ? (
         <p role="alert" className="m-0 text-sm text-red">
           {t("failed", { reason: error })}

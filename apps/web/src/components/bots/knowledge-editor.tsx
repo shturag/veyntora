@@ -140,6 +140,17 @@ export function KnowledgeEditor({
           <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong px-6 py-8 text-center">
             <p className="m-0 text-sm font-medium">{t("noSources")}</p>
             <p className="m-0 max-w-md text-sm text-fg-muted">{t("kn.emptyHint")}</p>
+            {next ? (
+              <p className="m-0 mt-2 max-w-md text-sm text-fg-secondary">
+                {t.rich("kn.skip", {
+                  link: (c) => (
+                    <Link href={next} className="font-medium">
+                      {c}
+                    </Link>
+                  ),
+                })}
+              </p>
+            ) : null}
           </div>
         ) : (
           <>

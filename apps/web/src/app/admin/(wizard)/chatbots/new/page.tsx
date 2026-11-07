@@ -12,7 +12,10 @@ export default async function NewBotPage() {
   const { data } = await (await serverApi()).GET("/v1/admin/chatbots");
   return (
     <div className="flex max-w-[820px] flex-col gap-4">
-      <h1 className="m-0 text-2xl font-bold">{t("wizardBasics")}</h1>
+      <header className="flex flex-col gap-1">
+        <h1 className="m-0 text-2xl font-bold">{t("wizardBasics")}</h1>
+        <p className="m-0 text-sm text-fg-secondary">{t("basicsIntro")}</p>
+      </header>
       <NewBotForm templates={(data ?? []).map((b) => ({ id: b.id, name: b.name }))} />
     </div>
   );
