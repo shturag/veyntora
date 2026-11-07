@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@veyntora/ui";
+import { CircleCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,6 +14,9 @@ import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
 
 export type Assistant = { id: string; name: string; description: string };
+
+// The tile shows the assistant's first letter (or digit).
+const letterOf = (name: string) => (/[\p{L}\p{N}]/u.exec(name)?.[0] ?? "?").toUpperCase();
 
 const NONE: ChatFeatures = { models: [], thinking: false, documents: true };
 
@@ -101,18 +105,37 @@ export function HomeClient({
               type="button"
               role="radio"
               aria-checked={selected === a.id}
+              title={a.description || undefined}
               onClick={() => {
                 setSelected(a.id);
                 setModel(null); // models belong to an assistant
               }}
               className={cn(
-                "flex flex-col items-start gap-1 rounded-lg bg-surface p-3.5 text-left",
-                selected === a.id ? "border-2 border-accent" : "border border-line-strong",
+                "relative flex h-[76px] items-start gap-3 rounded-lg border bg-surface p-3 text-left transition-colors",
+                selected === a.id
+                  ? "border-accent ring-1 ring-accent"
+                  : "border-line-strong hover:border-accent/60",
               )}
             >
-              <span className="text-sm font-semibold text-fg">{a.name}</span>
-              {a.description ? (
-                <span className="text-xs text-fg-muted">{a.description}</span>
+              <span
+                aria-hidden
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-semibold",
+                  selected === a.id ? "bg-accent text-ground" : "bg-accent-soft text-accent",
+                )}
+              >
+                {letterOf(a.name)}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5 pr-5">
+                <span className="truncate text-sm font-semibold text-fg">{a.name}</span>
+                {a.description ? (
+                  <span className="line-clamp-2 text-xs leading-snug text-fg-muted">
+                    {a.description}
+                  </span>
+                ) : null}
+              </span>
+              {selected === a.id ? (
+                <CircleCheck aria-hidden className="absolute top-3 right-3 size-4 text-accent" />
               ) : null}
             </button>
           ))}
