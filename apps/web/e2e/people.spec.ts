@@ -14,7 +14,7 @@ test.describe("users & groups as a platform admin", () => {
     await tabs.getByRole("link", { name: "Roles & permissions" }).click();
     await expect(page.getByRole("columnheader", { name: "Chatbot admin" })).toBeVisible();
     await tabs.getByRole("link", { name: "Access reviews" }).click();
-    await expect(page.getByText(/Phase 7/)).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Access reviews");
     await expectNoA11yViolations(page);
   });
 

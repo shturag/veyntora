@@ -120,3 +120,11 @@ ci: lint typecheck test fga-test ## Everything CI runs before building images
 .PHONY: docs-flows
 docs-flows: ## Redraw the flowcharts in docs/flows from docs/flows/diagrams.py
 	$(UV) run --no-sync python docs/flows/diagrams.py
+
+.PHONY: walkthroughs
+walkthroughs: ## Re-record the GIFs in docs/walkthroughs from the running stack (read-only)
+	$(PNPM) --filter @veyntora/web exec playwright test --project=setup
+	frames=$$(mktemp -d) && \
+	(cd apps/web && node scripts/record-walkthroughs.mjs $$frames) && \
+	$(UV) run --no-project --with pillow python scripts/walkthrough-gifs.py $$frames docs/walkthroughs && \
+	rm -rf $$frames

@@ -9,7 +9,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("users");
 
-const TABS = ["groups", "people", "roles", "reviews"] as const;
+const TABS = ["groups", "people", "roles"] as const;
 type Tab = (typeof TABS)[number];
 const ROLE_ROWS = ["chat", "approve", "edit", "publish", "access"] as const;
 const ROLES = ["user", "approver", "editor", "owner"] as const;
@@ -100,6 +100,12 @@ export default async function UsersPage({
             {t(`tabNames.${x}`)}
           </Link>
         ))}
+        <Link
+          href="/admin/access-reviews"
+          className="px-3 py-2 text-sm text-fg-secondary no-underline"
+        >
+          {t("tabNames.reviews")}
+        </Link>
       </nav>
 
       {tab === "groups" ? (
@@ -244,12 +250,6 @@ export default async function UsersPage({
             </table>
           </div>
         </div>
-      ) : null}
-
-      {tab === "reviews" ? (
-        <p className="m-0 rounded-lg border border-line bg-surface p-5 text-sm text-fg-secondary">
-          {t("reviewsLater", { phase: 7 })}
-        </p>
       ) : null}
     </div>
   );
