@@ -352,7 +352,8 @@
       "how": "How it works",
       "chatbots": "Chatbots",
       "security": "Security",
-      "status": "Status"
+      "status": "Status",
+      "sources": "Data sources"
     },
     "signIn": "Sign in",
     "pill": "Fast answers and agents, on your own infrastructure",
@@ -426,7 +427,7 @@
       },
       "tools": {
         "title": "Tools through MCP",
-        "body": "Connect tickets, calendars, HR systems and databases as MCP servers, with per-tool permissions.",
+        "body": "Connect tickets, calendars, HR systems and databases as MCP servers, with per-tool permissions. Read-only tools can be searched like documents.",
         "more": "Tools (MCP) →"
       },
       "automations": {
@@ -459,7 +460,7 @@
     "how": [
       {
         "title": "Connect data",
-        "body": "SharePoint, Confluence, file shares and databases, parsed by Docling."
+        "body": "Thirteen kinds of sources, from SharePoint and Nextcloud to Jira, parsed by Docling."
       },
       {
         "title": "Configure the pipeline",
@@ -500,7 +501,7 @@
     "securityEyebrow": "Security and governance",
     "securityTitle": "Built for a corporate data centre",
     "security": [
-      "Runs on your Kubernetes. Models served locally with vLLM.",
+      "Runs on your Kubernetes or Docker. Bring your own models: vLLM, Ollama or any OpenAI-compatible server.",
       "Answers only from documents the person is allowed to read.",
       "PII masking, guardrails, full audit log and GDPR requests.",
       "Every external call is marked, and can be switched off."
@@ -534,7 +535,29 @@
     "footer": "Veyntora",
     "footerHelp": "Help",
     "footerStatus": "Status",
-    "footerPrivacy": "Privacy"
+    "footerPrivacy": "Privacy",
+    "sourcesEyebrow": "Data sources",
+    "sourcesTitle": "Connect the systems your knowledge lives in",
+    "sourcesLead": "Documents stay in sync: Veyntora reads what changed, scans every file for viruses and removes what was deleted. People only get answers from documents they may open.",
+    "keepsPermissions": "Keeps its permissions",
+    "mcpSource": "Any MCP tool",
+    "mcpSourceHint": "Read-only tools are searched with every question, like documents.",
+    "sourcesNote": "Where a system has its own permissions, Veyntora maps them to your groups and leaves out anything it cannot map. Elsewhere you choose who may read, per source or per folder.",
+    "sourceHints": {
+      "sharepoint": "Sites and libraries in Microsoft 365",
+      "sharepoint_server": "SharePoint 2016, 2019 and SE in your data centre",
+      "confluence": "Spaces and pages, Cloud or Data Center",
+      "smb": "Windows and Samba shares with NTFS rights",
+      "cmis": "Alfresco, d.velop, enaio and other DMS",
+      "webdav": "Nextcloud, ownCloud and WebDAV folders",
+      "s3": "AWS, MinIO, Ceph or SeaweedFS buckets",
+      "git": "Documentation in GitHub and GitLab",
+      "website": "Your intranet or public site, crawled",
+      "servicenow": "Published knowledge articles",
+      "jira": "Solved issues as ready answers",
+      "database": "Rows of a read-only query",
+      "upload": "Files you add by hand"
+    }
   },
   "signIn": {
     "tagline": "Answers from your company's documents, with sources you can check.",

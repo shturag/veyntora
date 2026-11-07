@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { ShieldCheck, Wrench } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { KindIcon } from "@/components/admin/source-icons";
 import { BrandLogo } from "@/components/brand";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -191,8 +193,27 @@ function RequestFlow({ t }: { t: (key: string) => string }) {
   );
 }
 
+// The data sources, in the order of the connect page; the first group keeps permissions.
+const SOURCES = [
+  "sharepoint",
+  "sharepoint_server",
+  "confluence",
+  "smb",
+  "cmis",
+  "webdav",
+  "s3",
+  "git",
+  "website",
+  "servicenow",
+  "jira",
+  "database",
+  "upload",
+] as const;
+const OWN_PERMISSIONS = new Set(["sharepoint", "sharepoint_server", "confluence", "smb", "cmis"]);
+
 export default async function LandingPage() {
   const t = await getTranslations("landing");
+  const ts = await getTranslations("sources");
   const guarantees = t.raw("guarantees") as { value: string; label: string }[];
   const how = t.raw("how") as { title: string; body: string }[];
   const security = t.raw("security") as string[];
@@ -216,6 +237,9 @@ export default async function LandingPage() {
               </a>
               <a href="#how" className="text-hero-muted no-underline hover:text-white">
                 {t("nav.how")}
+              </a>
+              <a href="#sources" className="text-hero-muted no-underline hover:text-white">
+                {t("nav.sources")}
               </a>
               <a href="#chatbots" className="text-hero-muted no-underline hover:text-white">
                 {t("nav.chatbots")}
@@ -502,6 +526,63 @@ export default async function LandingPage() {
                 </li>
               ))}
             </ol>
+          </section>
+
+          <section className="pt-24" id="sources">
+            <div className="text-[13px] font-semibold tracking-[0.1em] text-accent uppercase">
+              {t("sourcesEyebrow")}
+            </div>
+            <h2 className="mt-2.5 mb-3.5 text-[42px] leading-[1.1] font-extrabold tracking-[-0.03em] max-[640px]:text-[30px]">
+              {t("sourcesTitle")}
+            </h2>
+            <p className="m-0 max-w-[720px] text-[17px] leading-normal text-fg-muted">
+              {t("sourcesLead")}
+            </p>
+            <ul className="m-0 mt-10 grid list-none grid-cols-4 gap-3 p-0 max-[1100px]:grid-cols-3 max-[900px]:grid-cols-2 max-[520px]:grid-cols-1">
+              {SOURCES.map((kind) => (
+                <li
+                  key={kind}
+                  className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent"
+                  >
+                    <KindIcon kind={kind} className="size-5" />
+                  </span>
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <b className="text-[15px]">{ts(`types.${kind}`)}</b>
+                    <span className="text-[13px] leading-snug text-fg-muted">
+                      {t(`sourceHints.${kind}`)}
+                    </span>
+                    {OWN_PERMISSIONS.has(kind) ? (
+                      <span className="mt-0.5 inline-flex w-fit items-center gap-1 rounded-md bg-green-soft px-1.5 py-0.5 text-[11.5px] font-semibold text-green">
+                        <ShieldCheck aria-hidden="true" className="size-3" />
+                        {t("keepsPermissions")}
+                      </span>
+                    ) : null}
+                  </span>
+                </li>
+              ))}
+              <li className="flex items-start gap-3 rounded-xl border border-dashed border-line-strong bg-surface p-4">
+                <span
+                  aria-hidden="true"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-sunken text-fg-secondary"
+                >
+                  <Wrench className="size-5" />
+                </span>
+                <span className="flex min-w-0 flex-col gap-1">
+                  <b className="text-[15px]">{t("mcpSource")}</b>
+                  <span className="text-[13px] leading-snug text-fg-muted">
+                    {t("mcpSourceHint")}
+                  </span>
+                </span>
+              </li>
+            </ul>
+            <p className="m-0 mt-5 flex items-start gap-2 text-sm text-fg-muted">
+              <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-green" />
+              {t("sourcesNote")}
+            </p>
           </section>
 
           <section className="pt-24" id="chatbots">

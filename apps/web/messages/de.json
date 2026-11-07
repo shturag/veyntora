@@ -352,7 +352,8 @@
       "how": "So funktioniert es",
       "chatbots": "Chatbots",
       "security": "Sicherheit",
-      "status": "Status"
+      "status": "Status",
+      "sources": "Datenquellen"
     },
     "signIn": "Anmelden",
     "pill": "Schnelle Antworten und Agenten, auf Ihrer eigenen Infrastruktur",
@@ -426,7 +427,7 @@
       },
       "tools": {
         "title": "Tools über MCP",
-        "body": "Tickets, Kalender, HR-Systeme und Datenbanken als MCP-Server anbinden, mit Berechtigungen je Tool.",
+        "body": "Verbinden Sie Tickets, Kalender, HR-Systeme und Datenbanken als MCP-Server, mit Rechten pro Tool. Tools, die nur lesen, lassen sich wie Dokumente durchsuchen.",
         "more": "Tools (MCP) →"
       },
       "automations": {
@@ -459,7 +460,7 @@
     "how": [
       {
         "title": "Daten verbinden",
-        "body": "SharePoint, Confluence, Dateifreigaben und Datenbanken, verarbeitet mit Docling."
+        "body": "Dreizehn Arten von Quellen, von SharePoint und Nextcloud bis Jira, gelesen mit Docling."
       },
       {
         "title": "Pipeline konfigurieren",
@@ -500,7 +501,7 @@
     "securityEyebrow": "Sicherheit und Governance",
     "securityTitle": "Gebaut für ein Unternehmensrechenzentrum",
     "security": [
-      "Läuft auf Ihrem Kubernetes. Modelle lokal mit vLLM.",
+      "Läuft auf Ihrem Kubernetes oder mit Docker. Eigene Modelle: vLLM, Ollama oder jeder OpenAI-kompatible Server.",
       "Antwortet nur aus Dokumenten, die die Person lesen darf.",
       "PII-Maskierung, Guardrails, vollständiges Audit-Log und DSGVO-Anfragen.",
       "Jeder externe Aufruf ist gekennzeichnet und kann abgeschaltet werden."
@@ -534,7 +535,29 @@
     "footer": "Veyntora",
     "footerHelp": "Hilfe",
     "footerStatus": "Status",
-    "footerPrivacy": "Datenschutz"
+    "footerPrivacy": "Datenschutz",
+    "sourcesEyebrow": "Datenquellen",
+    "sourcesTitle": "Verbinden Sie die Systeme, in denen Ihr Wissen liegt",
+    "sourcesLead": "Dokumente bleiben aktuell: Veyntora liest, was sich geändert hat, prüft jede Datei auf Viren und entfernt, was gelöscht wurde. Antworten kommen nur aus Dokumenten, die die Person öffnen darf.",
+    "keepsPermissions": "Behält seine Berechtigungen",
+    "mcpSource": "Jedes MCP-Tool",
+    "mcpSourceHint": "Tools, die nur lesen, werden bei jeder Frage durchsucht, wie Dokumente.",
+    "sourcesNote": "Wo ein System eigene Berechtigungen hat, ordnet Veyntora sie Ihren Gruppen zu und lässt weg, was sich nicht zuordnen lässt. Sonst wählen Sie, wer lesen darf, pro Quelle oder pro Ordner.",
+    "sourceHints": {
+      "sharepoint": "Websites und Bibliotheken in Microsoft 365",
+      "sharepoint_server": "SharePoint 2016, 2019 und SE im eigenen Rechenzentrum",
+      "confluence": "Bereiche und Seiten, Cloud oder Data Center",
+      "smb": "Windows- und Samba-Freigaben mit NTFS-Rechten",
+      "cmis": "Alfresco, d.velop, enaio und andere DMS",
+      "webdav": "Nextcloud, ownCloud und WebDAV-Ordner",
+      "s3": "Buckets in AWS, MinIO, Ceph oder SeaweedFS",
+      "git": "Dokumentation in GitHub und GitLab",
+      "website": "Ihr Intranet oder Ihre Website, gecrawlt",
+      "servicenow": "Veröffentlichte Wissensartikel",
+      "jira": "Gelöste Vorgänge als fertige Antworten",
+      "database": "Zeilen einer Abfrage, die nur liest",
+      "upload": "Dateien, die Sie selbst hinzufügen"
+    }
   },
   "signIn": {
     "tagline": "Antworten aus den Dokumenten Ihres Unternehmens, mit Quellen, die Sie prüfen können.",
