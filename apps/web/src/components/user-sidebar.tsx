@@ -40,8 +40,8 @@ const MENU: { href: string; key: string; icon: LucideIcon }[] = [
 ];
 
 /**
- * The user app's left sidebar (prototype: Home.html): the menu and the most recent chats in
- * sections that fold, scrolling between the new-chat button and the account.
+ * The user app's left sidebar (prototype: Home.html): the menu stays put; the most recent
+ * chats scroll under it, above the account. Both sections fold.
  */
 export function UserSidebar({
   me,
@@ -78,31 +78,35 @@ export function UserSidebar({
           canOpenAdmin={me.can_open_admin}
         />
       }
+      fixed={
+        <>
+          <Link
+            href="/home"
+            className="mb-1 flex h-10 items-center justify-center gap-2 rounded-md border border-line-strong text-sm font-medium text-fg no-underline hover:bg-sunken min-[901px]:hidden"
+          >
+            {t("common.newChat")}
+          </Link>
+          <NavSection id="user-menu" title={t("nav.menu")}>
+            {MENU.map(({ href, key, icon: Icon }) => (
+              <NavLink key={href} href={href} className={link} activeClassName={active}>
+                <Icon aria-hidden className="size-4 shrink-0 text-fg-muted" />
+                <span className="flex-1 truncate">{t(`nav.${key}` as "nav.home")}</span>
+                {key === "notifications" && unread ? (
+                  <span
+                    aria-label={t("nav.unread", { count: unread })}
+                    className="rounded-full bg-accent px-2 text-xs font-semibold text-on-accent"
+                  >
+                    {unread}
+                  </span>
+                ) : null}
+              </NavLink>
+            ))}
+          </NavSection>
+        </>
+      }
     >
-      <Link
-        href="/home"
-        className="mb-1 flex h-10 items-center justify-center gap-2 rounded-md border border-line-strong text-sm font-medium text-fg no-underline hover:bg-sunken min-[901px]:hidden"
-      >
-        {t("common.newChat")}
-      </Link>
-      <NavSection id="user-menu" title={t("nav.menu")}>
-        {MENU.map(({ href, key, icon: Icon }) => (
-          <NavLink key={href} href={href} className={link} activeClassName={active}>
-            <Icon aria-hidden className="size-4 shrink-0 text-fg-muted" />
-            <span className="flex-1 truncate">{t(`nav.${key}` as "nav.home")}</span>
-            {key === "notifications" && unread ? (
-              <span
-                aria-label={t("nav.unread", { count: unread })}
-                className="rounded-full bg-accent px-2 text-xs font-semibold text-on-accent"
-              >
-                {unread}
-              </span>
-            ) : null}
-          </NavLink>
-        ))}
-      </NavSection>
       {recent.length > 0 ? (
-        <NavSection id="user-recent" title={t("nav.recent")}>
+        <NavSection id="user-recent" title={t("nav.recent")} stickyTitle>
           {recent.map((c) => (
             <NavLink
               key={c.id}

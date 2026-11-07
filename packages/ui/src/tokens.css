@@ -9,7 +9,7 @@
 
   /* core palette (brief) */
   --vey-ink: #0b1033;
-  --vey-ground: #f5f6fb;
+  --vey-ground: #f6f7f9;
   --vey-accent: #4b22d6;
   --vey-amber: #8a5300;
   --vey-green: #1e6b45;
@@ -17,10 +17,10 @@
 
   /* surfaces and lines */
   --vey-surface: #ffffff;
-  --vey-sunken: #eef0f7;
-  --vey-border: #e3e6f0;
-  --vey-border-strong: #c9cde0;
-  --vey-divider: #eceef5;
+  --vey-sunken: #f0f2f5;
+  --vey-border: #e4e7ec;
+  --vey-border-strong: #cdd2db;
+  --vey-divider: #eef0f3;
 
   /* chart series (categorical, fixed order; validated for colour-vision deficiency) */
   --vey-series-1: #2a78d6;
@@ -53,12 +53,12 @@
   --vey-info: #1d5e86;
   --vey-info-soft: #e8f2f8;
 
-  /* admin navigation (dark rail in both themes) */
-  --vey-nav-bg: #0b1033;
-  --vey-nav-active: #1c2352;
-  --vey-nav-text: #c3c8e6;
-  --vey-nav-heading: #8f96bd;
-  --vey-nav-text-active: #ffffff;
+  /* admin navigation: a white rail in the light theme, a dark one in the dark theme */
+  --vey-nav-bg: #ffffff;
+  --vey-nav-active: #eff0f6;
+  --vey-nav-text: #3a4061;
+  --vey-nav-heading: #5d6385;
+  --vey-nav-text-active: #0b1033;
 
   /* hero (landing) */
   --vey-hero-bg: #070b24;
@@ -79,7 +79,7 @@
   --vey-brand-violet: #5a1fdc;
   --vey-brand-gradient: linear-gradient(120deg, var(--vey-brand-cyan) 0%, var(--vey-brand-blue) 45%, var(--vey-brand-violet) 100%);
   --vey-primary-gradient: linear-gradient(120deg, var(--vey-brand-blue) 0%, var(--vey-brand-violet) 100%);
-  --vey-shadow-card: 0 1px 2px rgba(11, 16, 51, 0.04), 0 1px 3px rgba(11, 16, 51, 0.06);
+  --vey-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.07);
 
   --vey-radius-sm: 6px;
   --vey-radius: 8px;
@@ -136,6 +136,9 @@
 
   --vey-nav-bg: #060819;
   --vey-nav-active: #1a1f3a;
+  --vey-nav-text: #c3c8e6;
+  --vey-nav-heading: #8f96bd;
+  --vey-nav-text-active: #ffffff;
 
   --vey-focus: #a99bff;
   --vey-shadow-popover: 0 24px 64px rgba(0, 0, 0, 0.6);

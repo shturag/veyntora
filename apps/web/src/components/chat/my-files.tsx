@@ -116,7 +116,8 @@ export function MyFiles({ initial }: { initial: MyFile[] }) {
         accept={ACCEPT}
         className="hidden"
         tabIndex={-1}
-        aria-hidden
+        // Not shown: the button above opens it. Named for tools that set files directly.
+        aria-label={t("choose")}
         onChange={(e) => void upload(e.currentTarget)}
       />
       {error ? (

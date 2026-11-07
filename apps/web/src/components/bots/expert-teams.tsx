@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Panel, SaveMessage, checkRow, checkbox } from "@/components/admin/panel";
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
 
@@ -24,8 +25,10 @@ export function ExpertTeams({
   const router = useRouter();
   const [chosen, setChosen] = useState<string[]>(experts.teams.map((g) => g.id));
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
 
   async function save() {
+    setBusy(true);
     try {
       await api(`/v1/admin/chatbots/${botId}/experts`, {
         method: "PUT",
@@ -38,52 +41,52 @@ export function ExpertTeams({
         ok: false,
         text: t("failed", { reason: e instanceof Error ? e.message : "?" }),
       });
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <section
-      aria-labelledby="experts"
-      className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5"
+    <Panel
+      id="experts"
+      title={t("title")}
+      description={t("text")}
+      aside={
+        <span className="text-sm text-fg-muted">
+          {t("chosen", { count: chosen.length, total: experts.groups.length })}
+        </span>
+      }
+      footer={
+        canEdit ? (
+          <>
+            <SaveMessage message={message} />
+            <Button variant="primary" disabled={busy} onClick={save}>
+              {t("save")}
+            </Button>
+          </>
+        ) : null
+      }
     >
-      <h2 id="experts" className="m-0 text-base font-semibold">
-        {t("title")}
-      </h2>
-      <p className="m-0 text-sm text-fg-secondary">{t("text")}</p>
       <fieldset
         disabled={!canEdit}
-        className="m-0 grid grid-cols-3 gap-2 border-0 p-0 max-[800px]:grid-cols-1"
+        className="m-0 grid grid-cols-3 gap-1 border-0 p-0 max-[900px]:grid-cols-1"
       >
         <legend className="sr-only">{t("title")}</legend>
         {experts.groups.map((g) => (
-          <label key={g.id} className="flex items-center gap-2 text-sm">
+          <label key={g.id} className={checkRow}>
             <input
               type="checkbox"
               checked={chosen.includes(g.id)}
-              onChange={(e) =>
-                setChosen(e.target.checked ? [...chosen, g.id] : chosen.filter((x) => x !== g.id))
-              }
-              className="size-4"
+              onChange={(e) => {
+                setMessage(null);
+                setChosen(e.target.checked ? [...chosen, g.id] : chosen.filter((x) => x !== g.id));
+              }}
+              className={checkbox}
             />
             {g.name}
           </label>
         ))}
       </fieldset>
-      {canEdit ? (
-        <div className="flex items-center gap-3">
-          <Button variant="primary" onClick={save}>
-            {t("save")}
-          </Button>
-          {message ? (
-            <span
-              role={message.ok ? "status" : "alert"}
-              className={`text-sm ${message.ok ? "text-green" : "text-red"}`}
-            >
-              {message.text}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-    </section>
+    </Panel>
   );
 }

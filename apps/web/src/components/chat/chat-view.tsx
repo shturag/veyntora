@@ -20,8 +20,9 @@ import {
   type StatusEvent,
   type Mode,
 } from "@/lib/chat";
+import { useSmoothText } from "@/lib/smooth-text";
 
-import { AnswerBlock } from "./answer";
+import { AnswerBlock, AnswerText } from "./answer";
 import { ApprovalCard } from "./approval-card";
 import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
@@ -30,6 +31,17 @@ import { SourcesPanel } from "./sources-panel";
 type Progress = { step: StatusEvent["step"]; sources?: number } | null;
 type LiveStep = { kind: string; name?: string; status: string };
 const STREAM_MODES: ("values" | "custom")[] = ["values", "custom"];
+// Within this many pixels of the bottom, the chat follows new text.
+const FOLLOW_PX = 96;
+
+/** The element that scrolls `el` (the page when no ancestor does). */
+function scrollerOf(el: HTMLElement | null): HTMLElement {
+  for (let node = el?.parentElement; node; node = node.parentElement) {
+    const { overflowY } = getComputedStyle(node);
+    if (/(auto|scroll)/.test(overflowY)) return node;
+  }
+  return document.scrollingElement as HTMLElement;
+}
 
 function Thread({
   apiUrl,
@@ -78,6 +90,18 @@ function Thread({
   const [webSearch, setWebSearch] = useState(initialChoices?.webSearch ?? false);
   const [code, setCode] = useState(initialChoices?.code ?? false);
   const started = useRef(false);
+  // The text as it reads on screen: revealed at a steady pace, not in the server's bursts.
+  const live = useSmoothText(draft);
+  const liveRef = useRef("");
+  // Where the live text stopped when the run finished: the answer continues from there.
+  const [handoff, setHandoff] = useState<string | null>(null);
+  // Follow new text while the reader is at the bottom; scrolling up stops it.
+  const endRef = useRef<HTMLDivElement>(null);
+  const follow = useRef(true);
+
+  useEffect(() => {
+    liveRef.current = live;
+  }, [live]);
 
   useEffect(() => {
     api<ChatFeatures>(`/v1/me/chatbots/${chatbotId}/features`)
@@ -112,6 +136,7 @@ function Thread({
       }
     },
     onFinish: () => {
+      setHandoff(liveRef.current);
       setProgress(null);
       setDraft("");
       setReasoning("");
@@ -129,6 +154,8 @@ function Thread({
 
   function ask(question: string, files: AttachedFile[] = []) {
     setFailed(false);
+    setHandoff(null);
+    follow.current = true;
     setSteps([]);
     setProgress({ step: "searching" });
     void stream.submit(
@@ -183,6 +210,31 @@ function Thread({
   const messages = (stream.values?.messages ?? []) as GraphMessage[];
   const busy = stream.isLoading;
   const wait = busy ? undefined : (stream.interrupt?.value as ApprovalWait | undefined);
+
+  useEffect(() => {
+    const scroller = scrollerOf(endRef.current);
+    const target = scroller === document.scrollingElement ? window : scroller;
+    const onScroll = () => {
+      follow.current =
+        scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < FOLLOW_PX;
+    };
+    target.addEventListener("scroll", onScroll, { passive: true });
+    return () => target.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Whatever makes the conversation grow (live text, an answer typing out, steps, an
+  // approval card) keeps the newest line in view while following.
+  useEffect(() => {
+    const section = endRef.current?.parentElement;
+    if (!section) return;
+    const observer = new ResizeObserver(() => {
+      if (!follow.current) return;
+      const scroller = scrollerOf(endRef.current);
+      scroller.scrollTop = scroller.scrollHeight;
+    });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   // The answer whose sources the panel shows: the one chosen, else the latest with any.
   const answers = messages
@@ -249,11 +301,15 @@ function Thread({
             const previous = messages[i - 1];
             const question = previous?.type === "human" ? textOf(previous.content) : "";
             const last = i === messages.length - 1;
+            const text = textOf(m.content);
             return (
               <AnswerBlock
                 key={m.id ?? i}
-                text={textOf(m.content)}
+                text={text}
                 meta={meta}
+                revealFrom={
+                  last && handoff !== null && text.startsWith(handoff) ? handoff.length : undefined
+                }
                 onShowSources={() => setSourcesFor(m.id ?? String(i))}
                 sourcesShown={shown?.key === (m.id ?? String(i))}
                 onRegenerate={last && question && !busy ? () => ask(question) : undefined}
@@ -276,7 +332,7 @@ function Thread({
                     </li>
                   ))}
                 </ol>
-              ) : (
+              ) : live ? null : (
                 <span className="inline-flex items-center gap-2">
                   <span aria-hidden className="size-2 animate-pulse rounded-full bg-accent" />
                   {progress?.step === "running_code"
@@ -287,14 +343,16 @@ function Thread({
                 </span>
               )}
               {reasoning ? (
-                <details open className="rounded-md bg-sunken px-3 py-2 text-sm">
+                // Open while it thinks; folded once the answer starts, like the finished one.
+                <details open={!live} className="rounded-md bg-sunken px-3 py-2 text-sm">
                   <summary className="cursor-pointer text-fg-muted">{t("thinkingLive")}</summary>
                   <p className="m-0 mt-1 whitespace-pre-wrap text-fg-secondary">{reasoning}</p>
                 </details>
               ) : null}
-              {draft ? <p className="m-0 text-base leading-[1.7] text-fg">{draft}</p> : null}
             </div>
           ) : null}
+          {/* Outside the status region: screen readers get the answer once, when it is done. */}
+          {busy && live ? <AnswerText text={live} meta={{ outcome: "answered" }} typing /> : null}
           <ExpertReplies threadId={threadId} />
           {wait?.type === "approval" ? (
             <ApprovalCard
@@ -308,6 +366,7 @@ function Thread({
               {t("runFailed")}
             </p>
           ) : null}
+          <div ref={endRef} aria-hidden />
         </section>
         <div className="sticky bottom-0 mx-auto w-full max-w-[820px] bg-ground px-7 pt-2 pb-5 max-[640px]:px-4">
           <Composer

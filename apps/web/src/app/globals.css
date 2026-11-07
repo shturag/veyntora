@@ -99,3 +99,29 @@ body {
 .sidebar-scroll-dark:focus-within {
   scrollbar-color: var(--color-nav-active) transparent;
 }
+
+/* The cursor after an answer that is still arriving: at the end of its last paragraph,
+   heading or list item (not after a code block or table, where it would sit oddly). */
+.vey-typing > :is(p):last-child::after,
+.vey-typing > :is(ul, ol):last-child > li:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  border-radius: 2px;
+  background: var(--color-fg);
+  animation: vey-caret 1s steps(1) infinite;
+}
+@keyframes vey-caret {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vey-typing > :is(p):last-child::after,
+  .vey-typing > :is(ul, ol):last-child > li:last-child::after {
+    animation: none;
+  }
+}

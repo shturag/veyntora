@@ -7,8 +7,9 @@ import { useEffect, useId, useRef, useState, type MouseEvent, type ReactNode } f
 type Tone = "light" | "dark";
 
 /**
- * A sidebar: `top` (logo, main action) and `bottom` (account) stay put, the sections between
- * scroll. On small screens it is a bar with a menu button that drops the sections down.
+ * A sidebar: `top` (logo, main action), `fixed` (e.g. the menu) and `bottom` (account) stay
+ * put; `children` scroll between them. On small screens it is a bar with a menu button that
+ * drops the sections down.
  */
 export function SidebarFrame({
   tone = "light",
@@ -16,6 +17,7 @@ export function SidebarFrame({
   menuLabel,
   closeLabel,
   top,
+  fixed,
   bottom,
   children,
   className,
@@ -25,6 +27,7 @@ export function SidebarFrame({
   menuLabel: string;
   closeLabel: string;
   top: ReactNode;
+  fixed?: ReactNode;
   bottom: ReactNode;
   children: ReactNode;
   className?: string;
@@ -36,7 +39,8 @@ export function SidebarFrame({
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
   };
   return (
-    <aside
+    // A navigation landmark, so screen readers can jump to the menu.
+    <nav
       aria-label={label}
       className={cn(
         "flex min-w-0 shrink-0 flex-col max-[900px]:w-full max-[900px]:basis-full max-[900px]:border-b min-[901px]:sticky min-[901px]:top-0 min-[901px]:h-screen",
@@ -67,6 +71,9 @@ export function SidebarFrame({
           !open && "max-[900px]:hidden",
         )}
       >
+        {fixed ? (
+          <div className="flex min-w-0 shrink-0 flex-col gap-1 px-3 pb-1">{fixed}</div>
+        ) : null}
         <div
           className={cn(
             "sidebar-scroll flex min-h-0 min-w-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto px-3 pb-3",
@@ -84,7 +91,7 @@ export function SidebarFrame({
           {bottom}
         </div>
       </div>
-    </aside>
+    </nav>
   );
 }
 
@@ -96,11 +103,14 @@ export function NavSection({
   id,
   title,
   tone = "light",
+  stickyTitle = false,
   children,
 }: {
   id: string;
   title?: string;
   tone?: Tone;
+  /** Keep the title in view while the section's items scroll under it. */
+  stickyTitle?: boolean;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDetailsElement>(null);
@@ -130,6 +140,8 @@ export function NavSection({
         className={cn(
           "flex cursor-pointer list-none items-center justify-between rounded-md px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase select-none [&::-webkit-details-marker]:hidden",
           tone === "dark" ? "text-nav-heading hover:text-nav-fg" : "text-fg-muted hover:text-fg",
+          stickyTitle && "sticky top-0 z-10",
+          stickyTitle && (tone === "dark" ? "bg-nav" : "bg-surface"),
         )}
       >
         {title}

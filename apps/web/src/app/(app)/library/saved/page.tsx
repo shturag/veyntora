@@ -2,12 +2,13 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { SavedCard } from "@/components/answers/saved-card";
+import { LibraryHeader } from "@/components/library-header";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("savedAnswers");
 
-/** Saved answers (prototype: SavedAnswers.html). */
+/** Saved answers (prototype: SavedAnswers.html), a tab of Chats & knowledge. */
 export default async function SavedPage({
   searchParams,
 }: {
@@ -22,14 +23,15 @@ export default async function SavedPage({
     api.GET("/v1/saved/groups"),
   ]);
   return (
-    <div className="mx-auto flex max-w-[860px] flex-col gap-5">
-      <h1 className="m-0 text-[26px] font-bold">{t("title")}</h1>
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6">
+      <LibraryHeader current="saved" />
+      <h2 className="sr-only">{t("title")}</h2>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <nav aria-label={t("filter")} className="flex gap-1 border-b border-line">
           {(["all", "shared"] as const).map((s) => (
             <Link
               key={s}
-              href={`/saved?scope=${s}`}
+              href={`/library/saved?scope=${s}`}
               aria-current={s === scope ? "page" : undefined}
               className={`px-3 py-2 text-sm no-underline ${s === scope ? "border-b-2 border-accent font-medium text-fg" : "text-fg-secondary"}`}
             >

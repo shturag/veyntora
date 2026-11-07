@@ -19,9 +19,9 @@ test.describe("playground as a platform admin", () => {
     const draft = page.getByRole("article", { name: "Draft" });
     // Without model keys the draft cannot be set up completely; either way the API, the
     // graph server and the tester's permissions were all involved.
-    await expect(draft.getByRole("heading", { level: 3 })).toHaveText(/Answer|Why it did not run/, {
-      timeout: 60_000,
-    });
+    await expect(
+      draft.getByRole("heading", { level: 3, name: /^(Answer|Why it did not run)$/ }),
+    ).toBeVisible({ timeout: 60_000 });
     await expectNoA11yViolations(page);
   });
 });

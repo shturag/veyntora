@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { Panel, SaveMessage, checkRow, checkbox } from "@/components/admin/panel";
 import { api } from "@/lib/chat";
 
 export type DataRule = {
@@ -21,9 +22,11 @@ export type DataRule = {
 
 type Named = { id: string; name: string };
 
-const input = "h-10 w-28 rounded-md border border-line-strong bg-surface px-3 text-sm";
-const label = "flex flex-col gap-1 text-[13px] font-medium";
-const check = "flex items-start gap-2 text-sm";
+const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
+const label = "flex flex-col gap-1.5 text-[13px] font-medium";
+const group = "m-0 flex min-w-0 flex-col gap-2 border-0 p-0";
+const legend = "mb-1 p-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
+const box = "m-0 flex list-none flex-col rounded-md border border-line p-1";
 
 /** A chatbot's data rule: retention, which external providers, MCP servers and (when
  * Langfuse is external) trace destinations it may send data to, and masking. */
@@ -94,70 +97,120 @@ export function DataRules({
     all === null ? (
       <p className="m-0 text-sm text-fg-secondary">{t("cannotList", { count: chosen.length })}</p>
     ) : all.length === 0 ? (
-      <p className="m-0 text-sm text-fg-secondary">{empty}</p>
+      <p className="m-0 rounded-md border border-dashed border-line px-3 py-2.5 text-sm text-fg-muted">
+        {empty}
+      </p>
     ) : (
-      <ul className="m-0 flex list-none flex-col gap-1 p-0">
+      <ul className={box}>
         {all.map((x) => (
           <li key={x.id}>
-            <label className={check}>
+            <label className={checkRow}>
               <input
                 type="checkbox"
                 name={field}
                 value={x.id}
                 defaultChecked={chosen.includes(x.id)}
                 disabled={!canEdit}
+                className={checkbox}
               />
-              {x.name}
+              <span className="min-w-0 break-all">{x.name}</span>
             </label>
           </li>
         ))}
       </ul>
     );
 
+  const option = (name: string, checked: boolean, title: string, hint?: string) => (
+    <label className={checkRow}>
+      <input
+        name={name}
+        type="checkbox"
+        defaultChecked={checked}
+        disabled={!canEdit}
+        className={checkbox}
+      />
+      <span className="flex flex-col gap-0.5">
+        <span className="font-medium">{title}</span>
+        {hint ? <span className="text-xs text-fg-muted">{hint}</span> : null}
+      </span>
+    </label>
+  );
+
   return (
-    <section
-      aria-labelledby="data-rules"
-      className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+    <Panel
+      id="data-rules"
+      title={t("title")}
+      description={rule.configured ? t("subtitle") : t("defaults")}
+      footer={
+        canEdit ? (
+          <>
+            <SaveMessage message={message} />
+            <Button type="submit" form="data-rule-form" variant="primary" disabled={busy}>
+              {t("save")}
+            </Button>
+          </>
+        ) : (
+          <span className="mr-auto text-xs text-fg-muted">{t("readOnly")}</span>
+        )
+      }
     >
-      <div>
-        <h2 id="data-rules" className="m-0 text-base font-semibold">
-          {t("title")}
-        </h2>
-        <p className="m-0 text-sm text-fg-secondary">
-          {rule.configured ? t("subtitle") : t("defaults")}
-        </p>
-      </div>
-      <form onSubmit={save} className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-4">
-          <label className={label}>
-            {t("chatRetention")}
-            <input
-              name="chat_retention_days"
-              type="number"
-              min={1}
-              max={3650}
-              required
-              defaultValue={rule.chat_retention_days}
-              disabled={!canEdit}
-              className={input}
-            />
-          </label>
-          <label className={label}>
-            {t("traceRetention")}
-            <input
-              name="trace_retention_days"
-              type="number"
-              min={1}
-              max={3650}
-              required
-              defaultValue={rule.trace_retention_days}
-              disabled={!canEdit}
-              className={input}
-            />
-          </label>
-        </div>
-        <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-          <legend className="mb-1 text-[13px] font-medium">{t("providers")}</legend>
+      <form
+        id="data-rule-form"
+        onSubmit={save}
+        className="grid grid-cols-2 gap-x-8 gap-y-6 max-[900px]:grid-cols-1"
+      >
+        <fieldset className={group}>
+          <legend className={legend}>{t("retention")}</legend>
+          <div className="grid grid-cols-2 gap-4">
+            <label className={label}>
+              {t("chatRetention")}
+              <input
+                name="chat_retention_days"
+                type="number"
+                min={1}
+                max={3650}
+                required
+                defaultValue={rule.chat_retention_days}
+                disabled={!canEdit}
+                className={input}
+              />
+            </label>
+            <label className={label}>
+              {t("traceRetention")}
+              <input
+                name="trace_retention_days"
+                type="number"
+                min={1}
+                max={3650}
+                required
+                defaultValue={rule.trace_retention_days}
+                disabled={!canEdit}
+                className={input}
+              />
+            </label>
+          </div>
+        </fieldset>
+        <fieldset className={group}>
+          <legend className={legend}>{t("privacy")}</legend>
+          <div className="flex flex-col">
+            {option("mask", rule.mask_pii_before_external, t("mask"))}
+            {option(
+              "allow_external_traces",
+              rule.allow_external_traces,
+              t("externalTraces"),
+              langfuseExternal ? t("externalTracesActive") : t("externalTracesInactive"),
+            )}
+            {option(
+              "allow_no_documents",
+              rule.allow_no_documents,
+              t("noDocuments"),
+              t("noDocumentsHint"),
+            )}
+            {option("allow_byok", rule.allow_byok, t("byok"))}
+          </div>
+        </fieldset>
+        <fieldset className={group}>
+          <legend className={legend}>{t("providers")}</legend>
           {list(
             providers,
             rule.allowed_external_instance_ids,
@@ -165,69 +218,11 @@ export function DataRules({
             t("noExternalProviders"),
           )}
         </fieldset>
-        <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-          <legend className="mb-1 text-[13px] font-medium">{t("servers")}</legend>
+        <fieldset className={group}>
+          <legend className={legend}>{t("servers")}</legend>
           {list(servers, rule.allowed_external_mcp_server_ids, "server", t("noExternalServers"))}
         </fieldset>
-        <label className={check}>
-          <input
-            name="allow_external_traces"
-            type="checkbox"
-            defaultChecked={rule.allow_external_traces}
-            disabled={!canEdit}
-          />
-          <span className="flex flex-col">
-            {t("externalTraces")}
-            <span className="text-xs text-fg-muted">
-              {langfuseExternal ? t("externalTracesActive") : t("externalTracesInactive")}
-            </span>
-          </span>
-        </label>
-        <label className={check}>
-          <input
-            name="mask"
-            type="checkbox"
-            defaultChecked={rule.mask_pii_before_external}
-            disabled={!canEdit}
-          />
-          {t("mask")}
-        </label>
-        <label className={check}>
-          <input
-            name="allow_no_documents"
-            type="checkbox"
-            defaultChecked={rule.allow_no_documents}
-            disabled={!canEdit}
-          />
-          <span className="flex flex-col">
-            {t("noDocuments")}
-            <span className="text-xs text-fg-muted">{t("noDocumentsHint")}</span>
-          </span>
-        </label>
-        <label className={check}>
-          <input
-            name="allow_byok"
-            type="checkbox"
-            defaultChecked={rule.allow_byok}
-            disabled={!canEdit}
-          />
-          {t("byok")}
-        </label>
-        {canEdit ? (
-          <div>
-            <Button type="submit" variant="primary" disabled={busy}>
-              {t("save")}
-            </Button>
-          </div>
-        ) : (
-          <p className="m-0 text-xs text-fg-muted">{t("readOnly")}</p>
-        )}
       </form>
-      {message ? (
-        <p role="status" className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}>
-          {message.text}
-        </p>
-      ) : null}
-    </section>
+    </Panel>
   );
 }

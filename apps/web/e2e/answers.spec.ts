@@ -6,8 +6,13 @@ test.describe("saved answers, expert questions and notifications", () => {
   test.use({ storageState: USERS.employee.state });
 
   test("saved answers list both scopes", async ({ page }) => {
-    await page.goto("/saved");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Saved answers");
+    await page.goto("/saved"); // the old address leads to the tab
+    await expect(page).toHaveURL(/\/library\/saved/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Chats & knowledge");
+    await expect(page.getByRole("link", { name: "Saved answers" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     await expect(page.getByRole("link", { name: "Shared with my team" })).toBeVisible();
     await expectNoA11yViolations(page);
     await page.getByRole("link", { name: "Shared with my team" }).click();
