@@ -110,7 +110,10 @@ export function SpecForm({
     const disabled = !canEdit;
     const title = t(`f.${f.name}.label`);
     const hint = t.has(`f.${f.name}.hint`) ? t(`f.${f.name}.hint`) : null;
-    const help = hint ? <span className="text-xs font-normal text-fg-muted">{hint}</span> : null;
+    // Long words (setting names, URLs) wrap instead of running into the next field.
+    const help = hint ? (
+      <span className="text-xs font-normal [overflow-wrap:anywhere] text-fg-muted">{hint}</span>
+    ) : null;
     switch (f.kind) {
       case "toggle":
         return (

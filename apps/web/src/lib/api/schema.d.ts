@@ -4756,7 +4756,7 @@ export interface components {
          * Capability
          * @enum {string}
          */
-        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail" | "web_search" | "code_interpreter";
+        Capability: "llm" | "embedding" | "reranker" | "vector_store" | "parser" | "guardrail" | "web_search" | "code_interpreter" | "vision";
         /** CaseIdOut */
         CaseIdOut: {
             /**
@@ -7023,6 +7023,13 @@ export interface components {
              * @default 0.75
              */
             semantic_similarity_threshold: number;
+            /** Vision Instance Id */
+            vision_instance_id?: string | null;
+            /**
+             * Vision Pages
+             * @default false
+             */
+            vision_pages: boolean;
         };
         /**
          * InjectionAction

@@ -271,6 +271,7 @@ async def _next_number(db: AsyncSession, bot_id: UUID) -> int:
 _EXPECTED: dict[str, Capability] = {
     "ingestion.parser_instance_id": Capability.PARSER,
     "ingestion.embedding_instance_id": Capability.EMBEDDING,
+    "ingestion.vision_instance_id": Capability.VISION,
     "retrieval.vector_store_instance_id": Capability.VECTOR_STORE,
     "retrieval.embedding_instance_id": Capability.EMBEDDING,
     "rerank.reranker_instance_id": Capability.RERANKER,

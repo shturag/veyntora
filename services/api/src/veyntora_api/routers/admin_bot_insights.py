@@ -482,7 +482,7 @@ async def overview(
                 )
                 for g in grants
             ),
-            key=lambda g: (svc.ROLES.index(g.role), g.kind, g.name.lower()),  # type: ignore[arg-type]
+            key=lambda g: (svc.ROLES.index(g.role), g.kind, g.name.lower()),
         ),
     )
 

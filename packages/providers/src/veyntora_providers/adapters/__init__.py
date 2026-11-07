@@ -9,5 +9,6 @@ from veyntora_providers.adapters import (  # noqa: F401
     qdrant_store,
     sandbox,
     tei,
+    vision,
     websearch,
 )

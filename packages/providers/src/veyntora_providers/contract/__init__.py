@@ -78,6 +78,13 @@ async def _code_runs_python(runner: CodeRunner) -> None:
         raise AssertionError(f"expected 45, got {out.stdout.strip()[:40]!r} {out.stderr[-120:]}")
 
 
+async def _vision_hands_over_a_model(provider: Any) -> None:
+    # Whether the model accepts images is the connection test's job (it sends one).
+    remote = await provider.remote()
+    if not remote.url.startswith(("https://", "http://")) or not remote.model:
+        raise AssertionError("the vision model has no address or model name for the parser")
+
+
 CHECKS: dict[Capability, list[tuple[str, Check]]] = {
     Capability.EMBEDDING: [("returns dense vectors", _embedding_returns_vectors)],
     Capability.RERANKER: [("orders by score", _reranker_orders_by_score)],
@@ -89,6 +96,7 @@ CHECKS: dict[Capability, list[tuple[str, Check]]] = {
     Capability.GUARDRAIL: [],
     Capability.WEB_SEARCH: [("returns results with links", _web_search_returns_links)],
     Capability.CODE_INTERPRETER: [("runs Python", _code_runs_python)],
+    Capability.VISION: [("hands the parser an address and a model", _vision_hands_over_a_model)],
 }
 
 

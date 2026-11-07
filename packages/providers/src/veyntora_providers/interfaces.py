@@ -27,6 +27,7 @@ class Capability(StrEnum):
     GUARDRAIL = "guardrail"
     WEB_SEARCH = "web_search"
     CODE_INTERPRETER = "code_interpreter"
+    VISION = "vision"
 
 
 class Hosting(StrEnum):
@@ -248,10 +249,26 @@ class ParsedDoc:
 
 
 @dataclass(frozen=True, slots=True)
+class VisionModel:
+    """A vision-language model the parser calls itself (OpenAI-compatible chat completions).
+
+    The parser sends page images and pictures to `url`; `headers` carry the key, so they are
+    kept out of repr and logs.
+    """
+
+    url: str
+    model: str
+    headers: tuple[tuple[str, str], ...] = field(default=(), repr=False)
+
+
+@dataclass(frozen=True, slots=True)
 class ParseOptions:
     ocr: bool = True
     extract_tables: bool = True
     describe_images: bool = False
+    # Describes pictures (with describe_images) and, with vision_pages, reads whole pages.
+    vision: VisionModel | None = None
+    vision_pages: bool = False
     # Structure-aware chunking by the parser (headings, lists, tables), capped at this many
     # tokens of `chunk_tokenizer`. None returns whole sections for the caller to chunk.
     chunk_max_tokens: int | None = None

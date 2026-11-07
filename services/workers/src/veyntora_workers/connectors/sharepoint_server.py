@@ -241,7 +241,7 @@ class SharePointServerReader:
                     name=str(item.get("FileLeafRef") or posixpath.basename(ref)),
                     url=f"{self.origin}{quote(ref)}",
                     version=modified or None,
-                    size=int(size) if str(size or "").isdigit() else None,
+                    size=int(str(size)) if str(size or "").isdigit() else None,
                     modified=(
                         datetime.fromisoformat(modified.replace("Z", "+00:00"))
                         if modified

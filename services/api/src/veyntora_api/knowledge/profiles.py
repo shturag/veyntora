@@ -60,9 +60,9 @@ def _blocked(rule: GovernanceRule | None, provider: ProviderInstance) -> str:
 async def index_plan(db: AsyncSession, source_id: UUID) -> tuple[list[IndexProfile], str | None]:
     """Profiles the source must be indexed into, and why there are none (for people).
 
-    A profile whose parser, embedding or vector store is an external provider is only used if
-    the chatbot's data rule allows that provider: documents are sent to it during indexing,
-    long before anyone asks a question, and drafts are indexed too.
+    A profile whose parser, vision model, embedding or vector store is an external provider is
+    only used if the chatbot's data rule allows that provider: documents are sent to it during
+    indexing, long before anyone asks a question, and drafts are indexed too.
     """
     source = await db.get(DataSource, source_id)
     if source is None:
@@ -116,7 +116,13 @@ async def index_plan(db: AsyncSession, source_id: UUID) -> tuple[list[IndexProfi
     ids = {
         i
         for _, p in candidates
-        for i in (p.parser_instance_id, p.embedding_instance_id, p.vector_store_instance_id)
+        for i in (
+            p.parser_instance_id,
+            p.embedding_instance_id,
+            p.vector_store_instance_id,
+            p.vision_instance_id,
+        )
+        if i is not None
     }
     providers = {
         r.id: r
@@ -128,10 +134,15 @@ async def index_plan(db: AsyncSession, source_id: UUID) -> tuple[list[IndexProfi
     reasons: list[str] = []
     for chatbot_id, profile in candidates:
         rule = rules.get(chatbot_id)
-        used = (
-            profile.parser_instance_id,
-            profile.embedding_instance_id,
-            profile.vector_store_instance_id,
+        used = tuple(
+            i
+            for i in (
+                profile.parser_instance_id,
+                profile.embedding_instance_id,
+                profile.vector_store_instance_id,
+                profile.vision_instance_id,
+            )
+            if i is not None
         )
         if all(may_send(rule, providers.get(i)) for i in used):
             profiles.setdefault(profile.key, profile)

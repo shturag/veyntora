@@ -328,10 +328,18 @@ class Ingestor:
 
     async def _parse(self, doc: Document, profile: IndexProfile, work: _Work) -> ParsedDoc:
         structure = profile.chunking is ChunkingStrategy.STRUCTURE
+        # The parser calls the vision model itself, with the address and key it hands over.
+        vision = (
+            await (await self.adapters.get(profile.vision_instance_id)).remote()
+            if profile.vision_instance_id
+            else None
+        )
         opts = ParseOptions(
             ocr=profile.ocr,
             extract_tables=profile.extract_tables,
             describe_images=profile.describe_images,
+            vision=vision,
+            vision_pages=profile.vision_pages,
             chunk_max_tokens=profile.chunk_size_tokens if structure else None,
         )
         key = (profile.parser_instance_id, opts)

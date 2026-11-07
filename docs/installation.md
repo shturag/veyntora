@@ -149,6 +149,7 @@ Open the admin console from the account menu (bottom left). Short recordings of 
    | Vector store (e.g. Qdrant) | Chatbots that answer from documents |
    | Document parser (e.g. Docling) | Reading PDFs, Word files and pages |
    | Reranker | Optional: better ordering of search results |
+   | Vision model (VLM) | Optional: describes pictures and charts, and can read scans and forms. Choose it in the chatbot's **Pipeline → Ingestion**. Docling calls it itself, so start Docling with `DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true` |
 
    Keys go straight to OpenBao and are never shown again; the page shows only their last 4 characters.
 3. **Connect a data source** under **Data sources → Connect data source**: SharePoint, Confluence, a file share, Nextcloud, S3, Git, a website, ServiceNow, Jira, a database, or files you upload. Sources with their own permissions keep them. Wait until the documents show **Indexed**.

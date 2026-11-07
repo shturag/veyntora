@@ -2861,7 +2861,8 @@
           "parser",
           "guardrail",
           "web_search",
-          "code_interpreter"
+          "code_interpreter",
+          "vision"
         ],
         "title": "Capability",
         "type": "string"
@@ -8973,6 +8974,23 @@
             "minimum": 0.0,
             "title": "Semantic Similarity Threshold",
             "type": "number"
+          },
+          "vision_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vision Instance Id"
+          },
+          "vision_pages": {
+            "default": false,
+            "title": "Vision Pages",
+            "type": "boolean"
           }
         },
         "title": "IngestionSpec",

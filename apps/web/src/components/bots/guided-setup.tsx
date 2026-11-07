@@ -19,7 +19,12 @@ type Ref = string | null;
 type Mode = "auto" | "fast" | "agent";
 // The parts of the draft the questions decide (the API returns every section filled in).
 type Draft = {
-  ingestion: { parser_instance_id: Ref; embedding_instance_id: Ref };
+  ingestion: {
+    parser_instance_id: Ref;
+    embedding_instance_id: Ref;
+    describe_images: boolean;
+    vision_instance_id: Ref;
+  };
   retrieval: { enabled: boolean; embedding_instance_id: Ref; vector_store_instance_id: Ref };
   rerank: { enabled: boolean; reranker_instance_id: Ref };
   generation: { llm_instance_id: Ref; system_prompt: string };
@@ -157,6 +162,7 @@ export function GuidedSetup({
     parser: draft.ingestion.parser_instance_id ?? "",
     store: draft.retrieval.vector_store_instance_id ?? "",
     reranker: draft.rerank.reranker_instance_id ?? "",
+    vision: draft.ingestion.vision_instance_id ?? "",
   });
   const suggested = () =>
     [t(docs ? "prompt.docs" : "prompt.general"), tasks ? t("prompt.tasks") : ""]
@@ -201,6 +207,10 @@ export function GuidedSetup({
           { key: "parser" as const, cap: "parser" },
           { key: "store" as const, cap: "vector_store" },
           ...(rerank ? [{ key: "reranker" as const, cap: "reranker" }] : []),
+          // Only offered once a vision model is set up; documents work without one.
+          ...(of("vision").length
+            ? [{ key: "vision" as const, cap: "vision", optional: true }]
+            : []),
         ]
       : []),
   ];
@@ -227,6 +237,9 @@ export function GuidedSetup({
     if (docs) {
       next_.ingestion.parser_instance_id = ref(picked.parser);
       next_.ingestion.embedding_instance_id = ref(picked.embedding);
+      next_.ingestion.vision_instance_id = ref(picked.vision);
+      // Choosing a vision model is choosing to have pictures described.
+      if (picked.vision) next_.ingestion.describe_images = true;
       next_.retrieval.embedding_instance_id = ref(picked.embedding);
       next_.retrieval.vector_store_instance_id = ref(picked.store);
     }
@@ -459,7 +472,13 @@ export function GuidedSetup({
                     onChange={(e) => setPicked({ ...picked, [n.key]: e.target.value })}
                     className={control}
                   >
-                    <option value="">{n.optional ? t("sameAsAnswers") : t("choose")}</option>
+                    <option value="">
+                      {n.key === "vision"
+                        ? t("noVision")
+                        : n.optional
+                          ? t("sameAsAnswers")
+                          : t("choose")}
+                    </option>
                     {options.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}

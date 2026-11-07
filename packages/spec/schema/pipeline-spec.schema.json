@@ -517,6 +517,24 @@
           "minimum": 0.0,
           "title": "Semantic Similarity Threshold",
           "type": "number"
+        },
+        "vision_instance_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vision Instance Id"
+        },
+        "vision_pages": {
+          "default": false,
+          "title": "Vision Pages",
+          "type": "boolean"
         }
       },
       "title": "IngestionSpec",

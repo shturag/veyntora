@@ -31,6 +31,7 @@ from typing import cast
 
 import structlog
 
+from veyntora_api.db.schema import SCHEMA_HEAD
 from veyntora_api.infra import config as c
 from veyntora_api.infra import keys, vault
 
@@ -61,7 +62,10 @@ def env_tag() -> str | None:
 
 
 def current_tag(store: c.Store) -> str | None:
-    return store.version_tag() or env_tag()
+    """The version the services run: the infrastructure's, plus the database schema this code
+    needs, so an update that brings a migration bootstraps again."""
+    tag = store.version_tag() or env_tag()
+    return f"{tag}+{SCHEMA_HEAD}" if tag else None
 
 
 def scrub(text: str) -> str:

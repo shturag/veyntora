@@ -85,6 +85,8 @@ export type Ocr = boolean;
 export type ParentChunk = "section" | "off";
 export type ParserInstanceId = string | null;
 export type SemanticSimilarityThreshold = number;
+export type VisionInstanceId = string | null;
+export type VisionPages = boolean;
 export type Enabled1 = boolean;
 export type RerankFallback = "instance" | "skip";
 export type FallbackInstanceId = string | null;
@@ -218,6 +220,8 @@ export interface IngestionSpec {
   parent_chunk?: ParentChunk;
   parser_instance_id?: ParserInstanceId;
   semantic_similarity_threshold?: SemanticSimilarityThreshold;
+  vision_instance_id?: VisionInstanceId;
+  vision_pages?: VisionPages;
 }
 export interface RerankSpec {
   enabled?: Enabled1;

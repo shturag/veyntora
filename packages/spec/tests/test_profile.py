@@ -59,3 +59,25 @@ def test_semantic_threshold_only_matters_for_semantic_chunking() -> None:
     second = index_profile(spec)
     assert first is not None and second is not None and first.key != second.key
     assert IndexProfile.from_json(second.as_json()) == second
+
+
+def test_vision_model_changes_the_profile_only_while_used() -> None:
+    spec = _spec()
+    base = index_profile(spec)
+    assert base is not None and "vision_instance_id" not in base.as_json()
+    spec.ingestion.vision_instance_id = uuid4()
+    assert index_profile(spec) == base, "chosen but not used: same chunks"
+    spec.ingestion.describe_images = True
+    pictures = index_profile(spec)
+    assert pictures is not None and pictures.key != base.key
+    spec.ingestion.vision_pages = True
+    pages = index_profile(spec)
+    assert pages is not None and pages.key != pictures.key
+    assert IndexProfile.from_json(pages.as_json()) == pages
+
+
+def test_reading_pages_needs_a_vision_model_to_publish() -> None:
+    spec = _spec(vision_pages=True)
+    assert "ingestion.vision_instance_id is not set" in spec.publish_problems()
+    spec.ingestion.vision_instance_id = uuid4()
+    assert "ingestion.vision_instance_id is not set" not in spec.publish_problems()

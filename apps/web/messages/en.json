@@ -851,7 +851,8 @@
       "parser": "Document parser",
       "guardrail": "Guardrail",
       "web_search": "Web search",
-      "code_interpreter": "Code interpreter"
+      "code_interpreter": "Code interpreter",
+      "vision": "Vision model (VLM)"
     },
     "adapters": {
       "anthropic": "Anthropic (Claude)",
@@ -1371,7 +1372,7 @@
       },
       "describe_images": {
         "label": "Describe images",
-        "hint": "Runs a vision model inside the parser; slow without a GPU."
+        "hint": "Pictures and charts get a description, so their content can be found. Uses the vision model below if one is chosen, otherwise the parser's own (slow without a GPU)."
       },
       "metadata": {
         "label": "Metadata on every chunk"
@@ -1569,6 +1570,14 @@
       "lookup_first": {
         "label": "Look something up before answering",
         "hint": "In chat, an answer written before any tool or document search is sent back once to look it up; if it still comes from memory, the person gets “No answer found”. Automations are not affected."
+      },
+      "vision_instance_id": {
+        "label": "Vision model (VLM)",
+        "hint": "Optional. A model that reads images, under Providers & keys → Vision model. Docling calls it itself, so the parser must reach it and allow remote services (DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true)."
+      },
+      "vision_pages": {
+        "label": "Read pages with the vision model",
+        "hint": "For scans, forms and handwriting: the vision model transcribes every PDF and image page instead of layout analysis and OCR. Much slower, and it can misread text; leave it off for documents with a text layer."
       }
     },
     "o": {
@@ -4229,7 +4238,8 @@
       "embedding": "Embedding model",
       "parser": "Document parser",
       "store": "Vector store",
-      "reranker": "Reranker"
+      "reranker": "Reranker",
+      "vision": "Vision model (VLM)"
     },
     "needHint": {
       "llm": "Writes the answers.",
@@ -4237,7 +4247,8 @@
       "embedding": "Turns documents and questions into vectors for search.",
       "parser": "Reads PDFs, Word files and pages (e.g. Docling).",
       "store": "Keeps the vectors (e.g. Qdrant).",
-      "reranker": "Puts the most relevant passages first."
+      "reranker": "Puts the most relevant passages first.",
+      "vision": "Optional. Describes pictures and charts so their content can be found. Reading whole pages with it: Save and fine-tune → Ingestion."
     },
     "choose": "Choose…",
     "sameAsAnswers": "Same as for answers",
@@ -4275,7 +4286,8 @@
       "external": "External, so questions and passages leave your network: {names}.",
       "allowExternal": "Allow {name} for this chatbot",
       "externalAsk": "External, so questions and passages leave your network: {names}. Before it can be published, a platform admin or security reviewer must allow them in this chatbot's data rule."
-    }
+    },
+    "noVision": "None"
   },
   "setup": {
     "title": "Set up Veyntora",

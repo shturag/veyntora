@@ -10,12 +10,16 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from fastapi.testclient import TestClient
+from veyntora_api.db.schema import SCHEMA_HEAD
 from veyntora_api.infra import config as c
 from veyntora_api.infra import keys, launcher, service
 from veyntora_api.infra.checks import CheckResult
 from veyntora_api.infra.setup_app import create_setup_app
 from veyntora_api.secrets.openbao import SecretRef, SecretWriter
+from veyntora_api.settings import get_settings
 
 PASSWORDS = {
     "postgres-password": "runtime p@ss/word",
@@ -168,25 +172,29 @@ def test_launcher_plans() -> None:
 
     store.save(a_config())
     plan = {r: launcher.Launcher(r, ["true"], store).plan() for r in c.ROLE_TOKEN}  # type: ignore[arg-type]
-    assert plan["api"] == launcher.Plan("setup", "file:1")  # "starting"
-    assert plan["owner"] == launcher.Plan("bootstrap", "file:1")
+    assert plan["api"] == launcher.Plan("setup", f"file:1+{SCHEMA_HEAD}")  # "starting"
+    assert plan["owner"] == launcher.Plan("bootstrap", f"file:1+{SCHEMA_HEAD}")
     assert plan["graphs"].mode == "wait"
 
-    store.write_marker(c.Bootstrapped(version="file:1", ok=True))
+    store.write_marker(c.Bootstrapped(version=f"file:1+{SCHEMA_HEAD}", ok=True))
     plan = {r: launcher.Launcher(r, ["true"], store).plan() for r in c.ROLE_TOKEN}  # type: ignore[arg-type]
     assert plan["owner"].mode == "idle"
-    assert plan["api"] == plan["runtime"] == launcher.Plan("service", "file:1")
+    assert plan["api"] == plan["runtime"] == launcher.Plan("service", f"file:1+{SCHEMA_HEAD}")
 
     # A new version: everything waits for migrate again.
     store.save(a_config())
-    assert launcher.Launcher("runtime", ["true"], store).plan() == launcher.Plan("wait", "file:2")
+    assert launcher.Launcher("runtime", ["true"], store).plan() == launcher.Plan(
+        "wait", f"file:2+{SCHEMA_HEAD}"
+    )
 
 
 def test_env_mode_needs_no_file(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("VEY_DATABASE_URL", "postgresql+asyncpg://u:p@db/veyntora")
     tag = launcher.env_tag()
     assert tag and tag.startswith("env:")
-    assert launcher.Launcher("owner", ["true"]).plan() == launcher.Plan("bootstrap", tag)
+    assert launcher.Launcher("owner", ["true"]).plan() == launcher.Plan(
+        "bootstrap", f"{tag}+{SCHEMA_HEAD}"
+    )
     monkeypatch.setenv("VEY_REDIS_URL", "redis://cache:6379/0")
     assert launcher.env_tag() != tag
 
@@ -219,7 +227,7 @@ def test_owner_records_what_bootstrap_did(monkeypatch: pytest.MonkeyPatch) -> No
 def test_file_mode_starts_with_passwords_from_openbao(monkeypatch: pytest.MonkeyPatch) -> None:
     store = c.Store()
     store.save(a_config())
-    store.write_marker(c.Bootstrapped(version="file:1", ok=True))
+    store.write_marker(c.Bootstrapped(version=f"file:1+{SCHEMA_HEAD}", ok=True))
     asked: dict[str, Any] = {}
 
     async def read(url: str, token: str, mount: str, versions: dict[str, int]) -> dict[str, str]:
@@ -318,13 +326,15 @@ def test_setup_needs_the_code_and_saves_no_password(monkeypatch: pytest.MonkeyPa
     assert cfg.secrets["s3-secret-key"] == c.SecretMeta(version=4, last4="cdef")
     assert client.get("/v1/setup").json()["state"] == "starting"
 
-    store.write_marker(c.Bootstrapped(version="file:1", ok=False, error="realm missing"))
+    store.write_marker(
+        c.Bootstrapped(version=f"file:1+{SCHEMA_HEAD}", ok=False, error="realm missing")
+    )
     state = client.get("/v1/setup").json()
     assert (state["state"], state["error"]) == ("failed", "realm missing")
     assert state["saved"]["postgres"]["host"] == "db.internal"
     assert "password" not in json.dumps(state["saved"])
 
-    store.write_marker(c.Bootstrapped(version="file:1", ok=True))
+    store.write_marker(c.Bootstrapped(version=f"file:1+{SCHEMA_HEAD}", ok=True))
     assert client.get("/v1/setup").json()["state"] == "ready"
     # Once the API ran set up, the Setup page no longer takes settings.
     store.mark_set_up()
@@ -336,7 +346,9 @@ def test_after_a_failed_change_the_setup_page_goes_back(monkeypatch: pytest.Monk
     store.save(a_config())
     store.mark_set_up()
     store.save(a_config(valkey={"host": "wrong-cache"}))
-    store.write_marker(c.Bootstrapped(version="file:2", ok=False, error="Valkey refused"))
+    store.write_marker(
+        c.Bootstrapped(version=f"file:2+{SCHEMA_HEAD}", ok=False, error="Valkey refused")
+    )
     client = TestClient(create_setup_app(store))
     code = store.setup_code.read_text()
     state = client.get("/v1/setup").json()
@@ -405,3 +417,21 @@ async def test_a_change_is_saved_only_after_its_test(monkeypatch: pytest.MonkeyP
     assert (saved.version, saved.valkey.host, saved.saved_by) == (2, "cache2", "Ada")
     assert saved.secrets["valkey-password"] == c.SecretMeta(version=4, last4="6789")
     assert saved.secrets["postgres-password"] == cfg.secrets["postgres-password"]
+
+
+def test_schema_head_is_the_newest_migration() -> None:
+    ini = get_settings().alembic_ini
+    cfg = Config(str(ini))
+    cfg.set_main_option("script_location", str(ini.parent / "alembic"))
+    assert ScriptDirectory.from_config(cfg).get_current_head() == SCHEMA_HEAD, (
+        "a new migration: set SCHEMA_HEAD in veyntora_api/db/schema.py"
+    )
+
+
+def test_an_update_with_a_migration_bootstraps_again() -> None:
+    store = c.Store()
+    store.save(a_config())
+    # Bootstrapped by the previous release, before its newest migration existed.
+    store.write_marker(c.Bootstrapped(version="file:1+0001", ok=True))
+    assert launcher.Launcher("owner", ["true"], store).plan().mode == "bootstrap"
+    assert launcher.Launcher("runtime", ["true"], store).plan().mode == "wait"

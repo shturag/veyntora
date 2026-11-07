@@ -54,6 +54,10 @@ class IngestionSpec(_Spec):
     ocr: bool = True
     extract_tables: bool = True
     describe_images: bool = False
+    # A vision-language model the parser calls (ADR 0037): it describes pictures (with
+    # describe_images) and, with vision_pages, reads whole PDF and image pages.
+    vision_instance_id: InstanceRef | None = None
+    vision_pages: bool = False
     chunking: ChunkingStrategy = ChunkingStrategy.STRUCTURE
     chunk_size_tokens: int = Field(500, ge=64, le=8192)
     chunk_overlap_tokens: int = Field(50, ge=0, le=2048)
@@ -536,6 +540,8 @@ class PipelineSpec(_Spec):
             and self.ingestion.embedding_instance_id != self.retrieval.embedding_instance_id
         ):
             problems.append("retrieval must use the same embedding instance as ingestion")
+        if docs and self.ingestion.vision_pages and self.ingestion.vision_instance_id is None:
+            problems.append("ingestion.vision_instance_id is not set")
         if docs and self.rerank.enabled and self.rerank.reranker_instance_id is None:
             problems.append("rerank.reranker_instance_id is not set")
         agent_reachable = Mode.AGENT in self.router.allowed_modes or (

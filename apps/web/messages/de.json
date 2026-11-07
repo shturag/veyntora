@@ -851,7 +851,8 @@
       "parser": "Dokumentparser",
       "guardrail": "Guardrail",
       "web_search": "Websuche",
-      "code_interpreter": "Code-Interpreter"
+      "code_interpreter": "Code-Interpreter",
+      "vision": "Vision-Modell (VLM)"
     },
     "adapters": {
       "anthropic": "Anthropic (Claude)",
@@ -1371,7 +1372,7 @@
       },
       "describe_images": {
         "label": "Bilder beschreiben",
-        "hint": "Startet ein Bildmodell im Parser; ohne GPU langsam."
+        "hint": "Bilder und Diagramme erhalten eine Beschreibung, damit ihr Inhalt gefunden wird. Nutzt das Vision-Modell unten, wenn eines gewählt ist, sonst das des Parsers (ohne GPU langsam)."
       },
       "metadata": {
         "label": "Metadaten an jedem Abschnitt"
@@ -1569,6 +1570,14 @@
       "lookup_first": {
         "label": "Vor dem Antworten nachschlagen",
         "hint": "Im Chat wird eine Antwort, die vor jeder Tool- oder Dokumentsuche geschrieben wurde, einmal zum Nachschlagen zurückgeschickt; kommt sie dann noch aus dem Gedächtnis, erhält die Person „Keine Antwort gefunden“. Automatisierungen sind nicht betroffen."
+      },
+      "vision_instance_id": {
+        "label": "Vision-Modell (VLM)",
+        "hint": "Optional. Ein Modell, das Bilder liest, unter Anbieter & Schlüssel → Vision-Modell. Docling ruft es selbst auf; der Parser muss es erreichen und entfernte Dienste erlauben (DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true)."
+      },
+      "vision_pages": {
+        "label": "Seiten mit dem Vision-Modell lesen",
+        "hint": "Für Scans, Formulare und Handschrift: Das Vision-Modell überträgt jede PDF- und Bildseite statt Layoutanalyse und OCR. Deutlich langsamer, und es kann Text falsch lesen; für Dokumente mit Textebene ausgeschaltet lassen."
       }
     },
     "o": {
@@ -4229,7 +4238,8 @@
       "embedding": "Embedding-Modell",
       "parser": "Dokumentparser",
       "store": "Vektorspeicher",
-      "reranker": "Reranker"
+      "reranker": "Reranker",
+      "vision": "Vision-Modell (VLM)"
     },
     "needHint": {
       "llm": "Schreibt die Antworten.",
@@ -4237,7 +4247,8 @@
       "embedding": "Wandelt Dokumente und Fragen für die Suche in Vektoren um.",
       "parser": "Liest PDFs, Word-Dateien und Seiten (z. B. Docling).",
       "store": "Speichert die Vektoren (z. B. Qdrant).",
-      "reranker": "Stellt die passendsten Passagen nach vorn."
+      "reranker": "Stellt die passendsten Passagen nach vorn.",
+      "vision": "Optional. Beschreibt Bilder und Diagramme, damit ihr Inhalt gefunden wird. Ganze Seiten damit lesen: Speichern und feinjustieren → Ingestion."
     },
     "choose": "Auswählen…",
     "sameAsAnswers": "Wie für Antworten",
@@ -4275,7 +4286,8 @@
       "external": "Extern, Fragen und Textstellen verlassen also Ihr Netzwerk: {names}.",
       "allowExternal": "{name} für diesen Chatbot erlauben",
       "externalAsk": "Extern, Fragen und Textstellen verlassen also Ihr Netzwerk: {names}. Bevor er veröffentlicht werden kann, muss ein Plattform-Admin oder die Sicherheitsprüfung sie in der Datenregel dieses Chatbots erlauben."
-    }
+    },
+    "noVision": "Keines"
   },
   "setup": {
     "title": "Veyntora einrichten",

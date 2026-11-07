@@ -58,6 +58,13 @@ export const SECTIONS: readonly Section[] = [
       { name: "extract_tables", kind: "toggle" },
       { name: "describe_images", kind: "toggle" },
       {
+        name: "vision_instance_id",
+        kind: "instance",
+        capability: "vision",
+        optional: true,
+      },
+      { name: "vision_pages", kind: "toggle" },
+      {
         name: "metadata",
         kind: "multi",
         options: ["source_title_section", "language", "updated_date", "acl", "contextual_header"],
