@@ -1,6 +1,18 @@
 "use client";
 
 import { Badge, Button } from "@veyntora/ui";
+import {
+  ArrowRight,
+  CircleAlert,
+  CircleCheck,
+  Database,
+  HardDrive,
+  KeyRound,
+  Layers,
+  LogIn,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,6 +29,27 @@ type Core = components["schemas"]["CoreServiceOut"];
 type Check = components["schemas"]["CheckOut"];
 
 const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
+const sectionTitle = "m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
+const HISTORY_SHOWN = 5;
+
+const ICONS: Record<InfraService, LucideIcon> = {
+  postgres: Database,
+  valkey: Layers,
+  s3: HardDrive,
+  openbao: KeyRound,
+  openfga: ShieldCheck,
+  keycloak: LogIn,
+};
+
+type State = "ok" | "down" | "unknown" | "off";
+const stateOf = (ok: boolean | null | undefined, configured = true): State =>
+  !configured ? "off" : ok === true ? "ok" : ok === false ? "down" : "unknown";
+const DOT: Record<State, string> = {
+  ok: "bg-green",
+  down: "bg-red",
+  unknown: "bg-amber",
+  off: "bg-line-strong",
+};
 
 function Health({
   ok,
@@ -129,84 +162,131 @@ function CoreCard({
     }
   }
 
+  const Icon = ICONS[service];
+  const state = stateOf(row.health_ok);
   return (
     <section
       aria-labelledby={`infra-${service}`}
-      className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-5"
+      className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 id={`infra-${service}`} className="m-0 text-base font-bold">
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sunken text-fg-secondary"
+        >
+          <Icon className="size-4.5" />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <h3 id={`infra-${service}`} className="m-0 flex items-center gap-2 text-base font-bold">
             {t(`names.${service}`)}
-          </h2>
-          <p className="m-0 truncate font-mono text-[13px] text-fg-secondary">{row.address}</p>
+            <Health ok={row.health_ok} />
+          </h3>
+          <p className="m-0 text-sm text-fg-secondary">{t(`purpose.${service}`)}</p>
         </div>
-        <Health ok={row.health_ok} />
-      </div>
-      {row.health_detail ? <p className="m-0 text-sm text-red">{row.health_detail}</p> : null}
-      {row.secrets.length ? (
-        <p className="m-0 text-xs text-fg-muted">
-          {row.secrets
-            .map((s) => `${t(`secrets.${s.name}`)}: ${s.last4 ? `…${s.last4}` : t("keepSet")}`)
-            .join(" · ")}
-        </p>
-      ) : null}
-      {editable && !open ? (
-        <div>
-          <Button type="button" onClick={() => setOpen(true)}>
+        {editable && !open ? (
+          <Button type="button" size="sm" onClick={() => setOpen(true)}>
             {t("change")}
           </Button>
-        </div>
+        ) : null}
+      </div>
+      {state === "down" ? (
+        <p
+          role="alert"
+          className="m-0 flex items-start gap-2 rounded-md bg-red-soft px-3 py-2 text-sm text-red"
+        >
+          <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+          {row.health_detail || t("notReachable")}
+        </p>
       ) : null}
+      <dl className="m-0 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+        <dt className="text-fg-muted">{t("address")}</dt>
+        <dd className="m-0 truncate font-mono text-[13px]" title={row.address}>
+          {row.address}
+        </dd>
+        {row.secrets.length ? (
+          <>
+            <dt className="text-fg-muted">{t("passwords")}</dt>
+            <dd className="m-0 flex flex-wrap gap-1.5">
+              {row.secrets.map((s) => (
+                <span
+                  key={s.name}
+                  className="rounded bg-sunken px-2 py-0.5 text-xs text-fg-secondary"
+                >
+                  {t(`secrets.${s.name}`)}{" "}
+                  <span className="font-mono">
+                    {s.last4 ? `…${s.last4}` : s.set ? t("keepSet") : t("notSet")}
+                  </span>
+                </span>
+              ))}
+            </dd>
+          </>
+        ) : null}
+      </dl>
       {open ? (
-        <form onSubmit={save} className="flex flex-col gap-3 border-t border-divider pt-3">
+        <form onSubmit={save} className="flex flex-col gap-4 border-t border-divider pt-4">
           {service === "postgres" || service === "s3" ? (
             <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
               {t(`moveNote.${service}`)}
             </p>
           ) : null}
-          <ServiceFields
-            service={service}
-            values={values}
-            secrets={secrets}
-            onValue={(name, v) => setValues((all) => ({ ...all, [name]: v }))}
-            onSecret={(name, v) => setSecrets((all) => ({ ...all, [name]: v }))}
-            last4={last4}
-          />
-          {service === "openbao" ? (
-            <label
-              htmlFor="infra-openbao-admin"
-              className="flex flex-col gap-1 text-[13px] font-medium"
-            >
-              {t("reissue")}
-              <input
-                id="infra-openbao-admin"
-                type="password"
-                value={adminToken}
-                onChange={(e) => setAdminToken(e.target.value)}
-                autoComplete="off"
-                className={input}
-              />
-              <span className="text-xs font-normal text-fg-muted">{t("reissueHint")}</span>
-            </label>
-          ) : null}
-          <div className="flex flex-wrap items-center gap-2">
-            <Button type="submit" variant="primary" disabled={busy}>
-              {t("save")}
-            </Button>
-            <Button type="button" onClick={test} disabled={busy}>
-              {t("test")}
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
-              {t("cancel")}
-            </Button>
+          <div className="flex flex-col gap-3">
+            <h4 className={sectionTitle}>{t("connection")}</h4>
+            <ServiceFields
+              service={service}
+              values={values}
+              secrets={secrets}
+              onValue={(name, v) => setValues((all) => ({ ...all, [name]: v }))}
+              onSecret={(name, v) => setSecrets((all) => ({ ...all, [name]: v }))}
+              last4={last4}
+              only="settings"
+            />
           </div>
+          {row.secrets.length || service === "openbao" ? (
+            <div className="flex flex-col gap-3">
+              <h4 className={sectionTitle}>{t("passwords")}</h4>
+              {row.secrets.length ? (
+                <ServiceFields
+                  service={service}
+                  values={values}
+                  secrets={secrets}
+                  onValue={(name, v) => setValues((all) => ({ ...all, [name]: v }))}
+                  onSecret={(name, v) => setSecrets((all) => ({ ...all, [name]: v }))}
+                  last4={last4}
+                  only="secrets"
+                />
+              ) : null}
+              {service === "openbao" ? (
+                <label
+                  htmlFor="infra-openbao-admin"
+                  className="flex flex-col gap-1 text-[13px] font-medium"
+                >
+                  {t("reissue")}
+                  <input
+                    id="infra-openbao-admin"
+                    type="password"
+                    value={adminToken}
+                    onChange={(e) => setAdminToken(e.target.value)}
+                    autoComplete="off"
+                    className={input}
+                  />
+                  <span className="text-xs font-normal text-fg-muted">{t("reissueHint")}</span>
+                </label>
+              ) : null}
+              <p className="m-0 text-xs text-fg-muted">{t("passwordsHint")}</p>
+            </div>
+          ) : null}
           {check ? (
             <p
               role={check.ok ? "status" : "alert"}
-              className={`m-0 text-sm ${check.ok ? "text-green" : "text-red"}`}
+              className={`m-0 flex items-start gap-2 rounded-md px-3 py-2 text-sm ${
+                check.ok ? "bg-green-soft text-green" : "bg-red-soft text-red"
+              }`}
             >
-              {check.ok ? "✓ " : ""}
+              {check.ok ? (
+                <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0" />
+              ) : (
+                <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+              )}
               {check.detail}
             </p>
           ) : null}
@@ -215,6 +295,29 @@ function CoreCard({
               {error}
             </p>
           ) : null}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button type="button" onClick={test} disabled={busy}>
+              {t("test")}
+            </Button>
+            <span className="flex gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setOpen(false);
+                  setCheck(null);
+                  setError(null);
+                }}
+                disabled={busy}
+              >
+                {t("cancel")}
+              </Button>
+              <Button type="submit" variant="primary" disabled={busy}>
+                {t("save")}
+              </Button>
+            </span>
+          </div>
+          <p className="m-0 text-xs text-fg-muted">{t("saveHint")}</p>
         </form>
       ) : null}
     </section>
@@ -230,6 +333,7 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const [restarting, restart] = useRestart();
   const [message, setMessage] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const editable = infra.mode === "file";
 
   async function restore(version: number) {
@@ -245,6 +349,38 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
       setMessage(e instanceof Error ? e.message : t("failed"));
     }
   }
+
+  const core = infra.services.map((r) => stateOf(r.health_ok));
+  const consoleStates = infra.console.map((r) => stateOf(r.health_ok, r.configured));
+  const count = (states: State[], x: State) => states.filter((v) => v === x).length;
+  const summary = (states: State[]) =>
+    (["down", "ok", "unknown", "off"] as const)
+      .filter((x) => count(states, x))
+      .map((x) => t(`count.${x}`, { count: count(states, x) }))
+      .join(" · ");
+  const worst = (states: State[]): State =>
+    states.includes("down") ? "down" : states.includes("unknown") ? "unknown" : "ok";
+  const tiles = [
+    { id: "infra-core", name: t("coreTitle"), state: worst(core), text: summary(core) },
+    {
+      id: "infra-console",
+      name: t("consoleTitle"),
+      state: worst(consoleStates.filter((x) => x !== "off")),
+      text: summary(consoleStates),
+    },
+    {
+      id: "infra-history",
+      name: editable ? t("versionN", { version: infra.version ?? 0 }) : t("configuration"),
+      state: "ok" as State,
+      text: editable
+        ? t("savedBy", {
+            when: infra.saved_at ? when(infra.saved_at) : "",
+            who: infra.saved_by ?? "",
+          })
+        : t("fromEnvironment"),
+    },
+  ];
+  const history = showAll ? infra.history : infra.history.slice(0, HISTORY_SHOWN);
 
   return (
     <div className="flex flex-col gap-6">
@@ -262,95 +398,149 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
         <p role="note" className="m-0 rounded-md bg-sunken px-3 py-2 text-sm text-fg-secondary">
           {t("envMode")}
         </p>
-      ) : (
-        <p className="m-0 text-sm text-fg-muted">
-          {t("versionLine", {
-            version: infra.version ?? 0,
-            when: infra.saved_at ? when(infra.saved_at) : "",
-            who: infra.saved_by ?? "",
-          })}
-        </p>
-      )}
+      ) : null}
 
-      <div className="flex flex-col gap-2">
-        <h2 className="m-0 text-lg font-bold">{t("coreTitle")}</h2>
-        <p className="m-0 text-sm text-fg-secondary">{t("coreSummary")}</p>
-      </div>
-      <div className="grid grid-cols-2 items-start gap-4 max-[1100px]:grid-cols-1">
-        {infra.services.map((row) => (
-          <CoreCard key={row.key} row={row} editable={editable && !restarting} onSaved={restart} />
+      <nav aria-label={t("overview")} className="grid grid-cols-3 gap-3 max-[800px]:grid-cols-1">
+        {tiles.map((x) => (
+          <a
+            key={x.id}
+            href={`#${x.id}`}
+            className="flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3 text-fg no-underline hover:border-line-strong"
+          >
+            <span aria-hidden className={`size-2.5 shrink-0 rounded-full ${DOT[x.state]}`} />
+            <span className="flex min-w-0 flex-col">
+              <span className="text-sm font-semibold">{x.name}</span>
+              <span className="truncate text-xs text-fg-muted">{x.text}</span>
+            </span>
+          </a>
         ))}
-      </div>
+      </nav>
 
-      <div className="flex flex-col gap-2">
-        <h2 className="m-0 text-lg font-bold">{t("consoleTitle")}</h2>
-        <p className="m-0 text-sm text-fg-secondary">{t("consoleSummary")}</p>
-      </div>
-      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-line text-left text-xs text-fg-muted">
-              <th className="px-4 py-2.5 font-medium">{t("service")}</th>
-              <th className="px-4 py-2.5 font-medium">{t("address")}</th>
-              <th className="px-4 py-2.5 font-medium">{t("state")}</th>
-              <th className="px-4 py-2.5 font-medium">
-                <span className="sr-only">{t("where")}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {infra.console.map((row) => (
-              <tr key={row.key} className="border-b border-divider last:border-0">
-                <td className="px-4 py-2.5 font-medium">{t(`names.${row.key}`)}</td>
-                <td className="px-4 py-2.5 font-mono text-[13px] text-fg-secondary">
-                  {row.address ?? "—"}
-                </td>
-                <td className="px-4 py-2.5">
-                  <Health ok={row.health_ok} configured={row.configured} />
-                </td>
-                <td className="px-4 py-2.5 text-right">
-                  <Link href={row.href}>{row.configured ? t("open") : t("setUp")}</Link>
-                </td>
+      <section aria-labelledby="infra-core" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 id="infra-core" className="m-0 text-lg font-bold">
+            {t("coreTitle")}
+          </h2>
+          <p className="m-0 text-sm text-fg-secondary">{t("coreSummary")}</p>
+        </div>
+        <div className="grid grid-cols-2 items-start gap-4 max-[1100px]:grid-cols-1">
+          {infra.services.map((row) => (
+            <CoreCard
+              key={row.key}
+              row={row}
+              editable={editable && !restarting}
+              onSaved={restart}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="infra-console" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 id="infra-console" className="m-0 text-lg font-bold">
+            {t("consoleTitle")}
+          </h2>
+          <p className="m-0 text-sm text-fg-secondary">{t("consoleSummary")}</p>
+        </div>
+        <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-xs text-fg-muted">
+                <th className="px-4 py-2.5 font-medium">{t("service")}</th>
+                <th className="px-4 py-2.5 font-medium">{t("address")}</th>
+                <th className="px-4 py-2.5 font-medium">{t("state")}</th>
+                <th className="px-4 py-2.5 text-right font-medium">{t("where")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {infra.console.map((row) => (
+                <tr key={row.key} className="border-b border-divider align-top last:border-0">
+                  <td className="px-4 py-3">
+                    <span className="block font-medium">{t(`names.${row.key}`)}</span>
+                    <span className="block text-xs text-fg-muted">{t(`purpose.${row.key}`)}</span>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-[13px] text-fg-secondary">
+                    {row.address ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Health ok={row.health_ok} configured={row.configured} />
+                    {row.health_ok === false && row.health_detail ? (
+                      <span className="mt-1 block text-xs text-red">{row.health_detail}</span>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <Link
+                      href={row.href}
+                      className="inline-flex items-center gap-1 no-underline hover:underline"
+                    >
+                      {t(row.configured ? "openIn" : "setUpIn", {
+                        page: t(`pages.${row.href.split("/").pop()}`),
+                      })}
+                      <ArrowRight aria-hidden className="size-3.5" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      {editable && infra.history.length > 1 ? (
-        <div className="flex flex-col gap-2">
-          <h2 className="m-0 text-lg font-bold">{t("historyTitle")}</h2>
-          <ul className="m-0 flex list-none flex-col gap-2 p-0">
-            {infra.history.map((v) => (
+      {editable && infra.history.length ? (
+        <section aria-labelledby="infra-history" className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 id="infra-history" className="m-0 text-lg font-bold">
+              {t("historyTitle")}
+            </h2>
+            <p className="m-0 text-sm text-fg-secondary">{t("historySummary")}</p>
+          </div>
+          <ol className="m-0 list-none overflow-hidden rounded-lg border border-line bg-surface p-0">
+            {history.map((v) => (
               <li
                 key={v.version}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-2.5 text-sm"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-divider px-4 py-3 text-sm last:border-0"
               >
-                <span>
-                  <span className="font-medium">{t("versionN", { version: v.version })}</span>{" "}
-                  <span className="text-fg-muted">
-                    {when(v.saved_at)} · {v.saved_by}
+                <span className="w-24 shrink-0 font-semibold">
+                  {t("versionN", { version: v.version })}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span>
                     {v.changed.length
-                      ? ` · ${v.changed.map((s) => t(`names.${s}`)).join(", ")}`
-                      : ""}
+                      ? v.changed.map((s) => t(`names.${s}`)).join(", ")
+                      : t("noChanges")}
+                  </span>
+                  <span className="text-xs text-fg-muted">
+                    {when(v.saved_at)} · {v.saved_by}
                   </span>
                 </span>
                 {v.version === infra.version ? (
                   <Badge tone="green">{t("inUse")}</Badge>
                 ) : (
-                  <Button type="button" onClick={() => restore(v.version)} disabled={restarting}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => restore(v.version)}
+                    disabled={restarting}
+                  >
                     {t("restore")}
                   </Button>
                 )}
               </li>
             ))}
-          </ul>
+          </ol>
+          {infra.history.length > HISTORY_SHOWN ? (
+            <div>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowAll((x) => !x)}>
+                {showAll ? t("showFewer") : t("showAll", { count: infra.history.length })}
+              </Button>
+            </div>
+          ) : null}
           {message ? (
             <p role="alert" className="m-0 text-sm text-red">
               {message}
             </p>
           ) : null}
-        </div>
+        </section>
       ) : null}
     </div>
   );

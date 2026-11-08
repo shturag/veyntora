@@ -19,6 +19,7 @@ export function ServiceFields({
   onSecret,
   last4,
   disabled,
+  only,
 }: {
   service: InfraService;
   values: Values;
@@ -27,12 +28,14 @@ export function ServiceFields({
   onSecret: (name: string, value: string) => void;
   last4?: Record<string, string | null | undefined>;
   disabled?: boolean;
+  /** Only the settings or only the passwords, for an editor that shows them in sections. */
+  only?: "settings" | "secrets";
 }) {
   const t = useTranslations("infra");
   const id = (name: string) => `infra-${service}-${name}`;
   return (
     <div className="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
-      {FIELDS[service].map((f) =>
+      {(only === "secrets" ? [] : FIELDS[service]).map((f) =>
         f.kind === "bool" ? (
           <label key={f.name} className="col-span-full flex items-center gap-2 text-sm">
             <input
@@ -62,7 +65,7 @@ export function ServiceFields({
           </label>
         ),
       )}
-      {SECRETS[service].map((s) => {
+      {(only === "settings" ? [] : SECRETS[service]).map((s) => {
         const saved = last4 ? last4[s.name] : undefined;
         return (
           <label key={s.name} htmlFor={id(s.name)} className={label}>

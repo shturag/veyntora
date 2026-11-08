@@ -4512,7 +4512,6 @@
     },
     "restarting": "Veyntora is restarting with the new settings…",
     "envMode": "These services are set by the environment here (CI or Helm), so they cannot be changed in the browser.",
-    "versionLine": "Version {version}, saved {when} by {who}.",
     "coreTitle": "Veyntora needs these to start",
     "coreSummary": "Saving tests the change first; then Veyntora's services restart with it.",
     "consoleTitle": "Set up in the console",
@@ -4521,11 +4520,51 @@
     "address": "Address",
     "state": "State",
     "where": "Where to set it up",
-    "open": "Open",
-    "setUp": "Set up",
     "historyTitle": "Versions",
     "versionN": "Version {version}",
     "inUse": "In use",
-    "restore": "Go back to this"
+    "restore": "Restore",
+    "overview": "Overview",
+    "configuration": "Configuration",
+    "fromEnvironment": "Set by the environment",
+    "savedBy": "Saved {when} by {who}",
+    "count": {
+      "ok": "{count} healthy",
+      "down": "{count} down",
+      "unknown": "{count} not checked",
+      "off": "{count} not set up"
+    },
+    "purpose": {
+      "postgres": "Settings, chats, audit log and the graph server's data",
+      "valkey": "Sign-in sessions, background jobs and caches",
+      "s3": "Uploaded documents and the write-once audit archive",
+      "openbao": "Every key and password, write-only",
+      "openfga": "Who may see and do what",
+      "keycloak": "Sign-in, users and groups",
+      "presidio": "Masks personal data",
+      "searxng": "Web search for agents",
+      "qdrant": "Vector store for document search",
+      "docling": "Reads PDFs, Office files and scans",
+      "sandbox": "Runs code for agents, without internet",
+      "clamav": "Checks uploads for viruses",
+      "email": "Sends notifications and approvals"
+    },
+    "pages": {
+      "providers": "Providers & keys",
+      "integrations": "Integrations",
+      "channels": "Channels & API"
+    },
+    "openIn": "{page}",
+    "setUpIn": "Set up in {page}",
+    "passwords": "Passwords",
+    "passwordsHint": "Stored in OpenBao and never shown again. Leave a field empty to keep the password in use.",
+    "connection": "Connection",
+    "notSet": "not set",
+    "notReachable": "Veyntora cannot reach this service.",
+    "saveHint": "Saving tests the connection first. If the test fails, nothing changes.",
+    "historySummary": "Every saved change is kept. Going back restarts Veyntora with that version.",
+    "noChanges": "No changes",
+    "showAll": "Show all {count} versions",
+    "showFewer": "Show fewer"
   }
 }

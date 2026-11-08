@@ -4512,7 +4512,6 @@
     },
     "restarting": "Veyntora startet mit den neuen Einstellungen neu …",
     "envMode": "Diese Dienste werden hier über die Umgebung gesetzt (CI oder Helm) und lassen sich nicht im Browser ändern.",
-    "versionLine": "Version {version}, gespeichert {when} von {who}.",
     "coreTitle": "Diese braucht Veyntora zum Start",
     "coreSummary": "Beim Speichern wird die Änderung zuerst getestet; dann starten die Dienste von Veyntora damit neu.",
     "consoleTitle": "In der Konsole eingerichtet",
@@ -4521,11 +4520,51 @@
     "address": "Adresse",
     "state": "Zustand",
     "where": "Wo er eingerichtet wird",
-    "open": "Öffnen",
-    "setUp": "Einrichten",
     "historyTitle": "Versionen",
     "versionN": "Version {version}",
     "inUse": "In Verwendung",
-    "restore": "Hierhin zurückkehren"
+    "restore": "Wiederherstellen",
+    "overview": "Übersicht",
+    "configuration": "Konfiguration",
+    "fromEnvironment": "Von der Umgebung festgelegt",
+    "savedBy": "Gespeichert {when} von {who}",
+    "count": {
+      "ok": "{count} in Ordnung",
+      "down": "{count} nicht erreichbar",
+      "unknown": "{count} nicht geprüft",
+      "off": "{count} nicht eingerichtet"
+    },
+    "purpose": {
+      "postgres": "Einstellungen, Chats, Audit-Log und die Daten des Graph-Servers",
+      "valkey": "Anmeldesitzungen, Hintergrundaufgaben und Caches",
+      "s3": "Hochgeladene Dokumente und das unveränderliche Audit-Archiv",
+      "openbao": "Alle Schlüssel und Passwörter, nur schreibbar",
+      "openfga": "Wer was sehen und tun darf",
+      "keycloak": "Anmeldung, Benutzer und Gruppen",
+      "presidio": "Maskiert personenbezogene Daten",
+      "searxng": "Websuche für Agenten",
+      "qdrant": "Vektorspeicher für die Dokumentensuche",
+      "docling": "Liest PDFs, Office-Dateien und Scans",
+      "sandbox": "Führt Code für Agenten aus, ohne Internet",
+      "clamav": "Prüft Uploads auf Viren",
+      "email": "Versendet Benachrichtigungen und Freigaben"
+    },
+    "pages": {
+      "providers": "Anbieter & Schlüssel",
+      "integrations": "Integrationen",
+      "channels": "Kanäle & API"
+    },
+    "openIn": "{page}",
+    "setUpIn": "In {page} einrichten",
+    "passwords": "Passwörter",
+    "passwordsHint": "Werden in OpenBao gespeichert und nie wieder angezeigt. Lassen Sie ein Feld leer, um das aktuelle Passwort zu behalten.",
+    "connection": "Verbindung",
+    "notSet": "nicht gesetzt",
+    "notReachable": "Veyntora erreicht diesen Dienst nicht.",
+    "saveHint": "Beim Speichern wird die Verbindung zuerst getestet. Schlägt der Test fehl, ändert sich nichts.",
+    "historySummary": "Jede gespeicherte Änderung bleibt erhalten. Zurückgehen startet Veyntora mit dieser Version neu.",
+    "noChanges": "Keine Änderungen",
+    "showAll": "Alle {count} Versionen anzeigen",
+    "showFewer": "Weniger anzeigen"
   }
 }
