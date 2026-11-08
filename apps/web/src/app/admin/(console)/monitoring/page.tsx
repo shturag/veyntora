@@ -13,7 +13,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("monitoring");
 
-const RANGES = ["today", "7d", "30d"] as const;
+const RANGES = ["24h", "7d", "30d"] as const;
 type Range = (typeof RANGES)[number];
 // Grafana dashboards have their own range: they show infrastructure, minute by minute.
 const GRANGES = ["1h", "6h", "24h", "7d"] as const;
@@ -26,7 +26,7 @@ export default async function MonitoringPage({
   searchParams: Promise<{ range?: string; bot?: string; grange?: string }>;
 }) {
   const params = await searchParams;
-  const range: Range = RANGES.includes(params.range as Range) ? (params.range as Range) : "today";
+  const range: Range = RANGES.includes(params.range as Range) ? (params.range as Range) : "24h";
   const grange: GRange = GRANGES.includes(params.grange as GRange)
     ? (params.grange as GRange)
     : "6h";
@@ -100,8 +100,9 @@ export default async function MonitoringPage({
           </div>
         }
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <nav aria-label={t("range")} className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-lg border border-line bg-surface px-4 py-3">
+        <nav aria-label={t("range")} className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs font-medium text-fg-muted">{t("period")}</span>
           {RANGES.map((r) => (
             <Link
               key={r}
@@ -113,7 +114,8 @@ export default async function MonitoringPage({
             </Link>
           ))}
         </nav>
-        <nav aria-label={t("chatbot")} className="flex flex-wrap gap-2">
+        <nav aria-label={t("chatbot")} className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs font-medium text-fg-muted">{t("chatbot")}</span>
           <Link
             href={href({ bot: undefined })}
             aria-current={!params.bot ? "page" : undefined}
@@ -181,15 +183,21 @@ export default async function MonitoringPage({
           <h2 id="by-mode" className="m-0 text-sm font-semibold">
             {data.bucket === "hour" ? t("perHour") : t("perDay")}
           </h2>
-          <RequestsChart
-            buckets={data.buckets}
-            label={data.bucket === "hour" ? t("perHour") : t("perDay")}
-            legend={{ fast: t("fast"), agent: t("agent") }}
-            tick={tick}
-            tableLabel={{ summary: t("asTable"), time: t("time") }}
-          />
+          {data.requests === 0 ? (
+            <p className="m-0 flex min-h-40 items-center justify-center rounded-md border border-dashed border-line-strong text-sm text-fg-muted">
+              {t("noRequests")}
+            </p>
+          ) : (
+            <RequestsChart
+              buckets={data.buckets}
+              label={data.bucket === "hour" ? t("perHour") : t("perDay")}
+              legend={{ fast: t("fast"), agent: t("agent") }}
+              tick={tick}
+              tableLabel={{ summary: t("asTable"), time: t("time") }}
+            />
+          )}
         </section>
-        <aside className="flex flex-col gap-4">
+        <aside className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-4">
           <section aria-labelledby="alerts" className="flex flex-col gap-2">
             <h2 id="alerts" className="m-0 text-sm font-semibold">
               {t("alerts")}
@@ -219,13 +227,13 @@ export default async function MonitoringPage({
               <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">
                 {data.providers.map((p) => (
                   <li key={p.id} className="flex justify-between gap-2">
-                    <span>
+                    <span className="min-w-0 break-words">
                       {p.name}{" "}
                       <span className="text-xs text-fg-muted">
                         {t(`hosting.${p.hosting as "external"}`)}
                       </span>
                     </span>
-                    <span className="tabular-nums text-fg-secondary">
+                    <span className="shrink-0 whitespace-nowrap tabular-nums text-fg-secondary">
                       {t("calls", { count: p.calls })}
                     </span>
                   </li>

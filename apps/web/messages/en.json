@@ -3812,9 +3812,9 @@
     "openGrafana": "Open in Grafana",
     "range": "Time range",
     "ranges": {
-      "today": "Today",
       "7d": "7 days",
-      "30d": "30 days"
+      "30d": "30 days",
+      "24h": "Last 24 hours"
     },
     "chatbot": "Chatbot",
     "allChatbots": "All assistants",
@@ -3870,7 +3870,9 @@
       "min": "Min",
       "max": "Max",
       "time": "Time"
-    }
+    },
+    "period": "Period",
+    "noRequests": "No requests in this period."
   },
   "governance": {
     "title": "Governance",

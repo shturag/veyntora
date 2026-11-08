@@ -40,6 +40,16 @@ const STROKES = [
   "stroke-series-7",
   "stroke-series-8",
 ];
+const FILLS = [
+  "fill-series-1",
+  "fill-series-2",
+  "fill-series-3",
+  "fill-series-4",
+  "fill-series-5",
+  "fill-series-6",
+  "fill-series-7",
+  "fill-series-8",
+];
 const SWATCHES = [
   "bg-series-1",
   "bg-series-2",
@@ -113,7 +123,8 @@ function Timeseries({
   format: Format;
   labels: { table: string; series: string; latest: string; min: string; max: string; time: string };
 }) {
-  const W = Math.max(360, span * 64);
+  // About the panel's width on screen (a column is ~100 px), so labels keep their size.
+  const W = Math.max(360, span * 100);
   const series = panel.series;
   const all = series.flatMap((s) => s.points);
   const values = all.map((p) => p[1]).filter((v): v is number => v !== null);
@@ -182,7 +193,7 @@ function Timeseries({
                 x={PAD.left - 6}
                 y={y(v) + 4}
                 textAnchor="end"
-                className="fill-fg-muted text-[10px]"
+                className="fill-fg-muted text-[11px]"
               >
                 {valueOf(format, v, panel.unit)}
               </text>
@@ -195,21 +206,28 @@ function Timeseries({
             x={PAD.left + f * plotW}
             y={H - 6}
             textAnchor={f === 0 ? "start" : f === 1 ? "end" : "middle"}
-            className="fill-fg-muted text-[10px]"
+            className="fill-fg-muted text-[11px]"
           >
             {tick(t0 + f * duration)}
           </text>
         ))}
         {series.map((s, i) => (
-          <path
-            key={s.name + i}
-            d={path(s)}
-            fill="none"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            className={STROKES[i]}
-          />
+          <g key={s.name + i}>
+            <path
+              d={path(s)}
+              fill="none"
+              strokeWidth={2}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              className={STROKES[i]}
+            />
+            {/* A value with gaps on both sides has no line: show it as a dot. */}
+            {s.points.map(([t, v], j) =>
+              v !== null && s.points[j - 1]?.[1] == null && s.points[j + 1]?.[1] == null ? (
+                <circle key={t} cx={x(t)} cy={y(v)} r={2.5} className={FILLS[i]} />
+              ) : null,
+            )}
+          </g>
         ))}
         {first.map(([t]) => (
           <rect

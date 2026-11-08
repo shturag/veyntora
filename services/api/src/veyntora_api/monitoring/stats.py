@@ -27,13 +27,15 @@ from veyntora_api.db.models.conversations import (
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.db.models.quality import UsageRecord
 
-Range = Literal["today", "7d", "30d"]
+Range = Literal["today", "24h", "7d", "30d"]
 
 
 def since_of(r: Range, now: datetime | None = None) -> datetime:
     now = now or datetime.now(UTC)
     if r == "today":
         return now.replace(hour=0, minute=0, second=0, microsecond=0)
+    if r == "24h":
+        return now - timedelta(hours=24)
     return now - timedelta(days=7 if r == "7d" else 30)
 
 

@@ -316,7 +316,7 @@ async def monitoring(
 ) -> MonitoringOut:
     await _may(state, principal, "monitoring")
     now = datetime.now(UTC)
-    bucket: Literal["hour", "day"] = "hour" if range == "today" else "day"
+    bucket: Literal["hour", "day"] = "hour" if range in ("today", "24h") else "day"
     s = await mon.stats(
         db, mon.since_of(range, now), [chatbot_id] if chatbot_id else None, until=now, bucket=bucket
     )

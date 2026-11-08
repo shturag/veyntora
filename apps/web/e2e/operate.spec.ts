@@ -30,16 +30,17 @@ test.describe("overview and monitoring as a platform admin", () => {
   test("monitoring shows requests by mode for each range", async ({ page }) => {
     await page.goto("/admin/monitoring");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Monitoring");
-    await expect(page.getByRole("img", { name: "Requests per hour by mode" })).toBeVisible();
+    // The chart, or "No requests in this period." on a stack without answers yet.
+    await expect(page.getByRole("heading", { name: "Requests per hour by mode" })).toBeVisible();
     await expectNoA11yViolations(page);
     await page
       .getByRole("navigation", { name: "Time range", exact: true })
       .getByRole("link", { name: "7 days" })
       .click();
-    await expect(page.getByRole("img", { name: "Requests per day by mode" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Requests per day by mode" })).toBeVisible();
     await page.emulateMedia({ colorScheme: "dark" });
     await page.reload();
-    await expect(page.getByRole("img", { name: "Requests per day by mode" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Requests per day by mode" })).toBeVisible();
     await expectNoA11yViolations(page);
   });
 });

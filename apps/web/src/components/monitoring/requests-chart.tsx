@@ -5,7 +5,8 @@
 
 type Bucket = { at: string; fast: number; agent: number };
 
-const W = 640;
+// Drawn near the size it is shown at, so its labels stay at the page's text size.
+const W = 840;
 const H = 180;
 const PAD = { top: 8, right: 8, bottom: 22, left: 36 };
 
@@ -57,7 +58,7 @@ export function RequestsChart({
               x={PAD.left - 6}
               y={PAD.top + plotH - f * plotH + 4}
               textAnchor="end"
-              className="fill-fg-muted text-[10px]"
+              className="fill-fg-muted text-[11px]"
             >
               {Math.round(f * top)}
             </text>
@@ -104,7 +105,7 @@ export function RequestsChart({
                   x={x + barW / 2}
                   y={H - 6}
                   textAnchor="middle"
-                  className="fill-fg-muted text-[10px]"
+                  className="fill-fg-muted text-[11px]"
                 >
                   {tick(b.at)}
                 </text>

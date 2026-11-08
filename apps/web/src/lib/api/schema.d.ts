@@ -7518,7 +7518,7 @@ export interface components {
              * Range
              * @enum {string}
              */
-            range: "today" | "7d" | "30d";
+            range: "today" | "24h" | "7d" | "30d";
             /** Ratings */
             ratings: number;
             /** Requests */
@@ -14731,7 +14731,7 @@ export interface operations {
     monitoring_v1_admin_monitoring_get: {
         parameters: {
             query?: {
-                range?: "today" | "7d" | "30d";
+                range?: "today" | "24h" | "7d" | "30d";
                 chatbot_id?: string | null;
             };
             header?: never;
