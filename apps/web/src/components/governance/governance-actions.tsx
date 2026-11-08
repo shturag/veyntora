@@ -11,6 +11,11 @@ import { control, field, FormDialog, Result, useAction } from "../evaluation/eva
 type Gov = components["schemas"]["GovernancePage"];
 type Settings = components["schemas"]["GovernanceSettings-Output"];
 
+const part = "flex flex-col gap-4 border-b border-divider px-5 py-5";
+const partHead = "flex flex-col gap-1";
+const partTitle = "m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
+const partHint = "m-0 max-w-3xl text-xs text-fg-muted";
+
 const area =
   "min-h-[72px] w-full rounded-md border border-line-strong bg-surface p-3 text-sm font-normal";
 
@@ -45,12 +50,18 @@ export function SettingsForm({ data }: { data: Gov }) {
           t("saved"),
         );
       }}
-      className="flex flex-col gap-5"
+      className="overflow-hidden rounded-lg border border-line bg-surface"
     >
-      <fieldset disabled={!data.can_edit} className="m-0 flex flex-col gap-5 border-0 p-0">
-        <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
-          <h2 className="m-0 text-sm font-semibold">{t("retention")}</h2>
-          <div className="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
+      <fieldset disabled={!data.can_edit} className="m-0 flex flex-col border-0 p-0">
+        <legend className="sr-only">{t("settingsTitle")}</legend>
+        <section aria-labelledby="gov-retention" className={part}>
+          <div className={partHead}>
+            <h3 id="gov-retention" className={partTitle}>
+              {t("retention")}
+            </h3>
+            <p className={partHint}>{t("retentionHint")}</p>
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4 max-[1100px]:grid-cols-2 max-[560px]:grid-cols-1">
             {(
               [
                 ["chat", s.chat_retention_days, 1],
@@ -93,8 +104,15 @@ export function SettingsForm({ data }: { data: Gov }) {
               </label>
             </div>
           </div>
-          <p className="m-0 text-xs text-fg-muted">{t("retentionHint")}</p>
-          <label className={field}>
+        </section>
+        <section aria-labelledby="gov-reviews" className={part}>
+          <div className={partHead}>
+            <h3 id="gov-reviews" className={partTitle}>
+              {t("reviewsTitle")}
+            </h3>
+            <p className={partHint}>{t("reviewsHint")}</p>
+          </div>
+          <label className={`${field} max-w-xs`}>
             {t("reviewEvery")}
             <input
               name="review_every"
@@ -102,32 +120,44 @@ export function SettingsForm({ data }: { data: Gov }) {
               min={30}
               max={730}
               defaultValue={s.access_review_every_days ?? ""}
+              placeholder={t("byHandOnly")}
               className={control}
             />
           </label>
         </section>
-        <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
-          <h2 className="m-0 text-sm font-semibold">{t("personalData")}</h2>
-          {(
-            [
-              ["mask_reviews", s.mask_reviews_and_traces],
-              ["require_mask", s.require_mask_before_external],
-              ["eu_only", s.eu_only_external],
-            ] as const
-          ).map(([k, v]) => (
-            <label key={k} className="flex items-start gap-2 text-sm">
-              <input type="checkbox" name={k} defaultChecked={v} className="mt-0.5 size-4" />
-              <span>
-                {t(`toggles.${k}`)}
-                <span className="block text-xs text-fg-muted">{t(`toggleHints.${k}`)}</span>
-              </span>
-            </label>
-          ))}
+        <section aria-labelledby="gov-personal" className={part}>
+          <div className={partHead}>
+            <h3 id="gov-personal" className={partTitle}>
+              {t("personalData")}
+            </h3>
+          </div>
+          <div className="flex flex-col gap-3">
+            {(
+              [
+                ["mask_reviews", s.mask_reviews_and_traces],
+                ["require_mask", s.require_mask_before_external],
+                ["eu_only", s.eu_only_external],
+              ] as const
+            ).map(([k, v]) => (
+              <label key={k} className="flex items-start gap-3 text-sm">
+                <input type="checkbox" name={k} defaultChecked={v} className="mt-0.5 size-4" />
+                <span className="flex flex-col gap-0.5">
+                  <span className="font-medium">{t(`toggles.${k}`)}</span>
+                  <span className="text-xs text-fg-muted">{t(`toggleHints.${k}`)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
         </section>
-        <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
-          <h2 className="m-0 text-sm font-semibold">{t("aiNotice")}</h2>
+        <section aria-labelledby="gov-notice" className={part}>
+          <div className={partHead}>
+            <h3 id="gov-notice" className={partTitle}>
+              {t("aiNotice")}
+            </h3>
+            <p className={partHint}>{t("aiNoticeHint")}</p>
+          </div>
           <label className={field}>
-            {t("aiNoticeText")}
+            <span className="sr-only">{t("aiNoticeText")}</span>
             <textarea
               name="ai_notice"
               required
@@ -135,19 +165,20 @@ export function SettingsForm({ data }: { data: Gov }) {
               defaultValue={s.ai_notice}
               className={area}
             />
-            <span className="text-xs font-normal text-fg-muted">{t("aiNoticeHint")}</span>
           </label>
         </section>
-        {data.can_edit ? (
-          <div className="flex items-center gap-3">
-            <Button type="submit" variant="primary" disabled={state.busy}>
-              {t("save")}
-            </Button>
-            <Result message={state.message} />
-          </div>
-        ) : (
-          <p className="m-0 text-xs text-fg-muted">{t("editorsOnly")}</p>
-        )}
+        <div className="flex items-center justify-end gap-3 bg-sunken/40 px-5 py-3">
+          {data.can_edit ? (
+            <>
+              <Result message={state.message} />
+              <Button type="submit" variant="primary" disabled={state.busy}>
+                {t("save")}
+              </Button>
+            </>
+          ) : (
+            <p className="m-0 text-xs text-fg-muted">{t("editorsOnly")}</p>
+          )}
+        </div>
       </fieldset>
     </form>
   );
