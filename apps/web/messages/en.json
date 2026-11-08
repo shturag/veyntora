@@ -2430,7 +2430,10 @@
     "descriptionHint": "One short line. People see it under the name when they choose an assistant.",
     "welcomePlaceholder": "For example: Hi! Ask me about leave, payroll or benefits.",
     "welcomeHint": "The first message in every new chat.",
-    "basicsIntro": "Name the chatbot and say what it is for. Nobody sees it until you publish it and give access."
+    "basicsIntro": "Name the chatbot and say what it is for. Nobody sees it until you publish it and give access.",
+    "deleteBlocked": "{count, plural, one {An automation uses this chatbot. Change it to another chatbot or delete it first:} other {# automations use this chatbot. Change them to another chatbot or delete them first:}}",
+    "createdOn": "created {day}",
+    "showAutomations": "Show the automations"
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
@@ -3063,7 +3066,21 @@
     "stepChanged": "Changed {id}",
     "stepType": "Step type",
     "stepName": "Name",
-    "toolRunsAs": "The tool runs as {name}, with only the access that identity was given."
+    "toolRunsAs": "The tool runs as {name}, with only the access that identity was given.",
+    "delete": "Delete…",
+    "deleteNamed": "Delete {name}",
+    "deleteTitle": "Delete {name}?",
+    "deleteBody": "This deletes the automation with its steps, versions and webhook token. It cannot be undone. Its runs stay in the run history, the audit log keeps the record, and its service identity is suspended.",
+    "deleteActive": "It is active: it will be paused first, so no run starts while it is deleted.",
+    "deletePauseReason": "Paused to delete it",
+    "pauseAndDelete": "Pause and delete",
+    "deleteForGood": "Delete for good",
+    "filteredBy": "{count, plural, =0 {No automation uses {name}.} one {# automation uses {name}.} other {# automations use {name}.}}",
+    "showAll": "Show all automations",
+    "createdOn": "created {day}",
+    "toFix": "{count, plural, one {# thing to fix} other {# things to fix}}",
+    "emptyFiltered": "Nothing to change: no automation uses this chatbot, so it can be deleted.",
+    "fixFirst": "Fix what is listed under “Before it can run” first."
   },
   "knowledgeHealth": {
     "title": "Knowledge health",

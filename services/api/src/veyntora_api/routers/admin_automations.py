@@ -14,7 +14,7 @@ from uuid import UUID
 
 import httpx
 import sqlalchemy as sa
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 from veyntora_spec.automation import (
     AutomationRule,
@@ -87,6 +87,10 @@ class AutomationCard(BaseModel):
     next_run_at: datetime | None
     last_run: LastRun | None
     failed_recent: int
+    # Tells apart automations with the same name.
+    created_at: datetime
+    # What still keeps a draft from being activated.
+    problems: int
 
 
 class AutomationList(BaseModel):
@@ -186,8 +190,16 @@ async def templates(_: Viewer) -> list[TemplateOut]:
 
 
 @router.get("", summary="Automations with this week's numbers")
-async def list_automations(_: Viewer, db: DbSession) -> AutomationList:
-    rows = list((await db.execute(sa.select(Automation).order_by(Automation.name))).scalars())
+async def list_automations(
+    _: Viewer,
+    db: DbSession,
+    state: State,
+    chatbot: Annotated[UUID | None, Query(description="Only those that use this chatbot")] = None,
+) -> AutomationList:
+    query = sa.select(Automation).order_by(Automation.name, Automation.created_at)
+    if chatbot is not None:
+        query = query.where(svc.uses_chatbot(chatbot))
+    rows = list((await db.execute(query)).scalars())
     week = datetime.now(UTC) - timedelta(days=7)
     automation_runs = sa.select(Run).where(Run.kind == RunKind.AUTOMATION)
     runs_week = await db.scalar(
@@ -241,6 +253,10 @@ async def list_automations(_: Viewer, db: DbSession) -> AutomationList:
                 if last
                 else None,
                 failed_recent=int(failed_recent or 0),
+                created_at=row.created_at,
+                problems=len(await svc.problems_of(db, state.require_authz(), row))
+                if row.status is AutomationStatus.DRAFT
+                else 0,
             )
         )
     return AutomationList(

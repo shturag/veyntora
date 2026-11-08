@@ -262,3 +262,91 @@ export function PauseResume({ id, status }: { id: string; status: string }) {
     </>
   );
 }
+
+/** Delete an automation. An active one is paused first, so no run starts meanwhile. */
+export function DeleteAutomation({
+  id,
+  name,
+  status,
+  compact = false,
+  then,
+}: {
+  id: string;
+  name: string;
+  status: string;
+  /** In the list: a small button. */
+  compact?: boolean;
+  /** Where to go afterwards (the automation's own page); otherwise the list reloads. */
+  then?: string;
+}) {
+  const t = useTranslations("automations");
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const active = status === "active";
+
+  async function remove() {
+    setBusy(true);
+    setError(null);
+    try {
+      if (active) {
+        await api(`/v1/admin/automations/${id}/pause`, {
+          method: "POST",
+          body: JSON.stringify({ reason: t("deletePauseReason") }),
+        });
+      }
+      await api(`/v1/admin/automations/${id}`, { method: "DELETE" });
+      setOpen(false);
+      if (then) router.push(then);
+      else router.refresh();
+    } catch (e) {
+      setError(t("failed", { reason: errorText(e) }));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <Button
+        size={compact ? "sm" : undefined}
+        variant="danger-outline"
+        onClick={() => setOpen(true)}
+        aria-label={compact ? t("deleteNamed", { name }) : undefined}
+      >
+        {t("delete")}
+      </Button>
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) setError(null);
+        }}
+        title={t("deleteTitle", { name })}
+        closeLabel={t("close")}
+      >
+        <div className="flex flex-col gap-3">
+          <p className="m-0 text-sm">{t("deleteBody")}</p>
+          {active ? (
+            <p className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
+              {t("deleteActive")}
+            </p>
+          ) : null}
+          {error ? (
+            <p role="alert" className="m-0 text-sm text-red">
+              {error}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-2">
+            <Button type="button" onClick={() => setOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button variant="danger" disabled={busy} onClick={remove}>
+              {active ? t("pauseAndDelete") : t("deleteForGood")}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+    </>
+  );
+}

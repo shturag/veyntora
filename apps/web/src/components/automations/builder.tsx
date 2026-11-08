@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { api } from "@/lib/chat";
 
-import { PauseResume, RunNow } from "./list-actions";
+import { DeleteAutomation, PauseResume, RunNow } from "./list-actions";
 import {
   control,
   errorText,
@@ -138,8 +138,12 @@ export function Builder({
               <RunNow id={automation.id} label={t("testSample")} dryOnly />
               {automation.status === "draft" ? (
                 <Button
-                  variant="primary"
+                  // Saving comes first while there are changes; then activating.
+                  variant={dirty ? "secondary" : "primary"}
                   disabled={busy || dirty || automation.problems.length > 0}
+                  title={
+                    dirty ? t("saveFirst") : automation.problems.length ? t("fixFirst") : undefined
+                  }
                   onClick={() =>
                     run(
                       () =>
@@ -157,12 +161,18 @@ export function Builder({
                 <PauseResume id={automation.id} status={automation.status} />
               )}
               <Button
-                variant="primary"
+                variant={dirty ? "primary" : "secondary"}
                 disabled={busy || !dirty}
                 onClick={() => save(spec, t("savedVersion", { n: automation.version + 1 }))}
               >
                 {t("saveChanges")}
               </Button>
+              <DeleteAutomation
+                id={automation.id}
+                name={automation.name}
+                status={automation.status}
+                then="/admin/automations"
+              />
             </div>
           ) : null}
         </div>

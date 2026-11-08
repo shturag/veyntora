@@ -1,12 +1,14 @@
 "use client";
 
 import { Button, Dialog } from "@veyntora/ui";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { api } from "@/lib/chat";
+
+type Blocker = { id: string; name: string; created_at: string };
 
 const control = "h-10 rounded-md border border-line-strong bg-surface px-3 text-sm font-normal";
 
@@ -29,6 +31,20 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
 
   const [deleting, setDeleting] = useState(false);
   const [typed, setTyped] = useState("");
+  // Automations that use this chatbot: it cannot be deleted while there are any.
+  const [blockers, setBlockers] = useState<Blocker[] | null>(null);
+  const format = useFormatter();
+
+  async function openDelete() {
+    setDeleting(true);
+    setBlockers(null);
+    try {
+      const out = await api<{ automations: Blocker[] }>(`/v1/admin/automations?chatbot=${bot.id}`);
+      setBlockers(out.automations);
+    } catch {
+      setBlockers([]); // not allowed to list them: the server still refuses with the names
+    }
+  }
 
   async function remove(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -107,7 +123,7 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
             <Button disabled={busy} onClick={() => setStatus("paused")}>
               {t("restore")}
             </Button>
-            <Button variant="danger-outline" disabled={busy} onClick={() => setDeleting(true)}>
+            <Button variant="danger-outline" disabled={busy} onClick={openDelete}>
               {t("delete")}
             </Button>
           </>
@@ -141,6 +157,30 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
       >
         <form onSubmit={remove} className="flex flex-col gap-3">
           <p className="m-0 text-sm">{t("deleteBody")}</p>
+          {blockers?.length ? (
+            <div
+              role="note"
+              className="flex flex-col gap-2 rounded-md bg-amber-soft px-3 py-2.5 text-sm"
+            >
+              <span className="font-medium text-amber">
+                {t("deleteBlocked", { count: blockers.length })}
+              </span>
+              <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                {blockers.map((a) => (
+                  <li key={a.id}>
+                    <Link href={`/admin/automations/${a.id}`} className="font-medium">
+                      {a.name}
+                    </Link>{" "}
+                    <span className="text-xs text-fg-muted">
+                      {t("createdOn", {
+                        day: format.dateTime(new Date(a.created_at), { dateStyle: "medium" }),
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <label className="flex flex-col gap-1 text-[13px] font-medium">
             {t("deleteType", { name: bot.name })}
             <input
@@ -152,14 +192,21 @@ export function BotActions({ bot }: { bot: { id: string; name: string; status: s
           </label>
           {error ? (
             <p role="alert" className="m-0 text-sm text-red">
-              {t("failed", { reason: error })}
+              {t("failed", { reason: error })}{" "}
+              {error.includes("automations") ? (
+                <Link href={`/admin/automations?chatbot=${bot.id}`}>{t("showAutomations")}</Link>
+              ) : null}
             </p>
           ) : null}
           <div className="flex justify-end gap-2">
             <Button type="button" onClick={() => setDeleting(false)}>
               {t("cancel")}
             </Button>
-            <Button type="submit" variant="danger" disabled={busy || typed.trim() !== bot.name}>
+            <Button
+              type="submit"
+              variant="danger"
+              disabled={busy || typed.trim() !== bot.name || !!blockers?.length}
+            >
               {t("deleteForGood")}
             </Button>
           </div>

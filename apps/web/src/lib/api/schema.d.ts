@@ -4259,6 +4259,11 @@ export interface components {
             autonomy: components["schemas"]["Autonomy"];
             /** Chatbot */
             chatbot: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
             /** Description */
             description: string;
             /** Failed Recent */
@@ -4275,6 +4280,8 @@ export interface components {
             next_run_at: string | null;
             /** Paused Reason */
             paused_reason: string | null;
+            /** Problems */
+            problems: number;
             status: components["schemas"]["AutomationStatus"];
             /** Trigger */
             trigger: string;
@@ -11151,7 +11158,10 @@ export interface operations {
     };
     list_automations_v1_admin_automations_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only those that use this chatbot */
+                chatbot?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -11165,6 +11175,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AutomationList"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

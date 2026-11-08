@@ -1366,6 +1366,11 @@
             ],
             "title": "Chatbot"
           },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -1416,6 +1421,10 @@
             ],
             "title": "Paused Reason"
           },
+          "problems": {
+            "title": "Problems",
+            "type": "integer"
+          },
           "status": {
             "$ref": "#/components/schemas/AutomationStatus"
           },
@@ -1440,7 +1449,9 @@
           "paused_reason",
           "next_run_at",
           "last_run",
-          "failed_recent"
+          "failed_recent",
+          "created_at",
+          "problems"
         ],
         "title": "AutomationCard",
         "type": "object"
@@ -20045,6 +20056,27 @@
     "/v1/admin/automations": {
       "get": {
         "operationId": "list_automations_v1_admin_automations_get",
+        "parameters": [
+          {
+            "description": "Only those that use this chatbot",
+            "in": "query",
+            "name": "chatbot",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only those that use this chatbot",
+              "title": "Chatbot"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -20055,6 +20087,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Automations with this week's numbers",

@@ -576,3 +576,44 @@ def test_a_drafted_automation_uses_only_known_tools_and_fits_the_spec() -> None:
     assert "Step 3: choose the channel to post in." in automation_problems(spec)
     with pytest.raises(draft.DraftError):
         draft.parse("I cannot help with that.", bot, {})
+
+
+async def test_the_list_tells_twins_apart_finds_a_chatbots_automations_and_deletes(
+    rag: Rag, db: AsyncSession
+) -> None:
+    from fastapi import HTTPException  # noqa: PLC0415
+    from veyntora_api.chatbots import service as bots  # noqa: PLC0415
+    from veyntora_api.db.models.chatbots import ChatbotStatus  # noqa: PLC0415
+    from veyntora_api.routers import admin_automations as router  # noqa: PLC0415
+
+    class State:
+        def require_authz(self) -> Any:
+            return rag.authz
+
+    state: Any = State()
+    me: Any = None
+    data = svc.AutomationInput(name="Triage new tickets", template="triage")
+    loose = await svc.create(db, CTX, data, rag.w.user.id)
+    used = await svc.create(
+        db, CTX, data.model_copy(update={"chatbot_id": rag.bot.id}), rag.w.user.id
+    )
+
+    every = await router.list_automations(me, db, state)
+    assert [a.name for a in every.automations] == ["Triage new tickets"] * 2
+    assert every.automations[0].created_at <= every.automations[1].created_at
+    assert all(a.problems > 0 for a in every.automations), "drafts list what is missing"
+    [only] = (await router.list_automations(me, db, state, chatbot=rag.bot.id)).automations
+    assert only.id == used.id
+
+    # The chatbot cannot go while an automation uses it; deleting the automation frees it.
+    rag.bot.status = ChatbotStatus.ARCHIVED
+    with pytest.raises(bots.ChatbotError, match="Triage new tickets"):
+        await bots.delete_chatbot(db, CTX, rag.authz, None, rag.bot)  # type: ignore[arg-type]
+    used.status = AutomationStatus.ACTIVE
+    with pytest.raises(HTTPException, match="pause"):
+        await router.delete_automation(used.id, me, db, CTX)
+    used.status = AutomationStatus.PAUSED
+    await router.delete_automation(used.id, me, db, CTX)
+    identity = await db.get(User, used.service_user_id)
+    assert identity is not None and identity.suspended
+    assert [a.id for a in (await router.list_automations(me, db, state)).automations] == [loose.id]

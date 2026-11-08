@@ -221,6 +221,14 @@ def _tool_ids(spec: AutomationSpec) -> set[UUID]:
     return ids
 
 
+def uses_chatbot(bot_id: UUID) -> sa.ColumnElement[bool]:
+    """Automations that use a chatbot: as their own, or in a step (the spec names its id)."""
+    return sa.or_(
+        Automation.chatbot_id == bot_id,
+        sa.cast(Automation.spec, sa.Text).contains(str(bot_id)),
+    )
+
+
 async def _db_problems(db: AsyncSession, spec: AutomationSpec) -> list[str]:  # noqa: PLR0912
     problems: list[str] = []
     tools = await _tools(db, _tool_ids(spec))

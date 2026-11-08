@@ -2430,7 +2430,10 @@
     "descriptionHint": "Eine kurze Zeile. Sie steht unter dem Namen, wenn man einen Assistenten wählt.",
     "welcomePlaceholder": "Zum Beispiel: Hallo! Fragen Sie mich zu Urlaub, Gehalt oder Benefits.",
     "welcomeHint": "Die erste Nachricht in jedem neuen Chat.",
-    "basicsIntro": "Benennen Sie den Chatbot und sagen Sie, wofür er da ist. Niemand sieht ihn, bevor Sie ihn veröffentlichen und Zugriff geben."
+    "basicsIntro": "Benennen Sie den Chatbot und sagen Sie, wofür er da ist. Niemand sieht ihn, bevor Sie ihn veröffentlichen und Zugriff geben.",
+    "deleteBlocked": "{count, plural, one {Eine Automation nutzt diesen Chatbot. Stellen Sie sie auf einen anderen Chatbot um oder löschen Sie sie zuerst:} other {# Automationen nutzen diesen Chatbot. Stellen Sie sie auf einen anderen Chatbot um oder löschen Sie sie zuerst:}}",
+    "createdOn": "erstellt am {day}",
+    "showAutomations": "Automationen zeigen"
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",
@@ -3063,7 +3066,21 @@
     "stepChanged": "{id} geändert",
     "stepType": "Art des Schritts",
     "stepName": "Name",
-    "toolRunsAs": "Das Tool läuft als {name}, nur mit den Rechten dieser Identität."
+    "toolRunsAs": "Das Tool läuft als {name}, nur mit den Rechten dieser Identität.",
+    "delete": "Löschen…",
+    "deleteNamed": "{name} löschen",
+    "deleteTitle": "{name} löschen?",
+    "deleteBody": "Das löscht die Automation mit ihren Schritten, Versionen und dem Webhook-Token. Das lässt sich nicht rückgängig machen. Ihre Läufe bleiben im Laufverlauf, das Audit-Log behält den Eintrag, und ihre Dienstidentität wird gesperrt.",
+    "deleteActive": "Sie ist aktiv: Sie wird zuerst pausiert, damit beim Löschen kein Lauf startet.",
+    "deletePauseReason": "Zum Löschen pausiert",
+    "pauseAndDelete": "Pausieren und löschen",
+    "deleteForGood": "Endgültig löschen",
+    "filteredBy": "{count, plural, =0 {Keine Automation nutzt {name}.} one {# Automation nutzt {name}.} other {# Automationen nutzen {name}.}}",
+    "showAll": "Alle Automationen zeigen",
+    "createdOn": "erstellt am {day}",
+    "toFix": "{count, plural, one {# Punkt zu beheben} other {# Punkte zu beheben}}",
+    "emptyFiltered": "Nichts zu ändern: Keine Automation nutzt diesen Chatbot, er kann gelöscht werden.",
+    "fixFirst": "Beheben Sie zuerst, was unter „Bevor sie laufen kann“ steht."
   },
   "knowledgeHealth": {
     "title": "Wissensqualität",

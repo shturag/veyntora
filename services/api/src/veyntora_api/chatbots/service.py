@@ -20,6 +20,7 @@ from veyntora_spec.filters import FilterError, parse_filter
 from veyntora_spec.pipeline import FlowNodeType, PipelineSpec
 
 from veyntora_api.authz.fga import PLATFORM, Authz, Tuple
+from veyntora_api.automations.service import uses_chatbot
 from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService, VersionConflictError
 from veyntora_api.core.context import RequestContext
@@ -192,18 +193,10 @@ async def delete_chatbot(
     )
     if chatters & held_users:
         raise ChatbotError("a legal hold covers chats of people who used this chatbot")
-    text = str(bot.id)
     automations = (
         (
             await db.execute(
-                sa.select(Automation.name)
-                .where(
-                    sa.or_(
-                        Automation.chatbot_id == bot.id,
-                        sa.cast(Automation.spec, sa.Text).contains(text),
-                    )
-                )
-                .order_by(Automation.name)
+                sa.select(Automation.name).where(uses_chatbot(bot.id)).order_by(Automation.name)
             )
         )
         .scalars()
