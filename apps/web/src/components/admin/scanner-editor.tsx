@@ -67,16 +67,21 @@ export function ScannerEditor({ scanner, canEdit }: { scanner: Scanner; canEdit:
       aria-labelledby="scanner-title"
       className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h2 id="scanner-title" className="m-0 text-lg font-bold">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 id="scanner-title" className="m-0 flex items-center gap-2 text-lg font-bold">
             {t("title")}
+            <Badge tone={scanner.address ? "green" : scanner.required ? "amber" : "neutral"}>
+              {scanner.address ? t("on") : t("notSetUp")}
+            </Badge>
           </h2>
           <p className="m-0 text-sm text-fg-secondary">{t("summary")}</p>
         </div>
-        <Badge tone={scanner.address ? "green" : scanner.required ? "amber" : "neutral"}>
-          {scanner.address ? t("on") : t("notSetUp")}
-        </Badge>
+        {canEdit ? (
+          <Button type="button" size="sm" onClick={test} disabled={busy || !address}>
+            {t("test")}
+          </Button>
+        ) : null}
       </div>
       {!scanner.address && scanner.required ? (
         <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
@@ -103,11 +108,15 @@ export function ScannerEditor({ scanner, canEdit }: { scanner: Scanner; canEdit:
             <Button type="submit" variant="primary" disabled={busy || !address}>
               {scanner.address ? t("save") : t("setUp")}
             </Button>
-            <Button type="button" onClick={test} disabled={busy || !address}>
-              {t("test")}
-            </Button>
             {scanner.address ? (
-              <Button type="button" variant="danger-outline" onClick={remove} disabled={busy}>
+              <Button
+                type="button"
+                size="sm"
+                variant="danger-outline"
+                onClick={remove}
+                disabled={busy}
+                className="ml-auto"
+              >
                 {t("remove")}
               </Button>
             ) : null}

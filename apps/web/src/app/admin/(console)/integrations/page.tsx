@@ -35,6 +35,55 @@ export default async function IntegrationsPage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <nav aria-label={t("overview")} className="grid grid-cols-3 gap-3 max-[800px]:grid-cols-1">
+        {[
+          ...(data as IntegrationRow[]).map((row) => ({
+            id: `${row.kind}-title`,
+            name: t(`kinds.${row.kind}.title`),
+            state: !row.configured
+              ? ("off" as const)
+              : !row.enabled
+                ? ("paused" as const)
+                : row.health_ok === false
+                  ? ("failing" as const)
+                  : row.health_ok
+                    ? ("ok" as const)
+                    : ("untested" as const),
+          })),
+          ...(scanner
+            ? [
+                {
+                  id: "scanner-title",
+                  name: t("scanner.title"),
+                  state: scanner.address ? ("ok" as const) : ("off" as const),
+                },
+              ]
+            : []),
+        ].map((x) => (
+          <a
+            key={x.id}
+            href={`#${x.id}`}
+            className="flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3 text-fg no-underline hover:border-line-strong"
+          >
+            <span
+              aria-hidden
+              className={`size-2.5 shrink-0 rounded-full ${
+                x.state === "ok"
+                  ? "bg-green"
+                  : x.state === "failing"
+                    ? "bg-red"
+                    : x.state === "off"
+                      ? "bg-line-strong"
+                      : "bg-amber"
+              }`}
+            />
+            <span className="flex flex-col">
+              <span className="text-sm font-semibold">{x.name}</span>
+              <span className="text-xs text-fg-muted">{t(`state.${x.state}`)}</span>
+            </span>
+          </a>
+        ))}
+      </nav>
       <div className="grid grid-cols-2 items-start gap-5 max-[1100px]:grid-cols-1">
         {(data as IntegrationRow[]).map((row) => (
           <IntegrationEditor key={row.kind} integration={row} canEdit={canEdit} />

@@ -4218,7 +4218,6 @@
     "notConnected": "Nicht verbunden",
     "test": "Verbindung testen",
     "testQueued": "Test gestartet. Das Ergebnis erscheint hier in wenigen Sekunden (neu laden).",
-    "remove": "Entfernen",
     "removeConfirm": "Die Einstellungen für {name} entfernen und den Schlüssel löschen?",
     "removed": "Entfernt.",
     "scanner": {
@@ -4238,6 +4237,19 @@
       "reachable": "clamd hat geantwortet.",
       "unreachable": "Nicht erreichbar: {detail}",
       "failed": "Das hat nicht funktioniert."
+    },
+    "connection": "Verbindung",
+    "browserUrlInternal": "Browser können diese Adresse meist nicht öffnen (sie gilt nur zwischen Containern). Geben Sie die Adresse ein, die Leute öffnen, zum Beispiel {example}.",
+    "testNeedsKey": "Speichern Sie zuerst den Schlüssel.",
+    "checkedAt": "Geprüft {when}; alle 6 Stunden erneut geprüft.",
+    "removeIntegration": "{name} entfernen",
+    "overview": "Integrationen im Überblick",
+    "state": {
+      "ok": "Verbunden",
+      "failing": "Nicht verbunden",
+      "untested": "Noch nicht getestet",
+      "paused": "Ausgeschaltet",
+      "off": "Nicht eingerichtet"
     }
   },
   "dataRules": {

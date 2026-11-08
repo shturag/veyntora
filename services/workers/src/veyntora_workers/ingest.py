@@ -41,8 +41,7 @@ from veyntora_api.db.models.knowledge import (
 )
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge import clamd as scan
-from veyntora_api.knowledge import health
-from veyntora_api.knowledge import vocabulary
+from veyntora_api.knowledge import health, vocabulary
 from veyntora_api.knowledge.connectors import CONNECTED
 from veyntora_api.knowledge.profiles import index_plan
 from veyntora_api.knowledge.scanner import scanner_address

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge, Button } from "@veyntora/ui";
+import { CircleAlert, CircleCheck } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -30,6 +31,7 @@ type Found = { uid: string; title: string; folder: string };
 const MAX_DASHBOARDS = 12;
 const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
 const label = "flex flex-col gap-1 text-[13px] font-medium";
+const sectionTitle = "m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
 
 /** Langfuse or Grafana: address, write-only key, "Test connection" and (Grafana) the
  * dashboards shown on Monitoring. */
@@ -46,6 +48,7 @@ export function IntegrationEditor({
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [hosting, setHosting] = useState(row.hosting);
+  const [browserUrl, setBrowserUrl] = useState(row.browser_url ?? "");
   const [dashboards, setDashboards] = useState(row.dashboards);
   const [found, setFound] = useState<Found[] | null>(null);
   const grafana = row.kind === "grafana";
@@ -157,19 +160,75 @@ export function IntegrationEditor({
       aria-labelledby={`${row.kind}-title`}
       className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h2 id={`${row.kind}-title`} className="m-0 text-lg font-bold">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 id={`${row.kind}-title`} className="m-0 flex items-center gap-2 text-lg font-bold">
             {title}
+            <Badge tone={!row.configured ? "neutral" : row.enabled ? "green" : "amber"}>
+              {!row.configured ? t("notSetUp") : row.enabled ? t("on") : t("off")}
+            </Badge>
           </h2>
           <p className="m-0 text-sm text-fg-secondary">{t(`kinds.${row.kind}.summary`)}</p>
         </div>
-        <Badge tone={!row.configured ? "neutral" : row.enabled ? "green" : "amber"}>
-          {!row.configured ? t("notSetUp") : row.enabled ? t("on") : t("off")}
-        </Badge>
+        {row.configured && canEdit ? (
+          <Button
+            type="button"
+            size="sm"
+            disabled={busy || !row.has_secret}
+            title={row.has_secret ? undefined : t("testNeedsKey")}
+            onClick={() => void run(() => api(`${base}/test`, { method: "POST" }), t("testQueued"))}
+          >
+            {t("test")}
+          </Button>
+        ) : null}
       </div>
+      {row.configured ? (
+        <div
+          role="status"
+          className={`flex items-start gap-2 rounded-md px-3 py-2 text-sm ${
+            row.health_ok === null
+              ? "bg-sunken text-fg-secondary"
+              : row.health_ok
+                ? "bg-green-soft text-green"
+                : "bg-red-soft text-red"
+          }`}
+        >
+          {row.health_ok ? (
+            <CircleCheck aria-hidden className="mt-0.5 size-4 shrink-0" />
+          ) : (
+            <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+          )}
+          <span className="flex flex-col">
+            <span className="font-medium">
+              {/* The check's own words when it gave some ("Connected to project …"). */}
+              {row.health_detail ||
+                (row.health_ok === null
+                  ? t("notTested")
+                  : row.health_ok
+                    ? t("connected")
+                    : t("notConnected"))}
+            </span>
+            {row.health_checked_at ? (
+              <span className="text-xs opacity-80">
+                {t("checkedAt", {
+                  when: format.dateTime(new Date(row.health_checked_at), {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }),
+                })}
+              </span>
+            ) : null}
+          </span>
+        </div>
+      ) : null}
 
+      {message ? (
+        <p role="status" className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}>
+          {message.text}
+        </p>
+      ) : null}
       <form onSubmit={save} className="flex flex-col gap-3">
+        <h3 className={sectionTitle}>{t("connection")}</h3>
         <label className={label}>
           {t("url")}
           <input
@@ -188,11 +247,21 @@ export function IntegrationEditor({
           <input
             name="browser_url"
             type="url"
-            defaultValue={row.browser_url ?? ""}
+            value={browserUrl}
+            onChange={(e) => setBrowserUrl(e.target.value)}
             disabled={!canEdit}
             className={`${input} font-mono`}
           />
-          <span className="text-xs font-normal text-fg-muted">{t("browserUrlHint")}</span>
+          {/host\.docker\.internal|\/\/[a-z0-9-]+:\d+/i.test(browserUrl) &&
+          !/localhost|127\.0\.0\.1/.test(browserUrl) ? (
+            <span className="text-xs font-normal text-amber">
+              {t("browserUrlInternal", {
+                example: `http://localhost:${/:(\d+)/.exec(browserUrl.replace(/^\w+:\/\//, ""))?.[1] ?? "3000"}`,
+              })}
+            </span>
+          ) : (
+            <span className="text-xs font-normal text-fg-muted">{t("browserUrlHint")}</span>
+          )}
         </label>
         {grafana ? null : (
           <>
@@ -252,7 +321,7 @@ export function IntegrationEditor({
 
       {row.configured ? (
         <div className="flex flex-col gap-2 border-t border-divider pt-4">
-          <h3 className="m-0 text-sm font-semibold">{t(`kinds.${row.kind}.key`)}</h3>
+          <h3 className={sectionTitle}>{t(`kinds.${row.kind}.key`)}</h3>
           <p className="m-0 text-sm text-fg-secondary">
             {row.has_secret
               ? t("keySet", {
@@ -290,7 +359,7 @@ export function IntegrationEditor({
 
       {grafana && row.configured ? (
         <div className="flex flex-col gap-2 border-t border-divider pt-4">
-          <h3 className="m-0 text-sm font-semibold">{t("dashboards")}</h3>
+          <h3 className={sectionTitle}>{t("dashboards")}</h3>
           <p className="m-0 text-xs text-fg-muted">
             {t("dashboardsHint", { max: MAX_DASHBOARDS })}
           </p>
@@ -391,56 +460,21 @@ export function IntegrationEditor({
         </div>
       ) : null}
 
-      {row.configured ? (
-        <div className="flex flex-wrap items-center gap-2 border-t border-divider pt-4">
-          <Badge tone={row.health_ok === null ? "neutral" : row.health_ok ? "green" : "red"}>
-            {row.health_ok === null
-              ? t("notTested")
-              : row.health_ok
-                ? t("connected")
-                : t("notConnected")}
-          </Badge>
-          {row.health_detail ? (
-            <span className="text-sm text-fg-secondary">{row.health_detail}</span>
-          ) : null}
-          {row.health_checked_at ? (
-            <span className="text-xs text-fg-muted">
-              {format.dateTime(new Date(row.health_checked_at), {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
-            </span>
-          ) : null}
-          {canEdit ? (
-            <span className="ml-auto flex flex-wrap gap-2">
-              <Button
-                type="button"
-                disabled={busy || !row.has_secret}
-                onClick={() =>
-                  void run(() => api(`${base}/test`, { method: "POST" }), t("testQueued"))
-                }
-              >
-                {t("test")}
-              </Button>
-              <Button
-                type="button"
-                variant="danger-outline"
-                disabled={busy}
-                onClick={() => {
-                  if (window.confirm(t("removeConfirm", { name: title })))
-                    void run(() => api(base, { method: "DELETE" }), t("removed"));
-                }}
-              >
-                {t("remove")}
-              </Button>
-            </span>
-          ) : null}
+      {row.configured && canEdit ? (
+        <div className="flex justify-end border-t border-divider pt-3">
+          <Button
+            type="button"
+            size="sm"
+            variant="danger-outline"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm(t("removeConfirm", { name: title })))
+                void run(() => api(base, { method: "DELETE" }), t("removed"));
+            }}
+          >
+            {t("removeIntegration", { name: title })}
+          </Button>
         </div>
-      ) : null}
-      {message ? (
-        <p role="status" className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}>
-          {message.text}
-        </p>
       ) : null}
     </section>
   );

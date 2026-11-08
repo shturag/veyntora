@@ -4218,7 +4218,6 @@
     "notConnected": "Not connected",
     "test": "Test connection",
     "testQueued": "Test started. The result appears here in a few seconds (reload).",
-    "remove": "Remove",
     "removeConfirm": "Remove the {name} settings and delete its key?",
     "removed": "Removed.",
     "scanner": {
@@ -4238,6 +4237,19 @@
       "reachable": "clamd answered.",
       "unreachable": "Not reachable: {detail}",
       "failed": "That did not work."
+    },
+    "connection": "Connection",
+    "browserUrlInternal": "Browsers usually cannot open this address (it only works between containers). Enter the address people open, for example {example}.",
+    "testNeedsKey": "Store the key first.",
+    "checkedAt": "Checked {when}; checked again every 6 hours.",
+    "removeIntegration": "Remove {name}",
+    "overview": "Integrations at a glance",
+    "state": {
+      "ok": "Connected",
+      "failing": "Not connected",
+      "untested": "Not tested yet",
+      "paused": "Turned off",
+      "off": "Not set up"
     }
   },
   "dataRules": {

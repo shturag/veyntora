@@ -126,7 +126,8 @@ async def _check_grafana(conn: Connection) -> tuple[bool, str]:
     missing = {uid for uid, _ in conn.dashboards} - {str(d.get("uid")) for d in visible}
     if missing:
         return False, f"Dashboards not found or not shared with the token: {sorted(missing)}"
-    return True, f"Connected; {len(visible)} dashboards visible"
+    n = len(visible)
+    return True, f"Connected; {n} {'dashboard' if n == 1 else 'dashboards'} visible"
 
 
 # ---------------------------------------------------------------- Grafana dashboards
