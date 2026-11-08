@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, Button } from "@veyntora/ui";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { api } from "@/lib/chat";
@@ -41,6 +41,10 @@ function blankValues(saved?: SetupState["saved"]): Record<InfraService, Values> 
 export function SetupWizard({ initial }: { initial: SetupState }) {
   const t = useTranslations("setup");
   const ti = useTranslations("infra");
+  // Formatted by next-intl, so the server and the browser render the same text.
+  const format = useFormatter();
+  const when = (iso: string) =>
+    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const [state, setState] = useState<SetupState>(initial);
   const [code, setCode] = useState("");
   const [unlocked, setUnlocked] = useState(false);
@@ -209,7 +213,7 @@ export function SetupWizard({ initial }: { initial: SetupState }) {
                     {t("goBack", { version: v.version })}
                   </Button>
                   <span className="text-fg-muted">
-                    {new Date(v.saved_at).toLocaleString()} · {v.saved_by}
+                    {when(v.saved_at)} · {v.saved_by}
                   </span>
                 </li>
               ))}

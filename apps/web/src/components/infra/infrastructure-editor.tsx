@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, Button } from "@veyntora/ui";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -224,6 +224,10 @@ function CoreCard({
 /** Admin → Infrastructure (ADR 0034). */
 export function InfrastructureEditor({ infra }: { infra: Infra }) {
   const t = useTranslations("infra");
+  // Formatted by next-intl, so the server and the browser render the same text.
+  const format = useFormatter();
+  const when = (iso: string) =>
+    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const [restarting, restart] = useRestart();
   const [message, setMessage] = useState<string | null>(null);
   const editable = infra.mode === "file";
@@ -262,7 +266,7 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
         <p className="m-0 text-sm text-fg-muted">
           {t("versionLine", {
             version: infra.version ?? 0,
-            when: infra.saved_at ? new Date(infra.saved_at).toLocaleString() : "",
+            when: infra.saved_at ? when(infra.saved_at) : "",
             who: infra.saved_by ?? "",
           })}
         </p>
@@ -325,7 +329,7 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
                 <span>
                   <span className="font-medium">{t("versionN", { version: v.version })}</span>{" "}
                   <span className="text-fg-muted">
-                    {new Date(v.saved_at).toLocaleString()} · {v.saved_by}
+                    {when(v.saved_at)} · {v.saved_by}
                     {v.changed.length
                       ? ` · ${v.changed.map((s) => t(`names.${s}`)).join(", ")}`
                       : ""}
