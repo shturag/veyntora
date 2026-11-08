@@ -188,7 +188,8 @@ def causes(message: Message, sources: list[Source], tools: list[str]) -> list[st
     if sources and all(s.score is not None and s.score < 0.5 for s in sources):
         out.append("weak_sources")
     if message.outcome == "answered" and not out:
-        out.append("check_sources")
+        # Without sources (general chat) there is nothing to check them against.
+        out.append("check_sources" if sources else "no_documents")
     return out
 
 

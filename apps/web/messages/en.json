@@ -3677,7 +3677,8 @@
       "low_groundedness": "Likely cause: the answer is weakly supported by its sources.",
       "no_tools": "Likely cause: the agent used no tools; a router rule or tool may be missing.",
       "weak_sources": "Likely cause: the retrieved passages match the question only weakly.",
-      "check_sources": "Check whether the cited sources are current."
+      "check_sources": "Check whether the cited sources are current.",
+      "no_documents": "Answered without documents (general chat): judge the answer itself, or attach sources if it should come from documents."
     },
     "addToEvalSet": "Add to eval set",
     "add": "Add",
@@ -3697,7 +3698,16 @@
     "audited": "Opening this answer was recorded in the audit log.",
     "cancel": "Cancel",
     "close": "Close",
-    "failed": "Did not work: {reason}"
+    "failed": "Did not work: {reason}",
+    "show": "Show",
+    "includeReviewed": "Include reviewed",
+    "queueCount": "{count, plural, =0 {Nothing to review} one {# answer to review} other {# answers to review}}",
+    "pipelineV": "Pipeline v{version}",
+    "askedBy": "Asked by a member of {team}; who exactly is masked.",
+    "question": "Question",
+    "feedback": "Feedback",
+    "causesTitle": "What may have gone wrong",
+    "createEvalSet": "Create an eval set"
   },
   "overview": {
     "title": "Overview",

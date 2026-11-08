@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@veyntora/ui";
+import Link from "next/link";
 
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
@@ -15,6 +16,7 @@ export function MarkReviewed({ d }: { d: Detail }) {
   return (
     <span className="flex items-center gap-2">
       <Button
+        variant={d.reviewed_at === null ? "primary" : "secondary"}
         disabled={!d.can_edit || d.reviewed_at !== null || state.busy}
         onClick={() =>
           state.run(
@@ -33,6 +35,14 @@ export function MarkReviewed({ d }: { d: Detail }) {
 export function AddToEvalSet({ d }: { d: Detail }) {
   const state = useAction("review");
   const { t } = state;
+  if (d.can_edit && d.eval_sets.length === 0) {
+    // Nothing to add it to yet: offer to make a set instead of a button that does nothing.
+    return (
+      <Button asChild>
+        <Link href="/admin/evaluation/sets">{t("createEvalSet")}</Link>
+      </Button>
+    );
+  }
   return (
     <FormDialog
       label={t("addToEvalSet")}
@@ -70,6 +80,8 @@ export function AskOwner({ d }: { d: Detail }) {
   const state = useAction("review");
   const { t } = state;
   const docs = d.sources.filter((s) => s.document_id);
+  // Only answers that cited documents have an owner to ask.
+  if (docs.length === 0) return null;
   return (
     <FormDialog
       label={t("askOwner")}

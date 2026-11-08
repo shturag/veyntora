@@ -3677,7 +3677,8 @@
       "low_groundedness": "Wahrscheinliche Ursache: Die Antwort ist durch ihre Quellen nur schwach belegt.",
       "no_tools": "Wahrscheinliche Ursache: Der Agent hat keine Tools genutzt; eine Router-Regel oder ein Tool fehlt vielleicht.",
       "weak_sources": "Wahrscheinliche Ursache: Die gefundenen Stellen passen nur schwach zur Frage.",
-      "check_sources": "Prüfen Sie, ob die zitierten Quellen aktuell sind."
+      "check_sources": "Prüfen Sie, ob die zitierten Quellen aktuell sind.",
+      "no_documents": "Ohne Dokumente beantwortet (allgemeiner Chat): Beurteilen Sie die Antwort selbst, oder hängen Sie Quellen an, wenn sie aus Dokumenten kommen soll."
     },
     "addToEvalSet": "Zum Eval-Set hinzufügen",
     "add": "Hinzufügen",
@@ -3697,7 +3698,16 @@
     "audited": "Das Öffnen dieser Antwort wurde im Audit-Log festgehalten.",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "failed": "Hat nicht funktioniert: {reason}"
+    "failed": "Hat nicht funktioniert: {reason}",
+    "show": "Zeigen",
+    "includeReviewed": "Geprüfte einbeziehen",
+    "queueCount": "{count, plural, =0 {Nichts zu prüfen} one {# Antwort zu prüfen} other {# Antworten zu prüfen}}",
+    "pipelineV": "Pipeline v{version}",
+    "askedBy": "Gefragt von jemandem aus {team}; wer genau, ist maskiert.",
+    "question": "Frage",
+    "feedback": "Feedback",
+    "causesTitle": "Was schiefgegangen sein könnte",
+    "createEvalSet": "Testset anlegen"
   },
   "overview": {
     "title": "Übersicht",

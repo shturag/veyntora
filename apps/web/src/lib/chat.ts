@@ -4,7 +4,7 @@
 export type Mode = "auto" | "fast" | "agent";
 export const MODES: readonly Mode[] = ["auto", "fast", "agent"];
 
-type Outcome = "answered" | "no_answer" | "blocked" | "refused";
+export type Outcome = "answered" | "no_answer" | "blocked" | "refused";
 
 export type CodeRun = {
   code: string;
