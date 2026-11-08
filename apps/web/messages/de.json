@@ -2050,7 +2050,7 @@
   "people": {
     "title": "Benutzer & Gruppen",
     "subtitle": "Zugriff wird an Gruppen vergeben. Personen erhalten alles, was ihre Gruppen haben. Keycloak bleibt die Quelle der Identitäten.",
-    "newGroup": "+ Neue Gruppe",
+    "newGroup": "Neue Gruppe",
     "people": "Personen",
     "groups": "Gruppen",
     "groupKinds": "{keycloak} Keycloak · {rule} Regel · {manual} manuell",
@@ -2183,7 +2183,33 @@
     "ruleHint": "Attribute kommen aus Keycloak (aus dem HR-System). Die Gruppe aktualisiert sich stündlich und nach jedem Abgleich; gesperrte Personen bleiben außen vor.",
     "rolesNext": "Was dürfen sie? Nach dem Anlegen gibst du der Gruppe auf ihrer Seite Rollen.",
     "createGroup": "Gruppe anlegen",
-    "service": "Dienst-Identität (App-Schlüssel)"
+    "service": "Dienst-Identität (App-Schlüssel)",
+    "suspendedCount": "{count} gesperrt",
+    "allActive": "Alle aktiv",
+    "everyoneHasAccess": "Alle haben Zugriff",
+    "services": "Dienstidentitäten",
+    "servicesNote": "Für Automationen und App-Schlüssel",
+    "servicesNone": "Noch keine",
+    "show": "Anzeigen",
+    "kinds": {
+      "people": "Personen",
+      "services": "Dienstidentitäten"
+    },
+    "servicesHint": "Automationen und App-Schlüssel handeln als diese Identitäten. Sie werden mit ihnen angelegt und gesperrt; Zugriff erhalten sie wie eine Person.",
+    "noGroups": "Noch keine Gruppen. Keycloak-Gruppen erscheinen nach der nächsten Synchronisierung.",
+    "noMatches": "Niemand gefunden.",
+    "nobody": "Hier ist noch niemand.",
+    "owner": "Verantwortlich",
+    "noGroupsYet": "Keine Gruppen",
+    "everything": "Alles (Plattform-Admin)",
+    "neverSignedIn": "Nie angemeldet",
+    "notSignIn": "Meldet sich nicht an",
+    "roleHints": {
+      "user": "stellt Fragen",
+      "approver": "entscheidet über Aktionen",
+      "editor": "baut den Chatbot",
+      "owner": "verantwortet den Chatbot"
+    }
   },
   "bots": {
     "title": "Chatbots",

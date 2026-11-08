@@ -2050,7 +2050,7 @@
   "people": {
     "title": "Users & groups",
     "subtitle": "Access is given to groups. People get everything their groups have. Keycloak stays the source of identities.",
-    "newGroup": "+ New group",
+    "newGroup": "New group",
     "people": "People",
     "groups": "Groups",
     "groupKinds": "{keycloak} Keycloak · {rule} rule · {manual} manual",
@@ -2183,7 +2183,33 @@
     "ruleHint": "Attributes come from Keycloak (synced from HR). The group updates itself every hour and after each sync; suspended people are left out.",
     "rolesNext": "What can they do? After creating the group, give it roles on its page.",
     "createGroup": "Create group",
-    "service": "Service identity (app key)"
+    "service": "Service identity (app key)",
+    "suspendedCount": "{count} suspended",
+    "allActive": "All active",
+    "everyoneHasAccess": "Everyone has access",
+    "services": "Service identities",
+    "servicesNote": "For automations and app keys",
+    "servicesNone": "None yet",
+    "show": "Show",
+    "kinds": {
+      "people": "People",
+      "services": "Service identities"
+    },
+    "servicesHint": "Automations and app keys act as these identities. They are created and suspended with them; give them access like a person.",
+    "noGroups": "No groups yet. Keycloak groups appear after the next sync.",
+    "noMatches": "No one matches.",
+    "nobody": "No one here yet.",
+    "owner": "Owner",
+    "noGroupsYet": "No groups",
+    "everything": "Everything (platform admin)",
+    "neverSignedIn": "Never signed in",
+    "notSignIn": "Does not sign in",
+    "roleHints": {
+      "user": "asks questions",
+      "approver": "decides on actions",
+      "editor": "builds the chatbot",
+      "owner": "runs the chatbot"
+    }
   },
   "bots": {
     "title": "Chatbots",

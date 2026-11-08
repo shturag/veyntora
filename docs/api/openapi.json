@@ -11451,6 +11451,14 @@
             "title": "Rule Groups",
             "type": "integer"
           },
+          "services": {
+            "title": "Services",
+            "type": "integer"
+          },
+          "suspended": {
+            "title": "Suspended",
+            "type": "integer"
+          },
           "without_access": {
             "title": "Without Access",
             "type": "integer"
@@ -11458,6 +11466,8 @@
         },
         "required": [
           "people",
+          "suspended",
+          "services",
           "groups",
           "keycloak_groups",
           "rule_groups",
@@ -25486,6 +25496,20 @@
               "default": false,
               "title": "No Access",
               "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "default": "people",
+              "enum": [
+                "people",
+                "services"
+              ],
+              "title": "Kind",
+              "type": "string"
             }
           },
           {

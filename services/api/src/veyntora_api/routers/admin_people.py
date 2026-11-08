@@ -7,7 +7,7 @@ groups have; a person's roles are the union). Keycloak groups are read-only here
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 import sqlalchemy as sa
@@ -84,7 +84,10 @@ def _access(
 
 
 class PeopleSummary(BaseModel):
+    # Real people; app keys' and automations' service identities are counted apart.
     people: int
+    suspended: int
+    services: int
     groups: int
     keycloak_groups: int
     rule_groups: int
@@ -124,17 +127,21 @@ async def people_summary(_: Viewer, db: DbSession, state: State) -> PeopleSummar
         if with_access_groups
         else set()
     )
-    all_users = set((await db.execute(sa.select(User.id))).scalars())
+    users = (await db.execute(sa.select(User.id, User.is_service, User.suspended))).all()
+    humans = {u.id for u in users if not u.is_service}
+    active = {u.id for u in users if not u.is_service and not u.suspended}
     counts = dict(
         (await db.execute(sa.select(Group.source, sa.func.count()).group_by(Group.source))).all()
     )
     return PeopleSummary(
-        people=len(all_users),
+        people=len(humans),
+        suspended=len(humans - active),
+        services=len(users) - len(humans),
         groups=sum(counts.values()),
         keycloak_groups=counts.get(GroupSource.KEYCLOAK, 0),
         rule_groups=counts.get(GroupSource.RULE, 0),
         manual_groups=counts.get(GroupSource.MANUAL, 0),
-        without_access=len(all_users - direct - via_groups),
+        without_access=len(active - direct - via_groups),
     )
 
 
@@ -145,11 +152,16 @@ async def list_people(
     state: State,
     q: str = "",
     no_access: bool = False,
+    kind: Literal["people", "services"] = "people",
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: int = 0,
 ) -> list[PersonRow]:
     authz = state.require_authz()
-    query = sa.select(User).order_by(User.display_name, User.email)
+    query = (
+        sa.select(User)
+        .where(User.is_service.is_(kind == "services"))
+        .order_by(User.display_name, User.email)
+    )
     if q.strip():
         needle = f"%{q.strip().lower()}%"
         query = query.where(
@@ -164,7 +176,8 @@ async def list_people(
     rows = []
     for u in users:
         access = _access(u.id, groups[u.id], grants)
-        if no_access and access:
+        # As counted in the summary: active people that no grant reaches.
+        if no_access and (access or u.suspended):
             continue
         rows.append((u, access))
     page = rows[max(offset, 0) : max(offset, 0) + min(max(limit, 1), 200)]

@@ -7928,6 +7928,10 @@ export interface components {
             people: number;
             /** Rule Groups */
             rule_groups: number;
+            /** Services */
+            services: number;
+            /** Suspended */
+            suspended: number;
             /** Without Access */
             without_access: number;
         };
@@ -14880,6 +14884,7 @@ export interface operations {
             query?: {
                 q?: string;
                 no_access?: boolean;
+                kind?: "people" | "services";
                 limit?: number;
                 offset?: number;
             };
