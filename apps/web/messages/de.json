@@ -3311,7 +3311,6 @@
     "title": "Evaluierung",
     "unavailable": "Die Evaluierung konnte nicht geladen werden.",
     "subtitle": "{chatbot} · Testset „{set}“ · {count, plural, one {# Frage} other {# Fragen}}",
-    "noSetsYet": "Noch kein Testset: legen Sie eines unter Testsets verwalten an.",
     "chatbots": "Chatbots",
     "manageSets": "Testsets verwalten",
     "settings": "Einstellungen",
@@ -3339,7 +3338,6 @@
     },
     "runNote": "Der Lauf stellt jeden geprüften Fall mit Ihren eigenen Berechtigungen und zählt die Modellnutzung.",
     "byVersion": "Werte je Version",
-    "gateLine": "Veröffentlichungsschranke: Treue ≥ {faith}, Antwortrelevanz ≥ {rel}, keine Kennzahl mehr als {drop} unter Live.",
     "noRuns": "Mit diesem Set wurde noch keine Version evaluiert.",
     "metrics": {
       "faithfulness": "Treue",
@@ -3457,7 +3455,29 @@
     "failed": "Hat nicht funktioniert: {reason}",
     "close": "Schließen",
     "cancel": "Abbrechen",
-    "noChatbots": "Noch kein Chatbot. Legen Sie zuerst einen an; seine Versionen werden hier bewertet."
+    "noChatbots": "Noch kein Chatbot. Legen Sie zuerst einen an; seine Versionen werden hier bewertet.",
+    "pageSubtitle": "Messen Sie jede Chatbot-Version an Fragen mit bekannten Antworten. Veröffentlichen braucht einen bestandenen Lauf.",
+    "chatbotLabel": "Chatbot",
+    "startTitle": "Evaluation für {chatbot} einrichten",
+    "startText": "Drei Schritte, einmal je Chatbot. Danach wird jeder neue Entwurf bewertet, bevor er live gehen kann.",
+    "stepN": "Schritt {n}",
+    "done": "erledigt",
+    "noScoresYet": "Bewertungen erscheinen hier nach dem ersten Lauf.",
+    "runNeedsSet": "Legen Sie zuerst ein Testset für diesen Chatbot an.",
+    "start": {
+      "set": {
+        "title": "Testset anlegen",
+        "text": "Fragen, die Leute wirklich stellen, mit der erwarteten Antwort und wo sie steht. Beginnen Sie mit 20 bis 50; ein erster Entwurf lässt sich aus den Dokumenten erzeugen."
+      },
+      "judge": {
+        "title": "Bewertungsmodell wählen",
+        "text": "Ein Sprachmodell vergleicht jede Antwort mit der erwarteten und bewertet Treue und Relevanz. Plattformweit, unter Einstellungen."
+      },
+      "gate": {
+        "title": "Laufen lassen und Veröffentlichen absichern",
+        "text": "Lassen Sie das Set auf einem Entwurf laufen. Veröffentlichen und Canaries brauchen einen bestandenen Lauf; die Schwellen stehen unter Veröffentlichungsschranke."
+      }
+    }
   },
   "versions": {
     "rollout": "Rollout",

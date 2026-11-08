@@ -1,4 +1,5 @@
 import { Badge, PageHeader } from "@veyntora/ui";
+import { CircleCheck, ListChecks, Scale, ShieldCheck } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 
@@ -50,6 +51,7 @@ export default async function EvaluationPage({
       <p className="m-0 text-sm text-red">{t("unavailable")}</p>
     );
   const chosen = data.sets.find((s) => s.id === data.set_id);
+  const botName = data.chatbots.find((b) => b.id === data.chatbot_id)?.name ?? "";
   const draft = data.versions.find((v) => v.status === "draft");
   const num = (v: unknown) =>
     typeof v === "number" ? format.number(v, { maximumFractionDigits: 2 }) : "—";
@@ -64,15 +66,7 @@ export default async function EvaluationPage({
     <div className="flex flex-col gap-5">
       <PageHeader
         title={t("title")}
-        subtitle={
-          chosen
-            ? t("subtitle", {
-                chatbot: data.chatbots.find((b) => b.id === data.chatbot_id)?.name ?? "",
-                set: chosen.name,
-                count: chosen.cases,
-              })
-            : t("noSetsYet")
-        }
+        subtitle={t("pageSubtitle")}
         actions={
           <div className="flex flex-wrap gap-2">
             <ManageSets botId={data.chatbot_id ?? null} />
@@ -81,7 +75,8 @@ export default async function EvaluationPage({
           </div>
         }
       />
-      <nav aria-label={t("chatbots")} className="flex flex-wrap gap-2">
+      <nav aria-label={t("chatbots")} className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-xs font-medium text-fg-muted">{t("chatbotLabel")}</span>
         {data.chatbots.map((b) => (
           <Link
             key={b.id}
@@ -93,8 +88,64 @@ export default async function EvaluationPage({
           </Link>
         ))}
       </nav>
-      <div className="grid grid-cols-[1fr_320px] gap-5 max-[1000px]:grid-cols-1">
+      <div className="grid grid-cols-[1fr_320px] items-start gap-5 max-[1000px]:grid-cols-1">
         <div className="flex flex-col gap-5">
+          {data.sets.length === 0 ? (
+            <section
+              aria-labelledby="start"
+              className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+            >
+              <div className="flex flex-col gap-1">
+                <h2 id="start" className="m-0 text-base font-semibold">
+                  {t("startTitle", { chatbot: botName })}
+                </h2>
+                <p className="m-0 text-sm text-fg-secondary">{t("startText")}</p>
+              </div>
+              <ol className="m-0 grid list-none grid-cols-3 gap-3 p-0 max-[900px]:grid-cols-1">
+                {(
+                  [
+                    ["set", false, ListChecks],
+                    ["judge", !!data.judge_instance_id, Scale],
+                    ["gate", false, ShieldCheck],
+                  ] as const
+                ).map(([step, done, Icon], i) => (
+                  <li
+                    key={step}
+                    className="flex flex-col gap-2 rounded-md border border-line bg-ground/40 p-4"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className={`flex size-8 items-center justify-center rounded-md ${done ? "bg-green-soft text-green" : "bg-accent-soft text-accent"}`}
+                      >
+                        {done ? <CircleCheck className="size-4" /> : <Icon className="size-4" />}
+                      </span>
+                      <span className="text-xs font-medium text-fg-muted">
+                        {t("stepN", { n: i + 1 })}
+                        {done ? ` · ${t("done")}` : ""}
+                      </span>
+                    </span>
+                    <span className="text-sm font-semibold">{t(`start.${step}.title`)}</span>
+                    <span className="text-xs text-fg-secondary">{t(`start.${step}.text`)}</span>
+                    {step === "set" ? (
+                      <span className="mt-auto pt-1">
+                        <ManageSets botId={data.chatbot_id ?? null} />
+                      </span>
+                    ) : step === "judge" && !done ? (
+                      <span className="mt-auto pt-1">
+                        <JudgeSettings data={data} />
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
+          {chosen ? (
+            <p className="m-0 text-sm text-fg-secondary">
+              {t("subtitle", { chatbot: botName, set: chosen.name, count: chosen.cases })}
+            </p>
+          ) : null}
           <section aria-labelledby="by-version" className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 id="by-version" className="m-0 text-base font-semibold">
@@ -115,16 +166,9 @@ export default async function EvaluationPage({
                 </span>
               ) : null}
             </div>
-            <p className="m-0 text-xs text-fg-muted">
-              {t("gateLine", {
-                drop: data.gate.max_drop,
-                faith: data.gate.min_faithfulness,
-                rel: data.gate.min_answer_relevance,
-              })}
-            </p>
             {data.versions.length === 0 ? (
-              <p className="m-0 rounded-lg border border-line bg-surface p-5 text-sm text-fg-secondary">
-                {t("noRuns")}
+              <p className="m-0 rounded-lg border border-dashed border-line-strong bg-surface p-5 text-sm text-fg-secondary">
+                {data.sets.length === 0 ? t("noScoresYet") : t("noRuns")}
               </p>
             ) : (
               <div
@@ -218,7 +262,9 @@ export default async function EvaluationPage({
               {t("recentRuns")}
             </h2>
             {data.runs.length === 0 ? (
-              <p className="m-0 text-sm text-fg-muted">{t("noRunsYet")}</p>
+              <p className="m-0 rounded-lg border border-dashed border-line-strong bg-surface p-5 text-sm text-fg-secondary">
+                {t("noRunsYet")}
+              </p>
             ) : (
               <ul className="m-0 flex list-none flex-col rounded-lg border border-line bg-surface p-0">
                 {data.runs.map((r) => (

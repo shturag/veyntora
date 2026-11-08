@@ -61,6 +61,7 @@ export function FormDialog({
   children,
   primary,
   disabled,
+  why,
 }: {
   label: string;
   title: string;
@@ -70,6 +71,8 @@ export function FormDialog({
   children: ReactNode;
   primary?: boolean;
   disabled?: boolean;
+  /** Why the button is off, shown on hover. */
+  why?: string;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -77,6 +80,7 @@ export function FormDialog({
       <Button
         variant={primary ? "primary" : undefined}
         disabled={disabled}
+        title={disabled ? why : undefined}
         onClick={() => setOpen(true)}
       >
         {label}
@@ -129,6 +133,7 @@ export function StartRun({ data, draft }: { data: Evaluation; draft: number | nu
       submit={t("startRun")}
       state={state}
       disabled={!data.can_edit || data.sets.length === 0}
+      why={data.sets.length === 0 ? t("runNeedsSet") : undefined}
       onSubmit={(f) =>
         state.run(
           () =>

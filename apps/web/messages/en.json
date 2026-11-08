@@ -3311,7 +3311,6 @@
     "title": "Evaluation",
     "unavailable": "Evaluation could not be loaded.",
     "subtitle": "{chatbot} · eval set \"{set}\" · {count, plural, one {# question} other {# questions}}",
-    "noSetsYet": "No eval set yet: create one under Manage eval sets.",
     "chatbots": "Chatbots",
     "manageSets": "Manage eval sets",
     "settings": "Settings",
@@ -3339,7 +3338,6 @@
     },
     "runNote": "The run asks every reviewed case with your own permissions and counts its model usage.",
     "byVersion": "Scores by version",
-    "gateLine": "Publish gate: faithfulness ≥ {faith}, answer relevance ≥ {rel}, no metric more than {drop} below live.",
     "noRuns": "No version has been evaluated with this set yet.",
     "metrics": {
       "faithfulness": "Faithfulness",
@@ -3457,7 +3455,29 @@
     "failed": "Did not work: {reason}",
     "close": "Close",
     "cancel": "Cancel",
-    "noChatbots": "No chatbot yet. Create one first; its versions are evaluated here."
+    "noChatbots": "No chatbot yet. Create one first; its versions are evaluated here.",
+    "pageSubtitle": "Measure each chatbot version against questions with known answers. Publishing needs a passing run.",
+    "chatbotLabel": "Chatbot",
+    "startTitle": "Set up evaluation for {chatbot}",
+    "startText": "Three steps, once per chatbot. Afterwards every new draft is scored before it can go live.",
+    "stepN": "Step {n}",
+    "done": "done",
+    "noScoresYet": "Scores appear here after the first run.",
+    "runNeedsSet": "Create an eval set for this chatbot first.",
+    "start": {
+      "set": {
+        "title": "Create an eval set",
+        "text": "Questions people really ask, with the answer you expect and where it is written. Start with 20 to 50; you can generate a first draft from the documents."
+      },
+      "judge": {
+        "title": "Choose the judge model",
+        "text": "A language model compares each answer with the expected one and scores faithfulness and relevance. Platform-wide, under Settings."
+      },
+      "gate": {
+        "title": "Run it and let it gate publishing",
+        "text": "Run the set on a draft. Publishing and canaries need a passing run; the thresholds are set under Publish gate."
+      }
+    }
   },
   "versions": {
     "rollout": "Rollout",
