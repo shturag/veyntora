@@ -27,7 +27,7 @@ Category = Literal["providers", "pipelines", "roles", "agent", "knowledge", "gov
 CATEGORIES: dict[str, tuple[str, ...]] = {
     "providers": ("provider", "byok", "app_key", "channel", "mail", "mcp", "tool"),
     "pipelines": ("pipeline", "chatbot", "playground", "eval_set", "evaluation"),
-    "roles": ("platform_role", "group", "membership", "access", "people"),
+    "roles": ("platform_role", "group", "membership", "access", "access_review", "people", "auth"),
     "agent": ("approval", "run", "automation", "handoff"),
     "knowledge": ("source", "document", "knowledge_health", "knowledge_issue"),
     "governance": ("governance", "legal_hold", "gdpr", "retention", "audit", "usage", "budget"),
@@ -76,6 +76,9 @@ class EntryRow(BaseModel):
     action: str
     target_type: str
     target_id: str | None
+    # From the entry's own snapshot, so it survives the object being deleted.
+    target_name: str | None = None
+    category: str
 
 
 class AuditPage(BaseModel):
@@ -83,8 +86,32 @@ class AuditPage(BaseModel):
     next_before: int | None
 
 
+_NAME_KEYS = ("name", "display_name", "title", "scope_name")
+
+
+def _category(action: str) -> str:
+    prefix = action.split(".", 1)[0]
+    return next((c for c, ps in CATEGORIES.items() if prefix in ps), "other")
+
+
+def _target_name(e: AuditEvent, users: dict[str, str]) -> str | None:
+    if e.target_type == "user" and e.target_id in users:
+        return users[e.target_id]
+    for snap in (e.after, e.before):
+        if isinstance(snap, dict):
+            for key in _NAME_KEYS:
+                value = snap.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()[:120]
+    return None
+
+
 async def _rows(db: DbSession, events: list[AuditEvent], mask: bool = False) -> list[EntryRow]:
-    names = await audit.names(db, {e.actor_id for e in events if e.actor_id})
+    names = await audit.names(
+        db,
+        {e.actor_id for e in events if e.actor_id}
+        | {e.target_id for e in events if e.target_type == "user" and e.target_id},
+    )
     return [
         EntryRow(
             id=e.id,
@@ -96,6 +123,8 @@ async def _rows(db: DbSession, events: list[AuditEvent], mask: bool = False) -> 
             action=e.action,
             target_type=e.target_type,
             target_id=e.target_id,
+            target_name=None if mask else _target_name(e, names),
+            category=_category(e.action),
         )
         for e in events
     ]

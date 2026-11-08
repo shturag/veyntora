@@ -5642,6 +5642,10 @@
             "title": "Actor Type",
             "type": "string"
           },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
           "changes": {
             "items": {
               "$ref": "#/components/schemas/AuditChange"
@@ -5697,6 +5701,17 @@
             ],
             "title": "Target Id"
           },
+          "target_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Name"
+          },
           "target_type": {
             "title": "Target Type",
             "type": "string"
@@ -5715,6 +5730,7 @@
           "action",
           "target_type",
           "target_id",
+          "category",
           "ip",
           "request_id",
           "changes",
@@ -5744,6 +5760,10 @@
             "title": "Actor Type",
             "type": "string"
           },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -5758,6 +5778,17 @@
               }
             ],
             "title": "Target Id"
+          },
+          "target_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Name"
           },
           "target_type": {
             "title": "Target Type",
@@ -5776,7 +5807,8 @@
           "actor",
           "action",
           "target_type",
-          "target_id"
+          "target_id",
+          "category"
         ],
         "title": "EntryRow",
         "type": "object"

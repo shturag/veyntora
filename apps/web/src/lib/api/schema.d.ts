@@ -5633,6 +5633,8 @@ export interface components {
             actor: string | null;
             /** Actor Type */
             actor_type: string;
+            /** Category */
+            category: string;
             /** Changes */
             changes: components["schemas"]["AuditChange"][];
             /** Id */
@@ -5645,6 +5647,8 @@ export interface components {
             request_id: string | null;
             /** Target Id */
             target_id: string | null;
+            /** Target Name */
+            target_name?: string | null;
             /** Target Type */
             target_type: string;
             /**
@@ -5661,10 +5665,14 @@ export interface components {
             actor: string | null;
             /** Actor Type */
             actor_type: string;
+            /** Category */
+            category: string;
             /** Id */
             id: number;
             /** Target Id */
             target_id: string | null;
+            /** Target Name */
+            target_name?: string | null;
             /** Target Type */
             target_type: string;
             /**
