@@ -10,7 +10,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("automationNew");
 
-/** New automation (prototype: AutomationNew.html). */
+/** New automation. */
 export default async function NewAutomationPage() {
   const access = await areaAccess("automations");
   if (!access || access.level !== "editor") return <Forbidden />;

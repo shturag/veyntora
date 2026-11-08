@@ -24,10 +24,10 @@ const RAIL = 64;
 const SidebarState = createContext({ collapsed: false });
 
 /** Whether the sidebar is folded to its icon rail (wide screens only). */
-export const useSidebar = () => useContext(SidebarState);
+const useSidebar = () => useContext(SidebarState);
 
 /** How the sidebar may be sized; the layout reads the remembered size from a cookie. */
-export type SidebarSizing = SidebarLayout & {
+type SidebarSizing = SidebarLayout & {
   id: string;
   min: number;
   max: number;

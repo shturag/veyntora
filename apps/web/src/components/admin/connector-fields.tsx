@@ -9,12 +9,12 @@ import { GroupMap, mapFrom } from "./group-map";
 import type { GroupOption } from "./source-forms";
 
 type S = components["schemas"];
-export type WebdavSettings = S["WebdavSettings"];
-export type SharePointServerSettings = S["SharePointServerSettings"];
-export type CmisSettings = S["CmisSettings"];
-export type GitSettings = S["GitSettings"];
-export type ServiceNowSettings = S["ServiceNowSettings"];
-export type JiraSettings = S["JiraSettings"];
+type WebdavSettings = S["WebdavSettings"];
+type SharePointServerSettings = S["SharePointServerSettings"];
+type CmisSettings = S["CmisSettings"];
+type GitSettings = S["GitSettings"];
+type ServiceNowSettings = S["ServiceNowSettings"];
+type JiraSettings = S["JiraSettings"];
 
 const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
 const mono = `${input} font-mono`;

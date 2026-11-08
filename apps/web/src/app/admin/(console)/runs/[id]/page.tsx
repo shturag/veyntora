@@ -19,7 +19,7 @@ const TONE = {
   waiting_approval: "amber",
 } as const;
 
-/** Run trace (prototype: RunTrace.html): every step, tool call and approval of one run. */
+/** Run trace: every step, tool call and approval of one run. */
 export default async function RunTracePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();

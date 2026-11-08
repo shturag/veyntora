@@ -17,7 +17,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("versions");
 
-/** Versions and roll-out (prototype: Versions.html). */
+/** Versions and roll-out. */
 export default async function VersionsPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("chatbots");
   if (!access) return <Forbidden />;

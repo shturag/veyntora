@@ -310,10 +310,6 @@ class HealthResult:
     detail: str = ""
 
 
-class SupportsHealth(Protocol):
-    async def health(self) -> HealthResult: ...
-
-
 # ---------------------------------------------------------------- web search
 
 

@@ -32,8 +32,6 @@ from veyntora_api.db.models.providers import ByokKey
 from veyntora_api.providers.service import GRACE_PERIODS, ProviderError, replace_key
 from veyntora_api.secrets.openbao import SecretWriter
 
-# LLM adapters a user may bring their own model for.
-BYOK_ADAPTERS = ("openai_compatible", "anthropic")
 UseFor = Literal["chats", "none"]
 
 
@@ -41,6 +39,7 @@ class ByokInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     label: str = Field(default="", max_length=255)
+    # LLM adapters a user may bring their own model for.
     adapter: Literal["openai_compatible", "anthropic"]
     endpoint: str | None = Field(default=None, max_length=1024)
     model: str = Field(min_length=1, max_length=255)

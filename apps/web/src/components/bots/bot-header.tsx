@@ -5,9 +5,9 @@ import Link from "next/link";
 import { BotActions } from "./bot-actions";
 
 const TABS = ["overview", "pipeline", "knowledge", "access", "versions"] as const;
-export type BotTab = (typeof TABS)[number];
+type BotTab = (typeof TABS)[number];
 
-/** Chatbot pages header (prototype: BotOverview.html): name, status, actions and tabs. */
+/** Chatbot pages header: name, status, actions and tabs. */
 export async function BotHeader({
   bot,
   tab,

@@ -15,7 +15,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("mcpServerDetail");
 
-/** One MCP server (prototype: MCPServerDetail.html): review tools, sign off, policies. */
+/** One MCP server: review tools, sign off, policies. */
 export default async function ServerPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("tools");
   if (!access) return <Forbidden />;

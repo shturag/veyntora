@@ -18,7 +18,7 @@ const TONE = {
   rejected: "neutral",
 } as const;
 
-/** A data subject request (prototype: GDPRRequest.html). */
+/** A data subject request. */
 export default async function RequestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();

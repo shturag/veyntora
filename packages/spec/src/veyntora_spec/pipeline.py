@@ -2,7 +2,7 @@
 
 One JSON document per pipeline version. The form editor (Pipeline* screens) and the
 visual editor (BotFlow) both write this document; publishing compiles it into LangGraph
-graph config. Every option on the prototype's Pipeline pages maps to exactly one field.
+graph config. Every option on the Pipeline pages maps to exactly one field.
 
 Provider references are ProviderInstance ids, never vendor names. A draft may leave them
 unset; `publish_problems()` lists what must be filled before a version can go live.

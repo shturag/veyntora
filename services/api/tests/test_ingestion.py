@@ -35,7 +35,7 @@ from veyntora_api.db.models.knowledge import (
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge import clamd, scanner
 from veyntora_api.knowledge import service as knowledge
-from veyntora_api.knowledge.profiles import index_plan, profiles_for_source
+from veyntora_api.knowledge.profiles import index_plan
 from veyntora_api.settings import Settings
 from veyntora_providers.interfaces import (
     Capability,
@@ -479,7 +479,7 @@ async def _upload(w: World, source: Any, content: bytes = POLICY) -> Document:
 
 async def test_upload_is_indexed_with_acl_on_every_chunk(world: World) -> None:
     _, source = await _bot_with_source(world)
-    profiles = await profiles_for_source(world.db, source.id)
+    profiles = (await index_plan(world.db, source.id))[0]
     assert len(profiles) == 1
     doc = await _upload(world, source)
     [job] = [j for j in await world.jobs(IngestJobKind.UPLOAD) if j.document_id == doc.id]
@@ -656,14 +656,14 @@ async def test_documents_reach_an_external_embedder_only_with_the_data_rule(
     spec.ingestion.embedding_instance_id = external
     spec.retrieval.embedding_instance_id = external
     await bots.save_draft(world.db, CTX, bot, spec, expected_version=None)
-    assert await profiles_for_source(world.db, source.id) == [], "no rule: nothing is sent"
+    assert (await index_plan(world.db, source.id))[0] == [], "no rule: nothing is sent"
     _, why = await index_plan(world.db, source.id)
     assert why is not None and "does not allow the external provider" in why
 
     await bots.set_governance(
         world.db, CTX, bot, bots.GovernanceInput(allowed_external_instance_ids=[external])
     )
-    assert await profiles_for_source(world.db, source.id) == [], "PII masking still required"
+    assert (await index_plan(world.db, source.id))[0] == [], "PII masking still required"
     _, why = await index_plan(world.db, source.id)
     assert why is not None and "masks personal data" in why and "self-hosted" in why
 
@@ -675,7 +675,7 @@ async def test_documents_reach_an_external_embedder_only_with_the_data_rule(
             allowed_external_instance_ids=[external], mask_pii_before_external=False
         ),
     )
-    [profile] = await profiles_for_source(world.db, source.id)
+    [profile] = (await index_plan(world.db, source.id))[0]
     assert profile.embedding_instance_id == external
 
 

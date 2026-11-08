@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("automations");
 
-/** Automations (prototype: Automations.html). */
+/** Automations. */
 export default async function AutomationsPage() {
   const access = await areaAccess("automations");
   if (!access) return <Forbidden />;

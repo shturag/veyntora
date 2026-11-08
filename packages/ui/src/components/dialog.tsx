@@ -3,7 +3,7 @@
 import { Dialog as D } from "radix-ui";
 import type { ReactNode } from "react";
 
-/** The prototype's popover dialog: 440px card, title row with close button, body, footer. */
+/** A popover dialog: 440px card, title row with close button, body, footer. */
 export function Dialog({
   open,
   onOpenChange,

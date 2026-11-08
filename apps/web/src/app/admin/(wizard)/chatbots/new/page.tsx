@@ -6,7 +6,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("botCreate");
 
-/** Step 1 (prototype: BotCreate.html): basics, blank or copied from a chatbot. */
+/** Step 1: basics, blank or copied from a chatbot. */
 export default async function NewBotPage() {
   const t = await getTranslations("bots");
   const { data } = await (await serverApi()).GET("/v1/admin/chatbots");

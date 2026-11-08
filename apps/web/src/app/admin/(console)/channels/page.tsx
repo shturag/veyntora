@@ -12,7 +12,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("channels");
 
-/** Channels & API (prototype: Channels.html): where people reach each chatbot. */
+/** Channels & API: where people reach each chatbot. */
 export default async function ChannelsPage({
   searchParams,
 }: {

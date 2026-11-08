@@ -1,4 +1,4 @@
-"""Versions and roll-out of one chatbot (prototype: Versions.html): canary 10% → 50% →
+"""Versions and roll-out of one chatbot: canary 10% → 50% →
 live, stop, rollback with a reason, the automatic guard, and comparing two versions.
 Viewing needs `can_view_admin`; changing the roll-out needs `can_publish` (owners)."""
 

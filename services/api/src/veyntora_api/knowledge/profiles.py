@@ -43,10 +43,6 @@ def may_send(rule: GovernanceRule | None, provider: ProviderInstance | None) -> 
     )
 
 
-async def profiles_for_source(db: AsyncSession, source_id: UUID) -> list[IndexProfile]:
-    return (await index_plan(db, source_id))[0]
-
-
 def _blocked(rule: GovernanceRule | None, provider: ProviderInstance) -> str:
     if rule is not None and provider.id in rule.allowed_external_instance_ids:
         return (

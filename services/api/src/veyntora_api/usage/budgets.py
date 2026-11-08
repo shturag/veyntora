@@ -1,4 +1,4 @@
-"""Budgets (prototype: Usage.html, "Budgets by chatbot").
+"""Budgets.
 
 A budget limits the spend of a chatbot, a group (what its current members spend) or a
 cost centre over a month, quarter or year. When a run starts, every budget that applies

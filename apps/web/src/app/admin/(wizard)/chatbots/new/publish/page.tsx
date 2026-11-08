@@ -75,7 +75,7 @@ function StepRow({
   );
 }
 
-/** Step 5 (prototype: BotCreatePublish.html): what people will get, test it, publish. */
+/** Step 5: what people will get, test it, publish. */
 export default async function Step({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const bot = await wizardBot((await searchParams).id);
   const t = await getTranslations("bots");

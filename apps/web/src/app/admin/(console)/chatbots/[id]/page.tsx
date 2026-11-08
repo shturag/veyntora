@@ -41,7 +41,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 const chip = "rounded-md border border-line bg-sunken px-2 py-0.5 text-[13px] text-fg-secondary";
 
-/** One chatbot's overview (prototype: BotOverview.html). */
+/** One chatbot's overview. */
 export default async function BotOverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("chatbots");
   if (!access) return <Forbidden />;

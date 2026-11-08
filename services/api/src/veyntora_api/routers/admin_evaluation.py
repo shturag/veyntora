@@ -1,4 +1,4 @@
-"""Evaluation and eval sets (prototype: Evaluation.html, EvalSets.html).
+"""Evaluation and eval sets.
 
 Per chatbot: viewing needs `can_view_admin`, changing its sets and starting runs needs
 `can_edit_draft`, the publish gate needs `can_publish` (owners). Sets for all chatbots

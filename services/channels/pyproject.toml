@@ -3,6 +3,7 @@ name = "veyntora-channels"
 version = "0.1.0"
 description = "Veyntora chat channels: Microsoft Teams and Slack bots (runtime service)"
 requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
 dependencies = [
   "veyntora-api",
   # Product owner, 2026-10-31: Microsoft 365 Agents SDK for Teams; the official Slack SDK.

@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("automationTrigger");
 
-/** Automation trigger (prototype: AutomationTrigger.html). */
+/** Automation trigger. */
 export default async function TriggerPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();

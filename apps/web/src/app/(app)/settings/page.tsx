@@ -10,7 +10,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("settings");
 
-/** Settings (prototype: Settings.html): answers, appearance, own models, privacy. */
+/** Settings: answers, appearance, own models, privacy. */
 export default async function SettingsPage() {
   const t = await getTranslations("settings");
   const api = await serverApi();

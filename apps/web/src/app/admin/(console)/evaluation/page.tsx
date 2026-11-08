@@ -22,7 +22,7 @@ const METRICS = [
   "tool_accuracy",
 ] as const;
 
-/** Evaluation (prototype: Evaluation.html): scores by version, the publish gate, runs. */
+/** Evaluation: scores by version, the publish gate, runs. */
 export default async function EvaluationPage({
   searchParams,
 }: {

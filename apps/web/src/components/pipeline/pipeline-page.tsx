@@ -16,7 +16,7 @@ import { PipelineToolbar } from "./view-switch";
 import { SpecForm, type ProviderOption, type ToolOption } from "./spec-form";
 
 /**
- * The chatbot's pipeline as settings (prototype: Pipeline*.html), under the chatbot's header
+ * The chatbot's pipeline as settings, under the chatbot's header
  * and tabs: the view switch, steps, the section's form and the publish checks.
  */
 export async function PipelinePage({

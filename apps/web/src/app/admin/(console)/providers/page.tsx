@@ -24,7 +24,7 @@ const CAPABILITIES = [
 
 type Props = { searchParams: Promise<{ cap?: string; id?: string }> };
 
-/** Providers & keys (prototype: Providers.html). */
+/** Providers & keys. */
 export default async function ProvidersPage({ searchParams }: Props) {
   const access = await areaAccess("providers");
   if (!access) return <Forbidden />;

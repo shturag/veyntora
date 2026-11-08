@@ -1,4 +1,4 @@
-"""Governance (prototype: Governance.html): retention, personal data and external providers,
+"""Governance: retention, personal data and external providers,
 the AI notice, legal holds and platform roles.
 
 - Retention is enforced by the nightly purge (veyntora_api.governance.retention); data

@@ -2,6 +2,7 @@
 name = "veyntora-workspace"
 version = "0.0.0"
 requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
 description = "Veyntora monorepo (Python workspace root, not published)"
 
 [tool.uv]

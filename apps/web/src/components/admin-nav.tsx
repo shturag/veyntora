@@ -68,7 +68,7 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 /**
- * The admin console's rail (prototype: Overview.html): sections that fold, scrolling
+ * The admin console's rail: sections that fold, scrolling
  * between the logo and the account. Only areas the user may open are listed.
  */
 export function AdminNav({ me, layout }: { me: Me; layout: SidebarLayout }) {

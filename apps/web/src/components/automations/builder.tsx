@@ -51,7 +51,7 @@ function stepLine(step: Step, options: Options, t: ReturnType<typeof useTranslat
   }
 }
 
-/** The builder (prototype: AutomationBuilder.html): trigger, steps, safety, runs, versions. */
+/** The builder: trigger, steps, safety, runs, versions. */
 export function Builder({
   automation,
   options,

@@ -16,7 +16,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("evalSets");
 
-/** Eval sets (prototype: EvalSets.html). */
+/** Eval sets. */
 export default async function EvalSetsPage({
   searchParams,
 }: {

@@ -1,14 +1,9 @@
-import { readdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-
 import { describe, expect, it } from "vitest";
 
 import de from "../../messages/de.json";
 import en from "../../messages/en.json";
 import { negotiate } from "../i18n/config";
 import { ADMIN_NAV, SCREENS, samplePath } from "./screens";
-
-const prototypeDir = fileURLToPath(new URL("../../../../design/prototype", import.meta.url));
 
 function keys(obj: unknown, prefix = ""): string[] {
   if (obj === null || typeof obj !== "object" || Array.isArray(obj)) return [prefix];
@@ -18,12 +13,11 @@ function keys(obj: unknown, prefix = ""): string[] {
 }
 
 describe("screen manifest", () => {
-  it("covers every prototype screen exactly once", () => {
-    const files = readdirSync(prototypeDir)
-      .filter((f) => f.endsWith(".html") && f !== "screens.html")
-      .sort();
-    expect(SCREENS.map((s) => s.file).sort()).toEqual(files);
+  it("lists every screen once", () => {
     expect(new Set(SCREENS.map((s) => s.key)).size).toBe(SCREENS.length);
+    // Screens that are states of another route share it; every other route is listed once.
+    const routes = SCREENS.filter((s) => !s.stateOf).map((s) => s.route);
+    expect(new Set(routes).size).toBe(routes.length);
   });
 
   it("guards every admin screen with an area", () => {

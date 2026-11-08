@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const SECTIONS = ["modes", "checking", "files", "access", "privacy"] as const;
 
-/** Help (prototype: Help.html). Describes only what the product does today. */
+/** Help. Describes only what the product does today. */
 export default async function HelpPage() {
   const t = await getTranslations("helpPage");
   const info = await getPublicInfo();

@@ -48,8 +48,8 @@
 <rect x="564.0" y="254.0" width="168.0" height="80" rx="10" fill="#fffbeb" stroke="#fcd34d"/>
 <rect x="564.0" y="254.0" width="5" height="80" fill="#d97706" clip-path="url(#clip-data-sources-perms)"/>
 <text x="582.0" y="281.0" font-size="14" font-weight="600" fill="#0f172a" text-anchor="start">Own permissions?</text>
-<text x="582.0" y="300.0" font-size="12" font-weight="400" fill="#64748b" text-anchor="start">SharePoint,</text>
-<text x="582.0" y="316.0" font-size="12" font-weight="400" fill="#64748b" text-anchor="start">Confluence, SMB</text>
+<text x="582.0" y="300.0" font-size="12" font-weight="400" fill="#64748b" text-anchor="start">SharePoint, Confluence,</text>
+<text x="582.0" y="316.0" font-size="12" font-weight="400" fill="#64748b" text-anchor="start">SMB, CMIS</text>
 <clipPath id="clip-data-sources-mapped"><rect x="764.0" y="254.0" width="168.0" height="80" rx="10"/></clipPath>
 <rect x="764.0" y="254.0" width="168.0" height="80" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
 <rect x="764.0" y="254.0" width="5" height="80" fill="#6366f1" clip-path="url(#clip-data-sources-mapped)"/>

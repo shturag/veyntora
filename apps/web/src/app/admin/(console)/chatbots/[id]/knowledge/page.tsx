@@ -9,7 +9,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("botKnowledge");
 
-/** Knowledge this chatbot answers from (prototype: BotKnowledge.html). */
+/** Knowledge this chatbot answers from. */
 export default async function BotKnowledgePage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("chatbots");
   if (!access) return <Forbidden />;

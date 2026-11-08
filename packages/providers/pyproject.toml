@@ -3,6 +3,7 @@ name = "veyntora-providers"
 version = "0.1.0"
 description = "Veyntora provider interfaces, adapters and the shared contract test suite"
 requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
 dependencies = [
   "pydantic==2.14.2",
   "httpx==0.28.1",

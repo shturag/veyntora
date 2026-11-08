@@ -9,7 +9,7 @@ import { areaAccess } from "@/lib/admin";
 
 export const generateMetadata = () => screenMetadata("mcpRegister");
 
-/** Register an MCP server (prototype: MCPRegister.html). Tools are reviewed on its page. */
+/** Register an MCP server. Tools are reviewed on its page. */
 export default async function RegisterServerPage() {
   const access = await areaAccess("tools");
   if (!access || access.level !== "editor") return <Forbidden />;

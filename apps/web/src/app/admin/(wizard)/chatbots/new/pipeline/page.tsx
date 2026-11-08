@@ -10,7 +10,7 @@ import { requireMe } from "@/lib/session";
 
 export const generateMetadata = () => screenMetadata("botCreatePipeline");
 
-/** Step 3 (prototype: BotCreatePipeline.html): what the chatbot should do decides its modes,
+/** Step 3: what the chatbot should do decides its modes,
  *  steps and the providers it needs; details later. */
 export default async function Step({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const bot = await wizardBot((await searchParams).id);

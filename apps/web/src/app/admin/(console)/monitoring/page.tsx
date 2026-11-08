@@ -19,7 +19,7 @@ type Range = (typeof RANGES)[number];
 const GRANGES = ["1h", "6h", "24h", "7d"] as const;
 type GRange = (typeof GRANGES)[number];
 
-/** Monitoring (prototype: Monitoring.html). */
+/** Monitoring. */
 export default async function MonitoringPage({
   searchParams,
 }: {

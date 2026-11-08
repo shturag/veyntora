@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-/** Access reviews (not in the prototype; see docs/prototype-differences.md). */
+/** Access reviews. */
 export default async function AccessReviewsPage() {
   const t = await getTranslations("accessReviews");
   const format = await getFormatter();

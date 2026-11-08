@@ -7,7 +7,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("botCreateKnowledge");
 
-/** Step 2 (prototype: BotCreateKnowledge.html): sources the chatbot answers from. */
+/** Step 2: sources the chatbot answers from. */
 export default async function Step({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const bot = await wizardBot((await searchParams).id);
   const t = await getTranslations("bots");

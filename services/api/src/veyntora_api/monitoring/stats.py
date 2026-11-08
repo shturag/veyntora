@@ -1,4 +1,4 @@
-"""Numbers for Monitoring and the Overview (prototypes: Monitoring.html, Overview.html).
+"""Numbers for Monitoring and the Overview.
 
 All from what Veyntora records: answers (mode, latency, outcome), ratings, runs and
 usage. Infrastructure metrics live in Grafana, traces in Langfuse; the pages link there.

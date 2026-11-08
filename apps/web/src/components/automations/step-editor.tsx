@@ -404,7 +404,7 @@ function NotifyFields({
   );
 }
 
-export function ApprovalFields({
+function ApprovalFields({
   step,
   set,
   options,
@@ -535,7 +535,7 @@ export function ApprovalFields({
   );
 }
 
-export function StepFields({
+function StepFields({
   step,
   set,
   options,
@@ -561,7 +561,7 @@ export function StepFields({
   }
 }
 
-/** One step (prototype: AutomationAgentStep.html), with the step type switch. With
+/** One step, with the step type switch. With
  * `following`, an approval step is edited with the actions after it
  * (AutomationApprovalStep.html). */
 export function StepEditor({

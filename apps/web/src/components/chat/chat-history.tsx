@@ -9,7 +9,7 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import { api } from "@/lib/chat";
 
-export type HistoryChat = {
+type HistoryChat = {
   id: string;
   thread_id: string | null;
   chatbot_name: string;

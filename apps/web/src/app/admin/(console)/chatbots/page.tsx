@@ -10,7 +10,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("bots");
 
-/** Chatbots (prototype: Bots.html): each with its pipeline, data and audience. */
+/** Chatbots: each with its pipeline, data and audience. */
 export default async function BotsPage({
   searchParams,
 }: {

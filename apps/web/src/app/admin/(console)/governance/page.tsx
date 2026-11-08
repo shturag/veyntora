@@ -15,7 +15,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("governance");
 
-/** Governance (prototype: Governance.html). */
+/** Governance. */
 export default async function GovernancePage() {
   const t = await getTranslations("governance");
   const format = await getFormatter();

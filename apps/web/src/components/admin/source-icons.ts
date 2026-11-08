@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 /** One icon per kind of data source (connect page, chatbot knowledge). */
-export const SOURCE_ICONS: Record<string, LucideIcon> = {
+const SOURCE_ICONS: Record<string, LucideIcon> = {
   upload: Upload,
   sharepoint: Cloud,
   sharepoint_server: Server,

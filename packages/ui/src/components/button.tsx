@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 
 import { cn } from "../cn";
 
-// Mirrors the prototype's .pvp (primary), .pvc (secondary) and .pvp.dg (danger) buttons.
+// Primary, secondary and danger buttons.
 export const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55",
   {

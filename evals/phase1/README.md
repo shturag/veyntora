@@ -1,4 +1,4 @@
-# Phase 1 evaluation set
+# Evaluation set: questions with known answers
 
 A small, fictional company corpus (Nordwind Handels GmbH) and 20 questions for the Phase 1 acceptance checks:
 

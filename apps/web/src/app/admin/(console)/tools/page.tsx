@@ -10,7 +10,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("mcpServers");
 
-/** Tools (MCP) (prototype: MCPServers.html). */
+/** Tools (MCP). */
 export default async function ToolsPage() {
   const access = await areaAccess("tools");
   if (!access) return <Forbidden />;

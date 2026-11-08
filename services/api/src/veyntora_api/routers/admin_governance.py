@@ -1,4 +1,4 @@
-"""Governance (prototype: Governance.html).
+"""Governance.
 
 Viewing needs the Governance area (viewer). Settings need its editors (platform admins,
 security reviewers). Legal holds are placed and lifted only by the Legal role; platform

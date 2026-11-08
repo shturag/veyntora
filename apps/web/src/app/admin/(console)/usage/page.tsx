@@ -12,7 +12,7 @@ export const generateMetadata = () => screenMetadata("usage");
 
 type Row = components["schemas"]["UsageRow"];
 
-/** Usage and budgets (prototype: Usage.html). */
+/** Usage and budgets. */
 export default async function UsagePage({
   searchParams,
 }: {

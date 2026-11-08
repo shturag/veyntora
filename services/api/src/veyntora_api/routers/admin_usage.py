@@ -1,4 +1,4 @@
-"""Usage and budgets (prototype: Usage.html).
+"""Usage and budgets.
 
 Viewing needs the Usage area (viewer); budgets, the per-user limits and the finance export
 need its editors (platform admins by default). Every export is audited.

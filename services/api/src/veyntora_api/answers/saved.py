@@ -1,4 +1,4 @@
-"""Saved answers (prototype: SavedAnswers.html).
+"""Saved answers.
 
 - Saving keeps a snapshot: the question, the answer and its citations with each cited
   document's content hash at that moment.

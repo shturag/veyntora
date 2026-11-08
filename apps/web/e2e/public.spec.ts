@@ -11,7 +11,7 @@ test.describe("public pages", () => {
         "Ask your company anything.",
       );
       await expect(page.getByText("API keys ever shown in the UI")).toBeVisible();
-      // No sample data from the prototype.
+      // No sample data.
       await expect(page.getByText("1,240 users")).toHaveCount(0);
       await expect(page.getByText("0.94 faithfulness")).toHaveCount(0);
       await expectNoA11yViolations(page);

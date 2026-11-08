@@ -293,7 +293,10 @@ async function chat(r) {
   const box = page.getByRole("textbox").first();
   await r.type(box, "What is the AGENTS framework for language agents?", 1200);
   r.text = "Answers come only from documents you may read, with numbered sources";
-  const thread = page.locator('a[href^="/chat/"]', { hasText: "Open-source Framework" }).first();
+  // An existing conversation with sources (recording never sends a question).
+  const named = page.locator('a[href^="/chat/"]', { hasText: "Open-source Framework" }).first();
+  const thread = (await named.count()) ? named : page.locator('a[href^="/chat/"]').first();
+  if (!(await thread.count())) throw new Error("chat: needs an existing conversation with sources");
   await r.click(thread, 600);
   await r.move(page.locator("main p").first());
   await r.scroll(-3000, 6, 1200);

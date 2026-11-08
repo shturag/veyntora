@@ -7,7 +7,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("handoff");
 
-/** Ask a human expert (prototype: Handoff.html); and the expert teams' questions. */
+/** Ask a human expert; and the expert teams' questions. */
 export default async function HandoffPage({
   searchParams,
 }: {

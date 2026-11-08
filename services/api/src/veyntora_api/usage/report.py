@@ -1,4 +1,4 @@
-"""Usage numbers for a month (prototype: Usage.html): spend and tokens from the usage
+"""Usage numbers for a month: spend and tokens from the usage
 records (cost from each provider instance's prices), split by chatbot, provider, group,
 cost centre and app key, and the finance export."""
 

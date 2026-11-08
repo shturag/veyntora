@@ -11,7 +11,7 @@ export const generateMetadata = () => screenMetadata("knowledgeHealth");
 
 const ORDER = ["gap", "conflict", "stale", "duplicate", "reported", "parse_failure"] as const;
 
-/** Knowledge health (prototype: KnowledgeHealth.html). */
+/** Knowledge health. */
 export default async function KnowledgeHealthPage() {
   const access = await areaAccess("knowledge_health");
   if (!access) return <Forbidden />;

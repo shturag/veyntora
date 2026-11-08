@@ -48,7 +48,7 @@ export function ModelPicker({
 }
 
 /** "siliconflow/Qwen/Qwen3.8-27B" → "Qwen3.8-27B": admins name providers by their path. */
-export function shortName(name: string): string {
+function shortName(name: string): string {
   return name.split("/").filter(Boolean).pop() ?? name;
 }
 

@@ -15,7 +15,7 @@ type Props = {
   searchParams: Promise<{ m?: string; n?: string }>;
 };
 
-/** A cited document (prototype: Source.html). Only shown if the user may read it. */
+/** A cited document. Only shown if the user may read it. */
 export default async function SourcePage({ params, searchParams }: Props) {
   const { id } = await params;
   const { m, n } = await searchParams;

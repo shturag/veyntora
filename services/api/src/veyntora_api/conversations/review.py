@@ -1,4 +1,4 @@
-"""Conversations review (prototype: Conversations.html): rated answers only.
+"""Conversations review: rated answers only.
 
 The queue holds answers people rated, filtered by what went wrong (not helpful, low
 groundedness, no answer found, a guardrail stepped in). Everything shown is masked by

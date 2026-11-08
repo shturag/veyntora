@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("automationAgentStep");
 
-/** Automation step (prototype: AutomationAgentStep.html). */
+/** Automation step. */
 export default async function StepPage({
   params,
 }: {

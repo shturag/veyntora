@@ -13,7 +13,7 @@ import type { AttachedFile, ChatFeatures, Mode } from "@/lib/chat";
 import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
 
-export type Assistant = { id: string; name: string; description: string };
+type Assistant = { id: string; name: string; description: string };
 
 // The tile shows the assistant's first letter (or digit).
 const letterOf = (name: string) => (/[\p{L}\p{N}]/u.exec(name)?.[0] ?? "?").toUpperCase();

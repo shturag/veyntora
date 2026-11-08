@@ -1,0 +1,15 @@
+Veyntora
+Copyright 2026 The Veyntora Authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It depends on third-party software under its own licenses, listed in each package's metadata
+(uv.lock, pnpm-lock.yaml). Among them, licenses other than the permissive MIT, BSD, ISC and
+Apache-2.0:
+- psycopg (LGPL-3.0) and libvips via sharp (LGPL-3.0-or-later), used as unmodified libraries;
+- certifi, pathspec and parts of orjson (MPL-2.0), used unmodified;
+- the Inter and JetBrains Mono fonts (SIL Open Font License 1.1);
+- caniuse-lite browser data (CC-BY-4.0), by Alexis Deveria, https://caniuse.com.
+
+The container images also run third-party services (PostgreSQL, Keycloak, OpenBao, OpenFGA and
+others in deploy/compose), each under its own license.

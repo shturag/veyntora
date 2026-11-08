@@ -39,3 +39,4 @@
 | [0035](0035-knowledge-tools-and-grounded-agents.md) | Knowledge tools, and agents that look things up |
 | [0036](0036-more-connected-sources.md) | More connected sources: Nextcloud, SharePoint Server, CMIS, Git, ServiceNow, Jira |
 | [0037](0037-vision-models.md) | Vision models (VLMs) for reading documents |
+| [0038](0038-open-source.md) | Open source under the Apache License 2.0 |

@@ -134,33 +134,6 @@ jobs:
           docker tag veyntora/${{ matrix.image.name }}:${{ github.sha }} "$repo:${{ github.sha }}"
           docker push "$repo:${{ github.sha }}"
 
-  dev-bump:
-    # dev follows main: point its values at the images just pushed; Argo CD syncs dev
-    # automatically. staging and prod stay manual (a person sets image.tag).
-    name: Deploy · bump dev to this commit
-    runs-on: ubuntu-24.04
-    needs: [images]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Set image.tag in deploy/helm/values/dev
-        run: |
-          set -eu
-          for f in deploy/helm/values/dev/*.yaml; do
-            sed -i -E "s/^(  tag: ).*$/\1\"${GITHUB_SHA}\"/" "$f"
-          done
-          git diff --stat
-      - name: Commit
-        run: |
-          set -eu
-          if git diff --quiet; then exit 0; fi
-          git config user.name "veyntora-ci"
-          git config user.email "ci@users.noreply.github.com"
-          git commit -am "deploy(dev): images ${GITHUB_SHA::12} [skip ci]"
-          git push
-
   dependencies:
     name: Dependency scan
     runs-on: ubuntu-24.04

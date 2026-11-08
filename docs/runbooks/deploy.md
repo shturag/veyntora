@@ -7,8 +7,8 @@ For the platform team installing Veyntora on Kubernetes. Local development is in
 - **Chart:** `deploy/helm/veyntora-service`, one hardened chart per service. Pods run as non-root with a read-only root filesystem, dropped capabilities and a default-deny NetworkPolicy.
 - **Values:** `deploy/helm/values/<env>/<service>.yaml` sets the image, command, replicas, allowed callers, secrets, OpenBao role, ingress and backups.
 - **Argo CD:** `deploy/argocd/project.yaml` + `root-<env>.yaml` form an app of apps.
-  - **dev** syncs automatically. CI points dev at every commit on `main` (job `dev-bump` sets `image.tag` to the commit SHA).
-  - **staging** and **prod** sync by hand after approval; a person sets `image.tag`.
+  - **Images:** CI builds every service on each commit to `main` and pushes it to `ghcr.io/<owner>/veyntora-<service>`, tagged with the commit SHA. Point `image.repository` at your own registry if you build the images yourself.
+  - **Deploying a version:** set `image.tag` in `values/<env>/*.yaml`. **dev** syncs automatically; **staging** and **prod** sync by hand after approval.
 - **Migrations:** the `api` release runs `veyntora-api bootstrap` as a **PreSync** hook, connected as the database **owner**. A failing migration stops the sync.
 
 ```bash

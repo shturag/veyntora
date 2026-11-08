@@ -1,4 +1,4 @@
-"""Canary roll-out and rollback (prototype: Versions.html).
+"""Canary roll-out and rollback.
 
 - Start: the draft becomes the canary for 10% of people (a stable share by person), with
   every publish check. The eval gate may be overridden only by a platform admin with a

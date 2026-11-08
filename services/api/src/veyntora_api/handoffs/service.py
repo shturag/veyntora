@@ -1,4 +1,4 @@
-"""Hand-off to a human expert (prototype: Handoff.html).
+"""Hand-off to a human expert.
 
 - The asker sends the question to one of the chatbot's expert groups (set on the
   chatbot's Access page), with an urgency, optionally the conversation and its sources,

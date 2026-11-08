@@ -3,7 +3,7 @@ import "server-only";
 import { serverApi } from "./api/server";
 import type { components } from "./api/schema";
 
-export type PublicInfo = components["schemas"]["PublicInfoOut"];
+type PublicInfo = components["schemas"]["PublicInfoOut"];
 
 /** Platform facts shown before sign-in. Null when the API is unreachable. */
 export async function getPublicInfo(): Promise<PublicInfo | null> {

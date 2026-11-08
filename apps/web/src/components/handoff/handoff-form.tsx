@@ -12,7 +12,7 @@ type Form = components["schemas"]["HandoffForm"];
 const field = "flex flex-col gap-1 text-[13px] font-medium";
 const control = "rounded-md border border-line-strong bg-surface px-3 py-2 text-sm font-normal";
 
-/** Ask a human expert (prototype: Handoff.html). */
+/** Ask a human expert. */
 export function HandoffForm({ form, messageId }: { form: Form; messageId: string }) {
   const t = useTranslations("handoff");
   const [sent, setSent] = useState<string | null>(null);

@@ -9,7 +9,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("dataSources");
 
-/** Data sources (prototype: DataSources.html). */
+/** Data sources. */
 export default async function SourcesPage() {
   const access = await areaAccess("sources");
   if (!access) return <Forbidden />;

@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr, computed_field
+from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -85,7 +85,6 @@ class Settings(BaseSettings):
     alembic_ini: Path = Path(__file__).resolve().parents[2] / "alembic.ini"
 
     status_timeout_seconds: float = 2.0
-    cors_origins: list[str] = Field(default_factory=list)
 
     @computed_field  # type: ignore[prop-decorator]
     @property

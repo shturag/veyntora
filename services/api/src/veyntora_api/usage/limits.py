@@ -1,4 +1,4 @@
-"""Limits per user (prototype: Usage.html, "Limits per user").
+"""Limits per user.
 
 A platform setting: questions per hour, Agent runs per day and upload storage ("My
 files"), 0 meaning no limit; groups may get a multiple of them ("support-leads: twice the limits").

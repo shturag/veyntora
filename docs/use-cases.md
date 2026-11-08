@@ -412,12 +412,12 @@ Every use case the app supports today, by actor. Each one names who does it, wha
 | **Actor** | Platform admin, owner |
 | **Result** | A draft chatbot, ready to test |
 
-1. **+ New chatbot**.
-2. **1 Basics & template**: name, short name, a template.
-3. **2 Knowledge**: attach data sources.
-4. **3 Pipeline**: retrieval and model.
-5. **4 Access**: roles and the data rule.
-6. **5 Test & publish**: try it, then publish (C-12).
+1. **+ New chatbot**. The wizard stays open until the end; pages it links to (Playground, a source, a new provider) open in a new tab.
+2. **1 Basics & template**: name, description (shown on the Home card), welcome message, answer language, blank or a copy of a chatbot.
+3. **2 Knowledge**: attach data sources, limit them to folders, weigh them. A chatbot without documents skips this step.
+4. **3 Pipeline**: a few questions decide the modes and the providers it needs: from documents or general chat, tasks with tools, reranking, experts, chat features (models people can switch to, thinking, attachments, web search, code interpreter), and the prompt. A governance editor allows general chat or an external provider in the data rule right there. **Save and fine-tune** opens every setting, still inside the wizard.
+5. **4 Access**: who may chat, approve, edit or administer, experts for hand-off, and the data rule. One **Save and continue** saves them together.
+6. **5 Test & publish**: a summary of every step with what still blocks publishing, linked to the wizard page that fixes it; test in the Playground, then publish (C-12).
 
 ### C-02 · Attach knowledge to a chatbot
 
@@ -570,6 +570,7 @@ Every use case the app supports today, by actor. Each one names who does it, wha
 3. **Test connection**: Healthy, Degraded or Down.
 
 - **External provider:** usable only by chatbots whose data rule allows it.
+- **Vision model (VLM):** chosen in a chatbot's Pipeline → Ingestion. It describes pictures and charts and can read scanned pages; the connection test sends a small image (ADR 0037).
 
 ### A-06 · Rotate or replace a key
 

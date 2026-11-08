@@ -29,7 +29,7 @@ const tone = (status: string) =>
       ? "red"
       : "neutral";
 
-/** Data source detail (prototype: SourceDetail.html). */
+/** Data source detail. */
 const STATUSES = ["indexed", "failed", "pending"] as const;
 const PAGE = 100;
 // Sync numbers worth showing, in this order.

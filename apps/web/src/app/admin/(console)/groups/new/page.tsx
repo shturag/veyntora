@@ -9,7 +9,7 @@ import { areaAccess } from "@/lib/admin";
 
 export const generateMetadata = () => screenMetadata("groupCreate");
 
-/** New group (prototype: GroupCreate.html). Roles are set on the group's page next. */
+/** New group. Roles are set on the group's page next. */
 export default async function NewGroupPage() {
   const access = await areaAccess("users");
   if (!access || access.level !== "editor") return <Forbidden />;

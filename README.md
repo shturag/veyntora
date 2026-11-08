@@ -2,7 +2,9 @@
 
 # Veyntora
 
-Self-hosted enterprise knowledge platform. Employees ask questions and get answers with sources they can check, or hand an agent a task that it carries out with their approval. Admins set up every step in a web console; nothing needs a code change.
+[![CI](https://github.com/shturag/veyntora/actions/workflows/ci.yml/badge.svg)](https://github.com/shturag/veyntora/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
+Open-source, self-hosted enterprise knowledge platform. Employees ask questions and get answers with sources they can check, or hand an agent a task that it carries out with their approval. Admins set up every step in a web console; nothing needs a code change.
 
 ## What it does
 
@@ -66,17 +68,21 @@ More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md), [docs/runbooks
 | `packages/spec` | Pipeline and automation specs (Pydantic) and generated TS types |
 | `packages/providers` | Provider interfaces, adapters, MCP client, secret scrubber |
 | `packages/ui` | Design tokens and shared components |
-| `mcp-servers` | Specs for first-party MCP servers (not built yet) |
 | `evals` | Evaluation questions and corpus |
 | `deploy/compose` | Local stack |
 | `deploy/helm`, `deploy/argocd` | Kubernetes chart, values per environment, app-of-apps |
 | `deploy/openfga` | Authorization model, tests, bootstrap mapping |
 | `deploy/observability` | Prometheus scrape config and a Grafana dashboard for your own monitoring |
-| `design/prototype` | UI reference (read-only) |
-| `docs` | [Installation](docs/installation.md), [ADRs](docs/adr/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md), prototype differences |
+| `docs` | [Installation](docs/installation.md), [ADRs](docs/adr/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md) |
 
 ## Development
 
 `make help` lists the commands. `make lint`, `make test` and `make e2e` check the code; `make gen` regenerates the OpenAPI reference and the TypeScript types; `make ci` runs what CI runs before images are built.
 
-Proprietary. See [LICENSE](LICENSE).
+## Contributing
+
+Contributions are welcome: bug reports, fixes, connectors, providers and translations. Read [CONTRIBUTING.md](CONTRIBUTING.md) to get set up, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](SECURITY.md).
+
+## License
+
+Veyntora is licensed under the [Apache License 2.0](LICENSE). Third-party components keep their own licenses; see [NOTICE](NOTICE).

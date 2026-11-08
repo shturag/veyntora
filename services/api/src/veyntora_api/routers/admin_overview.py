@@ -1,4 +1,4 @@
-"""The admin Overview and Monitoring (prototypes: Overview.html, Monitoring.html), and the
+"""The admin Overview and Monitoring, and the
 status messages people see on the status page.
 
 Overview needs the Overview area (viewer), Monitoring the Monitoring area; posting a

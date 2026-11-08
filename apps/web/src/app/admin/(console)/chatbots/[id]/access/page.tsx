@@ -12,7 +12,7 @@ import { dataRuleOf } from "@/lib/data-rule";
 
 export const generateMetadata = () => screenMetadata("botAccess");
 
-/** Who can use this chatbot and its data rule (prototype: BotAccess.html). */
+/** Who can use this chatbot and its data rule. */
 export default async function BotAccessPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("chatbots");
   if (!access) return <Forbidden />;

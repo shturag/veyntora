@@ -202,8 +202,14 @@ Platform admins come from the bootstrap group in Keycloak. They grant the Legal 
 | Type | Readers come from |
 | --- | --- |
 | SharePoint Online | Site and library permissions, mapped to Veyntora groups or matching e-mails |
+| SharePoint Server (2016, 2019, Subscription Edition) | Role assignments with "View Items", mapped through a group map; SharePoint groups count by their members |
 | Confluence (Cloud and Data Center) | Space permissions narrowed by page restrictions |
+| Document management (CMIS: Alfresco, d.velop, enaio and others) | Each document's ACL, mapped through a group map |
 | File share (SMB) | NTFS permissions (DACL), mapped through a SID map |
+| Nextcloud / WebDAV | Chosen by the admin, optionally per folder |
+| Git (GitHub, GitLab) | Chosen by the admin, optionally per repository or folder |
+| ServiceNow knowledge | Chosen by the admin; articles with "Can read" criteria are left out unless included |
+| Jira (Cloud and Data Center) | Chosen by the admin, optionally per project; issues with a security level are left out unless included |
 | Upload | Chosen by the admin |
 | S3 bucket | Chosen by the admin |
 | Website | Chosen by the admin |
@@ -220,7 +226,7 @@ Platform admins come from the bootstrap group in Keycloak. They grant the Legal 
 
 | # | You do (Admin › Providers) | What happens |
 | --- | --- | --- |
-| 1 | **+ Add provider**, then what it should do: LLM, embeddings, reranker, vector store, document parser or guardrail | |
+| 1 | **+ Add provider**, then what it should do: LLM, embeddings, reranker, vector store, document parser, guardrail, web search, code interpreter or vision model (VLM) | |
 | 2 | Choose the adapter (for example TEI, Docling, Qdrant, Anthropic, OpenAI-compatible) and declare it self-hosted or external | An external provider is usable only by chatbots whose data rule allows it |
 | 3 | Enter the endpoint, model and key | The key is written to OpenBao |
 | 4 | **Test connection** | Health shows as Healthy, Degraded or Down |

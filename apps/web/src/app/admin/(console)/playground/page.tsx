@@ -9,7 +9,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("playground");
 
-/** Playground (prototype: Playground.html): one question against draft and live, side by side. */
+/** Playground: one question against draft and live, side by side. */
 export default async function PlaygroundPage({
   searchParams,
 }: {

@@ -6,7 +6,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("library");
 
-/** Chats & knowledge (prototype: Library.html): the user's conversations and own files. */
+/** Chats & knowledge: the user's conversations and own files. */
 export default async function LibraryPage() {
   const api = await serverApi();
   const [{ data }, { data: files }] = await Promise.all([

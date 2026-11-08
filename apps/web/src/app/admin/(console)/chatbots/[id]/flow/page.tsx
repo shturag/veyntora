@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("botFlow");
 
-/** The chatbot's flow (prototype: BotFlow.html): the standard pipeline, or its own graph. */
+/** The chatbot's flow: the standard pipeline, or its own graph. */
 export default async function BotFlowPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("pipelines");
   if (!access) return <Forbidden />;

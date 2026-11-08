@@ -29,7 +29,7 @@ export type ProviderRow = {
   version: number;
 };
 
-export type ProviderUsage = { calls: number; tokens_in: number; tokens_out: number; cost: number };
+type ProviderUsage = { calls: number; tokens_in: number; tokens_out: number; cost: number };
 
 const GRACE = ["24h", "1h", "7d", "now"] as const;
 const EXTERNAL_ONLY = new Set(["anthropic", "voyage", "azure_pii"]);

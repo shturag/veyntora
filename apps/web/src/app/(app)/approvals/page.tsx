@@ -10,7 +10,7 @@ export const generateMetadata = () => screenMetadata("approvals");
 const SCOPES = ["to_decide", "mine", "decided"] as const;
 type Scope = (typeof SCOPES)[number];
 
-/** Approvals (prototype: Approvals.html): what agents want to do, waiting for a person. */
+/** Approvals: what agents want to do, waiting for a person. */
 export default async function ApprovalsPage({
   searchParams,
 }: {

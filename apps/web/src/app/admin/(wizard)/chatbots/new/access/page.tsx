@@ -12,7 +12,7 @@ import { requireMe } from "@/lib/session";
 
 export const generateMetadata = () => screenMetadata("botCreateAccess");
 
-/** Step 4 (prototype: BotCreateAccess.html): who may use it, expert teams and the data rule,
+/** Step 4: who may use it, expert teams and the data rule,
  *  saved together. */
 export default async function Step({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const bot = await wizardBot((await searchParams).id);

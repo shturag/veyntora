@@ -11,7 +11,7 @@ type Approval = components["schemas"]["ApprovalOut"];
 const POLL_MS = 4000;
 
 /**
- * The agent waits for a person to approve a write (prototype: AgentRunning.html). The card
+ * The agent waits for a person to approve a write. The card
  * checks the request until it is decided, then lets the run continue; "Stop" ends it.
  */
 export function ApprovalCard({

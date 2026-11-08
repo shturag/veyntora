@@ -99,7 +99,7 @@ function TypePicker({ type, onChange }: { type: Kind; onChange: (k: Kind) => voi
   );
 }
 
-/** Connect data source (prototype: ConnectSource.html): pick a type, then its settings. */
+/** Connect data source: pick a type, then its settings. */
 export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
   const t = useTranslations("sources");
   const tc = useTranslations("sources.connectUi");

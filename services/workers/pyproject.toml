@@ -3,6 +3,7 @@ name = "veyntora-workers"
 version = "0.1.0"
 description = "Veyntora background jobs: ingestion, sync, eval, retention; scheduler"
 requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
 dependencies = [
   "veyntora-api",
   "celery[redis]==5.6.3",

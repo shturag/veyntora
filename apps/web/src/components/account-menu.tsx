@@ -14,7 +14,7 @@ import { setLocale } from "@/lib/actions";
 const item =
   "flex cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2 text-sm text-fg outline-none data-[highlighted]:bg-sunken";
 
-export async function signOut(): Promise<void> {
+async function signOut(): Promise<void> {
   const res = await fetch("/api/auth/logout", {
     method: "POST",
     headers: { "x-veyntora-csrf": "1" },

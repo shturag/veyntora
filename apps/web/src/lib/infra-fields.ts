@@ -14,7 +14,7 @@ export const INFRA_SERVICES: readonly InfraService[] = [
   "keycloak",
 ];
 
-export type Field = {
+type Field = {
   name: string;
   kind: "text" | "number" | "bool";
   initial: string | number | boolean;
@@ -23,7 +23,7 @@ export type Field = {
 };
 
 /** Passwords by name, as the API stores them (kv/veyntora/infra/<name>). */
-export type SecretField = { name: string; optional?: boolean };
+type SecretField = { name: string; optional?: boolean };
 
 export const FIELDS: Record<InfraService, Field[]> = {
   postgres: [

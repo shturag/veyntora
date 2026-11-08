@@ -6,7 +6,7 @@ import { Forbidden } from "@/components/forbidden";
 import { WizardSteps } from "@/components/wizard-steps";
 import { canOpenArea, requireMe } from "@/lib/session";
 
-/** Full-screen wizard frame (prototype: BotCreate*.html) without the admin rail. */
+/** Full-screen wizard frame without the admin rail. */
 export default async function WizardLayout({ children }: { children: ReactNode }) {
   const me = await requireMe();
   const t = await getTranslations("wizard");

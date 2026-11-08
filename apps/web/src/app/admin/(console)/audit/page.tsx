@@ -24,7 +24,7 @@ type Range = (typeof RANGES)[number];
 
 const input = "h-10 rounded-md border border-line-strong bg-surface px-3 text-sm";
 
-/** Audit log (prototype: Audit.html). Read-only. */
+/** Audit log. Read-only. */
 export default async function AuditPage({
   searchParams,
 }: {

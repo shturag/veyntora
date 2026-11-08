@@ -61,7 +61,7 @@ Run the web app outside Docker against the compose API: `API_INTERNAL_URL=http:/
 - **`remaining connection slots are reserved`:** the dev Postgres allows 300 connections. Check `pg_stat_activity` for a service with a runaway pool.
 - **Start from scratch:** `make reset && make up`.
 
-## Phase 1 evaluation
+## Evaluating providers from the command line
 
 After adding providers under Admin → Providers & keys (parser, embedding, vector store, LLM, optionally a reranker), take their ids from the Providers page and run:
 

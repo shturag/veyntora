@@ -1,4 +1,4 @@
-"""My files: documents a user uploads for themselves (prototype: Library.html, "My files").
+"""My files: documents a user uploads for themselves.
 
 They are scanned and indexed like other uploads and searched by every chat of their owner.
 Nobody else can read them, admins included: their ACL names only the owner.

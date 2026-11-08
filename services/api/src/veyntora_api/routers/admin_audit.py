@@ -1,4 +1,4 @@
-"""Audit log (prototype: Audit.html): read-only search, change detail, chain check,
+"""Audit log: read-only search, change detail, chain check,
 archive status and export. Needs the Audit area (viewer); exports are themselves
 audited. Secret values are never recorded (`scrub`), only that a key changed."""
 

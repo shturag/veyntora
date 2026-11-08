@@ -10,7 +10,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("automationBuilder");
 
-/** Automation builder (prototype: AutomationBuilder.html). */
+/** Automation builder. */
 export default async function AutomationBuilderPage({
   params,
 }: {

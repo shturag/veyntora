@@ -8,7 +8,7 @@ const TABS = [
   { href: "/library/saved", key: "saved" },
 ] as const;
 
-export type LibraryTab = (typeof TABS)[number]["key"];
+type LibraryTab = (typeof TABS)[number]["key"];
 
 /** Chats & knowledge's header and tabs, the same on each tab: switching tabs stays here. */
 export async function LibraryHeader({ current }: { current: LibraryTab }) {

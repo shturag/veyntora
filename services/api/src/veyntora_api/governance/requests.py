@@ -1,4 +1,4 @@
-"""Data subject requests (prototypes: Governance.html, GDPRRequest.html).
+"""Data subject requests.
 
 Steps: received → identity verified (by whoever handles it) → approved by a data
 protection officer who did not create the request → carried out → a signed report.

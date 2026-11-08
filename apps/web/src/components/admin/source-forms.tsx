@@ -23,28 +23,28 @@ export type SharePointSettings = {
   group_map: Record<string, string>;
 };
 
-export type S3Settings = {
+type S3Settings = {
   endpoint_url: string | null;
   region: string;
   bucket: string;
   prefixes: string[];
   access_key_id: string;
 };
-export type WebsiteSettings = {
+type WebsiteSettings = {
   start_urls: string[];
   include_paths: string[];
   max_pages: number;
   max_depth: number;
 };
-export type FolderReaders = { path: string; groups: string[] };
-export type ConfluenceSettings = {
+type FolderReaders = { path: string; groups: string[] };
+type ConfluenceSettings = {
   flavour: "cloud" | "datacenter";
   base_url: string;
   email: string | null;
   spaces: string[];
   group_map: Record<string, string>;
 };
-export type DatabaseSettings = {
+type DatabaseSettings = {
   engine: "postgresql" | "sqlserver" | "mysql" | "oracle";
   host: string;
   port: number;
@@ -57,7 +57,7 @@ export type DatabaseSettings = {
   group_column: string | null;
   max_rows: number;
 };
-export type SmbSettings = {
+type SmbSettings = {
   server: string;
   port: number;
   share: string;
@@ -74,7 +74,7 @@ const lines = (v: FormDataEntryValue | null) =>
     .filter(Boolean);
 
 // Cron presets the API accepts (UTC); "" is manual sync only.
-export const SCHEDULES: Record<string, "manual" | "hourly" | "every4h" | "daily"> = {
+const SCHEDULES: Record<string, "manual" | "hourly" | "every4h" | "daily"> = {
   "": "manual",
   "0 * * * *": "hourly",
   "0 */4 * * *": "every4h",
@@ -224,7 +224,7 @@ export function SharePointFields({
   );
 }
 
-export function s3From(form: FormData): S3Settings {
+function s3From(form: FormData): S3Settings {
   return {
     endpoint_url: String(form.get("endpoint_url") || "").trim() || null,
     region: String(form.get("region") || "us-east-1").trim(),
@@ -234,7 +234,7 @@ export function s3From(form: FormData): S3Settings {
   };
 }
 
-export function websiteFrom(form: FormData): WebsiteSettings {
+function websiteFrom(form: FormData): WebsiteSettings {
   return {
     start_urls: lines(form.get("start_urls")),
     include_paths: lines(form.get("web_paths")),
@@ -369,7 +369,7 @@ export function WebsiteFields({ value }: { value?: WebsiteSettings }) {
   );
 }
 
-export function confluenceFrom(form: FormData): ConfluenceSettings {
+function confluenceFrom(form: FormData): ConfluenceSettings {
   const flavour = String(form.get("flavour")) as ConfluenceSettings["flavour"];
   return {
     flavour,
@@ -380,7 +380,7 @@ export function confluenceFrom(form: FormData): ConfluenceSettings {
   };
 }
 
-export function databaseFrom(form: FormData): DatabaseSettings {
+function databaseFrom(form: FormData): DatabaseSettings {
   return {
     engine: String(form.get("engine")) as DatabaseSettings["engine"],
     host: String(form.get("host")).trim(),
@@ -399,7 +399,7 @@ export function databaseFrom(form: FormData): DatabaseSettings {
   };
 }
 
-export function smbFrom(form: FormData): SmbSettings {
+function smbFrom(form: FormData): SmbSettings {
   return {
     server: String(form.get("server")).trim(),
     port: Number(form.get("smb_port")) || 445,

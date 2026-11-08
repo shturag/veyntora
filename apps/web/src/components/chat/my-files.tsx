@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, CSRF_HEADERS } from "@/lib/chat";
 
-export type MyFile = {
+type MyFile = {
   id: string;
   name: string;
   status: string;
@@ -15,10 +15,10 @@ export type MyFile = {
   error: string | null;
 };
 
-export const ACCEPT = ".pdf,.docx,.pptx,.xlsx,.html,.htm,.md,.txt,.csv,.png,.jpg,.jpeg,.tif,.tiff";
+const ACCEPT = ".pdf,.docx,.pptx,.xlsx,.html,.htm,.md,.txt,.csv,.png,.jpg,.jpeg,.tif,.tiff";
 
 /** Upload files to "My files". Throws with the API's message on failure. */
-export async function uploadMyFiles(files: FileList | File[]): Promise<void> {
+async function uploadMyFiles(files: FileList | File[]): Promise<void> {
   const body = new FormData();
   for (const f of Array.from(files)) body.append("files", f);
   const res = await fetch("/api/v1/me/files", { method: "POST", body, headers: CSRF_HEADERS });
@@ -28,7 +28,7 @@ export async function uploadMyFiles(files: FileList | File[]): Promise<void> {
   }
 }
 
-/** "My files" in the Library (prototype: Library.html): private uploads, searched by your chats. */
+/** "My files" in the Library: private uploads, searched by your chats. */
 export function MyFiles({ initial }: { initial: MyFile[] }) {
   const t = useTranslations("myFiles");
   const [files, setFiles] = useState<MyFile[]>(initial);

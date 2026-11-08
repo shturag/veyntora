@@ -8,7 +8,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("savedAnswers");
 
-/** Saved answers (prototype: SavedAnswers.html), a tab of Chats & knowledge. */
+/** Saved answers, a tab of Chats & knowledge. */
 export default async function SavedPage({
   searchParams,
 }: {

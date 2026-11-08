@@ -1,4 +1,4 @@
-"""Conversations and feedback review (prototype: Conversations.html).
+"""Conversations and feedback review.
 
 Rated answers only. Viewing needs `can_view_admin` on the chatbot; marking reviewed,
 adding to an eval set and asking a document owner need `can_edit_draft`. Opening an

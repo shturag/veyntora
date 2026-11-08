@@ -15,7 +15,7 @@ export const CONTROL =
 const MAX_FILES = 5;
 
 /**
- * Question box with the answer-mode switch (prototype: Home.html, ChatFast.html). Auto lets
+ * Question box with the answer-mode switch. Auto lets
  * the router choose; the chatbot's pipeline may allow fewer modes (the server falls back).
  */
 export function Composer({

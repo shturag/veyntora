@@ -452,7 +452,7 @@ function ExpertReplies({ threadId }: { threadId: string }) {
   );
 }
 
-export type Choices = { model?: string; thinking?: boolean; webSearch?: boolean; code?: boolean };
+type Choices = { model?: string; thinking?: boolean; webSearch?: boolean; code?: boolean };
 
 /** The chat for one thread. The LangGraph client needs an absolute URL, so it mounts in the browser. */
 const noSubscribe = () => () => {};

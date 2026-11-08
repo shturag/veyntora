@@ -12,7 +12,7 @@ export const generateMetadata = () => screenMetadata("conversations");
 const FILTERS = ["not_helpful", "low_groundedness", "no_answer", "guardrail"] as const;
 type Filter = (typeof FILTERS)[number];
 
-/** Conversations and feedback (prototype: Conversations.html): rated answers to review. */
+/** Conversations and feedback: rated answers to review. */
 export default async function ConversationsPage({
   searchParams,
 }: {

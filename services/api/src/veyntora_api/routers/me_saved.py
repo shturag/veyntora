@@ -1,4 +1,4 @@
-"""Saved answers: save, share with my team, refresh, delete (prototype: SavedAnswers.html)."""
+"""Saved answers: save, share with my team, refresh, delete."""
 
 from __future__ import annotations
 

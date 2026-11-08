@@ -5,7 +5,7 @@
 
 import { SECTIONS, sectionHref, type SectionKey } from "./pipeline";
 
-export type Problem =
+type Problem =
   | { kind: "missing"; section: SectionKey; field: string; href: string }
   | { kind: "known"; key: KnownProblem; section: SectionKey; href: string }
   | { kind: "flow"; text: string; href: string }
@@ -13,7 +13,7 @@ export type Problem =
   | { kind: "slot"; section: SectionKey; field: string; text: string; href: string }
   | { kind: "other"; text: string };
 
-export type KnownProblem =
+type KnownProblem =
   | "systemPrompt"
   | "sameEmbedding"
   | "outputCheck"

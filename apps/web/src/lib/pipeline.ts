@@ -1,5 +1,5 @@
 /**
- * The Pipeline pages (prototype: Pipeline*.html) as data: each section edits one part of the
+ * The Pipeline pages as data: each section edits one part of the
  * draft PipelineSpec. Field names are the spec's; labels live in messages under "pipeline".
  */
 
@@ -31,7 +31,7 @@ export type Field =
   // Knowledge tools (ADR 0035): ids of read-only tools searched with every question.
   | { name: string; kind: "tool_ids" };
 
-export type Section = {
+type Section = {
   key: SectionKey;
   spec: keyof PipelineSpec;
   /** URL segment under /admin/chatbots/[id]/settings; retrieval is the first page. */

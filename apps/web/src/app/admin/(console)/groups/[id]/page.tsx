@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("groupDetail");
 
-/** One group (prototype: GroupDetail.html): members, role on each chatbot, tools. */
+/** One group: members, role on each chatbot, tools. */
 export default async function GroupPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("users");
   if (!access) return <Forbidden />;

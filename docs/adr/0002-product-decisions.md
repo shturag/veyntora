@@ -10,9 +10,9 @@ Status: accepted · 2026-10-30 · decided by the product owner
   - local dev realm (`deploy/compose/keycloak/veyntora-realm.json`): groups `/platform-admins` and `/all-employees`, users `admin` and `employee`, and the clients `veyntora` and `veyntora-sync`. Production realms come from the customer's Keycloak.
   - OpenFGA model and the default role → admin-area mapping (`deploy/openfga/bootstrap.json`).
   - members of the group named by `VEY_BOOTSTRAP_ADMIN_GROUP` (default `/platform-admins`) become platform admins.
-- Licence: proprietary (`LICENSE`).
+- Licence: proprietary (`LICENSE`). Superseded by ADR 0038: Apache-2.0.
 
 ## Consequences
 
-- The landing page's measured numbers (latency, groundedness, router split, scores, bot user counts) are replaced by product guarantees or real configuration. See `docs/prototype-differences.md`.
+- The landing page's measured numbers (latency, groundedness, router split, scores, bot user counts) are replaced by product guarantees or real configuration.
 - Integration tests create their own fixtures and clean up after themselves.

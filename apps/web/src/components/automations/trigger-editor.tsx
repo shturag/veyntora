@@ -94,7 +94,7 @@ const DEFAULTS: Record<Kind, Trigger> = {
   },
 };
 
-/** The trigger (prototype: AutomationTrigger.html): schedule, event, new file or watcher. */
+/** The trigger: schedule, event, new file or watcher. */
 export function TriggerEditor({
   automation,
   options,

@@ -164,7 +164,7 @@ function StepNode({ data, selected }: NodeProps<FlowNode>) {
 // Stable across renders (React Flow warns and re-mounts nodes otherwise).
 const NODE_TYPES = { step: StepNode };
 
-/** The chatbot's flow on a canvas (prototype: BotFlow.html), with a keyboard-friendly panel. */
+/** The chatbot's flow on a canvas, with a keyboard-friendly panel. */
 export function FlowEditor({
   botId,
   version,

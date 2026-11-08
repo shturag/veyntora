@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("automationApprovalStep");
 
-/** Approval with the actions after it (prototype: AutomationApprovalStep.html). */
+/** Approval with the actions after it. */
 export default async function StepPage({
   params,
 }: {

@@ -4,7 +4,7 @@
 export type Mode = "auto" | "fast" | "agent";
 export const MODES: readonly Mode[] = ["auto", "fast", "agent"];
 
-export type Outcome = "answered" | "no_answer" | "blocked" | "refused";
+type Outcome = "answered" | "no_answer" | "blocked" | "refused";
 
 export type CodeRun = {
   code: string;
@@ -92,18 +92,18 @@ export type StatusEvent = {
   step: "searching" | "writing" | "running_code";
   sources?: number;
 };
-export type TokenEvent = { type: "token"; text: string };
-export type StepEvent = {
+type TokenEvent = { type: "token"; text: string };
+type StepEvent = {
   type: "step";
   kind: string;
   status: string;
   name?: string;
   approval_id?: string;
 };
-export type RouteEvent = { type: "route"; mode: "fast" | "agent"; reason: string };
+type RouteEvent = { type: "route"; mode: "fast" | "agent"; reason: string };
 // The model's reasoning while it thinks (thinking switched on).
 // `all`: the whole reasoning so far (sent while the answer itself is held back).
-export type ReasoningEvent = { type: "reasoning"; text: string; all?: boolean };
+type ReasoningEvent = { type: "reasoning"; text: string; all?: boolean };
 export type ChatEvent = StatusEvent | TokenEvent | StepEvent | RouteEvent | ReasoningEvent;
 
 /** What the chat offers for a chatbot (GET /v1/me/chatbots/{id}/features). */
@@ -219,7 +219,7 @@ function inlines(text: string): Inline[] {
  * The Markdown models write, as blocks: headings, lists, code, tables and paragraphs (single
  * line breaks kept). Everything stays text: nothing is ever turned into HTML.
  */
-export type Block =
+type Block =
   | { kind: "heading"; level: number; text: Inline[] }
   | { kind: "list"; ordered: boolean; items: Inline[][] }
   | { kind: "code"; text: string }

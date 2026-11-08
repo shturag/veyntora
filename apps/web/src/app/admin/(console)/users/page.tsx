@@ -22,7 +22,7 @@ const MAY: Record<(typeof ROLE_ROWS)[number], readonly (typeof ROLES)[number][]>
   access: ["owner"],
 };
 
-/** Users & groups (prototype: Users.html). Keycloak stays the source of identities. */
+/** Users & groups. Keycloak stays the source of identities. */
 export default async function UsersPage({
   searchParams,
 }: {

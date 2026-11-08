@@ -6,7 +6,7 @@ import Link from "next/link";
 import { PublishButton } from "./publish-button";
 
 /** The chatbot pipeline's two views of the same draft: the picture and the settings. */
-export async function PipelineViewSwitch({
+async function PipelineViewSwitch({
   botId,
   current,
 }: {

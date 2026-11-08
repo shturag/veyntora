@@ -26,7 +26,7 @@ const DOT = {
   not_configured: "neutral",
 } as const;
 
-/** Admin overview (prototype: Overview.html). */
+/** Admin overview. */
 export default async function OverviewPage() {
   const t = await getTranslations("overview");
   const ts = await getTranslations("status");

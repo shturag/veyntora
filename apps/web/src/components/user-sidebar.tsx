@@ -41,7 +41,7 @@ const MENU: { href: string; key: string; icon: LucideIcon }[] = [
 ];
 
 /**
- * The user app's left sidebar (prototype: Home.html): the menu stays put; the most recent
+ * The user app's left sidebar: the menu stays put; the most recent
  * chats scroll under it, above the account. Both sections fold.
  */
 /** The chat sidebar's width: dragged between these (long chat titles need room). */

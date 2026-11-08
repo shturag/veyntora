@@ -23,7 +23,7 @@ const KEY_OPTIONAL = new Set(["web_search/searxng"]);
 const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
 const label = "flex flex-col gap-1 text-[13px] font-medium";
 
-/** Add provider (prototype: AddProvider.html): capability, adapter, connection, key. */
+/** Add provider: capability, adapter, connection, key. */
 export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
   const t = useTranslations("providers");
   const router = useRouter();

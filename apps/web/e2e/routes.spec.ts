@@ -68,15 +68,22 @@ test.describe("as an employee without admin roles", () => {
     await expect(page.getByRole("menuitem", { name: "Admin console" })).toHaveCount(0);
   });
 
-  test("the API answers 403 for admin-only data and lists no chatbots", async ({ page }) => {
+  test("the API answers 403 for admin-only data", async ({ page }) => {
     await page.goto("/home");
     const me = await page.request.get("/api/v1/me");
     expect(me.status()).toBe(200);
     const body = (await me.json()) as { can_open_admin: boolean; roles: Record<string, boolean> };
     expect(body.can_open_admin).toBe(false);
     expect(Object.values(body.roles).every((v) => v === false)).toBe(true);
-    const bots = await page.request.get("/api/v1/me/chatbots");
-    expect(await bots.json()).toEqual([]);
+    // Admin areas answer 403; the chatbot list holds only chatbots the caller administers.
+    for (const path of [
+      "/api/v1/admin/providers",
+      "/api/v1/admin/sources",
+      "/api/v1/admin/audit",
+    ]) {
+      expect((await page.request.get(path)).status(), path).toBe(403);
+    }
+    expect(await (await page.request.get("/api/v1/admin/chatbots")).json()).toEqual([]);
   });
 });
 

@@ -11,7 +11,7 @@ import { serverApi } from "@/lib/api/server";
 
 export const generateMetadata = () => screenMetadata("userDetail");
 
-/** One person (prototype: UserDetail.html): access via groups, activity, suspend, delegate. */
+/** One person: access via groups, activity, suspend, delegate. */
 export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await areaAccess("users");
   if (!access) return <Forbidden />;
