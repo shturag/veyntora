@@ -335,3 +335,43 @@ async def test_the_nightly_scan_runs_once_after_its_time(db: AsyncSession) -> No
     db.add(KnowledgeScan(status="done", started_at=day.replace(hour=2, minute=31)))
     await db.flush()
     assert not await job.nightly_due(db, day.replace(hour=9))
+
+
+def test_pages_on_one_template_are_not_duplicates() -> None:
+    from veyntora_api.knowledge.health import jaccard, without_boilerplate  # noqa: PLC0415
+
+    template = set(range(1000))  # menu, header and footer on every page
+    pages = {
+        uuid4(): template | set(range(10_000 + 50 * i, 10_000 + 50 * i + 50)) for i in range(20)
+    }
+    a, b = list(pages)[:2]
+    assert jaccard(pages[a], pages[b]) > 0.9, "the template alone looks like a duplicate"
+    copy = uuid4()
+    pages[copy] = set(pages[a])  # a real copy of the first page
+    clean = without_boilerplate(pages)
+    assert jaccard(clean[a], clean[b]) == 0.0
+    assert jaccard(clean[a], clean[copy]) == 1.0
+
+
+async def test_a_document_that_indexes_again_is_no_longer_unreadable(db: AsyncSession) -> None:
+    from veyntora_api.db.models.knowledge import (  # noqa: PLC0415
+        IssueKind,
+        IssueStatus,
+        KnowledgeIssue,
+    )
+    from veyntora_api.knowledge.health import readable_again  # noqa: PLC0415
+
+    doc = uuid4()
+    issue = KnowledgeIssue(
+        kind=IssueKind.PARSE_FAILURE,
+        status=IssueStatus.OPEN,
+        key=f"parse_failure:{doc}",
+        summary="x could not be read",
+        details={},
+        document_ids=[doc],
+    )
+    db.add(issue)
+    await db.flush()
+    await readable_again(db, doc)
+    await db.refresh(issue)
+    assert issue.status is IssueStatus.RESOLVED and issue.resolved_at is not None

@@ -8,13 +8,27 @@ test.describe("knowledge health as a platform admin", () => {
   test("shows the last scan, the numbers and the issues with their actions", async ({ page }) => {
     await page.goto("/admin/knowledge-health");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Knowledge health");
-    for (const kpi of ["Knowledge gaps", "Contradictions", "Stale but popular", "Duplicates"]) {
-      await expect(page.locator("dt", { hasText: kpi })).toBeVisible();
+    const kinds = page.getByRole("navigation", { name: "Kinds of findings" });
+    for (const kind of [
+      "Knowledge gaps",
+      "Contradictions",
+      "Stale but popular",
+      "Duplicates",
+      "Reported by readers",
+      "Could not be read",
+    ]) {
+      await expect(kinds.getByRole("link", { name: new RegExp(`^${kind}`) })).toBeVisible();
     }
     await expect(page.getByText(/^(Last scan |No scan yet\.)/)).toBeVisible();
     await expectNoA11yViolations(page);
-    const failures = page.getByRole("heading", { name: "Parse failures" });
-    if (await failures.isVisible()) {
+    await kinds.getByRole("link", { name: /^Could not be read/ }).click();
+    await expect(page.getByRole("heading", { name: /^Could not be read/ })).toBeVisible();
+    if (
+      await page
+        .getByText(/could not be read$/)
+        .first()
+        .isVisible()
+    ) {
       const issue = page.locator("li", { has: page.getByText(/could not be read/) }).first();
       await issue.getByRole("button", { name: "Notify owner" }).click();
       await expect(page.getByRole("dialog").getByLabel("Message")).toHaveValue(/could not be read/);

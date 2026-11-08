@@ -24,6 +24,7 @@ import itertools
 import json
 import math
 import re
+from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -164,6 +165,19 @@ async def resolve_missing(db: AsyncSession, kinds: Sequence[IssueKind], seen: se
     return count
 
 
+async def readable_again(db: AsyncSession, document_id: UUID) -> None:
+    """A document that indexed again can be read: its "could not be read" issue is resolved
+    now instead of at the next scan."""
+    await db.execute(
+        sa.update(KnowledgeIssue)
+        .where(
+            KnowledgeIssue.key == f"parse_failure:{document_id}",
+            KnowledgeIssue.status.in_(OPEN),
+        )
+        .values(status=IssueStatus.RESOLVED, resolved_at=datetime.now(UTC))
+    )
+
+
 async def owner_of(db: AsyncSession, doc: Document) -> UUID | None:
     """The document's owner: its source's owner, else the owner of a chatbot using it."""
     source = await db.get(DataSource, doc.source_id)
@@ -286,6 +300,16 @@ def jaccard(a: set[int], b: set[int]) -> float:
     return len(a & b) / len(a | b) if a and b else 0.0
 
 
+def without_boilerplate(texts: dict[UUID, set[int]]) -> dict[UUID, set[int]]:
+    """Drop the shingles many documents share: a website's menu, header and footer, a
+    template's fixed text. Otherwise pages built on one template read as near-identical."""
+    if len(texts) < 10:
+        return texts
+    seen = Counter(s for shingles in texts.values() for s in shingles)
+    limit = max(5, len(texts) // 10)
+    return {k: {s for s in v if seen[s] <= limit} for k, v in texts.items()}
+
+
 async def _duplicates(
     db: AsyncSession,
     docs: list[Document],
@@ -295,6 +319,7 @@ async def _duplicates(
 ) -> set[str]:
     seen: set[str] = set()
     by_id = {d.id: d for d in docs}
+    texts = without_boilerplate(texts)
     pairs: dict[tuple[UUID, UUID], float] = {}
     by_hash: dict[str, list[Document]] = {}
     for doc in docs:

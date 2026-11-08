@@ -3108,7 +3108,7 @@
       "stale": "Stale but popular",
       "duplicate": "Duplicates",
       "reported": "Reported by readers",
-      "parse_failure": "Parse failures"
+      "parse_failure": "Could not be read"
     },
     "questions": "{count, plural, one {# question} other {# questions}}",
     "owner": "Owner: {name}",
@@ -3177,7 +3177,19 @@
     "settingsSaved": "Saved.",
     "cancel": "Cancel",
     "close": "Close",
-    "failed": "Did not work: {reason}"
+    "failed": "Did not work: {reason}",
+    "kindsLabel": "Kinds of findings",
+    "kpiReportedHint": "answers people flagged as wrong",
+    "kpiUnreadableHint": "documents the parser could not read",
+    "openCount": "{count, plural, =0 {nothing open} one {# open} other {# open}}",
+    "emptyKind": "Nothing to fix here.",
+    "similar": "{percent} % alike",
+    "showAll": "Show all {count}",
+    "readError": {
+      "key": "The document parser refused Veyntora's key: check the parser under Providers & keys, then re-index.",
+      "down": "The document parser could not be reached: check it under Providers & keys (Test connection).",
+      "empty": "No text could be read: the file may be empty, an image without text, or protected."
+    }
   },
   "saved": {
     "title": "Saved answers",

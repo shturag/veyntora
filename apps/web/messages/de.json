@@ -3108,7 +3108,7 @@
       "stale": "Veraltet, aber gefragt",
       "duplicate": "Duplikate",
       "reported": "Von Lesenden gemeldet",
-      "parse_failure": "Lesefehler"
+      "parse_failure": "Nicht lesbar"
     },
     "questions": "{count, plural, one {# Frage} other {# Fragen}}",
     "owner": "Verantwortlich: {name}",
@@ -3177,7 +3177,19 @@
     "settingsSaved": "Gespeichert.",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "failed": "Hat nicht funktioniert: {reason}"
+    "failed": "Hat nicht funktioniert: {reason}",
+    "kindsLabel": "Arten von Funden",
+    "kpiReportedHint": "Antworten, die Leute als falsch gemeldet haben",
+    "kpiUnreadableHint": "Dokumente, die der Parser nicht lesen konnte",
+    "openCount": "{count, plural, =0 {nichts offen} one {# offen} other {# offen}}",
+    "emptyKind": "Hier ist nichts zu tun.",
+    "similar": "{percent} % ähnlich",
+    "showAll": "Alle {count} zeigen",
+    "readError": {
+      "key": "Der Dokument-Parser hat Veyntoras Schlüssel abgelehnt: Prüfen Sie den Parser unter Anbieter & Schlüssel und indexieren Sie neu.",
+      "down": "Der Dokument-Parser war nicht erreichbar: Prüfen Sie ihn unter Anbieter & Schlüssel (Verbindung testen).",
+      "empty": "Kein Text lesbar: Die Datei ist vielleicht leer, ein Bild ohne Text oder geschützt."
+    }
   },
   "saved": {
     "title": "Gespeicherte Antworten",

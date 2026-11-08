@@ -41,6 +41,7 @@ from veyntora_api.db.models.knowledge import (
 )
 from veyntora_api.db.session import get_sessionmaker
 from veyntora_api.knowledge import clamd as scan
+from veyntora_api.knowledge import health
 from veyntora_api.knowledge import vocabulary
 from veyntora_api.knowledge.connectors import CONNECTED
 from veyntora_api.knowledge.profiles import index_plan
@@ -322,6 +323,8 @@ class Ingestor:
         doc.error = failed[0].error if failed else None
         doc.chunk_count = max((r.chunk_count for r in needed), default=0)
         doc.last_synced_at = datetime.now(UTC)
+        if not failed:
+            await health.readable_again(self.db, doc.id)
         if new_content and not failed:
             await triggers.on_file(self.db, doc, changed=changed, indexed=True)
         return {"profiles": len(profiles), "indexed": indexed, "failed": len(failed)}
