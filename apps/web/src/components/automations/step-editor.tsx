@@ -569,11 +569,14 @@ export function StepEditor({
   options,
   stepId,
   following = false,
+  onClose,
 }: {
   automation: Automation;
   options: Options;
   stepId: string;
   following?: boolean;
+  /** Inside the automation's page: close in place instead of going back to it. */
+  onClose?: () => void;
 }) {
   const t = useTranslations("automations");
   const router = useRouter();
@@ -583,10 +586,18 @@ export function StepEditor({
   const index = spec.steps.findIndex((s) => s.id === stepId);
   const step = spec.steps[index];
   if (!step) return <p className="m-0 text-sm text-red">{t("stepGone")}</p>;
+  // In place, an approval is edited with the actions after it, like on its own page.
+  const withFollowing = following || (!!onClose && step.type === "approval");
+  const close = () => {
+    if (onClose) {
+      onClose();
+      router.refresh();
+    } else router.push(`/admin/automations/${automation.id}`);
+  };
   const setStep = (next: Step) =>
     setSpec({ ...spec, steps: spec.steps.map((s) => (s.id === next.id ? next : s)) });
   const after: Step[] = [];
-  if (following) {
+  if (withFollowing) {
     for (const s of spec.steps.slice(index + 1)) {
       if (s.type !== "tool" && s.type !== "notify") break;
       after.push(s);
@@ -598,8 +609,7 @@ export function StepEditor({
     setError(null);
     try {
       await saveSpec(automation, spec, { note: t("stepChanged", { id: stepId }) });
-      router.push(`/admin/automations/${automation.id}`);
-      router.refresh();
+      close();
     } catch (e) {
       setError(errorText(e));
       setBusy(false);
@@ -608,7 +618,7 @@ export function StepEditor({
 
   function changeType(type: StepType) {
     const next = newStep(type, step!.id, automation.chatbot_id);
-    if (type === "approval" && !following) {
+    if (type === "approval" && !following && !onClose) {
       // Approvals are edited on their own page, with the actions after them.
       void saveSpec(automation, {
         ...spec,
@@ -623,7 +633,7 @@ export function StepEditor({
 
   return (
     <div className="flex flex-col gap-5">
-      {!following ? (
+      {!withFollowing || onClose ? (
         <fieldset className="m-0 flex flex-wrap gap-2 border-0 p-0">
           <legend className="mb-1 text-[13px] font-medium">{t("stepType")}</legend>
           {(["agent", "condition", "approval", "tool", "notify"] as const).map((type) => (
@@ -647,10 +657,18 @@ export function StepEditor({
         <section
           key={s.id}
           aria-labelledby={`h-${s.id}`}
-          className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+          className={
+            onClose
+              ? "flex flex-col gap-4"
+              : "flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+          }
         >
-          <h2 id={`h-${s.id}`} className="m-0 text-base font-semibold">
-            {spec.steps.findIndex((x) => x.id === s.id) + 2} · {t(`stepTypes.${s.type}`)}
+          <h2
+            id={`h-${s.id}`}
+            // In place, the step's card already names the step being edited.
+            className={onClose && s.id === step.id ? "sr-only" : "m-0 text-base font-semibold"}
+          >
+            {spec.steps.findIndex((x) => x.id === s.id) + 1} · {t(`stepTypes.${s.type}`)}
           </h2>
           <label className={field}>
             {t("stepName")}
@@ -674,11 +692,11 @@ export function StepEditor({
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => router.push(`/admin/automations/${automation.id}`)}>
+        <Button onClick={onClose ?? (() => router.push(`/admin/automations/${automation.id}`))}>
           {t("cancel")}
         </Button>
         <Button variant="primary" disabled={busy} onClick={save}>
-          {following && after.length ? t("saveSteps") : t("saveStep")}
+          {withFollowing && after.length ? t("saveSteps") : t("saveStep")}
         </Button>
         {step.type === "agent" ? (
           <RunNow id={automation.id} label={t("testSampleEvent")} dryOnly />

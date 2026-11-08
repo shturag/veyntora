@@ -3080,7 +3080,10 @@
     "createdOn": "erstellt am {day}",
     "toFix": "{count, plural, one {# Punkt zu beheben} other {# Punkte zu beheben}}",
     "emptyFiltered": "Nichts zu ändern: Keine Automation nutzt diesen Chatbot, er kann gelöscht werden.",
-    "fixFirst": "Beheben Sie zuerst, was unter „Bevor sie laufen kann“ steht."
+    "fixFirst": "Beheben Sie zuerst, was unter „Bevor sie laufen kann“ steht.",
+    "when": "Wenn",
+    "needsAttention": "Braucht Aufmerksamkeit",
+    "saveTrigger": "Auslöser speichern"
   },
   "knowledgeHealth": {
     "title": "Wissensqualität",

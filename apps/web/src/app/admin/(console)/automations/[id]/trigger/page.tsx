@@ -34,7 +34,7 @@ export default async function TriggerPage({ params }: { params: Promise<{ id: st
         <Link href={`/admin/automations/${id}`} className="underline">
           {automation.name}
         </Link>{" "}
-        / {t("stepN", { n: 1 })}
+        / {t("trigger")}
       </nav>
       <PageHeader title={t("trigger")} />
       <TriggerEditor automation={automation} options={options} />

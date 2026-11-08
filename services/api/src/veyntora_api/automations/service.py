@@ -303,8 +303,8 @@ async def _access_problems(
             if not await authz.check(who, "can_chat", f"chatbot:{step.chatbot_id}"):
                 bot = await db.get(Chatbot, step.chatbot_id)
                 problems.append(
-                    f"{name} may not use {bot.name if bot else 'the chatbot'} yet. "
-                    "Give it access on the chatbot's Access page."
+                    f"This automation may not use {bot.name if bot else 'the chatbot'} yet: "
+                    f"give {name} “Can chat” on the chatbot's Access page."
                 )
     return problems
 

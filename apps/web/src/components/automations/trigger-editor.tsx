@@ -98,9 +98,12 @@ const DEFAULTS: Record<Kind, Trigger> = {
 export function TriggerEditor({
   automation,
   options,
+  onClose,
 }: {
   automation: Automation;
   options: Options;
+  /** Inside the automation's page: close in place instead of going back to it. */
+  onClose?: () => void;
 }) {
   const t = useTranslations("automations");
   const format = useFormatter();
@@ -131,7 +134,8 @@ export function TriggerEditor({
     setMessage(null);
     try {
       await saveSpec(automation, { ...automation.spec, trigger }, { note: t("triggerChanged") });
-      router.push(`/admin/automations/${automation.id}`);
+      if (onClose) onClose();
+      else router.push(`/admin/automations/${automation.id}`);
       router.refresh();
     } catch (e) {
       setMessage({ ok: false, text: t("failed", { reason: errorText(e) }) });
@@ -460,11 +464,11 @@ export function TriggerEditor({
         </p>
       ) : null}
       <div className="flex gap-2">
-        <Button onClick={() => router.push(`/admin/automations/${automation.id}`)}>
+        <Button onClick={onClose ?? (() => router.push(`/admin/automations/${automation.id}`))}>
           {t("cancel")}
         </Button>
         <Button variant="primary" disabled={busy} onClick={save}>
-          {t("saveStep")}
+          {t("saveTrigger")}
         </Button>
       </div>
     </div>

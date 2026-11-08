@@ -41,7 +41,7 @@ export default async function StepPage({
         <Link href={`/admin/automations/${id}`} className="underline">
           {automation.name}
         </Link>{" "}
-        / {t("stepN", { n: index + 2 })}
+        / {t("stepN", { n: index + 1 })}
       </nav>
       <PageHeader title={step.name || t(`stepTypes.${step.type}`)} />
       <StepEditor automation={automation} options={options} stepId={stepId} following />

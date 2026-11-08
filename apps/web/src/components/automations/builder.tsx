@@ -1,6 +1,20 @@
 "use client";
 
 import { Badge, Button, Dialog } from "@veyntora/ui";
+import {
+  ArrowDown,
+  ArrowUp,
+  Bot,
+  CircleAlert,
+  GitBranch,
+  Plus,
+  Send,
+  ShieldCheck,
+  Trash2,
+  Wrench,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,6 +23,8 @@ import { useState } from "react";
 import { api } from "@/lib/chat";
 
 import { DeleteAutomation, PauseResume, RunNow } from "./list-actions";
+import { StepEditor } from "./step-editor";
+import { TriggerEditor } from "./trigger-editor";
 import {
   control,
   errorText,
@@ -18,7 +34,6 @@ import {
   RUN_TONE,
   saveSpec,
   STATUS_TONE,
-  stepHref,
   type Automation,
   type Options,
   type Spec,
@@ -27,6 +42,58 @@ import {
 } from "./spec";
 
 const TYPES: StepType[] = ["agent", "condition", "approval", "tool", "notify"];
+
+const ICONS: Record<StepType, LucideIcon> = {
+  agent: Bot,
+  condition: GitBranch,
+  approval: ShieldCheck,
+  tool: Wrench,
+  notify: Send,
+};
+
+// Steps on a line: each card hangs off a connector to the next one.
+const stepRow =
+  "relative flex flex-wrap items-start gap-3 rounded-lg border border-line bg-surface p-4 [&+&]:mt-3 [&+&]:before:absolute [&+&]:before:-top-3 [&+&]:before:left-[35px] [&+&]:before:h-3 [&+&]:before:w-px [&+&]:before:bg-line-strong";
+// The editor opens inside the card, under the step's summary (flex-wrap puts it on its own row).
+const inlineEditor = "basis-full border-t border-line pt-4 mt-1";
+const stepIcon = (tone: "accent" | "amber" | "neutral") =>
+  `flex size-9 shrink-0 items-center justify-center rounded-lg ${
+    tone === "accent"
+      ? "bg-accent-soft text-accent"
+      : tone === "amber"
+        ? "bg-amber-soft text-amber"
+        : "bg-sunken text-fg-secondary"
+  }`;
+
+type Problem = {
+  text: string;
+  /** The step it is about (numbered from 1), if any. */
+  step: number | null;
+  /** What to open on this page: "trigger" or a step id. */
+  open: string | null;
+  /** Another page that fixes it (a chatbot's Access page). */
+  href: string | null;
+};
+
+/** The API's problems with where each is fixed: "Step 2: …" (numbered from 1, without the
+ *  trigger), "Trigger: …", or a chatbot's Access page. */
+function located(problems: string[], automation: Automation, options: Options): Problem[] {
+  return problems.map((text) => {
+    const step = /^Step (\d+):/.exec(text);
+    if (step) {
+      const n = Number(step[1]);
+      return { text, step: n, open: automation.spec.steps[n - 1]?.id ?? null, href: null };
+    }
+    if (text.startsWith("Trigger:")) return { text, step: null, open: "trigger", href: null };
+    const bot = options.chatbots.find(
+      (b) => text.includes(` ${b.name} `) || text.includes(` ${b.name}:`),
+    );
+    if (bot && text.includes("Access page")) {
+      return { text, step: null, open: null, href: `/admin/chatbots/${bot.id}/access` };
+    }
+    return { text, step: null, open: null, href: null };
+  });
+}
 
 function stepLine(step: Step, options: Options, t: ReturnType<typeof useTranslations>): string {
   const name = (id: string | null | undefined, list: { id: string; name: string }[]) =>
@@ -65,11 +132,27 @@ export function Builder({
   const format = useFormatter();
   const router = useRouter();
   const [spec, setSpec] = useState<Spec>(automation.spec);
+  // A version saved in place (a step, the trigger) replaces the steps shown here.
+  const [shown, setShown] = useState(automation.version);
+  if (automation.version !== shown) {
+    setShown(automation.version);
+    setSpec(automation.spec);
+  }
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [token, setToken] = useState<{ token: string; url: string } | null>(null);
   const [adding, setAdding] = useState(false);
+  // The trigger or the step being edited in place ("trigger" or a step id).
+  const [editing, setEditing] = useState<string | null>(null);
+  // Just saved (a new step): the editor needs it before the page has reloaded.
+  const [fresh, setFresh] = useState<Automation | null>(null);
+  const current = fresh ?? automation;
+  const closeEditor = () => {
+    setEditing(null);
+    setFresh(null);
+  };
   const dirty = JSON.stringify(spec) !== JSON.stringify(automation.spec);
+  const problems = located(automation.problems, automation, options);
 
   async function run(action: () => Promise<unknown>, done: string) {
     setBusy(true);
@@ -109,7 +192,11 @@ export function Builder({
         { ...spec, steps: [...spec.steps, step] },
         { note: t("addedStep") },
       );
-      router.push(stepHref(saved.id, step));
+      setSpec(saved.spec);
+      setFresh(saved);
+      setEditing(step.id);
+      setBusy(false);
+      router.refresh();
     } catch (e) {
       setMessage({ ok: false, text: t("failed", { reason: errorText(e) }) });
       setBusy(false);
@@ -134,8 +221,15 @@ export function Builder({
             </span>
           </div>
           {editor ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <RunNow id={automation.id} label={t("testSample")} dryOnly />
+              <Button
+                variant={dirty ? "primary" : "secondary"}
+                disabled={busy || !dirty}
+                onClick={() => save(spec, t("savedVersion", { n: automation.version + 1 }))}
+              >
+                {t("saveChanges")}
+              </Button>
               {automation.status === "draft" ? (
                 <Button
                   // Saving comes first while there are changes; then activating.
@@ -160,13 +254,7 @@ export function Builder({
               ) : (
                 <PauseResume id={automation.id} status={automation.status} />
               )}
-              <Button
-                variant={dirty ? "primary" : "secondary"}
-                disabled={busy || !dirty}
-                onClick={() => save(spec, t("savedVersion", { n: automation.version + 1 }))}
-              >
-                {t("saveChanges")}
-              </Button>
+              <span aria-hidden className="mx-1 h-6 w-px bg-line" />
               <DeleteAutomation
                 id={automation.id}
                 name={automation.name}
@@ -187,28 +275,56 @@ export function Builder({
             {message.text}
           </p>
         ) : null}
-        {automation.problems.length ? (
+        {problems.length ? (
           <section
             aria-labelledby="problems"
-            className="rounded-lg border border-amber/40 bg-amber/5 p-4"
+            className="flex flex-col gap-2 rounded-lg border border-amber/40 bg-amber-soft/40 p-4"
           >
-            <h2 id="problems" className="m-0 mb-1 text-sm font-semibold text-amber">
+            <h2
+              id="problems"
+              className="m-0 flex items-center gap-2 text-sm font-semibold text-amber"
+            >
+              <CircleAlert aria-hidden className="size-4" />
               {t("problemsTitle")}
+              <span className="font-normal text-fg-muted">
+                {t("toFix", { count: problems.length })}
+              </span>
             </h2>
-            <ul className="m-0 flex flex-col gap-0.5 pl-5 text-sm">
-              {automation.problems.map((p) => (
-                <li key={p}>{p}</li>
+            <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-sm">
+              {problems.map((p) => (
+                <li key={p.text} className="flex items-baseline gap-2">
+                  <span
+                    aria-hidden
+                    className="size-1.5 shrink-0 translate-y-[-2px] rounded-full bg-amber"
+                  />
+                  {p.open && editor ? (
+                    <button
+                      type="button"
+                      disabled={dirty}
+                      onClick={() => setEditing(p.open)}
+                      className="text-left text-fg hover:underline disabled:no-underline"
+                    >
+                      {p.text}
+                    </button>
+                  ) : p.href && editor ? (
+                    <Link href={p.href} className="text-fg no-underline hover:underline">
+                      {p.text}
+                    </Link>
+                  ) : (
+                    <span>{p.text}</span>
+                  )}
+                </li>
               ))}
             </ul>
           </section>
         ) : null}
-        <ol className="m-0 flex list-none flex-col gap-2 p-0" aria-label={t("stepsLabel")}>
-          <li className="flex items-start gap-3 rounded-lg border border-line bg-surface p-4">
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sunken text-xs font-semibold">
-              1
+        <ol className="m-0 flex list-none flex-col p-0" aria-label={t("stepsLabel")}>
+          <li className={stepRow}>
+            <span aria-hidden className={stepIcon("accent")}>
+              <Zap className="size-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-xs text-fg-muted">{t("trigger")}</div>
+              <div className="text-xs font-medium text-fg-muted uppercase">{t("when")}</div>
               <div className="text-sm font-semibold">{t(`triggerTypes.${spec.trigger.type}`)}</div>
               <div className="text-xs text-fg-muted">
                 {automation.next_runs.length
@@ -230,98 +346,148 @@ export function Builder({
                     : ""}
               </div>
             </div>
-            {editor ? (
-              <Link
-                href={`/admin/automations/${automation.id}/trigger`}
-                className="text-sm underline"
+            {editor && editing !== "trigger" ? (
+              <Button
+                size="sm"
+                disabled={dirty || editing !== null}
+                title={dirty ? t("saveFirst") : undefined}
+                onClick={() => setEditing("trigger")}
               >
                 {t("edit")}
-              </Link>
+              </Button>
+            ) : null}
+            {editing === "trigger" ? (
+              <div className={inlineEditor}>
+                <TriggerEditor automation={current} options={options} onClose={closeEditor} />
+              </div>
             ) : null}
           </li>
-          {spec.steps.map((step, i) => (
-            <li
-              key={step.id}
-              className="flex items-start gap-3 rounded-lg border border-line bg-surface p-4"
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sunken text-xs font-semibold">
-                {i + 2}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs text-fg-muted">
-                  {t(`stepTypes.${step.type}`)} · <span className="font-mono">{step.id}</span>
+          {spec.steps.map((step, i) => {
+            const Icon = ICONS[step.type];
+            const flagged = problems.some((p) => p.step === i + 1);
+            return (
+              <li key={step.id} className={stepRow}>
+                <span aria-hidden className={stepIcon(flagged ? "amber" : "neutral")}>
+                  <Icon className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium text-fg-muted uppercase">
+                    {t("stepN", { n: i + 1 })} · {t(`stepTypes.${step.type}`)}
+                  </div>
+                  <div className="text-sm font-semibold">
+                    {step.name || t(`stepTypes.${step.type}`)}
+                  </div>
+                  <div className="truncate text-xs text-fg-muted">{stepLine(step, options, t)}</div>
+                  {flagged ? (
+                    <div className="mt-1 flex items-center gap-1 text-xs font-medium text-amber">
+                      <CircleAlert aria-hidden className="size-3.5" />
+                      {t("needsAttention")}
+                    </div>
+                  ) : null}
                 </div>
-                <div className="text-sm font-semibold">
-                  {step.name || t(`stepTypes.${step.type}`)}
-                </div>
-                <div className="truncate text-xs text-fg-muted">{stepLine(step, options, t)}</div>
-              </div>
-              {editor ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    size="sm"
-                    aria-label={t("moveUp", { n: i + 2 })}
-                    disabled={i === 0}
-                    onClick={() => move(i, -1)}
-                  >
-                    ↑
-                  </Button>
-                  <Button
-                    size="sm"
-                    aria-label={t("moveDown", { n: i + 2 })}
-                    disabled={i === spec.steps.length - 1}
-                    onClick={() => move(i, 1)}
-                  >
-                    ↓
-                  </Button>
-                  <Button
-                    size="sm"
-                    aria-label={t("removeStep", { n: i + 2 })}
-                    onClick={() =>
-                      setSpec({ ...spec, steps: spec.steps.filter((s) => s.id !== step.id) })
-                    }
-                  >
-                    ×
-                  </Button>
-                  <Link href={stepHref(automation.id, step)} className="ml-1 text-sm underline">
-                    {t("edit")}
-                  </Link>
-                </div>
-              ) : null}
+                {editor && editing !== step.id ? (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label={t("moveUp", { n: i + 1 })}
+                      title={t("moveUp", { n: i + 1 })}
+                      disabled={i === 0}
+                      onClick={() => move(i, -1)}
+                    >
+                      <ArrowUp aria-hidden className="size-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label={t("moveDown", { n: i + 1 })}
+                      title={t("moveDown", { n: i + 1 })}
+                      disabled={i === spec.steps.length - 1}
+                      onClick={() => move(i, 1)}
+                    >
+                      <ArrowDown aria-hidden className="size-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      aria-label={t("removeStep", { n: i + 1 })}
+                      title={t("removeStep", { n: i + 1 })}
+                      onClick={() =>
+                        setSpec({ ...spec, steps: spec.steps.filter((s) => s.id !== step.id) })
+                      }
+                    >
+                      <Trash2 aria-hidden className="size-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="ml-1"
+                      disabled={dirty || editing !== null}
+                      title={dirty ? t("saveFirst") : undefined}
+                      onClick={() => setEditing(step.id)}
+                    >
+                      {t("edit")}
+                    </Button>
+                  </div>
+                ) : null}
+                {editing === step.id ? (
+                  <div className={inlineEditor}>
+                    <StepEditor
+                      automation={current}
+                      options={options}
+                      stepId={step.id}
+                      onClose={closeEditor}
+                    />
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
+          {editor ? (
+            <li className="relative mt-3">
+              <span aria-hidden className="absolute -top-3 left-[35px] h-3 w-px bg-line-strong" />
+              <button
+                type="button"
+                disabled={busy || dirty || editing !== null}
+                title={dirty ? t("saveFirst") : undefined}
+                onClick={() => setAdding(true)}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong bg-surface px-4 py-3 text-sm font-medium text-fg-secondary hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Plus aria-hidden className="size-4" />
+                {t("addStep").replace(/^\+\s*/, "")}
+              </button>
             </li>
-          ))}
+          ) : null}
         </ol>
         {editor ? (
-          <div>
-            <Button
-              disabled={busy || dirty}
-              title={dirty ? t("saveFirst") : undefined}
-              onClick={() => setAdding(true)}
-            >
-              {t("addStep")}
-            </Button>
-            <Dialog
-              open={adding}
-              onOpenChange={setAdding}
-              title={t("addStepTitle")}
-              closeLabel={t("close")}
-            >
-              <ul className="m-0 flex list-none flex-col gap-2 p-0">
-                {TYPES.map((type) => (
+          <Dialog
+            open={adding}
+            onOpenChange={setAdding}
+            title={t("addStepTitle")}
+            closeLabel={t("close")}
+          >
+            <ul className="m-0 flex list-none flex-col gap-2 p-0">
+              {TYPES.map((type) => {
+                const Icon = ICONS[type];
+                return (
                   <li key={type}>
                     <button
                       type="button"
                       onClick={() => add(type)}
-                      className="flex w-full flex-col items-start rounded-md border border-line p-3 text-left hover:border-line-strong"
+                      className="flex w-full items-start gap-3 rounded-md border border-line p-3 text-left hover:border-accent"
                     >
-                      <span className="text-sm font-semibold">{t(`stepTypes.${type}`)}</span>
-                      <span className="text-xs text-fg-muted">{t(`stepHints.${type}`)}</span>
+                      <span aria-hidden className={stepIcon("neutral")}>
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="flex flex-col">
+                        <span className="text-sm font-semibold">{t(`stepTypes.${type}`)}</span>
+                        <span className="text-xs text-fg-muted">{t(`stepHints.${type}`)}</span>
+                      </span>
                     </button>
                   </li>
-                ))}
-              </ul>
-            </Dialog>
-          </div>
+                );
+              })}
+            </ul>
+          </Dialog>
         ) : null}
         {spec.trigger.type === "event" && editor ? (
           <section
@@ -505,7 +671,7 @@ export function Builder({
                     {" "}
                     ·{" "}
                     {format.dateTime(new Date(v.created_at), {
-                      dateStyle: "short",
+                      dateStyle: "medium",
                       timeStyle: "short",
                     })}
                     {v.change_note ? ` · ${v.change_note}` : ""}

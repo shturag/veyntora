@@ -38,19 +38,25 @@ test.describe("automations as a platform admin", () => {
     await page.getByRole("radio", { name: "Daily" }).check();
     await page.getByRole("radio", { name: "Weekly" }).check();
     await expectNoA11yViolations(page);
-    await page.getByRole("button", { name: "Save step" }).click();
+    await page.getByRole("button", { name: "Save trigger" }).click();
     await page.waitForURL(new RegExp(`/admin/automations/${id}$`));
     await expect(page.getByText(/^Next runs: /)).toBeVisible();
 
-    // A notification without an approval before it, as the safety rule says.
-    await page.getByRole("button", { name: "+ Add step" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: /^Notify/ }).click();
-    await page.waitForURL(/\/agent-step\/step1$/);
+    // A notification without an approval before it, as the safety rule says. Steps are
+    // added and edited in place, on the automation's page.
+    await page.getByRole("button", { name: "Add step" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: /^Notify/ })
+      .click();
     await page.getByRole("textbox", { name: "Message", exact: true }).fill("Report: {event.key}");
     await expectNoA11yViolations(page);
     await page.getByRole("button", { name: "Save step" }).click();
-    await page.waitForURL(new RegExp(`/admin/automations/${id}$`));
-    await expect(page.getByText("Step 1: a notification needs an approval step before it.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save step" })).toHaveCount(0);
+    expect(new URL(page.url()).pathname).toBe(`/admin/automations/${id}`);
+    await expect(
+      page.getByText("Step 1: a notification needs an approval step before it."),
+    ).toBeVisible();
     await expect(page.getByText("Step 1: choose the channel to post in.")).toBeVisible();
 
     // A dry run takes no actions; the run trace shows what would have happened.
