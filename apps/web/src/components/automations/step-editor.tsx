@@ -264,6 +264,21 @@ function Recipients({
   const [q, setQ] = useState("");
   const [found, setFound] = useState<Option[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
+  // People saved earlier are stored by id: look up their names to show them.
+  const unnamed = value.filter((v) => /^[0-9a-f-]{36}$/.test(v) && !(v in names));
+  const lookup = unnamed.join(",");
+  useEffect(() => {
+    if (!lookup) return;
+    const query = lookup
+      .split(",")
+      .map((id) => `ids=${id}`)
+      .join("&");
+    api<Option[]>(`/v1/admin/automations/people?${query}`)
+      .then((people) =>
+        setNames((n) => ({ ...n, ...Object.fromEntries(people.map((p) => [p.id, p.name])) })),
+      )
+      .catch(() => {});
+  }, [lookup]);
   useEffect(() => {
     if (q.trim().length < 2) return;
     const timer = setTimeout(() => {

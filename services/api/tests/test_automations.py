@@ -617,3 +617,11 @@ async def test_the_list_tells_twins_apart_finds_a_chatbots_automations_and_delet
     identity = await db.get(User, used.service_user_id)
     assert identity is not None and identity.suspended
     assert [a.id for a in (await router.list_automations(me, db, state)).automations] == [loose.id]
+
+
+async def test_recipients_chosen_earlier_are_shown_by_name(rag: Rag, db: AsyncSession) -> None:
+    from veyntora_api.routers import admin_automations as router  # noqa: PLC0415
+
+    me: Any = None
+    [found] = await router.recipients(me, db, ids=[rag.w.user.id])
+    assert found.id == rag.w.user.id and found.name == (rag.w.user.display_name or rag.w.user.email)

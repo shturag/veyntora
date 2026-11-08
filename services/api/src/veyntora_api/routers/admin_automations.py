@@ -406,8 +406,19 @@ async def builder_options(_: Viewer, db: DbSession) -> BuilderOptions:
     )
 
 
-@router.get("/people", summary="People who can receive messages (search)")
-async def recipients(_: Viewer, db: DbSession, q: str = "") -> list[Option]:
+@router.get("/people", summary="People who can receive messages (search, or by id)")
+async def recipients(
+    _: Viewer,
+    db: DbSession,
+    q: str = "",
+    ids: Annotated[list[UUID] | None, Query(description="Names for chosen people")] = None,
+) -> list[Option]:
+    if ids:
+        rows = (await db.execute(sa.select(User).where(User.id.in_(ids[:50])))).scalars()
+        return [
+            Option(id=u.id, name=u.display_name or (u.email or ""), detail=u.email or "")
+            for u in rows
+        ]
     query = sa.select(User).where(User.is_service.is_(False), User.suspended.is_(False))
     if q.strip():
         like = f"%{q.strip()}%"

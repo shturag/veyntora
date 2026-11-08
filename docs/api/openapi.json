@@ -20302,6 +20302,28 @@
               "title": "Q",
               "type": "string"
             }
+          },
+          {
+            "description": "Names for chosen people",
+            "in": "query",
+            "name": "ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Names for chosen people",
+              "title": "Ids"
+            }
           }
         ],
         "responses": {
@@ -20330,7 +20352,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "People who can receive messages (search)",
+        "summary": "People who can receive messages (search, or by id)",
         "tags": [
           "admin: automations"
         ]

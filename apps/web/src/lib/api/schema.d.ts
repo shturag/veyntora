@@ -323,7 +323,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** People who can receive messages (search) */
+        /** People who can receive messages (search, or by id) */
         get: operations["recipients_v1_admin_automations_people_get"];
         put?: never;
         post?: never;
@@ -11344,6 +11344,8 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
+                /** @description Names for chosen people */
+                ids?: string[] | null;
             };
             header?: never;
             path?: never;
