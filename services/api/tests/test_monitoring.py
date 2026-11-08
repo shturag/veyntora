@@ -35,6 +35,7 @@ def test_p95_and_ranges() -> None:
     now = datetime(2026, 10, 31, 15, 30, tzinfo=UTC)
     assert mon.since_of("today", now) == datetime(2026, 10, 31, tzinfo=UTC)
     assert mon.since_of("7d", now) == now - timedelta(days=7)
+    assert mon.since_of("24h", now) == now - timedelta(hours=24)
 
 
 async def test_stats_count_what_was_recorded(rag: Rag) -> None:

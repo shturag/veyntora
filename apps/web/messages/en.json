@@ -3836,10 +3836,6 @@
     "time": "Time",
     "alerts": "Alerts",
     "noAlerts": "No alerts.",
-    "level": {
-      "warning": "Warning",
-      "info": "Info"
-    },
     "providers": "Providers",
     "noCalls": "No model calls in this range.",
     "hosting": {
@@ -3872,7 +3868,34 @@
       "time": "Time"
     },
     "period": "Period",
-    "noRequests": "No requests in this period."
+    "noRequests": "No requests in this period.",
+    "alert": {
+      "blocked": {
+        "title": "{count} answers blocked by guardrails ({share})",
+        "detail": "More than usual. The rules may be too strict, or people ask about something they block.",
+        "link": "Review blocked answers"
+      },
+      "failed_runs": {
+        "title": "{count, plural, one {# run failed} other {# runs failed}}",
+        "detail": "An agent or automation run ended with an error: usually a model, tool or provider that did not answer.",
+        "link": "Open the latest one"
+      },
+      "slow_fast": {
+        "title": "Fast answers are slow: {seconds} s (p95)",
+        "detail": "Above the {target} s target. Usually the answer model or the reranker; compare models in the Playground.",
+        "link": "Open pipelines"
+      },
+      "external": {
+        "title": "{count} model calls went to external providers",
+        "detail": "To {names}, as the chatbots' data rules allow.",
+        "link": "Data rules"
+      },
+      "component": {
+        "title": "{name}: {level}",
+        "detail": "A part of Veyntora is not working as it should.",
+        "link": "Check infrastructure"
+      }
+    }
   },
   "governance": {
     "title": "Governance",

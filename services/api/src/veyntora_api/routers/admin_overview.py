@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from veyntora_api.auth.deps import Ctx, CurrentPrincipal, DbSession, Principal, State
 from veyntora_api.core import audit
+from veyntora_api.db.models.automations import Run, RunStatus
 from veyntora_api.db.models.channels import Channel
 from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus
 from veyntora_api.db.models.identity import User
@@ -264,6 +265,11 @@ class ProviderOut(BaseModel):
 class MonitorAlert(BaseModel):
     level: Literal["warning", "info"]
     text: str
+    # What it is about, with its numbers: the page words it, says what it means and links
+    # to where to look.
+    kind: Literal["blocked", "failed_runs", "slow_fast", "external", "component"]
+    values: dict[str, str | int | float] = Field(default_factory=dict)
+    href: str | None = None
 
 
 class GrafanaDashboardRef(BaseModel):
@@ -306,6 +312,10 @@ async def _grafana_dashboards(db: DbSession) -> list[GrafanaDashboardRef]:
     ]
 
 
+# Fast answers slower than this (p95) raise an alert.
+SLOW_FAST_MS = 5000
+
+
 @router.get("/monitoring", summary="Requests, latency, quality and providers")
 async def monitoring(
     principal: CurrentPrincipal,
@@ -325,32 +335,66 @@ async def monitoring(
         alerts.append(
             MonitorAlert(
                 level="warning",
+                kind="blocked",
+                values={"count": s.blocked, "share": round(s.blocked / s.requests, 3)},
+                href="/admin/conversations?filter=guardrail",
                 text=f"{s.blocked} answers were blocked by guardrails "
                 f"({s.blocked / s.requests:.1%})",
             )
         )
     if s.failed_runs:
+        latest = await db.scalar(
+            sa.select(Run.id)
+            .where(
+                Run.status == RunStatus.FAILED,
+                Run.created_at >= mon.since_of(range, now),
+                Run.chatbot_id == chatbot_id if chatbot_id else sa.true(),
+            )
+            .order_by(Run.created_at.desc())
+            .limit(1)
+        )
         alerts.append(
             MonitorAlert(
-                level="warning", text=f"{s.failed_runs} {_plural(s.failed_runs, 'run')} failed"
+                level="warning",
+                kind="failed_runs",
+                values={"count": s.failed_runs},
+                href=f"/admin/runs/{latest}" if latest else None,
+                text=f"{s.failed_runs} {_plural(s.failed_runs, 'run')} failed",
             )
         )
-    if s.p95_fast_ms and s.p95_fast_ms > 5000:
+    if s.p95_fast_ms and s.p95_fast_ms > SLOW_FAST_MS:
         alerts.append(
-            MonitorAlert(level="warning", text=f"Fast p95 latency is {s.p95_fast_ms / 1000:.1f} s")
+            MonitorAlert(
+                level="warning",
+                kind="slow_fast",
+                values={"seconds": round(s.p95_fast_ms / 1000, 1), "target": SLOW_FAST_MS // 1000},
+                href="/admin/pipelines",
+                text=f"Fast p95 latency is {s.p95_fast_ms / 1000:.1f} s",
+            )
         )
     if s.external_calls:
         names = ", ".join(p.name for p in s.providers if p.external_calls)
         alerts.append(
             MonitorAlert(
                 level="info",
+                kind="external",
+                values={"count": s.external_calls, "names": names},
+                href="/admin/governance",
                 text=f"{s.external_calls} model calls went to external providers ({names})",
             )
         )
     health = await system_status(state, db)
     for c in health.components:
         if c.level in {Level.DEGRADED, Level.DOWN}:
-            alerts.append(MonitorAlert(level="warning", text=f"{c.key} is {c.level.value}"))
+            alerts.append(
+                MonitorAlert(
+                    level="warning",
+                    kind="component",
+                    values={"name": c.key, "level": c.level.value},
+                    href="/admin/infrastructure",
+                    text=f"{c.key} is {c.level.value}",
+                )
+            )
     bots = (await db.execute(sa.select(Chatbot.id, Chatbot.name).order_by(Chatbot.name))).all()
     return MonitoringOut(
         range=range,

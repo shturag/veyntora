@@ -133,10 +133,15 @@ function Timeseries({
   const top = Math.max(...values);
   // A flat line still gets a scale: three distinct gridline labels.
   const hi = top > lo ? top : lo + 1;
-  const plotW = W - PAD.left - PAD.right;
+  // Room on the left for the longest value label, so none is cut off.
+  const longest = Math.max(
+    ...[0, 0.5, 1].map((f) => valueOf(format, lo + f * (hi - lo), panel.unit).length),
+  );
+  const left = Math.max(PAD.left, longest * 7 + 12);
+  const plotW = W - left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
   // Grafana aligns points to its step, so the first may fall just before the range.
-  const x = (t: number) => PAD.left + Math.min(1, Math.max(0, (t - t0) / (t1 - t0))) * plotW;
+  const x = (t: number) => left + Math.min(1, Math.max(0, (t - t0) / (t1 - t0))) * plotW;
   const y = (v: number) => PAD.top + plotH - ((v - lo) / (hi - lo)) * plotH;
   const duration = t1 - t0;
   const tick = (t: number) =>
@@ -182,7 +187,7 @@ function Timeseries({
           return (
             <g key={f}>
               <line
-                x1={PAD.left}
+                x1={left}
                 x2={W - PAD.right}
                 y1={y(v)}
                 y2={y(v)}
@@ -190,7 +195,7 @@ function Timeseries({
                 strokeWidth={1}
               />
               <text
-                x={PAD.left - 6}
+                x={left - 6}
                 y={y(v) + 4}
                 textAnchor="end"
                 className="fill-fg-muted text-[11px]"
@@ -203,7 +208,7 @@ function Timeseries({
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
           <text
             key={f}
-            x={PAD.left + f * plotW}
+            x={left + f * plotW}
             y={H - 6}
             textAnchor={f === 0 ? "start" : f === 1 ? "end" : "middle"}
             className="fill-fg-muted text-[11px]"

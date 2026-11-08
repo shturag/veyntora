@@ -1,4 +1,5 @@
-import { Badge, Button, PageHeader } from "@veyntora/ui";
+import { Button, PageHeader } from "@veyntora/ui";
+import { CircleCheck, Info, TriangleAlert } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 
@@ -175,7 +176,7 @@ export default async function MonitoringPage({
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-[1fr_320px] gap-5 max-[1000px]:grid-cols-1">
+      <div className="grid grid-cols-[1fr_320px] items-start gap-5 max-[1000px]:grid-cols-1">
         <section
           aria-labelledby="by-mode"
           className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4"
@@ -199,21 +200,53 @@ export default async function MonitoringPage({
         </section>
         <aside className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-4">
           <section aria-labelledby="alerts" className="flex flex-col gap-2">
-            <h2 id="alerts" className="m-0 text-sm font-semibold">
+            <h2 id="alerts" className="m-0 flex items-center gap-2 text-sm font-semibold">
               {t("alerts")}
+              {data.alerts.length ? (
+                <span className="rounded-full bg-amber-soft px-2 text-xs font-medium text-amber">
+                  {data.alerts.length}
+                </span>
+              ) : null}
             </h2>
             {data.alerts.length === 0 ? (
-              <p className="m-0 text-xs text-fg-muted">{t("noAlerts")}</p>
+              <p className="m-0 flex items-center gap-2 text-sm text-fg-muted">
+                <CircleCheck aria-hidden className="size-4 text-green" />
+                {t("noAlerts")}
+              </p>
             ) : (
               <ul className="m-0 flex list-none flex-col gap-2 p-0">
-                {data.alerts.map((a, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <Badge tone={a.level === "warning" ? "amber" : "neutral"}>
-                      {t(`level.${a.level}`)}
-                    </Badge>
-                    <span>{a.text}</span>
-                  </li>
-                ))}
+                {data.alerts.map((a, i) => {
+                  const warn = a.level === "warning";
+                  const Icon = warn ? TriangleAlert : Info;
+                  const v = a.values as Record<string, string | number>;
+                  return (
+                    <li
+                      key={i}
+                      className={`flex items-start gap-3 rounded-md border px-3 py-2.5 ${warn ? "border-amber/30 bg-amber-soft/40" : "border-line bg-sunken"}`}
+                    >
+                      <Icon
+                        aria-hidden
+                        className={`mt-0.5 size-4 shrink-0 ${warn ? "text-amber" : "text-accent"}`}
+                      />
+                      <div className="flex min-w-0 flex-col gap-0.5">
+                        <span className="text-sm font-medium">
+                          {t(`alert.${a.kind}.title`, {
+                            ...v,
+                            share: format.number(Number(v.share ?? 0), { style: "percent" }),
+                          })}
+                        </span>
+                        <span className="text-xs text-fg-secondary">
+                          {t(`alert.${a.kind}.detail`, v)}
+                        </span>
+                        {a.href ? (
+                          <Link href={a.href} className="mt-0.5 text-xs font-medium">
+                            {t(`alert.${a.kind}.link`)} →
+                          </Link>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
@@ -224,20 +257,33 @@ export default async function MonitoringPage({
             {data.providers.length === 0 ? (
               <p className="m-0 text-xs text-fg-muted">{t("noCalls")}</p>
             ) : (
-              <ul className="m-0 flex list-none flex-col gap-1 p-0 text-sm">
-                {data.providers.map((p) => (
-                  <li key={p.id} className="flex justify-between gap-2">
-                    <span className="min-w-0 break-words">
-                      {p.name}{" "}
-                      <span className="text-xs text-fg-muted">
-                        {t(`hosting.${p.hosting as "external"}`)}
+              <ul className="m-0 flex list-none flex-col gap-2.5 p-0 text-sm">
+                {data.providers.map((p) => {
+                  const most = Math.max(1, ...data.providers.map((x) => x.calls));
+                  return (
+                    <li key={p.id} className="flex flex-col gap-1">
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span className="min-w-0 truncate" title={p.name}>
+                          {p.name}
+                        </span>
+                        <span className="shrink-0 whitespace-nowrap tabular-nums text-fg-secondary">
+                          {t("calls", { count: p.calls })}
+                        </span>
                       </span>
-                    </span>
-                    <span className="shrink-0 whitespace-nowrap tabular-nums text-fg-secondary">
-                      {t("calls", { count: p.calls })}
-                    </span>
-                  </li>
-                ))}
+                      <span className="flex items-center gap-2">
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-sunken">
+                          <span
+                            className="block h-full rounded-full bg-series-1"
+                            style={{ width: `${Math.max(2, (p.calls / most) * 100)}%` }}
+                          />
+                        </span>
+                        <span className="text-xs text-fg-muted">
+                          {t(`hosting.${p.hosting as "external"}`)}
+                        </span>
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>

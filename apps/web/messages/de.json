@@ -3836,10 +3836,6 @@
     "time": "Zeit",
     "alerts": "Hinweise",
     "noAlerts": "Keine Hinweise.",
-    "level": {
-      "warning": "Warnung",
-      "info": "Info"
-    },
     "providers": "Anbieter",
     "noCalls": "Keine Modellaufrufe in diesem Zeitraum.",
     "hosting": {
@@ -3872,7 +3868,34 @@
       "time": "Zeit"
     },
     "period": "Zeitraum",
-    "noRequests": "Keine Anfragen in diesem Zeitraum."
+    "noRequests": "Keine Anfragen in diesem Zeitraum.",
+    "alert": {
+      "blocked": {
+        "title": "{count} Antworten von Guardrails blockiert ({share})",
+        "detail": "Mehr als üblich. Die Regeln sind vielleicht zu streng, oder Leute fragen nach etwas, das sie blockieren.",
+        "link": "Blockierte Antworten prüfen"
+      },
+      "failed_runs": {
+        "title": "{count, plural, one {# Lauf fehlgeschlagen} other {# Läufe fehlgeschlagen}}",
+        "detail": "Ein Agenten- oder Automationslauf endete mit einem Fehler: meist ein Modell, Tool oder Anbieter, der nicht antwortete.",
+        "link": "Den letzten öffnen"
+      },
+      "slow_fast": {
+        "title": "Schnelle Antworten sind langsam: {seconds} s (p95)",
+        "detail": "Über dem Ziel von {target} s. Meist das Antwortmodell oder der Reranker; vergleichen Sie Modelle im Playground.",
+        "link": "Pipelines öffnen"
+      },
+      "external": {
+        "title": "{count} Modellaufrufe gingen an externe Anbieter",
+        "detail": "An {names}, wie die Datenregeln der Chatbots es erlauben.",
+        "link": "Datenregeln"
+      },
+      "component": {
+        "title": "{name}: {level}",
+        "detail": "Ein Teil von Veyntora arbeitet nicht wie vorgesehen.",
+        "link": "Infrastruktur prüfen"
+      }
+    }
   },
   "governance": {
     "title": "Governance",

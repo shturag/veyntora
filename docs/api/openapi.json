@@ -10146,6 +10146,28 @@
       },
       "MonitorAlert": {
         "properties": {
+          "href": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Href"
+          },
+          "kind": {
+            "enum": [
+              "blocked",
+              "failed_runs",
+              "slow_fast",
+              "external",
+              "component"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
           "level": {
             "enum": [
               "warning",
@@ -10157,11 +10179,29 @@
           "text": {
             "title": "Text",
             "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "title": "Values",
+            "type": "object"
           }
         },
         "required": [
           "level",
-          "text"
+          "text",
+          "kind"
         ],
         "title": "MonitorAlert",
         "type": "object"

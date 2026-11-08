@@ -7463,6 +7463,13 @@ export interface components {
         };
         /** MonitorAlert */
         MonitorAlert: {
+            /** Href */
+            href?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "blocked" | "failed_runs" | "slow_fast" | "external" | "component";
             /**
              * Level
              * @enum {string}
@@ -7470,6 +7477,10 @@ export interface components {
             level: "warning" | "info";
             /** Text */
             text: string;
+            /** Values */
+            values?: {
+                [key: string]: string | number;
+            };
         };
         /** MonitoringOut */
         MonitoringOut: {
