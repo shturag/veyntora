@@ -198,7 +198,7 @@ function CoreCard({
           {row.health_detail || t("notReachable")}
         </p>
       ) : null}
-      <dl className="m-0 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
+      <dl className="m-0 grid grid-cols-[6rem_minmax(0,1fr)] items-baseline gap-x-3 gap-y-2 pl-12 text-sm max-[640px]:pl-0">
         <dt className="text-fg-muted">{t("address")}</dt>
         <dd className="m-0 truncate font-mono text-[13px]" title={row.address}>
           {row.address}
@@ -423,7 +423,7 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
           </h2>
           <p className="m-0 text-sm text-fg-secondary">{t("coreSummary")}</p>
         </div>
-        <div className="grid grid-cols-2 items-start gap-4 max-[1100px]:grid-cols-1">
+        <div className="grid grid-cols-2 gap-4 max-[1100px]:grid-cols-1">
           {infra.services.map((row) => (
             <CoreCard
               key={row.key}
@@ -446,15 +446,15 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-line text-left text-xs text-fg-muted">
-                <th className="px-4 py-2.5 font-medium">{t("service")}</th>
+                <th className="w-[30%] px-4 py-2.5 font-medium">{t("service")}</th>
                 <th className="px-4 py-2.5 font-medium">{t("address")}</th>
-                <th className="px-4 py-2.5 font-medium">{t("state")}</th>
-                <th className="px-4 py-2.5 text-right font-medium">{t("where")}</th>
+                <th className="w-40 px-4 py-2.5 font-medium">{t("state")}</th>
+                <th className="w-48 px-4 py-2.5 text-right font-medium">{t("where")}</th>
               </tr>
             </thead>
             <tbody>
               {infra.console.map((row) => (
-                <tr key={row.key} className="border-b border-divider align-top last:border-0">
+                <tr key={row.key} className="border-b border-divider align-middle last:border-0">
                   <td className="px-4 py-3">
                     <span className="block font-medium">{t(`names.${row.key}`)}</span>
                     <span className="block text-xs text-fg-muted">{t(`purpose.${row.key}`)}</span>
