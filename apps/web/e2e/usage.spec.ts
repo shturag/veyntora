@@ -33,6 +33,7 @@ test.describe("usage and budgets as a platform admin", () => {
     await expect(dialog.getByText("Budget saved.")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(row.getByText("At 100%: owners are warned only.")).toBeVisible();
+    page.once("dialog", (d) => void d.accept());
     await row.getByRole("button", { name: `Delete the budget for cost centre ${code}` }).click();
     await expect(row).toHaveCount(0);
 

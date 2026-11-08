@@ -275,6 +275,14 @@ async def scope_name(db: AsyncSession, budget: Budget) -> str:
     return f"cost centre {budget.scope_id}"
 
 
+async def scope_missing(db: AsyncSession, budget: Budget) -> bool:
+    if budget.scope_type is BudgetScope.CHATBOT:
+        return await db.get(Chatbot, UUID(budget.scope_id)) is None
+    if budget.scope_type is BudgetScope.GROUP:
+        return await db.get(Group, UUID(budget.scope_id)) is None
+    return False
+
+
 _ACTION_TEXT = {
     BudgetAction.BLOCK: "New questions are refused until the next period.",
     BudgetAction.FAST_ONLY: "Agent mode is off until the next period; Fast keeps working.",

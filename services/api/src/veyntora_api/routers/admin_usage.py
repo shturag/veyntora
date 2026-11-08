@@ -59,6 +59,8 @@ class BudgetOut(BaseModel):
     scope_type: BudgetScope
     scope_id: str
     scope_name: str
+    # The chatbot or group was deleted: the budget no longer applies to anything.
+    scope_missing: bool
     period: str
     limit_amount: Decimal
     currency: str
@@ -119,6 +121,7 @@ async def _budget_out(db: DbSession, b: Budget, at: datetime) -> BudgetOut:
         scope_type=b.scope_type,
         scope_id=b.scope_id,
         scope_name=await budgets.scope_name(db, b),
+        scope_missing=await budgets.scope_missing(db, b),
         period=b.period,
         limit_amount=b.limit_amount,
         currency=b.currency,
@@ -168,8 +171,10 @@ async def overview(
         budget_total=sum(
             (
                 b.limit_amount
-                for b in rows
-                if b.scope_type is BudgetScope.CHATBOT and b.period == "month"
+                for b in budget_rows
+                if b.scope_type is BudgetScope.CHATBOT
+                and b.period == "month"
+                and not b.scope_missing
             ),
             Decimal(0),
         ),

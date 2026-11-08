@@ -222,7 +222,7 @@ export function EditBudget({ data, b }: { data: Usage; b: Budget }) {
   const state = useAction("usage");
   const { t } = state;
   return (
-    <span className="flex items-center gap-1">
+    <span className="flex items-center justify-end gap-1">
       <FormDialog
         label={t("edit")}
         title={t("editBudget")}
@@ -257,6 +257,7 @@ function DeleteBudget({ b, disabled }: { b: Budget; disabled: boolean }) {
         disabled={disabled || state.busy}
         aria-label={state.t("deleteBudget", { name: b.scope_name })}
         onClick={() =>
+          window.confirm(state.t("confirmDelete", { name: b.scope_name })) &&
           state.run(
             () => api(`/v1/admin/usage/budgets/${b.id}`, { method: "DELETE" }),
             state.t("budgetDeleted"),
@@ -276,109 +277,129 @@ export function LimitsEditor({ data }: { data: Usage }) {
   const { t } = state;
   const limits: Limits = data.limits;
   const [exceptions, setExceptions] = useState(limits.exceptions);
+  const [values, setValues] = useState({
+    messages_per_hour: limits.messages_per_hour,
+    agent_runs_per_day: limits.agent_runs_per_day,
+    upload_mb: limits.upload_mb,
+  });
+  const subTitle = "m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
   return (
-    <form
-      aria-label={t("limitsTitle")}
-      onSubmit={(e) => {
-        e.preventDefault();
-        const f = new FormData(e.currentTarget);
-        void state.run(
-          () =>
-            api("/v1/admin/usage/limits", {
-              method: "PUT",
-              body: JSON.stringify({
-                messages_per_hour: Number(f.get("messages_per_hour")),
-                agent_runs_per_day: Number(f.get("agent_runs_per_day")),
-                upload_mb: Number(f.get("upload_mb")),
-                exceptions,
+    <section aria-labelledby="limits" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <h2 id="limits" className="m-0 text-lg font-bold">
+          {t("limitsTitle")}
+        </h2>
+        <p className="m-0 text-sm text-fg-secondary">{t("limitsText")}</p>
+      </div>
+      <form
+        aria-label={t("limitsTitle")}
+        onSubmit={(e) => {
+          e.preventDefault();
+          void state.run(
+            () =>
+              api("/v1/admin/usage/limits", {
+                method: "PUT",
+                body: JSON.stringify({ ...values, exceptions }),
               }),
-            }),
-          t("limitsSaved"),
-        );
-      }}
-      className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4"
-    >
-      <h2 className="m-0 text-sm font-semibold">{t("limitsTitle")}</h2>
-      <p className="m-0 text-xs text-fg-muted">{t("limitsText")}</p>
-      <fieldset disabled={!data.can_edit} className="m-0 flex flex-col gap-3 border-0 p-0">
-        <legend className="sr-only">{t("limitsTitle")}</legend>
-        {(
-          [
-            ["messages_per_hour", limits.messages_per_hour],
-            ["agent_runs_per_day", limits.agent_runs_per_day],
-            ["upload_mb", limits.upload_mb],
-          ] as const
-        ).map(([k, v]) => (
-          <label key={k} className={field}>
-            {t(`limits.${k}`)}
-            <input name={k} type="number" min={0} defaultValue={v} className={control} />
-          </label>
-        ))}
-        <div className="flex flex-col gap-2">
-          <span className="text-[13px] font-medium">{t("exceptions")}</span>
-          {exceptions.map((x, i) => (
-            <div key={x.group_id} className="flex items-center gap-2 text-sm">
-              <span className="flex-1">
-                {data.groups.find((g) => g.id === x.group_id)?.name ?? x.group_id}
-              </span>
-              <select
-                aria-label={t("factor")}
-                value={x.factor}
-                onChange={(e) =>
-                  setExceptions(
-                    exceptions.map((y, j) =>
-                      j === i ? { ...y, factor: Number(e.target.value) } : y,
-                    ),
-                  )
-                }
-                className="h-8 rounded-md border border-line-strong bg-surface px-2 text-sm"
-              >
-                {[2, 3, 5, 10].map((n) => (
-                  <option key={n} value={n}>
-                    {t("times", { n })}
+            t("limitsSaved"),
+          );
+        }}
+        className="flex flex-col gap-5 rounded-lg border border-line bg-surface p-5"
+      >
+        <fieldset disabled={!data.can_edit} className="m-0 flex flex-col gap-5 border-0 p-0">
+          <legend className="sr-only">{t("limitsTitle")}</legend>
+          <div className="grid grid-cols-3 gap-4 max-[800px]:grid-cols-1">
+            {(Object.keys(values) as (keyof typeof values)[]).map((k) => (
+              <label key={k} className={field}>
+                {t(`limits.${k}`)}
+                <input
+                  name={k}
+                  type="number"
+                  min={0}
+                  value={values[k]}
+                  onChange={(e) => setValues({ ...values, [k]: Number(e.target.value) })}
+                  className={control}
+                />
+                <span className="text-xs font-normal text-fg-muted">
+                  {values[k] ? t(`limitHints.${k}`, { n: values[k] }) : t("noLimit")}
+                </span>
+              </label>
+            ))}
+          </div>
+          <div className="flex flex-col gap-2 border-t border-divider pt-4">
+            <h3 className={subTitle}>{t("exceptions")}</h3>
+            <p className="m-0 text-xs text-fg-muted">{t("exceptionsText")}</p>
+            {exceptions.length ? (
+              <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                {exceptions.map((x, i) => (
+                  <li
+                    key={x.group_id}
+                    className="flex items-center gap-3 rounded-md bg-sunken px-3 py-1.5 text-sm"
+                  >
+                    <span className="flex-1 font-medium">
+                      {data.groups.find((g) => g.id === x.group_id)?.name ?? x.group_id}
+                    </span>
+                    <select
+                      aria-label={t("factor")}
+                      value={x.factor}
+                      onChange={(e) =>
+                        setExceptions(
+                          exceptions.map((y, j) =>
+                            j === i ? { ...y, factor: Number(e.target.value) } : y,
+                          ),
+                        )
+                      }
+                      className="h-8 rounded-md border border-line-strong bg-surface px-2 text-sm"
+                    >
+                      {[2, 3, 5, 10].map((n) => (
+                        <option key={n} value={n}>
+                          {t("times", { n })}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setExceptions(exceptions.filter((_, j) => j !== i))}
+                    >
+                      {t("remove")}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <select
+              aria-label={t("addException")}
+              value=""
+              onChange={(e) =>
+                e.target.value &&
+                setExceptions([...exceptions, { group_id: e.target.value, factor: 2 }])
+              }
+              className={`${control} max-w-sm`}
+            >
+              <option value="">{t("addException")}</option>
+              {data.groups
+                .filter((g) => !exceptions.some((x) => x.group_id === g.id))
+                .map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
                   </option>
                 ))}
-              </select>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => setExceptions(exceptions.filter((_, j) => j !== i))}
-              >
-                {t("remove")}
+            </select>
+          </div>
+          {data.can_edit ? (
+            <div className="flex items-center justify-end gap-3 border-t border-divider pt-4">
+              <Result message={state.message} />
+              <Button type="submit" variant="primary" disabled={state.busy}>
+                {t("save")}
               </Button>
             </div>
-          ))}
-          <select
-            aria-label={t("addException")}
-            value=""
-            onChange={(e) =>
-              e.target.value &&
-              setExceptions([...exceptions, { group_id: e.target.value, factor: 2 }])
-            }
-            className={control}
-          >
-            <option value="">{t("addException")}</option>
-            {data.groups
-              .filter((g) => !exceptions.some((x) => x.group_id === g.id))
-              .map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-          </select>
-        </div>
-        {data.can_edit ? (
-          <div className="flex items-center gap-3">
-            <Button type="submit" size="sm" disabled={state.busy}>
-              {t("save")}
-            </Button>
-            <Result message={state.message} />
-          </div>
-        ) : (
-          <p className="m-0 text-xs text-fg-muted">{t("editorsOnly")}</p>
-        )}
-      </fieldset>
-    </form>
+          ) : (
+            <p className="m-0 text-xs text-fg-muted">{t("editorsOnly")}</p>
+          )}
+        </fieldset>
+      </form>
+    </section>
   );
 }

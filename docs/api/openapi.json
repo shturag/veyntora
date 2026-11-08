@@ -2496,6 +2496,10 @@
             "title": "Scope Id",
             "type": "string"
           },
+          "scope_missing": {
+            "title": "Scope Missing",
+            "type": "boolean"
+          },
           "scope_name": {
             "title": "Scope Name",
             "type": "string"
@@ -2518,6 +2522,7 @@
           "scope_type",
           "scope_id",
           "scope_name",
+          "scope_missing",
           "period",
           "limit_amount",
           "currency",

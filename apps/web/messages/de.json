@@ -3632,17 +3632,11 @@
       "self_hosted": "selbst betrieben",
       "external": "extern"
     },
-    "byChatbot": "Nach Chatbot",
-    "byProvider": "Nach Anbieter",
-    "byGroup": "Nach Gruppe (aktuelle Mitglieder)",
-    "byCostCentre": "Nach Kostenstelle",
-    "byAppKey": "Nach App-Schlüssel",
-    "name": "Name",
     "external": "Extern",
     "spend": "Kosten",
     "unassigned": "Nicht zugeordnet",
     "limitsTitle": "Limits pro Person",
-    "limitsText": "0 bedeutet kein Limit. Über dem Agent-Limit ist der Agent-Modus für die Person bis zum nächsten Tag aus; Schnell funktioniert weiter.",
+    "limitsText": "Gelten für jede Person. 0 bedeutet kein Limit. Über dem Agent-Limit wird der Agent-Modus für die Person bis zum nächsten Tag abgeschaltet; Fast funktioniert weiter.",
     "limits": {
       "messages_per_hour": "Fragen pro Stunde",
       "agent_runs_per_day": "Agent-Läufe pro Tag",
@@ -3661,7 +3655,31 @@
     "cancel": "Abbrechen",
     "close": "Schließen",
     "failed": "Hat nicht funktioniert: {reason}",
-    "indexing": "Dokumente indexieren"
+    "indexing": "Dokumente indexieren",
+    "shareOfSpend": "{share} der Kosten · Modelle im eigenen Haus",
+    "externalModels": "{count, plural, one {# externes Modell} other {# externe Modelle}}",
+    "budgetsSummary": "Jedes Budget warnt seinen Verantwortlichen bei der Warnschwelle und greift beim Limit.",
+    "deleted": {
+      "chatbot": "Gelöschter Chatbot",
+      "group": "Gelöschte Gruppe",
+      "cost_centre": "Kostenstelle"
+    },
+    "noLongerApplies": "Gilt nicht mehr",
+    "deleteHint": "Worauf es sich bezog, wurde gelöscht. Löschen Sie dieses Budget.",
+    "confirmDelete": "Budget für {name} löschen?",
+    "breakdown": "Wohin die Kosten gehen",
+    "breakdownSummary": "Tokens und Kosten in diesem Monat, nach Verursacher.",
+    "shareSpend": "Anteil an den Kosten",
+    "shareTokens": "Anteil an den Tokens",
+    "noAppKeyUsage": "Diesen Monat keine Nutzung über App-Schlüssel.",
+    "groupNote": "Nach den Gruppen, in denen die Personen jetzt sind. Wer in mehreren Gruppen ist, zählt in jeder.",
+    "noLimit": "Kein Limit",
+    "limitHints": {
+      "messages_per_hour": "{n} Fragen pro Person und Stunde",
+      "agent_runs_per_day": "{n} Agent-Läufe pro Person und Tag",
+      "upload_mb": "{n} MB Uploads pro Person"
+    },
+    "exceptionsText": "Gruppen, die ein Vielfaches der Limits nutzen dürfen."
   },
   "review": {
     "title": "Unterhaltungen und Feedback",

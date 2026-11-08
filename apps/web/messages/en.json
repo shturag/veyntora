@@ -3632,17 +3632,11 @@
       "self_hosted": "self-hosted",
       "external": "external"
     },
-    "byChatbot": "By chatbot",
-    "byProvider": "By provider",
-    "byGroup": "By group (current members)",
-    "byCostCentre": "By cost centre",
-    "byAppKey": "By app key",
-    "name": "Name",
     "external": "External",
     "spend": "Spend",
     "unassigned": "Not assigned",
     "limitsTitle": "Limits per user",
-    "limitsText": "0 means no limit. Over the Agent limit, Agent mode switches off for the person until the next day; Fast keeps working.",
+    "limitsText": "Apply to each person. 0 means no limit. Over the Agent limit, Agent mode switches off for the person until the next day; Fast keeps working.",
     "limits": {
       "messages_per_hour": "Questions per hour",
       "agent_runs_per_day": "Agent runs per day",
@@ -3661,7 +3655,31 @@
     "cancel": "Cancel",
     "close": "Close",
     "failed": "Did not work: {reason}",
-    "indexing": "Indexing documents"
+    "indexing": "Indexing documents",
+    "shareOfSpend": "{share} of spend · models running in-house",
+    "externalModels": "{count, plural, one {# external model} other {# external models}}",
+    "budgetsSummary": "Each budget warns its owner at the alert and acts at the limit.",
+    "deleted": {
+      "chatbot": "Deleted chatbot",
+      "group": "Deleted group",
+      "cost_centre": "Cost centre"
+    },
+    "noLongerApplies": "No longer applies",
+    "deleteHint": "What it applied to was deleted. Delete this budget.",
+    "confirmDelete": "Delete the budget for {name}?",
+    "breakdown": "Where the spend goes",
+    "breakdownSummary": "Tokens and spend this month, by what caused them.",
+    "shareSpend": "Share of spend",
+    "shareTokens": "Share of tokens",
+    "noAppKeyUsage": "No usage through app keys this month.",
+    "groupNote": "By the groups people are in now. A person in several groups counts in each.",
+    "noLimit": "No limit",
+    "limitHints": {
+      "messages_per_hour": "{n} questions per person per hour",
+      "agent_runs_per_day": "{n} Agent runs per person per day",
+      "upload_mb": "{n} MB of uploads per person"
+    },
+    "exceptionsText": "Groups that may use a multiple of the limits."
   },
   "review": {
     "title": "Conversations and feedback",

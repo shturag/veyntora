@@ -4639,6 +4639,8 @@ export interface components {
             period: string;
             /** Scope Id */
             scope_id: string;
+            /** Scope Missing */
+            scope_missing: boolean;
             /** Scope Name */
             scope_name: string;
             scope_type: components["schemas"]["BudgetScope"];
