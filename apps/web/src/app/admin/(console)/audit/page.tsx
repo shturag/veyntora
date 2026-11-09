@@ -4,6 +4,7 @@ import { ArrowRight, Archive, Search, ShieldAlert, ShieldCheck } from "lucide-re
 import Link from "next/link";
 
 import { ExportAudit } from "@/components/audit/export-audit";
+import { KeepInView } from "@/components/audit/keep-in-view";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
@@ -101,7 +102,8 @@ export default async function AuditPage({
 
   const tile = "flex min-w-0 items-start gap-3 rounded-lg border border-line bg-surface p-4";
   const tileIcon = "mt-0.5 size-5 shrink-0";
-  const th = "px-4 py-2.5 text-left text-xs font-medium text-fg-muted";
+  const th =
+    "sticky top-0 z-10 bg-surface px-4 py-2.5 text-left shadow-[inset_0_-1px_0_var(--color-line)] text-xs font-medium text-fg-muted";
 
   return (
     <div className="flex flex-col gap-6">
@@ -214,7 +216,10 @@ export default async function AuditPage({
               {t("none")}
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+            <div
+              id="audit-entries"
+              className="max-h-[calc(100vh-12rem)] min-h-96 overflow-auto rounded-lg border border-line bg-surface"
+            >
               <table className="w-full min-w-[680px] table-fixed border-collapse text-sm">
                 <colgroup>
                   <col className="w-24" />
@@ -223,7 +228,7 @@ export default async function AuditPage({
                   <col className="w-40" />
                 </colgroup>
                 <thead>
-                  <tr className="border-b border-line">
+                  <tr>
                     <th className={th}>{t("time")}</th>
                     <th className={th}>{t("action")}</th>
                     <th className={th}>{t("object")}</th>
@@ -301,6 +306,7 @@ export default async function AuditPage({
                   })}
                 </tbody>
               </table>
+              <KeepInView list="audit-entries" current={p.id} />
             </div>
           )}
           <div className="flex items-center justify-between gap-3 text-sm">
