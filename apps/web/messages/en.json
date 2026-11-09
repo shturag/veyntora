@@ -4150,9 +4150,6 @@
     "intact": "Chain intact",
     "broken": "Chain broken at entry {id}",
     "entries": "{count, plural, one {# entry} other {# entries}}",
-    "noArchive": "no write-once archive configured; entries are never removed",
-    "archived": "archived up to {date}, locked until {until}",
-    "notArchivedYet": "not archived yet (nightly)",
     "search": "Search the log",
     "category": "Category",
     "allCategories": "All categories",
@@ -4202,7 +4199,6 @@
     "cancel": "Cancel",
     "close": "Close",
     "failed": "Did not work: {reason}",
-    "intactNote": "Every entry's hash checked against the one before it, across {count, plural, one {# entry} other {# entries}}.",
     "brokenNote": "An entry was changed or removed after it was written. Compare with the write-once archive.",
     "archiveTitle": "Write-once archive",
     "entriesNote": "Recorded since setup. Nothing can be edited or deleted here.",
@@ -4271,7 +4267,15 @@
       "reviewed": "reviewed",
       "register": "registered"
     },
-    "entriesTitle": "Entries in the log"
+    "integrity": "Integrity",
+    "intactShort": "Each entry's hash matches the one before it.",
+    "archiveNone": "Not set up",
+    "archiveNoneNote": "Entries are kept in the database and never removed.",
+    "archiveUpTo": "Up to {date}",
+    "archiveLocked": "Locked until {until}",
+    "archiveNotYet": "Not archived yet",
+    "archiveNightly": "Archived nightly.",
+    "entriesShort": "Entries"
   },
   "accessReviews": {
     "title": "Access reviews",

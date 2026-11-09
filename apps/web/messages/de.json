@@ -4150,9 +4150,6 @@
     "intact": "Kette intakt",
     "broken": "Kette bei Eintrag {id} gebrochen",
     "entries": "{count, plural, one {# Eintrag} other {# Einträge}}",
-    "noArchive": "kein unveränderbares Archiv eingerichtet; Einträge werden nie entfernt",
-    "archived": "archiviert bis {date}, gesperrt bis {until}",
-    "notArchivedYet": "noch nicht archiviert (nächtlich)",
     "search": "Im Log suchen",
     "category": "Kategorie",
     "allCategories": "Alle Kategorien",
@@ -4202,7 +4199,6 @@
     "cancel": "Abbrechen",
     "close": "Schließen",
     "failed": "Hat nicht funktioniert: {reason}",
-    "intactNote": "Der Hash jedes Eintrags wurde gegen den vorherigen geprüft, über {count, plural, one {# Eintrag} other {# Einträge}}.",
     "brokenNote": "Ein Eintrag wurde nach dem Schreiben geändert oder entfernt. Vergleichen Sie mit dem unveränderlichen Archiv.",
     "archiveTitle": "Unveränderliches Archiv",
     "entriesNote": "Seit der Einrichtung erfasst. Hier kann nichts geändert oder gelöscht werden.",
@@ -4271,7 +4267,15 @@
       "reviewed": "geprüft",
       "register": "registriert"
     },
-    "entriesTitle": "Einträge im Log"
+    "integrity": "Integrität",
+    "intactShort": "Der Hash jedes Eintrags passt zum vorherigen.",
+    "archiveNone": "Nicht eingerichtet",
+    "archiveNoneNote": "Einträge bleiben in der Datenbank und werden nie entfernt.",
+    "archiveUpTo": "Bis {date}",
+    "archiveLocked": "Gesperrt bis {until}",
+    "archiveNotYet": "Noch nicht archiviert",
+    "archiveNightly": "Wird nachts archiviert.",
+    "entriesShort": "Einträge"
   },
   "accessReviews": {
     "title": "Zugriffsprüfungen",

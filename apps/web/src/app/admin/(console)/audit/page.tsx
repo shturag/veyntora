@@ -1,6 +1,6 @@
 import { Badge, Button, PageHeader } from "@veyntora/ui";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ArrowRight, Archive, Search, ShieldAlert, ShieldCheck } from "lucide-react";
+import { ArrowRight, Archive, ListOrdered, Search, ShieldAlert, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import { ExportAudit } from "@/components/audit/export-audit";
@@ -100,8 +100,13 @@ export default async function AuditPage({
   const short = (id: string) => (id.length > 12 ? `${id.slice(0, 8)}…` : id);
   const filtered = Boolean(p.q || category || range !== "7d");
 
-  const tile = "flex min-w-0 items-start gap-3 rounded-lg border border-line bg-surface p-4";
-  const tileIcon = "mt-0.5 size-5 shrink-0";
+  const tile = "flex min-w-0 items-center gap-3 rounded-lg border border-line bg-surface p-4";
+  const tileIcon = "flex size-10 shrink-0 items-center justify-center rounded-lg";
+  const tileLabel = "text-xs font-medium text-fg-muted";
+  const tileValue = "truncate text-base font-semibold";
+  const tileNote = "text-xs text-fg-secondary";
+  const panel =
+    "flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface min-[1201px]:h-[calc(100vh-12rem)] min-[1201px]:min-h-[32rem]";
   const th =
     "sticky top-0 z-10 bg-surface px-4 py-2.5 text-left shadow-[inset_0_-1px_0_var(--color-line)] text-xs font-medium text-fg-muted";
 
@@ -112,47 +117,59 @@ export default async function AuditPage({
       {status ? (
         <div className="grid grid-cols-3 gap-3 max-[1000px]:grid-cols-1">
           <div className={tile}>
-            {status.intact ? (
-              <ShieldCheck aria-hidden className={`${tileIcon} text-green`} />
-            ) : (
-              <ShieldAlert aria-hidden className={`${tileIcon} text-red`} />
-            )}
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <Badge tone={status.intact ? "green" : "red"} className="self-start">
+            <span
+              className={`${tileIcon} ${status.intact ? "bg-green-soft text-green" : "bg-red-soft text-red"}`}
+            >
+              {status.intact ? (
+                <ShieldCheck aria-hidden className="size-5" />
+              ) : (
+                <ShieldAlert aria-hidden className="size-5" />
+              )}
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className={tileLabel}>{t("integrity")}</span>
+              <span className={`${tileValue} ${status.intact ? "text-green" : "text-red"}`}>
                 {status.intact ? t("intact") : t("broken", { id: status.first_broken_id ?? 0 })}
-              </Badge>
-              <span className="text-xs text-fg-secondary">
-                {status.intact ? t("intactNote", { count: status.entries }) : t("brokenNote")}
               </span>
-            </div>
+              <span className={tileNote}>{status.intact ? t("intactShort") : t("brokenNote")}</span>
+            </span>
           </div>
           <div className={tile}>
-            <Archive aria-hidden className={`${tileIcon} text-fg-muted`} />
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-sm font-semibold">{t("archiveTitle")}</span>
-              <span className="text-xs text-fg-secondary">
+            <span className={`${tileIcon} bg-sunken text-fg-muted`}>
+              <Archive aria-hidden className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className={tileLabel}>{t("archiveTitle")}</span>
+              <span className={tileValue}>
                 {!status.archive_configured
-                  ? t("noArchive")
+                  ? t("archiveNone")
                   : status.archived_at
-                    ? t("archived", {
-                        date: when(status.archived_at),
+                    ? t("archiveUpTo", { date: when(status.archived_at) })
+                    : t("archiveNotYet")}
+              </span>
+              <span className={tileNote}>
+                {!status.archive_configured
+                  ? t("archiveNoneNote")
+                  : status.archived_at
+                    ? t("archiveLocked", {
                         until: format.dateTime(
                           new Date(status.retain_until ?? status.archived_at),
                           { dateStyle: "medium" },
                         ),
                       })
-                    : t("notArchivedYet")}
+                    : t("archiveNightly")}
               </span>
-            </div>
+            </span>
           </div>
           <div className={tile}>
-            <span aria-hidden className="mt-0.5 text-lg leading-none font-semibold tabular-nums">
-              {format.number(status.entries, { notation: "compact" })}
+            <span className={`${tileIcon} bg-sunken text-fg-muted`}>
+              <ListOrdered aria-hidden className="size-5" />
             </span>
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-sm font-semibold">{t("entriesTitle")}</span>
-              <span className="text-xs text-fg-secondary">{t("entriesNote")}</span>
-            </div>
+            <span className="flex min-w-0 flex-col">
+              <span className={tileLabel}>{t("entriesShort")}</span>
+              <span className={`${tileValue} tabular-nums`}>{format.number(status.entries)}</span>
+              <span className={tileNote}>{t("entriesNote")}</span>
+            </span>
           </div>
         </div>
       ) : null}
@@ -209,17 +226,14 @@ export default async function AuditPage({
         ) : null}
       </form>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_400px] items-start gap-5 max-[1200px]:grid-cols-1">
-        <section aria-label={t("entriesLabel")} className="flex min-w-0 flex-col gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_400px] gap-5 max-[1200px]:grid-cols-1">
+        <section aria-label={t("entriesLabel")} className={`${panel} min-w-0`}>
           {data.entries.length === 0 ? (
-            <p className="m-0 rounded-lg border border-line bg-surface px-4 py-10 text-center text-sm text-fg-secondary">
+            <p className="m-0 flex-1 px-4 py-10 text-center text-sm text-fg-secondary">
               {t("none")}
             </p>
           ) : (
-            <div
-              id="audit-entries"
-              className="max-h-[calc(100vh-12rem)] min-h-96 overflow-auto rounded-lg border border-line bg-surface"
-            >
+            <div id="audit-entries" className="min-h-0 flex-1 overflow-auto">
               <table className="w-full min-w-[680px] table-fixed border-collapse text-sm">
                 <colgroup>
                   <col className="w-24" />
@@ -242,11 +256,11 @@ export default async function AuditPage({
                     const prev = data.entries[i - 1];
                     if (!prev || day(prev.ts) !== d) {
                       rows.push(
-                        <tr key={`day-${e.id}`} className="border-b border-line bg-sunken/60">
+                        <tr key={`day-${e.id}`}>
                           <th
                             colSpan={4}
                             scope="colgroup"
-                            className="px-4 py-1.5 text-left text-xs font-semibold text-fg-secondary"
+                            className="sticky top-9 z-[5] bg-sunken px-4 py-1.5 text-left text-xs font-semibold text-fg-secondary shadow-[inset_0_-1px_0_var(--color-line)]"
                           >
                             {d}
                           </th>
@@ -309,7 +323,7 @@ export default async function AuditPage({
               <KeepInView list="audit-entries" current={p.id} />
             </div>
           )}
-          <div className="flex items-center justify-between gap-3 text-sm">
+          <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2 text-sm">
             <span className="text-xs text-fg-muted">
               {t("showing", { count: data.entries.length, range: t(`ranges.${range}`) })}
             </span>
@@ -330,77 +344,76 @@ export default async function AuditPage({
           </div>
         </section>
         {detail ? (
-          <article
-            aria-label={t("detail")}
-            className="sticky top-4 flex flex-col overflow-hidden rounded-lg border border-line bg-surface"
-          >
+          <article aria-label={t("detail")} className={panel}>
             <header className="flex flex-col gap-1 border-b border-line px-4 py-3">
               <span className="text-xs font-medium text-fg-muted">{t("detail")}</span>
               <h2 className="m-0 text-base font-bold">{label(detail.action)}</h2>
               <span className="font-mono text-xs text-fg-muted">{detail.action}</span>
             </header>
-            <dl className="m-0 grid grid-cols-[6rem_minmax(0,1fr)] gap-x-3 gap-y-2 border-b border-line px-4 py-3 text-sm">
-              <dt className="text-fg-muted">{t("when")}</dt>
-              <dd className="m-0">{when(detail.ts)}</dd>
-              <dt className="text-fg-muted">{t("who")}</dt>
-              <dd className="m-0">
-                {actor(detail)}
-                {detail.ip ? (
-                  <span className="block text-xs text-fg-muted">
-                    {t("from", { ip: detail.ip })}
-                  </span>
-                ) : null}
-              </dd>
-              <dt className="text-fg-muted">{t("object")}</dt>
-              <dd className="m-0 min-w-0">
-                {detail.target_name ?? cap(words(detail.target_type))}
-                <span className="block text-xs text-fg-muted">
-                  {cap(words(detail.target_type))}
-                  {detail.target_id ? (
-                    <span className="block font-mono break-all">{detail.target_id}</span>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <dl className="m-0 grid grid-cols-[6rem_minmax(0,1fr)] gap-x-3 gap-y-2 border-b border-line px-4 py-3 text-sm">
+                <dt className="text-fg-muted">{t("when")}</dt>
+                <dd className="m-0">{when(detail.ts)}</dd>
+                <dt className="text-fg-muted">{t("who")}</dt>
+                <dd className="m-0">
+                  {actor(detail)}
+                  {detail.ip ? (
+                    <span className="block text-xs text-fg-muted">
+                      {t("from", { ip: detail.ip })}
+                    </span>
                   ) : null}
-                </span>
-              </dd>
-              <dt className="text-fg-muted">{t("category")}</dt>
-              <dd className="m-0">
-                <Badge tone="neutral">{t(`categories.${detail.category as "other"}`)}</Badge>
-              </dd>
-            </dl>
-            <div className="flex flex-col gap-2 px-4 py-3">
-              <h3 className="m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase">
-                {t("changes")}
-              </h3>
-              {detail.changes.length === 0 ? (
-                <p className="m-0 text-xs text-fg-muted">{t("noChanges")}</p>
-              ) : (
-                <ul className="m-0 flex max-h-96 list-none flex-col gap-2 overflow-y-auto p-0 text-xs">
-                  {detail.changes.map((c) => (
-                    <li
-                      key={c.path}
-                      className="flex flex-col gap-0.5 rounded-md bg-sunken/60 px-2.5 py-2"
-                    >
-                      <span className="font-mono font-semibold text-fg-secondary">{c.path}</span>
-                      {c.before !== null && c.before !== undefined ? (
-                        <span className="font-mono break-all text-red">− {show(c.before)}</span>
-                      ) : null}
-                      {c.after !== null && c.after !== undefined ? (
-                        <span className="font-mono break-all text-green">+ {show(c.after)}</span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                </dd>
+                <dt className="text-fg-muted">{t("object")}</dt>
+                <dd className="m-0 min-w-0">
+                  {detail.target_name ?? cap(words(detail.target_type))}
+                  <span className="block text-xs text-fg-muted">
+                    {cap(words(detail.target_type))}
+                    {detail.target_id ? (
+                      <span className="block font-mono break-all">{detail.target_id}</span>
+                    ) : null}
+                  </span>
+                </dd>
+                <dt className="text-fg-muted">{t("category")}</dt>
+                <dd className="m-0">
+                  <Badge tone="neutral">{t(`categories.${detail.category as "other"}`)}</Badge>
+                </dd>
+              </dl>
+              <div className="flex flex-col gap-2 px-4 py-3">
+                <h3 className="m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase">
+                  {t("changes")}
+                </h3>
+                {detail.changes.length === 0 ? (
+                  <p className="m-0 text-xs text-fg-muted">{t("noChanges")}</p>
+                ) : (
+                  <ul className="m-0 flex list-none flex-col gap-2 p-0 text-xs">
+                    {detail.changes.map((c) => (
+                      <li
+                        key={c.path}
+                        className="flex flex-col gap-0.5 rounded-md bg-sunken/60 px-2.5 py-2"
+                      >
+                        <span className="font-mono font-semibold text-fg-secondary">{c.path}</span>
+                        {c.before !== null && c.before !== undefined ? (
+                          <span className="font-mono break-all text-red">− {show(c.before)}</span>
+                        ) : null}
+                        {c.after !== null && c.after !== undefined ? (
+                          <span className="font-mono break-all text-green">+ {show(c.after)}</span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
-            <footer className="flex flex-col gap-2 border-t border-line px-4 py-3">
+            <footer className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
+              <p className="m-0 text-xs text-fg-muted">{t("noSecrets")}</p>
               {detail.link ? (
-                <Button asChild size="sm" className="self-start">
+                <Button asChild size="sm" className="shrink-0">
                   <Link href={detail.link}>
                     {t("open")}
                     <ArrowRight aria-hidden className="size-3.5" />
                   </Link>
                 </Button>
               ) : null}
-              <p className="m-0 text-xs text-fg-muted">{t("noSecrets")}</p>
             </footer>
           </article>
         ) : null}
