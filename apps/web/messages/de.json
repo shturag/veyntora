@@ -43,6 +43,8 @@
     "title": "Admin-Konsole",
     "sections": {
       "build": "Aufbauen",
+      "knowledge": "Wissen",
+      "connect": "Anbindungen",
       "operate": "Betreiben",
       "govern": "Steuern"
     },

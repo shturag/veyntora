@@ -2,6 +2,7 @@
 
 import { cn } from "@veyntora/ui";
 import { ChevronDown, Menu, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useContext,
@@ -111,6 +112,17 @@ export function SidebarFrame({
     e.preventDefault();
   };
   const folded = Boolean(sizing?.collapsible) && collapsed;
+  // The current page's link stays in view when the list is taller than the screen.
+  const list = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  useEffect(() => {
+    const box = list.current;
+    const current = box?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!box || !current) return;
+    const top = current.offsetTop - box.offsetTop;
+    if (top + current.offsetHeight > box.scrollTop + box.clientHeight || top < box.scrollTop)
+      box.scrollTop = top - box.clientHeight / 2;
+  }, [pathname]);
   // Following a link closes the menu on small screens.
   const close = (event: MouseEvent) => {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
@@ -182,8 +194,9 @@ export function SidebarFrame({
             <div className="flex min-w-0 shrink-0 flex-col gap-1 px-3 pb-1">{fixed}</div>
           ) : null}
           <div
+            ref={list}
             className={cn(
-              "sidebar-scroll flex min-h-0 min-w-0 flex-1 flex-col gap-1 overflow-x-hidden overflow-y-auto px-3 pb-3",
+              "sidebar-scroll flex min-h-0 min-w-0 flex-1 flex-col gap-0.5 overflow-x-hidden overflow-y-auto px-3 pb-3",
               tone === "dark" ? "sidebar-scroll-dark" : "",
             )}
           >
@@ -278,7 +291,7 @@ export function NavSection({
     >
       <summary
         className={cn(
-          "group/summary mt-2 flex cursor-pointer list-none items-center justify-between rounded-md px-3 pt-2 pb-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase select-none [&::-webkit-details-marker]:hidden",
+          "group/summary mt-2.5 flex cursor-pointer list-none items-center justify-between rounded-md px-3 pt-1 pb-1 text-[11px] font-semibold tracking-[0.08em] uppercase select-none [&::-webkit-details-marker]:hidden",
           tone === "dark" ? "text-nav-heading hover:text-nav-fg" : "text-fg-muted hover:text-fg",
           stickyTitle && "sticky top-0 z-10",
           stickyTitle && (tone === "dark" ? "bg-nav" : "bg-surface"),
@@ -287,7 +300,7 @@ export function NavSection({
         {title}
         <ChevronDown
           aria-hidden
-          className="size-3.5 opacity-0 transition group-focus-within/summary:opacity-100 group-hover/summary:opacity-100 group-[:not([open])]:-rotate-90 group-[:not([open])]:opacity-100"
+          className="size-3.5 opacity-60 transition group-focus-within/summary:opacity-100 group-hover/summary:opacity-100 group-[:not([open])]:-rotate-90"
         />
       </summary>
       <div className="flex min-w-0 flex-col gap-0.5">{children}</div>

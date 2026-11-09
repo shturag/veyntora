@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@veyntora/ui";
+import { ChevronsUpDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -53,7 +54,7 @@ export function AccountMenu({
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-avatar text-[13px] font-semibold text-accent">
           {initials}
         </span>
-        <span className="min-w-0 text-[13px] min-[901px]:group-data-[collapsed]/side:sr-only">
+        <span className="min-w-0 flex-1 text-[13px] min-[901px]:group-data-[collapsed]/side:sr-only">
           <span className="block truncate font-medium">{name}</span>
           <span
             className={cn(
@@ -64,6 +65,13 @@ export function AccountMenu({
             {detail}
           </span>
         </span>
+        <ChevronsUpDown
+          aria-hidden
+          className={cn(
+            "size-4 shrink-0 min-[901px]:group-data-[collapsed]/side:hidden",
+            tone === "light" ? "text-fg-muted" : "text-nav-heading",
+          )}
+        />
         {/* Appended, not an aria-label, so the accessible name contains the visible text. */}
         <span className="sr-only">{t("account")}</span>
       </DropdownMenu.Trigger>

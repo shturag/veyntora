@@ -424,25 +424,35 @@ export const ADMIN_NAV: readonly {
     section: "build",
     items: [
       { key: "bots", href: "/admin/chatbots", area: "chatbots" },
-      { key: "automations", href: "/admin/automations", area: "automations" },
       { key: "pipelines", href: "/admin/pipelines", area: "pipelines" },
+      { key: "automations", href: "/admin/automations", area: "automations" },
       { key: "playground", href: "/admin/playground", area: "playground" },
+    ],
+  },
+  {
+    section: "knowledge",
+    items: [
       { key: "dataSources", href: "/admin/sources", area: "sources" },
+      { key: "knowledgeHealth", href: "/admin/knowledge-health", area: "knowledge_health" },
+      { key: "evaluation", href: "/admin/evaluation", area: "evaluation" },
+    ],
+  },
+  {
+    section: "connect",
+    items: [
       { key: "providers", href: "/admin/providers", area: "providers" },
       { key: "mcpServers", href: "/admin/tools", area: "tools" },
       { key: "channels", href: "/admin/channels", area: "channels" },
+      { key: "integrations", href: "/admin/integrations", area: "monitoring" },
     ],
   },
   {
     section: "operate",
     items: [
       { key: "conversations", href: "/admin/conversations", area: "conversations" },
-      { key: "knowledgeHealth", href: "/admin/knowledge-health", area: "knowledge_health" },
-      { key: "evaluation", href: "/admin/evaluation", area: "evaluation" },
       { key: "monitoring", href: "/admin/monitoring", area: "monitoring" },
-      { key: "integrations", href: "/admin/integrations", area: "monitoring" },
-      { key: "infrastructure", href: "/admin/infrastructure", platformAdmin: true },
       { key: "usage", href: "/admin/usage", area: "usage" },
+      { key: "infrastructure", href: "/admin/infrastructure", platformAdmin: true },
     ],
   },
   {

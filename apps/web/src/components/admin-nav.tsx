@@ -39,7 +39,7 @@ import { NavSection, SidebarFrame } from "./sidebar";
 export const ADMIN_SIDEBAR = { id: "admin", min: 200, max: 360, initial: 240 };
 
 const link =
-  "group/link flex items-center gap-2.5 rounded-md px-3 py-[7px] text-sm text-nav-fg no-underline transition-colors hover:bg-nav-active hover:text-nav-fg-active min-[901px]:group-data-[collapsed]/side:justify-center min-[901px]:group-data-[collapsed]/side:px-0";
+  "group/link flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm text-nav-fg no-underline transition-colors hover:bg-nav-active hover:text-nav-fg-active min-[901px]:group-data-[collapsed]/side:justify-center min-[901px]:group-data-[collapsed]/side:px-0";
 // Labels stay for screen readers when the rail is folded to icons.
 const label = "truncate min-[901px]:group-data-[collapsed]/side:sr-only";
 const active =
@@ -91,7 +91,7 @@ export function AdminNav({ me, layout }: { me: Me; layout: SidebarLayout }) {
       closeLabel={t("nav.closeMenu")}
       className="border-line bg-nav text-nav-fg min-[901px]:border-r"
       top={
-        <div className="flex items-center justify-between gap-2 px-1 min-[901px]:group-data-[collapsed]/side:justify-center">
+        <div className="flex items-center gap-2 px-1 min-[901px]:group-data-[collapsed]/side:justify-center">
           {/* The rail follows the theme: white in light, dark in dark. The logo leads to
               the console's overview. */}
           <Link
@@ -111,7 +111,7 @@ export function AdminNav({ me, layout }: { me: Me; layout: SidebarLayout }) {
               className="hidden min-[901px]:group-data-[collapsed]/side:block"
             />
           </Link>
-          <span className="min-[901px]:group-data-[collapsed]/side:hidden rounded-md border border-nav-active px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-nav-heading uppercase">
+          <span className="min-[901px]:group-data-[collapsed]/side:hidden mr-auto rounded bg-accent-soft px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-accent uppercase">
             {t("adminNav.badge")}
           </span>
         </div>

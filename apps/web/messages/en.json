@@ -43,6 +43,8 @@
     "title": "Admin console",
     "sections": {
       "build": "Build",
+      "knowledge": "Knowledge",
+      "connect": "Connections",
       "operate": "Operate",
       "govern": "Govern"
     },
