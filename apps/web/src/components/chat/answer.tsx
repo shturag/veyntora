@@ -425,20 +425,28 @@ export function AnswerBlock({
           onShow={cited.length ? onShowSources : undefined}
           shown={sourcesShown && cited.length > 0}
         >
-          {meta.no_sources
-            ? t("noSources")
-            : answered
-              ? documents || !(files || pages || tools)
-                ? t("answeredFrom", { count: documents })
-                : files
-                  ? t("answeredFromFiles", { count: files })
-                  : pages
-                    ? t("answeredFromWeb", { count: pages })
-                    : t("answeredFromTools", { count: tools })
-              : t("notFound")}
+          {meta.small_talk
+            ? t("smallTalk")
+            : meta.no_sources
+              ? t("noSources")
+              : answered
+                ? documents || !(files || pages || tools)
+                  ? t("answeredFrom", { count: documents })
+                  : files
+                    ? t("answeredFromFiles", { count: files })
+                    : pages
+                      ? t("answeredFromWeb", { count: pages })
+                      : t("answeredFromTools", { count: tools })
+                : t("notFound")}
           {seconds ? ` · ${seconds} s` : ""}
         </SourcesLabel>
-        {meta.no_sources ? (
+        {meta.small_talk ? (
+          <Tooltip content={t("smallTalkExplained")}>
+            <span tabIndex={0}>
+              <Badge tone="neutral">{t("smallTalkBadge")}</Badge>
+            </span>
+          </Tooltip>
+        ) : meta.no_sources ? (
           <Tooltip content={t("noSourcesExplained")}>
             <span tabIndex={0}>
               <Badge tone="amber">{t("noSourcesBadge")}</Badge>

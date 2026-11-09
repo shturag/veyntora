@@ -6177,6 +6177,11 @@ export interface components {
              */
             max_answer_tokens: number;
             /**
+             * Small Talk
+             * @default false
+             */
+            small_talk: boolean;
+            /**
              * Suggest Follow Ups
              * @default false
              */
@@ -8189,6 +8194,11 @@ export interface components {
             rerank_skipped: boolean;
             /** Search Type */
             search_type?: string | null;
+            /**
+             * Small Talk
+             * @default false
+             */
+            small_talk: boolean;
             /**
              * Sources
              * @default []

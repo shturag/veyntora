@@ -183,6 +183,7 @@ function RunColumn({ result: r, baseline }: { result: Result; baseline: Result |
             >
               {t(`outcome.${r.outcome}` as "outcome.answered")}
             </Badge>
+            {r.small_talk ? <Badge tone="neutral">{t("smallTalk")}</Badge> : null}
           </span>
         </span>
         {ran ? (

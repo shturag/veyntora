@@ -21,6 +21,7 @@ import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import partial
 from typing import Any, Literal, Protocol
 from urllib.parse import urlsplit
 from uuid import UUID
@@ -158,6 +159,8 @@ class RunContext:
     # Per attached source: score multiplier, and folders it is limited to (empty: all).
     source_weights: dict[str, float] = field(default_factory=dict)
     source_paths: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # The chatbot's one-line description: what small-talk replies say it helps with.
+    chatbot_description: str = ""
     # Whether the chatbot has expert teams for "Ask a human expert".
     experts: bool = False
     # Usage is booked to the asker's cost centre (their first group that has one) and to
@@ -241,6 +244,8 @@ class Answer:
     follow_ups: list[str] = field(default_factory=list)
     # Answered without documents (general chat): nothing to check it against.
     no_sources: bool = False
+    # A reply to small talk ("hi", "what can you do?"), not from the documents (ADR 0039).
+    small_talk: bool = False
     # The model's reasoning, when thinking was on and the model returns it.
     reasoning: str = ""
     # Code the model ran in the sandbox, with its output and charts (ADR 0030).
@@ -463,6 +468,7 @@ async def _context(
         principals=principals,
         chatbot_id=bot.id,
         chatbot_name=bot.name,
+        chatbot_description=bot.description,
         experts=bool(bot.expert_group_ids),
         version_id=version.id,
         version_number=version.number,
@@ -735,6 +741,16 @@ say that you cannot check them and suggest where to look. Say so when you are no
 _FREE_FILES = """
 The person attached the files in <sources>. Use them for anything the question asks about
 them; quote them faithfully and do not invent what they do not say."""
+
+
+# Small talk when the documents found nothing (generation.small_talk, ADR 0039).
+_SMALL_TALK = """Nothing in the documents matched this message.
+If it is small talk (a greeting, thanks, goodbye, "how are you") or a question about you
+(who you are, what you can help with, how to ask), reply in one to three friendly sentences.
+About you: you are {name}{about}. You answer questions from your documents and cite them.
+Use only what this paragraph says about you. Never answer anything else, and never state
+facts about any subject, the company or the world.
+For any other message, reply with exactly: NO_ANSWER"""
 
 
 _LENGTH = {
@@ -1301,8 +1317,20 @@ async def answer(  # noqa: PLR0911 - one return per outcome
         )
         run.egress |= external
     sources = [*attached, *tools, *sources]
+    # Small talk ("hi", "what can you do?") finds nothing; the chatbot may reply to it.
+    chat_back = partial(
+        _small_talk,
+        adapters,
+        ctx,
+        run,
+        question=question,
+        history=history,
+        masking=(masker, pii) if need_mask else None,
+        language=language_hint,
+        tr=tr,
+    )
     if not sources:
-        return run.finish(Answer("no_answer", no_answer))
+        return run.finish(await chat_back() or Answer("no_answer", no_answer))
 
     emit_({"type": "status", "step": "writing", "sources": len(sources)})
     # In "block" mode nothing is shown before the checks pass ("grounded or silent"); masked
@@ -1325,7 +1353,7 @@ async def answer(  # noqa: PLR0911 - one return per outcome
     )
 
     if grounding.is_no_answer(text):
-        return run.finish(Answer("no_answer", no_answer, sources=sources))
+        return run.finish(await chat_back() or Answer("no_answer", no_answer, sources=sources))
     result, problem, check = verdict(spec, text, sources, blocking=blocks_ungrounded(spec))
     if result == "blocked":
         log.info("answer.blocked", reason=problem, groundedness=check.score)
@@ -1426,6 +1454,53 @@ async def _without_documents(
             )
         )
     return run.finish(Answer("answered", text.strip(), no_sources=True))
+
+
+async def _small_talk(
+    adapters: AdapterSource,
+    ctx: RunContext,
+    run: _Run,
+    *,
+    question: str,
+    history: Sequence[ChatMessage],
+    masking: tuple[Masker, Any] | None,
+    language: str,
+    tr: Trace,
+) -> Answer | None:
+    """A reply to small talk when the documents found nothing, or None for a real question
+    (which keeps the no-answer reply). Held back until the output check has passed."""
+    if not ctx.spec.generation.small_talk:
+        return None
+    description = ctx.chatbot_description.strip().rstrip(".")
+    rules = _SMALL_TALK.format(
+        name=ctx.chatbot_name, about=f", which helps with: {description}" if description else ""
+    )
+    text = await _generate(
+        adapters,
+        ctx,
+        run,
+        question=question,
+        history=history,
+        sources=(),
+        masker=masking[0] if masking else None,
+        pii=masking[1] if masking else None,
+        language=language,
+        emit=None,
+        tr=tr,
+        rules=rules,
+    )
+    if grounding.is_no_answer(text) or not text.strip():
+        return None
+    g = ctx.spec.guardrails
+    with tr.step("output_check") as step:
+        out = await check_output(
+            ctx.spec, question, text, guard=await _adapter(adapters, g.output_guardrail_instance_id)
+        )
+        step.set(action=out.action, reason=out.reason)
+    run.egress |= ctx.hosting(g.output_guardrail_instance_id) is Hosting.EXTERNAL
+    if out.action != "allow":
+        return Answer("blocked", g.blocked_message, warning=out.reason)
+    return Answer("answered", text.strip(), no_sources=True, small_talk=True)
 
 
 FOLLOW_UPS = """Suggest up to three short follow-up questions the person might ask next, which

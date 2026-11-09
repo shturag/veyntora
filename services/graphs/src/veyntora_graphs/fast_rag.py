@@ -100,6 +100,7 @@ def _payload(
         "warning": result.warning,
         "external_egress": result.external_egress,
         "no_sources": result.no_sources,
+        "small_talk": result.small_talk,
         "reasoning": result.reasoning or None,
         "code_runs": result.code_runs or None,
         "cut_off": result.cut_off,

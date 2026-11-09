@@ -132,6 +132,7 @@ async def record(
         route_reason=route_reason
         or (f"limited: {ctx.limited}" if ctx.limited else None)
         or result.warning
+        or ("small talk" if result.small_talk else None)
         or (result.outcome if result.outcome != "answered" else None),
         pipeline_version_id=ctx.version_id,
         tokens_in=result.usage.prompt_tokens,

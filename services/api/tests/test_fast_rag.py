@@ -281,6 +281,25 @@ async def test_low_rerank_scores_mean_no_answer(rag: Rag) -> None:
     assert rag.llm.calls == []
 
 
+async def test_small_talk_gets_a_labelled_reply_when_the_chatbot_allows_it(rag: Rag) -> None:
+    rag.bot.description = "Refunds and products"
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.generation.small_talk = True
+    rag.llm.reply = "Hi! I answer questions about refunds and products from my documents."
+    result = await answer(rag.w.db, rag.adapters(), ctx, "hi, how are you")
+    assert result.outcome == "answered" and result.small_talk and result.no_sources
+    assert result.cited == [] and result.groundedness is None
+    # The model was told who it is and to refuse anything that is not small talk.
+    system = rag.llm.calls[-1][0].content
+    assert rag.bot.name in system and "Refunds and products" in system
+    assert "small talk" in system and "NO_ANSWER" in system
+
+    # A real question the documents do not answer keeps the no-answer reply.
+    rag.llm.reply = "NO_ANSWER"
+    result = await answer(rag.w.db, rag.adapters(), ctx, "which planets have rings")
+    assert result.outcome == "no_answer" and not result.small_talk
+
+
 async def test_access_and_availability_are_checked(rag: Rag) -> None:
     rag.authz.denied.add(f"user:{rag.w.user.id}")
     with pytest.raises(RunRefusedError, match="don't have access"):

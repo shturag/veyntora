@@ -167,6 +167,10 @@ class GenerationSpec(_Spec):
     # Suggest up to three follow-up questions under a grounded answer (one small extra
     # model call: the router model, else the answer model). People can turn them off.
     suggest_follow_ups: bool = False
+    # When a message finds nothing in the documents, reply to small talk ("hi", "thanks",
+    # "what can you do?") from the chatbot's name and description, labelled as not from the
+    # documents (ADR 0039). Other questions still get the no-answer reply.
+    small_talk: bool = False
 
 
 # ---------------------------------------------------------------- agent

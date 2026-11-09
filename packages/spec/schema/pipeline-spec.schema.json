@@ -316,6 +316,11 @@
           "title": "Max Answer Tokens",
           "type": "integer"
         },
+        "small_talk": {
+          "default": false,
+          "title": "Small Talk",
+          "type": "boolean"
+        },
         "suggest_follow_ups": {
           "default": false,
           "title": "Suggest Follow Ups",

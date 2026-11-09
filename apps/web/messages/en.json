@@ -770,7 +770,10 @@
     "answeredFromTools": "{count, plural, one {Answered from # tool result} other {Answered from # tool results}}",
     "fromTool": "Returned by a tool for this question",
     "stepLookItUp": "Answered without looking it up: sent back to search first",
-    "stepFromMemory": "Answered from memory again: not shown"
+    "stepFromMemory": "Answered from memory again: not shown",
+    "smallTalk": "Small talk, not from the documents",
+    "smallTalkBadge": "Small talk",
+    "smallTalkExplained": "A reply to a greeting or a question about this chatbot. It does not come from the documents and states no facts."
   },
   "source": {
     "updated": "updated {date}",
@@ -1585,6 +1588,10 @@
       "vision_pages": {
         "label": "Read pages with the vision model",
         "hint": "For scans, forms and handwriting: the vision model transcribes every PDF and image page instead of layout analysis and OCR. Much slower, and it can misread text; leave it off for documents with a text layer."
+      },
+      "small_talk": {
+        "label": "Reply to small talk",
+        "hint": "When a message finds nothing in the documents, greetings, thanks and “what can you do?” get a short reply from the chatbot’s name and description, labelled “Small talk”. Other questions still get the no-answer reply. One small extra model call, only when nothing was found."
       }
     },
     "o": {
@@ -1710,7 +1717,8 @@
     "points": "{sign}{n} pts",
     "page": "page {page}",
     "noSources": "No chunks were retrieved.",
-    "noSteps": "No steps were recorded."
+    "noSteps": "No steps were recorded.",
+    "smallTalk": "Small talk"
   },
   "settings": {
     "title": "Settings",

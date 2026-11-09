@@ -770,7 +770,10 @@
     "answeredFromTools": "{count, plural, one {Beantwortet aus # Tool-Ergebnis} other {Beantwortet aus # Tool-Ergebnissen}}",
     "fromTool": "Von einem Tool für diese Frage geliefert",
     "stepLookItUp": "Ohne Nachschlagen geantwortet: zurück zur Suche geschickt",
-    "stepFromMemory": "Wieder aus dem Gedächtnis geantwortet: nicht gezeigt"
+    "stepFromMemory": "Wieder aus dem Gedächtnis geantwortet: nicht gezeigt",
+    "smallTalk": "Smalltalk, nicht aus den Dokumenten",
+    "smallTalkBadge": "Smalltalk",
+    "smallTalkExplained": "Eine Antwort auf eine Begrüßung oder eine Frage zu diesem Chatbot. Sie stammt nicht aus den Dokumenten und nennt keine Fakten."
   },
   "source": {
     "updated": "aktualisiert am {date}",
@@ -1585,6 +1588,10 @@
       "vision_pages": {
         "label": "Seiten mit dem Vision-Modell lesen",
         "hint": "Für Scans, Formulare und Handschrift: Das Vision-Modell überträgt jede PDF- und Bildseite statt Layoutanalyse und OCR. Deutlich langsamer, und es kann Text falsch lesen; für Dokumente mit Textebene ausgeschaltet lassen."
+      },
+      "small_talk": {
+        "label": "Auf Smalltalk antworten",
+        "hint": "Findet eine Nachricht nichts in den Dokumenten, erhalten Begrüßungen, Dank und „Was können Sie?“ eine kurze Antwort aus Name und Beschreibung des Chatbots, gekennzeichnet als „Smalltalk“. Andere Fragen erhalten weiter die Antwort „nicht gefunden“. Ein kleiner zusätzlicher Modellaufruf, nur wenn nichts gefunden wurde."
       }
     },
     "o": {
@@ -1710,7 +1717,8 @@
     "points": "{sign}{n} Pkt.",
     "page": "Seite {page}",
     "noSources": "Keine Abschnitte gefunden.",
-    "noSteps": "Keine Schritte aufgezeichnet."
+    "noSteps": "Keine Schritte aufgezeichnet.",
+    "smallTalk": "Smalltalk"
   },
   "settings": {
     "title": "Einstellungen",

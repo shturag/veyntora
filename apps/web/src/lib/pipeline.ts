@@ -118,6 +118,7 @@ export const SECTIONS: readonly Section[] = [
       { name: "if_ungrounded", kind: "select", options: ["no_answer", "warn"] },
       { name: "answer_language", kind: "select", options: ["auto", "de", "en"] },
       { name: "suggest_follow_ups", kind: "toggle" },
+      { name: "small_talk", kind: "toggle" },
     ],
   },
   {

@@ -71,6 +71,8 @@ class PlaygroundResult(BaseModel):
     warning: str | None = None
     groundedness: float | None = None
     external_egress: bool = False
+    # A reply to small talk, not from the documents (ADR 0039).
+    small_talk: bool = False
     latency_ms: int | None = None
     tokens_in: int = 0
     tokens_out: int = 0

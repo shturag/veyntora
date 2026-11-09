@@ -40,6 +40,8 @@ export type AnswerMeta = {
   external_egress?: boolean;
   /** Answered without documents (general chat): nothing to check it against. */
   no_sources?: boolean;
+  /** A reply to small talk ("hi", "what can you do?"), not from the documents. */
+  small_talk?: boolean;
   /** The model's reasoning, when thinking was on and the model returned it. */
   reasoning?: string | null;
   /** Code the model ran in the sandbox (code interpreter), with output and charts. */
