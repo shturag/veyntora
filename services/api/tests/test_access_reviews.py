@@ -17,6 +17,7 @@ from veyntora_api.db.models.governance import AccessReview, AccessReviewItem
 from veyntora_api.db.models.identity import Group, GroupSource, Membership, User
 from veyntora_api.db.models.notifications import Notification
 from veyntora_api.governance import reviews
+from veyntora_api.routers.admin_reviews import _out
 
 from tests.test_fast_rag import CTX
 from tests.test_ingestion import World, _bot_with_source
@@ -131,6 +132,11 @@ async def test_owners_review_and_revoke(db: AsyncSession, setup: dict[str, Any])
     assert gone is None
     with pytest.raises(reviews.ReviewError, match="still open"):
         await reviews.start(db, CTX, s["fga"], s["admin"].id)
+
+    # The round's summary counts each decision and names who started it.
+    summary = await _out(db, review)
+    assert (summary.kept, summary.revoked) == (1, 2)
+    assert summary.started_by == s["admin"].email
 
 
 async def test_overdue_access_stays_and_admins_are_told_once(

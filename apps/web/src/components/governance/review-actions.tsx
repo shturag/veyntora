@@ -27,13 +27,15 @@ export function StartReview({ allowed }: { allowed: boolean }) {
   );
 }
 
-export function CloseReview({ id }: { id: string }) {
+export function CloseReview({ id, undecided }: { id: string; undecided: number }) {
   const state = useAction("accessReviews");
   return (
     <span className="flex items-center gap-2">
       <Button
         disabled={state.busy}
         onClick={() =>
+          // Closing ends the round for everyone; undecided access stays as it is.
+          window.confirm(state.t("confirmClose", { count: undecided })) &&
           state.run(
             () => api(`/v1/admin/access-reviews/${id}/close`, { method: "POST" }),
             state.t("closed"),

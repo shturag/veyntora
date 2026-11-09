@@ -6,6 +6,8 @@ test.describe("access reviews as a platform admin", () => {
   test.use({ storageState: USERS.admin.state });
 
   test("start a round, keep a grant, close the round", async ({ page }) => {
+    // Closing a round asks for confirmation.
+    page.on("dialog", (d) => void d.accept());
     await page.goto("/admin/access-reviews");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Access reviews");
     const close = page.getByRole("button", { name: "Close round" });

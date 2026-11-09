@@ -8692,6 +8692,8 @@ export interface components {
             principal_name: string;
             /** Relation */
             relation: string;
+            /** Reviewer Name */
+            reviewer_name?: string | null;
         };
         /** ReviewOut */
         ReviewOut: {
@@ -8702,6 +8704,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Days Left
+             * @default 0
+             */
+            days_left: number;
             /** Decided */
             decided: number;
             /**
@@ -8714,10 +8721,22 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Kept
+             * @default 0
+             */
+            kept: number;
             /** Name */
             name: string;
             /** Overdue */
             overdue: boolean;
+            /**
+             * Revoked
+             * @default 0
+             */
+            revoked: number;
+            /** Started By */
+            started_by?: string | null;
             /** Total */
             total: number;
         };
@@ -8766,8 +8785,17 @@ export interface components {
             /** Can Manage */
             can_manage: boolean;
             current: components["schemas"]["ReviewOut"] | null;
+            /** Every Days */
+            every_days?: number | null;
             /** Items */
             items: components["schemas"]["ReviewItemOut"][];
+            /** Next At */
+            next_at?: string | null;
+            /**
+             * Next Soon
+             * @default false
+             */
+            next_soon: boolean;
             /** Past */
             past: components["schemas"]["ReviewOut"][];
             /** See All */

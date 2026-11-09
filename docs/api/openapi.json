@@ -13565,6 +13565,17 @@
           "relation": {
             "title": "Relation",
             "type": "string"
+          },
+          "reviewer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Name"
           }
         },
         "required": [
@@ -13602,6 +13613,11 @@
             "title": "Created At",
             "type": "string"
           },
+          "days_left": {
+            "default": 0,
+            "title": "Days Left",
+            "type": "integer"
+          },
           "decided": {
             "title": "Decided",
             "type": "integer"
@@ -13616,6 +13632,11 @@
             "title": "Id",
             "type": "string"
           },
+          "kept": {
+            "default": 0,
+            "title": "Kept",
+            "type": "integer"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -13623,6 +13644,22 @@
           "overdue": {
             "title": "Overdue",
             "type": "boolean"
+          },
+          "revoked": {
+            "default": 0,
+            "title": "Revoked",
+            "type": "integer"
+          },
+          "started_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started By"
           },
           "total": {
             "title": "Total",
@@ -13809,12 +13846,40 @@
               }
             ]
           },
+          "every_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Every Days"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ReviewItemOut"
             },
             "title": "Items",
             "type": "array"
+          },
+          "next_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next At"
+          },
+          "next_soon": {
+            "default": false,
+            "title": "Next Soon",
+            "type": "boolean"
           },
           "past": {
             "items": {

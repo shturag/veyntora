@@ -6,7 +6,8 @@ Anyone signed in sees the items they review; the whole round needs the Users are
 
 from __future__ import annotations
 
-from datetime import datetime
+import math
+from datetime import datetime, timedelta
 from uuid import UUID
 
 import sqlalchemy as sa
@@ -22,7 +23,9 @@ from veyntora_api.auth.deps import (
     platform_roles,
 )
 from veyntora_api.db.models.governance import AccessReview, AccessReviewItem
+from veyntora_api.db.models.identity import User
 from veyntora_api.governance import reviews as svc
+from veyntora_api.governance import service as governance
 
 router = APIRouter(prefix="/v1/admin/access-reviews", tags=["admin: access reviews"])
 
@@ -40,6 +43,8 @@ class ReviewItemOut(BaseModel):
     principal: str
     principal_name: str
     mine: bool
+    # Who decides this grant; None when the owner has left.
+    reviewer_name: str | None = None
     decision: str | None
     decided_at: datetime | None
     note: str | None
@@ -53,6 +58,12 @@ class ReviewOut(BaseModel):
     closed_at: datetime | None
     total: int
     decided: int
+    kept: int = 0
+    revoked: int = 0
+    # None: started on the schedule.
+    started_by: str | None = None
+    # Whole days until the due date; negative once it has passed.
+    days_left: int = 0
     overdue: bool
 
 
@@ -62,16 +73,25 @@ class ReviewsPage(BaseModel):
     items: list[ReviewItemOut]
     see_all: bool
     can_manage: bool
+    # Governance settings: None means rounds start by hand only.
+    every_days: int | None = None
+    # When the schedule starts the next round, if none is open; None with next_soon
+    # when it starts at the next daily check.
+    next_at: datetime | None = None
+    next_soon: bool = False
 
 
 async def _out(db: DbSession, r: AccessReview) -> ReviewOut:
-    total, decided = (
+    total, decided, kept = (
         await db.execute(
-            sa.select(sa.func.count(), sa.func.count(AccessReviewItem.decision)).where(
-                AccessReviewItem.review_id == r.id
-            )
+            sa.select(
+                sa.func.count(),
+                sa.func.count(AccessReviewItem.decision),
+                sa.func.count().filter(AccessReviewItem.decision == "keep"),
+            ).where(AccessReviewItem.review_id == r.id)
         )
     ).one()
+    by = await db.get(User, r.created_by) if r.created_by else None
     return ReviewOut(
         id=r.id,
         name=r.name,
@@ -80,6 +100,10 @@ async def _out(db: DbSession, r: AccessReview) -> ReviewOut:
         closed_at=r.closed_at,
         total=int(total),
         decided=int(decided),
+        kept=int(kept),
+        revoked=int(decided) - int(kept),
+        started_by=(by.display_name or by.email) if by else None,
+        days_left=math.ceil((r.due_at - datetime.now(r.due_at.tzinfo)) / timedelta(days=1)),
         overdue=r.closed_at is None
         and r.due_at < datetime.now(r.due_at.tzinfo)
         and decided < total,
@@ -118,6 +142,23 @@ async def overview(principal: CurrentPrincipal, db: DbSession, state: State) -> 
             ).scalars()
         )
     roles = await platform_roles(state, principal)
+    reviewer_ids = {i.reviewer_id for i in items if i.reviewer_id}
+    reviewers = (
+        {
+            u.id: u.display_name or u.email
+            for u in (await db.execute(sa.select(User).where(User.id.in_(reviewer_ids)))).scalars()
+        }
+        if reviewer_ids
+        else {}
+    )
+    every = (await governance.settings_of(db)).access_review_every_days
+    next_at = None
+    if every is not None and current is None:
+        # The scheduler starts a round once the last one is this old.
+        next_at = rounds[0].created_at + timedelta(days=every) if rounds else None
+        if next_at is not None and next_at <= datetime.now(next_at.tzinfo):
+            next_at = None
+    next_soon = every is not None and current is None and next_at is None
     return ReviewsPage(
         current=await _out(db, current) if current else None,
         past=[await _out(db, r) for r in rounds if r.closed_at is not None] if see_all else [],
@@ -131,6 +172,7 @@ async def overview(principal: CurrentPrincipal, db: DbSession, state: State) -> 
                 principal=i.principal,
                 principal_name=i.principal_name,
                 mine=i.reviewer_id == principal.user_id,
+                reviewer_name=reviewers.get(i.reviewer_id) if i.reviewer_id else None,
                 decision=i.decision,
                 decided_at=i.decided_at,
                 note=i.note,
@@ -139,6 +181,9 @@ async def overview(principal: CurrentPrincipal, db: DbSession, state: State) -> 
         ],
         see_all=see_all,
         can_manage=roles["platform_admin"],
+        every_days=every,
+        next_at=next_at,
+        next_soon=next_soon,
     )
 
 
