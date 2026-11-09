@@ -1661,13 +1661,7 @@
     "noChatbots": "Noch keine Chatbots, die du testen darfst.",
     "form": "Testanfrage",
     "chatbot": "Chatbot",
-    "mode": "Modus",
-    "modes": {
-      "fast": "Schnell",
-      "agent": "Agent",
-      "auto": "Auto"
-    },
-    "modeLater": "Der Playground testet den Schnellmodus. Agent- und Auto-Läufe testest du im Chat; sie erscheinen in der Lauf-Ansicht.",
+    "modeLater": "Agent und Auto testen Sie im Chat; ihre Läufe erscheinen in der Lauf-Ansicht.",
     "question": "Frage",
     "questionPlaceholder": "Frag, was deine Nutzer fragen würden…",
     "runBoth": "Beide ausführen",
@@ -1707,7 +1701,16 @@
       "rerank": "Neu ordnen",
       "generate": "Antworten",
       "output_check": "Ausgabeprüfung"
-    }
+    },
+    "compares": "Vergleicht",
+    "vs": "mit",
+    "fastOnly": "Schnellmodus",
+    "shortcut": "Strg + Enter",
+    "searchLine": "{search} · Top {k}",
+    "points": "{sign}{n} Pkt.",
+    "page": "Seite {page}",
+    "noSources": "Keine Abschnitte gefunden.",
+    "noSteps": "Keine Schritte aufgezeichnet."
   },
   "settings": {
     "title": "Einstellungen",

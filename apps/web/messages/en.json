@@ -1661,13 +1661,7 @@
     "noChatbots": "No chatbots you may test yet.",
     "form": "Test query",
     "chatbot": "Chatbot",
-    "mode": "Mode",
-    "modes": {
-      "fast": "Fast",
-      "agent": "Agent",
-      "auto": "Auto"
-    },
-    "modeLater": "Playground tests Fast mode. Agent and Auto runs are tested in chat and shown in Run trace.",
+    "modeLater": "Agent and Auto are tested in chat; their runs show in Run trace.",
     "question": "Question",
     "questionPlaceholder": "Ask what your users would ask…",
     "runBoth": "Run both",
@@ -1707,7 +1701,16 @@
       "rerank": "Rerank",
       "generate": "Generate",
       "output_check": "Output check"
-    }
+    },
+    "compares": "Compares",
+    "vs": "vs",
+    "fastOnly": "Fast mode",
+    "shortcut": "Ctrl + Enter",
+    "searchLine": "{search} · top {k}",
+    "points": "{sign}{n} pts",
+    "page": "page {page}",
+    "noSources": "No chunks were retrieved.",
+    "noSteps": "No steps were recorded."
   },
   "settings": {
     "title": "Settings",

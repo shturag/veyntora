@@ -11,7 +11,7 @@ test.describe("playground as a platform admin", () => {
     const form = page.getByRole("form", { name: "Test query" });
     if ((await form.count()) === 0) test.skip(true, "no chatbots in this database");
     // The Playground tests Fast; Agent and Auto runs are tested in chat.
-    await expect(form.getByRole("radio", { name: "Agent" })).toBeDisabled();
+    await expect(form.getByText("Fast mode", { exact: true })).toBeVisible();
     const run = form.getByRole("button", { name: /Run (both|draft)/ });
     await expect(run).toBeDisabled();
     await form.getByLabel("Question").fill("What is the refund period?");

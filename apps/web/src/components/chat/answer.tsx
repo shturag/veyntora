@@ -84,10 +84,12 @@ export function AnswerText({
   text,
   meta,
   typing = false,
+  className,
 }: {
   text: string;
   meta: AnswerMeta;
   typing?: boolean;
+  className?: string;
 }) {
   const byN = new Map((meta.citations ?? []).map((c) => [c.n, c]));
   const line = (parts: Inline[]) =>
@@ -105,7 +107,13 @@ export function AnswerText({
       </Fragment>
     ));
   return (
-    <div className={cn("flex flex-col gap-3 text-base leading-[1.7]", typing && "vey-typing")}>
+    <div
+      className={cn(
+        "flex flex-col gap-3 text-base leading-[1.7]",
+        typing && "vey-typing",
+        className,
+      )}
+    >
       {parseBlocks(text).map((block, i) => {
         switch (block.kind) {
           case "heading": {
