@@ -146,7 +146,7 @@ export default async function EvaluationPage({
               {t("subtitle", { chatbot: botName, set: chosen.name, count: chosen.cases })}
             </p>
           ) : null}
-          <section aria-labelledby="by-version" className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 id="by-version" className="m-0 text-base font-semibold">
                 {t("byVersion")}
@@ -229,7 +229,7 @@ export default async function EvaluationPage({
                 </table>
               </div>
             )}
-          </section>
+          </div>
           {blocked ? (
             <section
               aria-labelledby="why"

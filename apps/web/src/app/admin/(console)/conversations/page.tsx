@@ -220,7 +220,7 @@ export default async function ConversationsPage({
                   {detail.question}
                 </p>
               </section>
-              <section aria-labelledby="a" className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <h2 id="a" className={label}>
                   {t("answer")}
                 </h2>
@@ -235,7 +235,7 @@ export default async function ConversationsPage({
                     meta={{ outcome: (detail.outcome ?? "answered") as Outcome }}
                   />
                 </div>
-              </section>
+              </div>
               <section aria-labelledby="fb" className="flex flex-col gap-1.5">
                 <h2 id="fb" className={label}>
                   {t("feedback")}

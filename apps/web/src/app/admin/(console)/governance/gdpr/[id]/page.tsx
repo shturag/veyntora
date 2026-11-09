@@ -64,21 +64,29 @@ export default async function RequestPage({ params }: { params: Promise<{ id: st
           {counts.length === 0 ? (
             <p className="m-0 text-sm text-fg-secondary">{t("noAccount")}</p>
           ) : (
-            <table className="w-full border-collapse text-sm">
+            <table className="w-full table-fixed border-collapse text-sm">
+              <colgroup>
+                <col />
+                <col className="w-[34%]" />
+                <col className="w-40" />
+                <col className="w-24" />
+              </colgroup>
               <thead>
                 <tr className="text-left text-xs text-fg-muted">
-                  <th className="py-1 font-medium">{t("data")}</th>
-                  <th className="py-1 font-medium">{t("where")}</th>
-                  <th className="py-1 text-right font-medium">{t("amount")}</th>
+                  <th className="py-1 pr-4 font-medium">{t("data")}</th>
+                  <th className="py-1 pr-4 font-medium">{t("where")}</th>
+                  <th className="py-1 pr-4 text-right font-medium">{t("amount")}</th>
                   <th className="py-1 font-medium">{t("action")}</th>
                 </tr>
               </thead>
               <tbody>
                 {counts.map((f) => (
                   <tr key={f.key} className="border-t border-line">
-                    <td className="py-1.5">{t(`items.${f.key as "chats"}`)}</td>
-                    <td className="py-1.5 text-fg-secondary">{f.where}</td>
-                    <td className="py-1.5 text-right tabular-nums">
+                    <td className="py-1.5 pr-4">{t(`items.${f.key as "chats"}`)}</td>
+                    <td className="py-1.5 pr-4 text-fg-secondary">{f.where}</td>
+                    <td
+                      className={`py-1.5 pr-4 text-right ${f.amount < 0 ? "text-xs text-fg-muted" : "tabular-nums"}`}
+                    >
                       {f.amount < 0 ? t("inLangfuse") : f.amount}
                     </td>
                     <td className="py-1.5 text-fg-secondary">

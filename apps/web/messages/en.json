@@ -2219,7 +2219,8 @@
       "approver": "decides on actions",
       "editor": "builds the chatbot",
       "owner": "runs the chatbot"
-    }
+    },
+    "save": "Save"
   },
   "bots": {
     "title": "Chatbots",
@@ -3119,7 +3120,10 @@
     "fixFirst": "Fix what is listed under “Before it can run” first.",
     "when": "When",
     "needsAttention": "Needs attention",
-    "saveTrigger": "Save trigger"
+    "saveTrigger": "Save trigger",
+    "cancelRunTitle": "Cancel this run?",
+    "cancelRunText": "Steps already done stay done; a waiting approval is withdrawn.",
+    "runCancelled": "Run cancelled."
   },
   "knowledgeHealth": {
     "title": "Knowledge health",

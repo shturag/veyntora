@@ -2219,7 +2219,8 @@
       "approver": "entscheidet über Aktionen",
       "editor": "baut den Chatbot",
       "owner": "verantwortet den Chatbot"
-    }
+    },
+    "save": "Speichern"
   },
   "bots": {
     "title": "Chatbots",
@@ -3119,7 +3120,10 @@
     "fixFirst": "Beheben Sie zuerst, was unter „Bevor sie laufen kann“ steht.",
     "when": "Wenn",
     "needsAttention": "Braucht Aufmerksamkeit",
-    "saveTrigger": "Auslöser speichern"
+    "saveTrigger": "Auslöser speichern",
+    "cancelRunTitle": "Diesen Lauf abbrechen?",
+    "cancelRunText": "Erledigte Schritte bleiben erledigt; eine wartende Freigabe wird zurückgezogen.",
+    "runCancelled": "Lauf abgebrochen."
   },
   "knowledgeHealth": {
     "title": "Wissensqualität",

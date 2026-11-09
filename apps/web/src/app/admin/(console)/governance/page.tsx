@@ -172,7 +172,7 @@ export default async function GovernancePage() {
                     <th className={th}>{t("person")}</th>
                     <th className={th}>{t("status")}</th>
                     <th className={th}>{t("due")}</th>
-                    <th className={th}>
+                    <th className={`${th} relative`}>
                       <span className="sr-only">{t("open")}</span>
                     </th>
                   </tr>

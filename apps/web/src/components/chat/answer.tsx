@@ -106,6 +106,9 @@ export function AnswerText({
         ) : null}
       </Fragment>
     ));
+  const blocks = parseBlocks(text);
+  // The answer's own top heading level becomes level 3 on the page, so levels never skip.
+  const top = Math.min(6, ...blocks.map((b) => (b.kind === "heading" ? b.level : 6)));
   return (
     <div
       className={cn(
@@ -114,7 +117,7 @@ export function AnswerText({
         className,
       )}
     >
-      {parseBlocks(text).map((block, i) => {
+      {blocks.map((block, i) => {
         switch (block.kind) {
           case "heading": {
             const size = block.level <= 2 ? "text-lg" : "text-base";
@@ -122,7 +125,7 @@ export function AnswerText({
               <p
                 key={i}
                 role="heading"
-                aria-level={Math.min(block.level + 2, 6)}
+                aria-level={Math.min(block.level - top + 3, 6)}
                 className={`m-0 mt-1 font-semibold ${size}`}
               >
                 {line(block.text)}
