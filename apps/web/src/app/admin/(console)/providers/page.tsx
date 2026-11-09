@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { ProviderEditor, type ProviderRow } from "@/components/admin/provider-editor";
+import { FillViewport } from "@/components/fill-viewport";
 import { Forbidden } from "@/components/forbidden";
 import { KeepInView } from "@/components/keep-in-view";
 import { screenMetadata } from "@/components/screen-placeholder";
@@ -88,10 +89,13 @@ export default async function ProvidersPage({ searchParams }: Props) {
           {t("empty")}
         </p>
       ) : (
-        <div className="grid grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)] gap-5 max-[1100px]:grid-cols-1">
+        <FillViewport
+          from={1101}
+          className="grid grid-cols-[minmax(0,1.25fr)_minmax(380px,1fr)] grid-rows-[minmax(0,1fr)] gap-5 max-[1100px]:grid-cols-1 max-[1100px]:grid-rows-none min-[1101px]:h-[calc(100vh-12rem)]"
+        >
           <section
             aria-label={t("instances")}
-            className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface min-[1101px]:h-[calc(100vh-12rem)] min-[1101px]:min-h-[32rem]"
+            className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface"
           >
             <div id="provider-list" className="min-h-0 flex-1 overflow-auto">
               <table className="w-full min-w-[560px] table-fixed border-collapse text-sm">
@@ -175,7 +179,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
               usage={usage?.find((u) => u.provider_id === selected.id) ?? null}
             />
           ) : null}
-        </div>
+        </FillViewport>
       )}
     </div>
   );

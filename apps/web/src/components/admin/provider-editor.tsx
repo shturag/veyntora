@@ -175,7 +175,7 @@ export function ProviderEditor({
   return (
     <section
       aria-labelledby="editor-title"
-      className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface min-[1101px]:h-[calc(100vh-12rem)] min-[1101px]:min-h-[32rem]"
+      className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface"
     >
       <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
         <div className="min-w-0">

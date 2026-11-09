@@ -4,6 +4,7 @@ import { ArrowRight, Archive, ListOrdered, Search, ShieldAlert, ShieldCheck } fr
 import Link from "next/link";
 
 import { ExportAudit } from "@/components/audit/export-audit";
+import { FillViewport } from "@/components/fill-viewport";
 import { KeepInView } from "@/components/keep-in-view";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
@@ -105,8 +106,7 @@ export default async function AuditPage({
   const tileLabel = "text-xs font-medium text-fg-muted";
   const tileValue = "truncate text-base font-semibold";
   const tileNote = "text-xs text-fg-secondary";
-  const panel =
-    "flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface min-[1201px]:h-[calc(100vh-12rem)] min-[1201px]:min-h-[32rem]";
+  const panel = "flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface";
   const th =
     "sticky top-0 z-10 bg-surface px-4 py-2.5 text-left shadow-[inset_0_-1px_0_var(--color-line)] text-xs font-medium text-fg-muted";
 
@@ -226,7 +226,10 @@ export default async function AuditPage({
         ) : null}
       </form>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_400px] gap-5 max-[1200px]:grid-cols-1">
+      <FillViewport
+        from={1201}
+        className="grid grid-cols-[minmax(0,1fr)_400px] grid-rows-[minmax(0,1fr)] gap-5 max-[1200px]:grid-cols-1 max-[1200px]:grid-rows-none min-[1201px]:h-[calc(100vh-12rem)]"
+      >
         <section aria-label={t("entriesLabel")} className={`${panel} min-w-0`}>
           {data.entries.length === 0 ? (
             <p className="m-0 flex-1 px-4 py-10 text-center text-sm text-fg-secondary">
@@ -417,7 +420,7 @@ export default async function AuditPage({
             </footer>
           </article>
         ) : null}
-      </div>
+      </FillViewport>
     </div>
   );
 }
