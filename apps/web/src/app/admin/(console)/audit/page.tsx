@@ -4,7 +4,7 @@ import { ArrowRight, Archive, Search, ShieldAlert, ShieldCheck } from "lucide-re
 import Link from "next/link";
 
 import { ExportAudit } from "@/components/audit/export-audit";
-import { KeepInView } from "@/components/audit/keep-in-view";
+import { KeepInView } from "@/components/keep-in-view";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";

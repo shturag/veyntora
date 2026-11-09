@@ -952,7 +952,12 @@
     "usageNotPriced": "Usage and prices are counted for language models, embedding models and rerankers only.",
     "noUsageCounted": "Not counted for this kind of provider.",
     "priceInOnly": "Text sent to it is counted (as the service reports it, else estimated); there is no output to price.",
-    "usageHintEmbedding": "Counted from indexing documents and from questions (search or reranking), attributed to the provider that served each call. Cost uses the price above."
+    "usageHintEmbedding": "Counted from indexing documents and from questions (search or reranking), attributed to the provider that served each call. Cost uses the price above.",
+    "instances": "Provider instances",
+    "shown": "{count, plural, one {# instance} other {# instances}}",
+    "connection": "Connection",
+    "whereItRuns": "Where it runs",
+    "modelSettings": "Model settings"
   },
   "sources": {
     "title": "Data sources",

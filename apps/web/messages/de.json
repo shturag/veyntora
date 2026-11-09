@@ -952,7 +952,12 @@
     "usageNotPriced": "Nutzung und Preise werden nur für Sprachmodelle, Embedding-Modelle und Reranker gezählt.",
     "noUsageCounted": "Für diese Art von Anbieter nicht gezählt.",
     "priceInOnly": "Gezählt wird der gesendete Text (wie der Dienst ihn meldet, sonst geschätzt); es gibt keine Ausgabe zu bepreisen.",
-    "usageHintEmbedding": "Gezählt beim Indexieren von Dokumenten und bei Fragen (Suche oder Reranking), dem Anbieter zugeordnet, der den Aufruf bedient hat. Kosten nach dem Preis oben."
+    "usageHintEmbedding": "Gezählt beim Indexieren von Dokumenten und bei Fragen (Suche oder Reranking), dem Anbieter zugeordnet, der den Aufruf bedient hat. Kosten nach dem Preis oben.",
+    "instances": "Provider-Instanzen",
+    "shown": "{count, plural, one {# Instanz} other {# Instanzen}}",
+    "connection": "Verbindung",
+    "whereItRuns": "Betrieb",
+    "modelSettings": "Modell-Einstellungen"
   },
   "sources": {
     "title": "Datenquellen",

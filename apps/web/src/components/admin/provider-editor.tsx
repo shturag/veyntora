@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge, Button } from "@veyntora/ui";
+import { KeyRound } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -39,6 +40,9 @@ const PRICE_OUT = "price_out_per_mtok_eur";
 
 const input = "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm";
 const label = "flex flex-col gap-1 text-[13px] font-medium";
+const hint = "text-xs font-normal text-fg-muted";
+const part = "flex flex-col gap-3 border-b border-divider p-5 last:border-0";
+const partTitle = "m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
 
 /** Edit one instance, replace its key (write-only) and run the live contract test. */
 export function ProviderEditor({
@@ -160,279 +164,41 @@ export function ProviderEditor({
     const v = provider.options[key];
     return typeof v === "number" ? String(v) : "";
   };
+  const healthTone =
+    provider.health_status === "healthy"
+      ? "green"
+      : provider.health_status === "down"
+        ? "red"
+        : provider.health_status === "degraded"
+          ? "amber"
+          : "neutral";
   return (
     <section
       aria-labelledby="editor-title"
-      className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+      className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface min-[1101px]:h-[calc(100vh-12rem)] min-[1101px]:min-h-[32rem]"
     >
-      <div>
-        <div className="text-xs text-fg-muted">
-          {t(`capabilities.${provider.capability}`)} · {provider.adapter}
-        </div>
-        <h2 id="editor-title" className="m-0 text-lg font-bold">
-          {provider.name}
-        </h2>
-      </div>
-      <form onSubmit={save} className="flex flex-col gap-3">
-        <label className={label}>
-          {t("name")}
-          <input
-            name="name"
-            defaultValue={provider.name}
-            required
-            disabled={!canEdit}
-            className={input}
-          />
-        </label>
-        <label className={label}>
-          {t("endpoint")}
-          <input
-            name="endpoint"
-            defaultValue={provider.endpoint ?? ""}
-            disabled={!canEdit}
-            className={`${input} font-mono`}
-          />
-          <span className="text-xs font-normal text-fg-muted">{t("endpointHint")}</span>
-        </label>
-        <label className={label}>
-          {t("model")}
-          <input
-            name="model"
-            defaultValue={provider.model ?? ""}
-            disabled={!canEdit}
-            className={`${input} font-mono`}
-          />
-        </label>
-        <div className="grid grid-cols-[1fr_160px] gap-3 max-[760px]:grid-cols-1">
-          <label className={label}>
-            {t("hosting")}
-            <select
-              name="hosting"
-              value={hosting}
-              onChange={(e) => setHosting(e.target.value as ProviderRow["hosting"])}
-              disabled={!canEdit || vendorOnly}
-              className={input}
-            >
-              <option value="self_hosted">{t("hostings.self_hosted")}</option>
-              <option value="external">{t("hostings.external")}</option>
-            </select>
-            <span className="text-xs font-normal text-fg-muted">{t("hostingHint")}</span>
-          </label>
-          <label className={label}>
-            {t("region")}
-            <input
-              name="region"
-              defaultValue={provider.region ?? ""}
-              placeholder={t("regionPlaceholder")}
-              disabled={!canEdit}
-              className={input}
-            />
-          </label>
-        </div>
-        <label className={label}>
-          {t("fallback")}
-          <select
-            name="fallback"
-            defaultValue={provider.fallback_instance_id ?? ""}
-            disabled={!canEdit}
-            className={input}
-          >
-            <option value="">{t("noFallback")}</option>
-            {fallbacks.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <span className="text-xs font-normal text-fg-muted">{t("fallbackHint")}</span>
-        </label>
-        {hasOutput && provider.adapter === "openai_compatible" ? (
-          <label className={label}>
-            {t("thinkingSwitch")}
-            <select
-              name="thinking"
-              defaultValue={
-                typeof provider.options.thinking === "string" ? provider.options.thinking : ""
-              }
-              disabled={!canEdit}
-              className={input}
-            >
-              <option value="">{t("thinkingNone")}</option>
-              <option value="enable_thinking">{t("thinkingFlag")}</option>
-              <option value="chat_template_kwargs">{t("thinkingTemplate")}</option>
-            </select>
-            <span className="text-xs font-normal text-fg-muted">{t("thinkingHint")}</span>
-          </label>
-        ) : null}
-        {priced ? (
-          <div className="grid grid-cols-2 gap-3">
-            <label className={label}>
-              {t("priceIn")}
-              <input
-                name="price_in"
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={price(PRICE_IN)}
-                disabled={!canEdit}
-                className={input}
-              />
-            </label>
-            {hasOutput ? (
-              <label className={label}>
-                {t("priceOut")}
-                <input
-                  name="price_out"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  defaultValue={price(PRICE_OUT)}
-                  disabled={!canEdit}
-                  className={input}
-                />
-              </label>
-            ) : (
-              <p className="m-0 self-end pb-2 text-xs text-fg-muted">{t("priceInOnly")}</p>
-            )}
+      <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+        <div className="min-w-0">
+          <div className="truncate text-xs text-fg-muted">
+            {t(`capabilities.${provider.capability}`)} · {provider.adapter}
           </div>
-        ) : null}
-        {canEdit ? (
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" variant="primary" disabled={busy}>
-              {t("save")}
-            </Button>
-            <Button
-              type="button"
-              variant={provider.enabled ? "danger" : "secondary"}
-              disabled={busy}
-              onClick={() => setEnabled(!provider.enabled)}
-            >
-              {provider.enabled ? t("disable") : t("enable")}
-            </Button>
-            <Button
-              type="button"
-              variant="danger-outline"
-              disabled={busy}
-              onClick={() => {
-                if (!window.confirm(t("deleteConfirm", { name: provider.name }))) return;
-                void run(async () => {
-                  await api(`/v1/admin/providers/${provider.id}`, { method: "DELETE" });
-                  router.push("/admin/providers");
-                }, t("deleted"));
-              }}
-            >
-              {t("delete")}
-            </Button>
-          </div>
-        ) : null}
-      </form>
-      {message ? (
-        <p
-          role={message.ok ? "status" : "alert"}
-          className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}
-        >
-          {message.text}
-        </p>
-      ) : null}
-      <p
-        role="note"
-        className={`m-0 rounded-md px-3 py-2 text-sm ${external ? "bg-amber-soft text-amber" : "bg-green-soft text-green"}`}
-      >
-        {external ? t("externalNote") : t("selfHostedNote")}
-      </p>
-      <div className="flex flex-col gap-2 border-t border-divider pt-4">
-        <h3 className="m-0 text-sm font-semibold">{t("key")}</h3>
-        <p className="m-0 text-sm text-fg-secondary">
-          {provider.has_secret
-            ? t("keySet", {
-                last4: provider.secret_last4 ?? "····",
-                expiry: provider.secret_expires_at
-                  ? provider.secret_expires_at.slice(0, 10)
-                  : t("noExpiry"),
-              })
-            : t("noKey")}
-        </p>
-        {provider.previous_key_valid_until ? (
-          <p className="m-0 text-xs text-fg-muted">
-            {t("previousKeyUntil", {
-              until: format.dateTime(new Date(provider.previous_key_valid_until), {
-                dateStyle: "medium",
-                timeStyle: "short",
-              }),
-            })}
-          </p>
-        ) : null}
-        {canEdit ? (
-          <form onSubmit={replaceKey} className="flex flex-wrap items-end gap-2">
-            <label className={`${label} min-w-56 flex-1`}>
-              {provider.has_secret ? t("newKey") : t("addKey")}
-              <input name="secret" type="password" autoComplete="off" required className={input} />
-            </label>
-            <label className={label}>
-              {t("expires")}
-              <input name="expires" type="date" className={input} />
-            </label>
-            {provider.has_secret ? (
-              <label className={label}>
-                {t("grace")}
-                <select name="grace" defaultValue="24h" className={input}>
-                  {GRACE.map((g) => (
-                    <option key={g} value={g}>
-                      {t(`graces.${g}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-            <Button type="submit" disabled={busy}>
-              {provider.has_secret ? t("replaceKey") : t("storeKey")}
-            </Button>
-          </form>
-        ) : null}
-        <p className="m-0 text-xs text-fg-muted">{t("keyHint")}</p>
-      </div>
-      <div className="flex flex-col gap-2 border-t border-divider pt-4">
-        <h3 className="m-0 text-sm font-semibold">{t("usage")}</h3>
-        {usage && usage.calls > 0 ? (
-          <dl className="m-0 grid grid-cols-3 gap-2">
-            {[
-              [t("calls"), format.number(usage.calls)],
-              [t("tokens"), format.number(usage.tokens_in + usage.tokens_out)],
-              [t("cost"), format.number(usage.cost, { style: "currency", currency: "EUR" })],
-            ].map(([k, v]) => (
-              <div key={k} className="flex flex-col rounded-md bg-sunken px-3 py-2">
-                <dt className="text-xs text-fg-muted">{k}</dt>
-                <dd className="m-0 text-sm font-semibold tabular-nums">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <p className="m-0 text-sm text-fg-secondary">
-            {priced ? t("noUsage") : t("noUsageCounted")}
-          </p>
-        )}
-        <p className="m-0 text-xs text-fg-muted">
-          {hasOutput ? t("usageHint") : priced ? t("usageHintEmbedding") : t("usageNotPriced")}
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 border-t border-divider pt-4">
-        <Badge
-          tone={
-            provider.health_status === "healthy"
-              ? "green"
-              : provider.health_status === "down"
-                ? "red"
-                : "neutral"
-          }
-        >
-          {t(`health.${provider.health_status}`)}
-        </Badge>
-        {provider.health_detail ? (
-          <span className="text-xs text-fg-muted">{provider.health_detail}</span>
-        ) : null}
+          <h2 id="editor-title" className="m-0 flex min-w-0 items-center gap-2 text-lg font-bold">
+            <span className="truncate" title={provider.name}>
+              {provider.name}
+            </span>
+            <Badge tone={healthTone}>{t(`health.${provider.health_status}`)}</Badge>
+            {provider.enabled ? null : <Badge tone="neutral">{t("disabled")}</Badge>}
+          </h2>
+          {provider.health_detail ? (
+            <p className="m-0 truncate text-xs text-fg-muted" title={provider.health_detail}>
+              {provider.health_detail}
+            </p>
+          ) : null}
+        </div>
         {canEdit ? (
           <Button
-            className="ml-auto"
+            size="sm"
+            className="shrink-0"
             disabled={busy}
             onClick={() =>
               run(
@@ -445,7 +211,296 @@ export function ProviderEditor({
             {t("test")}
           </Button>
         ) : null}
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <form id={`provider-${provider.id}`} onSubmit={save} className="flex flex-col">
+          <div className={part}>
+            <h3 className={partTitle}>{t("connection")}</h3>
+            <label className={label}>
+              {t("name")}
+              <input
+                name="name"
+                defaultValue={provider.name}
+                required
+                disabled={!canEdit}
+                className={input}
+              />
+            </label>
+            <label className={label}>
+              {t("endpoint")}
+              <input
+                name="endpoint"
+                defaultValue={provider.endpoint ?? ""}
+                disabled={!canEdit}
+                className={`${input} font-mono`}
+              />
+              <span className={hint}>{t("endpointHint")}</span>
+            </label>
+            <label className={label}>
+              {t("model")}
+              <input
+                name="model"
+                defaultValue={provider.model ?? ""}
+                placeholder={t("modelPlaceholder")}
+                disabled={!canEdit}
+                className={`${input} font-mono`}
+              />
+            </label>
+          </div>
+
+          <div className={part}>
+            <h3 className={partTitle}>{t("whereItRuns")}</h3>
+            <div className="grid grid-cols-[minmax(0,1fr)_10rem] gap-3 max-[560px]:grid-cols-1">
+              <label className={label}>
+                {t("hosting")}
+                <select
+                  name="hosting"
+                  value={hosting}
+                  onChange={(e) => setHosting(e.target.value as ProviderRow["hosting"])}
+                  disabled={!canEdit || vendorOnly}
+                  className={input}
+                >
+                  <option value="self_hosted">{t("hostings.self_hosted")}</option>
+                  <option value="external">{t("hostings.external")}</option>
+                </select>
+              </label>
+              <label className={label}>
+                {t("region")}
+                <input
+                  name="region"
+                  defaultValue={provider.region ?? ""}
+                  placeholder={t("regionPlaceholder")}
+                  disabled={!canEdit}
+                  className={input}
+                />
+              </label>
+            </div>
+            <p
+              role="note"
+              className={`m-0 rounded-md px-3 py-2 text-xs ${external ? "bg-amber-soft text-amber" : "bg-green-soft text-green"}`}
+            >
+              {external ? t("externalNote") : t("selfHostedNote")}
+            </p>
+            <span className={hint}>{t("hostingHint")}</span>
+            <label className={label}>
+              {t("fallback")}
+              <select
+                name="fallback"
+                defaultValue={provider.fallback_instance_id ?? ""}
+                disabled={!canEdit}
+                className={input}
+              >
+                <option value="">{t("noFallback")}</option>
+                {fallbacks.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+              <span className={hint}>{t("fallbackHint")}</span>
+            </label>
+          </div>
+
+          {priced || (hasOutput && provider.adapter === "openai_compatible") ? (
+            <div className={part}>
+              <h3 className={partTitle}>{t("modelSettings")}</h3>
+              {hasOutput && provider.adapter === "openai_compatible" ? (
+                <label className={label}>
+                  {t("thinkingSwitch")}
+                  <select
+                    name="thinking"
+                    defaultValue={
+                      typeof provider.options.thinking === "string" ? provider.options.thinking : ""
+                    }
+                    disabled={!canEdit}
+                    className={input}
+                  >
+                    <option value="">{t("thinkingNone")}</option>
+                    <option value="enable_thinking">{t("thinkingFlag")}</option>
+                    <option value="chat_template_kwargs">{t("thinkingTemplate")}</option>
+                  </select>
+                  <span className={hint}>{t("thinkingHint")}</span>
+                </label>
+              ) : null}
+              {priced ? (
+                <div className="grid grid-cols-2 gap-3 max-[560px]:grid-cols-1">
+                  <label className={label}>
+                    {t("priceIn")}
+                    <input
+                      name="price_in"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      defaultValue={price(PRICE_IN)}
+                      disabled={!canEdit}
+                      className={`${input} tabular-nums`}
+                    />
+                  </label>
+                  {hasOutput ? (
+                    <label className={label}>
+                      {t("priceOut")}
+                      <input
+                        name="price_out"
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        defaultValue={price(PRICE_OUT)}
+                        disabled={!canEdit}
+                        className={`${input} tabular-nums`}
+                      />
+                    </label>
+                  ) : (
+                    <p className="m-0 self-end text-xs text-fg-muted">{t("priceInOnly")}</p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </form>
+
+        <div className={part}>
+          <h3 className={partTitle}>{t("key")}</h3>
+          <p className="m-0 flex items-center gap-2 text-sm text-fg-secondary">
+            <KeyRound aria-hidden className="size-4 shrink-0 text-fg-muted" />
+            {provider.has_secret
+              ? t("keySet", {
+                  last4: provider.secret_last4 ?? "····",
+                  expiry: provider.secret_expires_at
+                    ? provider.secret_expires_at.slice(0, 10)
+                    : t("noExpiry"),
+                })
+              : t("noKey")}
+          </p>
+          {provider.previous_key_valid_until ? (
+            <p className="m-0 text-xs text-fg-muted">
+              {t("previousKeyUntil", {
+                until: format.dateTime(new Date(provider.previous_key_valid_until), {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }),
+              })}
+            </p>
+          ) : null}
+          {canEdit ? (
+            <form onSubmit={replaceKey} className="flex flex-col gap-3">
+              <label className={label}>
+                {provider.has_secret ? t("newKey") : t("addKey")}
+                <input
+                  name="secret"
+                  type="password"
+                  autoComplete="off"
+                  required
+                  className={input}
+                />
+              </label>
+              <div
+                className={`grid items-end gap-3 max-[560px]:grid-cols-1 ${
+                  provider.has_secret
+                    ? "grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                    : "grid-cols-[minmax(0,1fr)_auto]"
+                }`}
+              >
+                <label className={label}>
+                  {t("expires")}
+                  <input name="expires" type="date" className={input} />
+                </label>
+                {provider.has_secret ? (
+                  <label className={label}>
+                    {t("grace")}
+                    <select name="grace" defaultValue="24h" className={input}>
+                      {GRACE.map((g) => (
+                        <option key={g} value={g}>
+                          {t(`graces.${g}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                <Button type="submit" disabled={busy}>
+                  {provider.has_secret ? t("replaceKey") : t("storeKey")}
+                </Button>
+              </div>
+            </form>
+          ) : null}
+          <span className={hint}>{t("keyHint")}</span>
+        </div>
+
+        <div className={part}>
+          <h3 className={partTitle}>{t("usage")}</h3>
+          {usage && usage.calls > 0 ? (
+            <dl className="m-0 grid grid-cols-3 gap-2">
+              {[
+                [t("calls"), format.number(usage.calls)],
+                [t("tokens"), format.number(usage.tokens_in + usage.tokens_out)],
+                [t("cost"), format.number(usage.cost, { style: "currency", currency: "EUR" })],
+              ].map(([k, v]) => (
+                <div key={k} className="flex flex-col rounded-md bg-sunken px-3 py-2">
+                  <dt className="text-xs text-fg-muted">{k}</dt>
+                  <dd className="m-0 text-sm font-semibold tabular-nums">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="m-0 text-sm text-fg-secondary">
+              {priced ? t("noUsage") : t("noUsageCounted")}
+            </p>
+          )}
+          <span className={hint}>
+            {hasOutput ? t("usageHint") : priced ? t("usageHintEmbedding") : t("usageNotPriced")}
+          </span>
+        </div>
       </div>
+
+      {canEdit || message ? (
+        <footer className="flex flex-col gap-2 border-t border-line px-5 py-3">
+          {message ? (
+            <p
+              role={message.ok ? "status" : "alert"}
+              className={`m-0 text-sm ${message.ok ? "text-green" : "text-red"}`}
+            >
+              {message.text}
+            </p>
+          ) : null}
+          {canEdit ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => setEnabled(!provider.enabled)}
+                >
+                  {provider.enabled ? t("disable") : t("enable")}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="danger-outline"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!window.confirm(t("deleteConfirm", { name: provider.name }))) return;
+                    void run(async () => {
+                      await api(`/v1/admin/providers/${provider.id}`, { method: "DELETE" });
+                      router.push("/admin/providers");
+                    }, t("deleted"));
+                  }}
+                >
+                  {t("delete")}
+                </Button>
+              </span>
+              <Button
+                type="submit"
+                form={`provider-${provider.id}`}
+                variant="primary"
+                disabled={busy}
+              >
+                {t("save")}
+              </Button>
+            </div>
+          ) : null}
+        </footer>
+      ) : null}
     </section>
   );
 }
