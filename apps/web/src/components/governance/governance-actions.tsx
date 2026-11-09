@@ -11,10 +11,12 @@ import { control, field, FormDialog, Result, useAction } from "../evaluation/eva
 type Gov = components["schemas"]["GovernancePage"];
 type Settings = components["schemas"]["GovernanceSettings-Output"];
 
-const part = "flex flex-col gap-4 border-b border-divider px-5 py-5";
+// Each policy: its title and explanation on the left, the fields on the right.
+const part =
+  "grid grid-cols-[17rem_minmax(0,1fr)] gap-x-10 gap-y-4 border-b border-divider px-5 py-5 max-[1000px]:grid-cols-1";
 const partHead = "flex flex-col gap-1";
-const partTitle = "m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase";
-const partHint = "m-0 max-w-3xl text-xs text-fg-muted";
+const partTitle = "m-0 text-sm font-semibold text-fg";
+const partHint = "m-0 text-xs text-fg-muted";
 
 const area =
   "min-h-[72px] w-full rounded-md border border-line-strong bg-surface p-3 text-sm font-normal";
@@ -61,7 +63,7 @@ export function SettingsForm({ data }: { data: Gov }) {
             </h3>
             <p className={partHint}>{t("retentionHint")}</p>
           </div>
-          <div className="grid grid-cols-4 items-start gap-4 max-[1100px]:grid-cols-2 max-[560px]:grid-cols-1">
+          <div className="grid grid-cols-4 items-start gap-4 max-[1400px]:grid-cols-2 max-[560px]:grid-cols-1">
             {(
               [
                 ["chat", s.chat_retention_days, 1],
@@ -130,6 +132,7 @@ export function SettingsForm({ data }: { data: Gov }) {
             <h3 id="gov-personal" className={partTitle}>
               {t("personalData")}
             </h3>
+            <p className={partHint}>{t("personalDataHint")}</p>
           </div>
           <div className="flex flex-col gap-3">
             {(

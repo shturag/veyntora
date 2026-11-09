@@ -1,5 +1,5 @@
 import { Badge, Button, PageHeader } from "@veyntora/ui";
-import { ArrowRight, Check, Minus } from "lucide-react";
+import { ArrowRight, Check, Minus, Scale } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 
@@ -254,10 +254,10 @@ export default async function GovernancePage() {
               <colgroup>
                 <col className="w-48" />
                 <col />
-                <col className="w-28" />
+                <col className="w-32" />
                 <col className="w-36" />
-                <col className="w-40" />
-                <col className="w-28" />
+                <col className="w-52" />
+                <col className="w-36" />
               </colgroup>
               <thead>
                 <tr className="border-b border-line">
@@ -334,7 +334,10 @@ export default async function GovernancePage() {
             <PlaceHold data={data} />
           </div>
           {active.length === 0 ? (
-            <p className="m-0 px-4 py-6 text-sm text-fg-secondary">{t("noHolds")}</p>
+            <p className="m-0 flex flex-1 flex-col items-center justify-center gap-2 px-4 py-8 text-center text-sm text-fg-secondary">
+              <Scale aria-hidden className="size-6 text-fg-muted" />
+              {t("noHolds")}
+            </p>
           ) : (
             <ul className="m-0 flex list-none flex-col p-0">
               {active.map((h) => (

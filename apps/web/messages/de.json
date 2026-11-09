@@ -4128,8 +4128,8 @@
     "chatbot": "Chatbot",
     "externalModels": "Externe Anbieter",
     "maskColumn": "Personenbezogene Daten",
-    "tracesColumn": "Traces an externes Langfuse",
-    "noDocsColumn": "Antworten ohne Dokumente",
+    "tracesColumn": "Externe Traces",
+    "noDocsColumn": "Antworten ohne Quellen",
     "chatRetention": "Chat-Aufbewahrung",
     "allowed": "erlaubt",
     "platformDefault": "Plattformstandard",
@@ -4141,7 +4141,8 @@
       "auditor": "Sieht jede Admin-Seite, ändert nichts",
       "legal": "Setzt und hebt rechtliche Sperren auf",
       "dpo": "Genehmigt Löschungen und Exporte"
-    }
+    },
+    "personalDataHint": "Was Veyntora verlässt und wo externe Modelle laufen dürfen."
   },
   "audit": {
     "title": "Audit-Log",

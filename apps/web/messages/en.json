@@ -4128,8 +4128,8 @@
     "chatbot": "Chatbot",
     "externalModels": "External providers",
     "maskColumn": "Personal data",
-    "tracesColumn": "Traces to external Langfuse",
-    "noDocsColumn": "Answers without documents",
+    "tracesColumn": "External traces",
+    "noDocsColumn": "Answers without sources",
     "chatRetention": "Chat retention",
     "allowed": "allowed",
     "platformDefault": "Platform default",
@@ -4141,7 +4141,8 @@
       "auditor": "Views every admin page, changes nothing",
       "legal": "Places and lifts legal holds",
       "dpo": "Approves erasures and exports"
-    }
+    },
+    "personalDataHint": "What leaves Veyntora, and where external models may run."
   },
   "audit": {
     "title": "Audit log",
