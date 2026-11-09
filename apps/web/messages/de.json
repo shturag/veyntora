@@ -4440,12 +4440,17 @@
       "save": "Speichern",
       "setUp": "Einrichten",
       "test": "Verbindung testen",
-      "remove": "Entfernen",
+      "remove": "Virenscanner entfernen",
       "saved": "Gespeichert.",
       "removed": "Entfernt. Uploads warten, bis ein Scanner eingerichtet ist.",
       "reachable": "clamd hat geantwortet.",
       "unreachable": "Nicht erreichbar: {detail}",
-      "failed": "Das hat nicht funktioniert."
+      "failed": "Das hat nicht funktioniert.",
+      "connection": "Verbindung",
+      "policy": "Wenn Dateien nicht geprüft werden können",
+      "requiredOn": "Die Prüfung ist Pflicht. Solange kein Scanner antwortet, warten Uploads und Chat-Anhänge werden abgelehnt.",
+      "requiredOff": "Die Prüfung ist per Konfiguration ausgeschaltet (VEY_SCAN_REQUIRED=false). Dateien werden ohne Prüfung indexiert und als nicht geprüft markiert.",
+      "removeConfirm": "Virenscanner entfernen? Uploads warten, bis wieder ein Scanner eingerichtet ist."
     },
     "connection": "Verbindung",
     "browserUrlInternal": "Browser können diese Adresse meist nicht öffnen (sie gilt nur zwischen Containern). Geben Sie die Adresse ein, die Leute öffnen, zum Beispiel {example}.",
@@ -4459,7 +4464,8 @@
       "untested": "Noch nicht getestet",
       "paused": "Ausgeschaltet",
       "off": "Nicht eingerichtet"
-    }
+    },
+    "keyAfterSetup": "Richten Sie zuerst die Verbindung ein; dann speichern Sie hier den Schlüssel."
   },
   "dataRules": {
     "title": "Datenregel",

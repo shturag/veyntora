@@ -84,7 +84,7 @@ export default async function IntegrationsPage() {
           </a>
         ))}
       </nav>
-      <div className="grid grid-cols-2 items-start gap-5 max-[1100px]:grid-cols-1">
+      <div className="flex flex-col gap-5">
         {(data as IntegrationRow[]).map((row) => (
           <IntegrationEditor key={row.kind} integration={row} canEdit={canEdit} />
         ))}

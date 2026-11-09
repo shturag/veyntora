@@ -4440,12 +4440,17 @@
       "save": "Save",
       "setUp": "Set up",
       "test": "Test connection",
-      "remove": "Remove",
+      "remove": "Remove virus scanner",
       "saved": "Saved.",
       "removed": "Removed. Uploads wait until a scanner is set up.",
       "reachable": "clamd answered.",
       "unreachable": "Not reachable: {detail}",
-      "failed": "That did not work."
+      "failed": "That did not work.",
+      "connection": "Connection",
+      "policy": "When files can't be checked",
+      "requiredOn": "Scanning is required. While no scanner answers, uploads wait and chat attachments are refused.",
+      "requiredOff": "Scanning is switched off by configuration (VEY_SCAN_REQUIRED=false). Files are indexed without a check and marked as not scanned.",
+      "removeConfirm": "Remove the virus scanner? Uploads wait until a scanner is set up again."
     },
     "connection": "Connection",
     "browserUrlInternal": "Browsers usually cannot open this address (it only works between containers). Enter the address people open, for example {example}.",
@@ -4459,7 +4464,8 @@
       "untested": "Not tested yet",
       "paused": "Turned off",
       "off": "Not set up"
-    }
+    },
+    "keyAfterSetup": "Set up the connection first; then store the key here."
   },
   "dataRules": {
     "title": "Data rule",
