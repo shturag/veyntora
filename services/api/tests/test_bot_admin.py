@@ -119,24 +119,8 @@ async def test_cards_overview_duplicate_and_preview(db: AsyncSession) -> None:
     # The language typed for the copy is what its answers use.
     assert (await bots.draft_of(db, essen)).spec["generation"]["answer_language"] == "de"
 
-    # Everything typed when creating can be changed later; the address stays unique.
-    await bots.update_chatbot(
-        db,
-        CTX,
-        essen,
-        bots.ChatbotUpdate(name="Essen Service", slug="essen-service", welcome_message="Hallo"),
-        None,
-    )
-    assert (essen.name, essen.slug, essen.welcome_message) == (
-        "Essen Service",
-        "essen-service",
-        "Hallo",
-    )
-    with pytest.raises(bots.ChatbotError, match="already taken"):
-        await bots.update_chatbot(db, CTX, essen, bots.ChatbotUpdate(slug="support-copy"), None)
-
     seen = await insights.preview(bot.id, w.user.id, me, state, db)
-    assert {p.chatbot for p in seen} == {bot.name, "Support copy", "Essen Service"}
+    assert {p.chatbot for p in seen} == {bot.name, "Support copy", "Essen"}
     with pytest.raises(Exception, match="Person not found"):
         await insights.preview(bot.id, team.id, me, state, db)
 
@@ -155,3 +139,47 @@ async def test_versions_come_back_with_every_default(db: AsyncSession) -> None:
     )
     out = _version(old)
     assert out.spec["retrieval"]["enabled"] is True and out.spec["retrieval"]["top_k"] == 7
+
+
+async def test_everything_typed_when_creating_can_change_later(db: AsyncSession) -> None:
+    w = await World(db).setup()
+    authz = Authz()
+    bot, _ = await _bot_with_source(w)
+    await bots.save_draft(db, CTX, bot, w.spec(), expected_version=None)
+    other = await bots.create_chatbot(
+        db,
+        CTX,
+        authz,  # type: ignore[arg-type]
+        bots.ChatbotInput(slug="essen", name="Essen"),
+        w.user.id,
+    )
+    state: Any = State(authz)
+    me = _principal(w.user)
+
+    # Name, address and texts; the address stays unique.
+    await bots.update_chatbot(
+        db,
+        CTX,
+        other,
+        bots.ChatbotUpdate(name="Essen Service", slug="essen-service", welcome_message="Hallo"),
+        None,
+    )
+    assert (other.name, other.slug, other.welcome_message) == (
+        "Essen Service",
+        "essen-service",
+        "Hallo",
+    )
+    with pytest.raises(bots.ChatbotError, match="already taken"):
+        await bots.update_chatbot(db, CTX, other, bots.ChatbotUpdate(slug=bot.slug), None)
+
+    # "Start from a copy": the other's pipeline into the draft, its sources added once.
+    copy_in = insights.CopyFromIn(from_id=bot.id, pipeline=True, sources=True)
+    done = await insights.copy_from(other.id, copy_in, me, state, db, CTX)
+    assert done.pipeline and done.sources_added == 1
+    assert (await bots.draft_of(db, other)).spec == (await bots.draft_of(db, bot)).spec
+    again = await insights.copy_from(other.id, copy_in, me, state, db, CTX)
+    assert again.sources_added == 0
+    with pytest.raises(Exception, match="Choose another chatbot"):
+        await insights.copy_from(
+            other.id, insights.CopyFromIn(from_id=other.id, sources=True), me, state, db, CTX
+        )

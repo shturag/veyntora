@@ -487,6 +487,24 @@ async def overview(
     )
 
 
+async def _attachments_of(db: DbSession, bot_id: UUID) -> list[svc.Attachment]:
+    """A chatbot's sources as they are attached (weight, on/off, folders)."""
+    rows = (
+        (await db.execute(sa.select(SourceAttachment).where(SourceAttachment.chatbot_id == bot_id)))
+        .scalars()
+        .all()
+    )
+    return [
+        svc.Attachment(
+            source_id=a.source_id,
+            weight=a.weight,
+            enabled=a.enabled,
+            paths=list((a.scope or {}).get("paths") or []),
+        )
+        for a in rows
+    ]
+
+
 class DuplicateIn(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     slug: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{1,63}$")
@@ -538,31 +556,8 @@ async def duplicate(
             change_note=f"copied from {original.name}",
         )
         if data.copy_sources:
-            attachments = (
-                (
-                    await db.execute(
-                        sa.select(SourceAttachment).where(
-                            SourceAttachment.chatbot_id == original.id
-                        )
-                    )
-                )
-                .scalars()
-                .all()
-            )
             await svc.set_sources(
-                db,
-                ctx,
-                copy,
-                [
-                    svc.Attachment(
-                        source_id=a.source_id,
-                        weight=a.weight,
-                        enabled=a.enabled,
-                        paths=list((a.scope or {}).get("paths") or []),
-                    )
-                    for a in attachments
-                ],
-                principal.user_id,
+                db, ctx, copy, await _attachments_of(db, original.id), principal.user_id
             )
         if data.copy_access:
             grants = await svc.read_access(authz, original.id)
@@ -574,6 +569,74 @@ async def duplicate(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
     await db.commit()
     return {"id": copy.id}
+
+
+class CopyFromIn(BaseModel):
+    from_id: UUID
+    # The other chatbot's pipeline settings replace this one's draft (published later).
+    pipeline: bool = False
+    # The other chatbot's sources are added to this one's (its own stay).
+    sources: bool = False
+
+
+class CopiedOut(BaseModel):
+    pipeline: bool
+    sources_added: int
+
+
+@router.post("/{bot_id}/copy-from", summary="Take settings or sources over from another chatbot")
+async def copy_from(
+    bot_id: UUID,
+    data: CopyFromIn,
+    principal: CurrentPrincipal,
+    state: State,
+    db: DbSession,
+    ctx: Ctx,
+) -> CopiedOut:
+    """What "Start from a copy" does when creating, for a chatbot that already exists."""
+    if data.from_id == bot_id:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Choose another chatbot")
+    if not (data.pipeline or data.sources):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Choose what to copy")
+    await require_relation(state, principal, "can_edit_draft", svc.chatbot_ref(bot_id))
+    await require_relation(state, principal, "can_view_admin", svc.chatbot_ref(data.from_id))
+    bot, original = await db.get(Chatbot, bot_id), await db.get(Chatbot, data.from_id)
+    if bot is None or original is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Chatbot not found")
+    added = 0
+    try:
+        if data.pipeline:
+            source = await svc.draft_of(db, original)
+            await svc.save_draft(
+                db,
+                ctx,
+                bot,
+                PipelineSpec.model_validate(source.spec),
+                expected_version=None,
+                change_note=f"copied from {original.name}",
+            )
+        if data.sources:
+            current = await _attachments_of(db, bot.id)
+            have = {a.source_id for a in current}
+            new = [a for a in await _attachments_of(db, original.id) if a.source_id not in have]
+            # Attaching a source needs read access to it, as on the Knowledge tab.
+            authz = state.require_authz()
+            for item in new:
+                ref = f"source:{item.source_id}"
+                if not (
+                    await authz.check(principal.fga, "manager", ref)
+                    or await authz.check(principal.fga, "reader", ref)
+                ):
+                    raise HTTPException(
+                        status.HTTP_403_FORBIDDEN, f"No access to source {item.source_id}"
+                    )
+            if new:
+                await svc.set_sources(db, ctx, bot, [*current, *new], principal.user_id)
+            added = len(new)
+    except svc.ChatbotError as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+    await db.commit()
+    return CopiedOut(pipeline=data.pipeline, sources_added=added)
 
 
 class PreviewBot(BaseModel):

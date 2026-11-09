@@ -665,6 +665,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/chatbots/{bot_id}/copy-from": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Take settings or sources over from another chatbot
+         * @description What "Start from a copy" does when creating, for a chatbot that already exists.
+         */
+        post: operations["copy_from_v1_admin_chatbots__bot_id__copy_from_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/chatbots/{bot_id}/duplicate": {
         parameters: {
             query?: never;
@@ -5329,6 +5349,31 @@ export interface components {
         ConversationRename: {
             /** Title */
             title: string;
+        };
+        /** CopiedOut */
+        CopiedOut: {
+            /** Pipeline */
+            pipeline: boolean;
+            /** Sources Added */
+            sources_added: number;
+        };
+        /** CopyFromIn */
+        CopyFromIn: {
+            /**
+             * From Id
+             * Format: uuid
+             */
+            from_id: string;
+            /**
+             * Pipeline
+             * @default false
+             */
+            pipeline: boolean;
+            /**
+             * Sources
+             * @default false
+             */
+            sources: boolean;
         };
         /** CoreServiceOut */
         CoreServiceOut: {
@@ -12212,6 +12257,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourceOption"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    copy_from_v1_admin_chatbots__bot_id__copy_from_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopyFromIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopiedOut"];
                 };
             };
             /** @description Validation Error */

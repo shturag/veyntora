@@ -2482,6 +2482,21 @@
       "slugConfirm": "Kurznamen ändern? Website-Widgets und API-Aufrufe mit dem alten Namen funktionieren erst wieder, wenn sie angepasst sind.",
       "languageChange": "In Generierung ändern",
       "languageHint": "Teil der Pipeline: Eine Änderung gilt, sobald die nächste Version veröffentlicht ist."
+    },
+    "copyFrom": {
+      "title": "Von einem anderen Chatbot kopieren",
+      "text": "Einstellungen oder Quellen eines anderen Chatbots übernehmen, wie „Ausgangspunkt“ beim Anlegen.",
+      "from": "Chatbot, von dem kopiert wird",
+      "choose": "Chatbot auswählen",
+      "pipeline": "Pipeline-Einstellungen",
+      "pipelineHint": "Ersetzt den Entwurf dieses Chatbots durch die Einstellungen des anderen. Für Personen ändert sich nichts, bis Sie veröffentlichen.",
+      "sources": "Wissensquellen",
+      "sourcesHint": "Fügt die Datenquellen des anderen Chatbots hinzu; die eigenen bleiben. Gilt sofort.",
+      "copy": "Kopieren",
+      "confirm": "Den Pipeline-Entwurf dieses Chatbots durch die Einstellungen von {name} ersetzen? Unveröffentlichte Änderungen im Entwurf gehen verloren.",
+      "donePipeline": "Einstellungen in den Entwurf kopiert; veröffentlichen Sie, um sie zu nutzen.",
+      "doneSources": "{count, plural, =0 {Keine neuen Quellen: Alle sind schon vorhanden.} one {# Quelle hinzugefügt.} other {# Quellen hinzugefügt.}}",
+      "failed": "Kopieren fehlgeschlagen."
     }
   },
   "widget": {

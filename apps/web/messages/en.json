@@ -2482,6 +2482,21 @@
       "slugConfirm": "Change the short name? Website widgets and API calls that use the old one stop working until they are updated.",
       "languageChange": "Change in Generation",
       "languageHint": "Part of the pipeline: a change takes effect when the next version is published."
+    },
+    "copyFrom": {
+      "title": "Copy from another chatbot",
+      "text": "Take over another chatbot’s settings or sources, as “Start from” does when creating.",
+      "from": "Chatbot to copy from",
+      "choose": "Choose a chatbot",
+      "pipeline": "Pipeline settings",
+      "pipelineHint": "Replace this chatbot’s draft with the other one’s settings. Nothing changes for people until you publish.",
+      "sources": "Knowledge sources",
+      "sourcesHint": "Add the other chatbot’s data sources to this one’s; its own stay. Applies at once.",
+      "copy": "Copy",
+      "confirm": "Replace this chatbot’s draft pipeline with the settings of {name}? Unpublished changes in the draft are lost.",
+      "donePipeline": "Settings copied into the draft; publish to use them.",
+      "doneSources": "{count, plural, =0 {No new sources: it already has them all.} one {# source added.} other {# sources added.}}",
+      "failed": "Could not copy."
     }
   },
   "widget": {

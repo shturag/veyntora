@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import { Panel } from "@/components/admin/panel";
 import { BotDetails } from "@/components/bots/bot-details";
 import { BotHeader } from "@/components/bots/bot-header";
+import { CopyFrom } from "@/components/bots/copy-from";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { areaAccess } from "@/lib/admin";
@@ -52,12 +53,18 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
   const ts = await getTranslations("sources");
   const format = await getFormatter();
   const api = await serverApi();
-  const [{ data: o, response }, { data: bot }] = await Promise.all([
+  const [{ data: o, response }, { data: bot }, { data: cards }] = await Promise.all([
     api.GET("/v1/admin/chatbots/{bot_id}/overview", { params: { path: { bot_id: id } } }),
     api.GET("/v1/admin/chatbots/{bot_id}", { params: { path: { bot_id: id } } }),
+    api.GET("/v1/admin/chatbots/cards"),
   ]);
   if (response.status === 403) return <Forbidden />;
   if (!o || !bot) notFound();
+  const canEdit = access.level !== "viewer";
+  // Chatbots this one can take settings or sources over from.
+  const others = (cards ?? [])
+    .filter((c) => c.id !== o.id)
+    .map((c) => ({ id: c.id, name: c.name }));
   const base = `/admin/chatbots/${o.id}`;
   // What people may switch in the chat (the draft: what the next publish gives them).
   const spec = bot.draft.spec as {
@@ -122,7 +129,7 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col gap-5">
-      <BotHeader bot={bot} tab="overview" canEdit={access.level !== "viewer"} />
+      <BotHeader bot={bot} tab="overview" canEdit={canEdit} />
 
       {pending ? (
         <div
@@ -286,8 +293,9 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
           <BotDetails
             bot={bot}
             language={spec.generation?.answer_language ?? "auto"}
-            canEdit={access.level !== "viewer"}
+            canEdit={canEdit}
           />
+          {canEdit && others.length ? <CopyFrom botId={o.id} others={others} /> : null}
           <Panel
             id="ov-access"
             title={t("tabNames.access")}

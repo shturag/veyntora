@@ -4708,6 +4708,48 @@
         "title": "ConversationRename",
         "type": "object"
       },
+      "CopiedOut": {
+        "properties": {
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "boolean"
+          },
+          "sources_added": {
+            "title": "Sources Added",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pipeline",
+          "sources_added"
+        ],
+        "title": "CopiedOut",
+        "type": "object"
+      },
+      "CopyFromIn": {
+        "properties": {
+          "from_id": {
+            "format": "uuid",
+            "title": "From Id",
+            "type": "string"
+          },
+          "pipeline": {
+            "default": false,
+            "title": "Pipeline",
+            "type": "boolean"
+          },
+          "sources": {
+            "default": false,
+            "title": "Sources",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "from_id"
+        ],
+        "title": "CopyFromIn",
+        "type": "object"
+      },
       "CoreServiceOut": {
         "properties": {
           "address": {
@@ -21661,6 +21703,60 @@
           }
         },
         "summary": "Sources the caller may attach to the chatbot",
+        "tags": [
+          "admin: chatbots"
+        ]
+      }
+    },
+    "/v1/admin/chatbots/{bot_id}/copy-from": {
+      "post": {
+        "description": "What \"Start from a copy\" does when creating, for a chatbot that already exists.",
+        "operationId": "copy_from_v1_admin_chatbots__bot_id__copy_from_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyFromIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopiedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Take settings or sources over from another chatbot",
         "tags": [
           "admin: chatbots"
         ]
