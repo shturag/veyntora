@@ -251,6 +251,19 @@ async def delete(db: AsyncSession, ctx: RequestContext, row: Budget) -> None:
     await db.flush()
 
 
+async def delete_for_scope(
+    db: AsyncSession, ctx: RequestContext, scope: BudgetScope, scope_id: str
+) -> None:
+    """The budgets of a chatbot or group that is being deleted: they would no longer apply."""
+    rows = (
+        await db.execute(
+            sa.select(Budget).where(Budget.scope_type == scope, Budget.scope_id == scope_id)
+        )
+    ).scalars()
+    for row in list(rows):
+        await delete(db, ctx, row)
+
+
 # ---------------------------------------------------------------- alerts
 
 

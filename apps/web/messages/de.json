@@ -2470,7 +2470,8 @@
     "basicsIntro": "Benennen Sie den Chatbot und sagen Sie, wofür er da ist. Niemand sieht ihn, bevor Sie ihn veröffentlichen und Zugriff geben.",
     "deleteBlocked": "{count, plural, one {Eine Automation nutzt diesen Chatbot. Stellen Sie sie auf einen anderen Chatbot um oder löschen Sie sie zuerst:} other {# Automationen nutzen diesen Chatbot. Stellen Sie sie auf einen anderen Chatbot um oder löschen Sie sie zuerst:}}",
     "createdOn": "erstellt am {day}",
-    "showAutomations": "Automationen zeigen"
+    "showAutomations": "Automationen zeigen",
+    "includedIn": "Enthalten in {role}"
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",
@@ -3327,7 +3328,9 @@
       "pending": "Wartet auf Prüfung, bevor sie in die Wissensbasis kommt.",
       "added": "In die Wissensbasis aufgenommen.",
       "declined": "Nicht in die Wissensbasis aufgenommen."
-    }
+    },
+    "listSubtitle": "Fragen, die der Assistent nicht beantworten konnte, weitergegeben an die Teams, die es wissen.",
+    "noneMineHint": "Wenn eine Antwort nicht reicht, wählen Sie darunter „Fachperson fragen“. Ihre Frage und die Antwort erscheinen hier."
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -3345,7 +3348,10 @@
       "queued": "in Warteschlange",
       "sent": "gesendet",
       "failed": "fehlgeschlagen"
-    }
+    },
+    "subtitle": "Freigaben, die auf Sie warten, Antworten von Fachleuten, Laufberichte und Wissenshinweise.",
+    "emptyHint": "Wenn eine Freigabe auf Sie wartet, eine Fachperson Ihre Frage beantwortet oder ein Bericht fertig ist, erscheint es hier.",
+    "unread": "Ungelesen"
   },
   "evaluation": {
     "title": "Evaluierung",

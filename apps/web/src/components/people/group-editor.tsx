@@ -190,18 +190,7 @@ export function GroupEditor({ group: g, canEdit }: { group: Group; canEdit: bool
                 className="flex flex-wrap items-center gap-3 text-sm"
               >
                 <span className="min-w-44 font-medium">{r.chatbot}</span>
-                {ROLES.map((role) => (
-                  <label key={role} className="flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      name="roles"
-                      value={role}
-                      defaultChecked={r.roles.includes(role)}
-                      disabled={!canEdit}
-                    />
-                    {t(`roles.${role}`)}
-                  </label>
-                ))}
+                <RoleChecks initial={r.roles} canEdit={canEdit} />
                 {canEdit ? (
                   <Button type="submit" size="sm" disabled={busy}>
                     {t("save")}
@@ -262,4 +251,44 @@ export function GroupEditor({ group: g, canEdit }: { group: Group; canEdit: bool
       ) : null}
     </div>
   );
+}
+
+// From the authorization model: a chatbot admin is also editor and approver, and editors
+// and approvers may also chat. Such roles are shown ticked and greyed; they are not sent.
+const INCLUDED_IN: Record<(typeof ROLES)[number], (typeof ROLES)[number][]> = {
+  user: ["approver", "editor", "owner"],
+  approver: ["owner"],
+  editor: ["owner"],
+  owner: [],
+};
+
+function RoleChecks({ initial, canEdit }: { initial: string[]; canEdit: boolean }) {
+  const t = useTranslations("people");
+  const tb = useTranslations("bots");
+  const [roles, setRoles] = useState(initial);
+  return ROLES.map((role) => {
+    const by = roles.includes(role) ? undefined : INCLUDED_IN[role].find((x) => roles.includes(x));
+    return (
+      <label
+        key={role}
+        className={`flex items-center gap-1.5 ${by ? "text-fg-muted" : ""}`}
+        title={by ? tb("includedIn", { role: t(`roles.${by}`) }) : undefined}
+      >
+        <input
+          type="checkbox"
+          name="roles"
+          value={role}
+          checked={roles.includes(role) || Boolean(by)}
+          disabled={!canEdit || Boolean(by)}
+          onChange={(e) =>
+            setRoles((list) =>
+              e.target.checked ? [...list, role] : list.filter((x) => x !== role),
+            )
+          }
+          className={by ? "opacity-40" : undefined}
+        />
+        {t(`roles.${role}`)}
+      </label>
+    );
+  });
 }

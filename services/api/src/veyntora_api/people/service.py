@@ -29,6 +29,8 @@ from veyntora_api.core import audit
 from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.identity import Group, GroupSource, Membership, User
+from veyntora_api.db.models.quality import BudgetScope
+from veyntora_api.usage import budgets
 
 
 class PeopleError(ValueError):
@@ -284,6 +286,7 @@ async def delete_group(db: AsyncSession, ctx: RequestContext, authz: Authz, grou
         await db.execute(sa.select(Membership.user_id).where(Membership.group_id == group.id))
     ).scalars()
     delta.deletes += [Tuple(user_ref(u), "member", ref) for u in members]
+    await budgets.delete_for_scope(db, ctx, BudgetScope.GROUP, str(group.id))
     await audit.record(
         db,
         ctx,

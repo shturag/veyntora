@@ -15,6 +15,14 @@ type Option = components["schemas"]["PrincipalOption"];
 type Preview = components["schemas"]["PreviewBot"];
 const ROLES = ["user", "approver", "editor", "owner"] as const;
 type Role = (typeof ROLES)[number];
+// From the authorization model: a chatbot admin is also editor and approver, and editors
+// and approvers may also chat. Such roles are shown ticked and greyed, not stored.
+const INCLUDED_IN: Record<Role, Role[]> = {
+  user: ["approver", "editor", "owner"],
+  approver: ["owner"],
+  editor: ["owner"],
+  owner: [],
+};
 type Row = { principal: string; name: string; roles: Role[] };
 
 const search =
@@ -216,18 +224,24 @@ export function AccessEditor({
                   <td className="px-4 py-3">
                     <Who principal={r.principal} name={r.name} />
                   </td>
-                  {ROLES.map((role) => (
-                    <td key={role} className="px-3 py-3 text-center">
-                      <input
-                        type="checkbox"
-                        aria-label={`${t(`roles.${role}`)}: ${r.name}`}
-                        checked={r.roles.includes(role)}
-                        disabled={!canEdit}
-                        onChange={(e) => toggle(i, role, e.target.checked)}
-                        className={cn(checkbox, "mt-0")}
-                      />
-                    </td>
-                  ))}
+                  {ROLES.map((role) => {
+                    const by = r.roles.includes(role)
+                      ? undefined
+                      : INCLUDED_IN[role].find((x) => r.roles.includes(x));
+                    return (
+                      <td key={role} className="px-3 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          aria-label={`${t(`roles.${role}`)}: ${r.name}`}
+                          title={by ? t("includedIn", { role: t(`roles.${by}`) }) : undefined}
+                          checked={r.roles.includes(role) || Boolean(by)}
+                          disabled={!canEdit || Boolean(by)}
+                          onChange={(e) => toggle(i, role, e.target.checked)}
+                          className={cn(checkbox, "mt-0", by && "opacity-40")}
+                        />
+                      </td>
+                    );
+                  })}
                   <td className="px-2 py-3 text-right">
                     {canEdit ? (
                       <Button

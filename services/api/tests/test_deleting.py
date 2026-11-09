@@ -12,6 +12,7 @@ from veyntora_api.db.models.chatbots import Chatbot, ChatbotStatus
 from veyntora_api.db.models.conversations import Conversation
 from veyntora_api.db.models.governance import AuditEvent
 from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.quality import Budget, BudgetAction, BudgetScope
 from veyntora_api.governance import service as gov
 from veyntora_api.providers.service import (
     ProviderError,
@@ -89,6 +90,15 @@ async def test_deleting_removes_chats_and_permissions_but_not_the_audit(rag: Rag
     await db.flush()
     authz = FakeAuthz()
     authz.tuples.add(Tuple(f"user:{rag.w.user.id}", "owner", f"chatbot:{bot_id}"))
+    db.add(
+        Budget(
+            scope_type=BudgetScope.CHATBOT,
+            scope_id=str(bot_id),
+            limit_amount=10,
+            action_at_limit=BudgetAction.NOTIFY,
+        )
+    )
+    await db.flush()
 
     assert await bots.delete_chatbot(db, CTX, authz, None, rag.bot) == 2  # type: ignore[arg-type]
     assert await db.get(Chatbot, bot_id) is None
@@ -100,6 +110,12 @@ async def test_deleting_removes_chats_and_permissions_but_not_the_audit(rag: Rag
     assert left == 0
     assert authz.tuples == set()
     assert {"chatbot.delete", "chatbot.chats_deleted"} <= set(await _actions(db, str(bot_id)))
+    # Its budget would no longer apply, so it goes too (and the deletion is audited).
+    assert await db.scalar(sa.select(Budget).where(Budget.scope_id == str(bot_id))) is None
+    assert (
+        await db.scalar(sa.select(AuditEvent).where(AuditEvent.action == "budget.delete"))
+        is not None
+    )
 
 
 async def test_a_legal_hold_keeps_the_chatbot(rag: Rag) -> None:

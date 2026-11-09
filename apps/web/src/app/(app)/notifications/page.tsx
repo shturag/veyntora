@@ -1,4 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { Bell } from "lucide-react";
 import Link from "next/link";
 
 import { MarkAllRead } from "@/components/notifications/mark-all-read";
@@ -16,22 +17,33 @@ export default async function NotificationsPage() {
   const { data } = await (await serverApi()).GET("/v1/me/notifications");
   const items = data?.items ?? [];
   return (
-    <div className="mx-auto flex max-w-[760px] flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="m-0 text-[26px] font-bold">{t("title")}</h1>
+    <div className="mx-auto flex max-w-[900px] flex-col gap-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="m-0 text-[26px] font-bold">{t("title")}</h1>
+          <p className="m-0 text-sm text-fg-secondary">{t("subtitle")}</p>
+        </div>
         {data?.unread ? <MarkAllRead /> : null}
       </div>
       {items.length === 0 ? (
-        <p className="m-0 rounded-lg border border-line bg-surface p-5 text-[15px] text-fg-secondary">
-          {t("empty")}
-        </p>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-line bg-surface px-6 py-12 text-center">
+          <Bell aria-hidden className="size-7 text-fg-muted" />
+          <p className="m-0 text-[15px] font-medium">{t("empty")}</p>
+          <p className="m-0 max-w-md text-sm text-fg-secondary">{t("emptyHint")}</p>
+        </div>
       ) : (
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {items.map((n) => (
             <li
               key={n.id}
-              className={`flex flex-col gap-1 rounded-lg border bg-surface p-4 ${n.read ? "border-line" : "border-accent"}`}
+              className={`relative flex flex-col gap-1 rounded-lg border bg-surface p-4 pl-8 ${n.read ? "border-line" : "border-accent"}`}
             >
+              {n.read ? null : (
+                <span
+                  aria-label={t("unread")}
+                  className="absolute top-5 left-3.5 size-2 rounded-full bg-accent"
+                />
+              )}
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="m-0 text-sm font-semibold">
                   {n.link ? (

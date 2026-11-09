@@ -2470,7 +2470,8 @@
     "basicsIntro": "Name the chatbot and say what it is for. Nobody sees it until you publish it and give access.",
     "deleteBlocked": "{count, plural, one {An automation uses this chatbot. Change it to another chatbot or delete it first:} other {# automations use this chatbot. Change them to another chatbot or delete them first:}}",
     "createdOn": "created {day}",
-    "showAutomations": "Show the automations"
+    "showAutomations": "Show the automations",
+    "includedIn": "Included with {role}"
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
@@ -3327,7 +3328,9 @@
       "pending": "Waiting for review before it joins the knowledge base.",
       "added": "Added to the knowledge base.",
       "declined": "Not added to the knowledge base."
-    }
+    },
+    "listSubtitle": "Questions the assistant couldn't answer, passed to the teams who know.",
+    "noneMineHint": "When an answer isn't good enough, choose \"Ask an expert\" under it. Your question and the expert's reply appear here."
   },
   "notifications": {
     "title": "Notifications",
@@ -3345,7 +3348,10 @@
       "queued": "queued",
       "sent": "sent",
       "failed": "failed"
-    }
+    },
+    "subtitle": "Approvals waiting for you, expert replies, run reports and knowledge issues.",
+    "emptyHint": "When an approval waits for you, an expert answers your question or a report is ready, it appears here.",
+    "unread": "Unread"
   },
   "evaluation": {
     "title": "Evaluation",

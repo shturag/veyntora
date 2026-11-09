@@ -1,11 +1,14 @@
 import { Badge, Button, PageHeader, StatusDot } from "@veyntora/ui";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Forbidden } from "@/components/forbidden";
 import { EndNotice, PostNotice } from "@/components/overview/notice-actions";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
+import { ADMIN_NAV } from "@/lib/screens";
+import { canOpenArea, requireMe } from "@/lib/session";
 
 export const generateMetadata = () => screenMetadata("overview");
 
@@ -28,6 +31,15 @@ const DOT = {
 
 /** Admin overview. */
 export default async function OverviewPage() {
+  // Admins of only some areas start on the first page they may open.
+  const me = await requireMe();
+  if (!canOpenArea(me, "overview")) {
+    const first = ADMIN_NAV.flatMap((g) => g.items).find((i) =>
+      i.platformAdmin ? me.roles.platform_admin : i.area in me.admin_areas,
+    );
+    if (first) redirect(first.href);
+    return <Forbidden />;
+  }
   const t = await getTranslations("overview");
   const ts = await getTranslations("status");
   const format = await getFormatter();

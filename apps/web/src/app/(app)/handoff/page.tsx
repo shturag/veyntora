@@ -1,3 +1,4 @@
+import { UserRoundCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { HandoffForm } from "@/components/handoff/handoff-form";
@@ -42,16 +43,28 @@ export default async function HandoffPage({
     ["mine", t("mine"), lists?.mine ?? []],
   ] as const;
   return (
-    <div className="mx-auto flex max-w-[820px] flex-col gap-5">
-      <h1 className="m-0 text-[26px] font-bold">{t("listTitle")}</h1>
+    <div className="mx-auto flex max-w-[900px] flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h1 className="m-0 text-[26px] font-bold">{t("listTitle")}</h1>
+        <p className="m-0 text-sm text-fg-secondary">{t("listSubtitle")}</p>
+      </div>
       {sections.map(([key, title, items]) =>
         items.length || key === "mine" ? (
           <section key={key} aria-labelledby={`s-${key}`} className="flex flex-col gap-2">
             <h2 id={`s-${key}`} className="m-0 text-base font-semibold">
               {title}
+              {items.length ? (
+                <span className="ml-2 rounded-full bg-sunken px-1.5 text-xs font-normal text-fg-muted tabular-nums">
+                  {items.length}
+                </span>
+              ) : null}
             </h2>
             {items.length === 0 ? (
-              <p className="m-0 text-sm text-fg-muted">{t("noneMine")}</p>
+              <div className="flex flex-col items-center gap-2 rounded-lg border border-line bg-surface px-6 py-12 text-center">
+                <UserRoundCheck aria-hidden className="size-7 text-fg-muted" />
+                <p className="m-0 text-[15px] font-medium">{t("noneMine")}</p>
+                <p className="m-0 max-w-md text-sm text-fg-secondary">{t("noneMineHint")}</p>
+              </div>
             ) : (
               <ul className="m-0 flex list-none flex-col gap-3 p-0">
                 {items.map((item) => (

@@ -37,12 +37,14 @@ from veyntora_api.db.models.knowledge import (
     SourceStatus,
 )
 from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.db.models.quality import BudgetScope
 from veyntora_api.db.models.tools import McpServer, McpServerStatus, Tool, ToolAccess
 from veyntora_api.evaluation import service as evaluation
 from veyntora_api.governance import service as governance
 from veyntora_api.knowledge.service import enqueue
 from veyntora_api.providers.service import with_fallbacks
 from veyntora_api.secrets.openbao import SecretWriter
+from veyntora_api.usage import budgets
 
 Role = Literal["owner", "editor", "approver", "user"]
 ROLES: tuple[Role, ...] = ("owner", "editor", "approver", "user")
@@ -173,7 +175,7 @@ async def delete_chatbot(
     secrets: SecretWriter | None,
     bot: Chatbot,
 ) -> int:
-    """Delete an archived chatbot for good: its chats, channels, data rule and settings.
+    """Delete an archived chatbot for good: its chats, channels, data rule, budgets and settings.
 
     Refused while a legal hold covers the chatbot or anyone who chatted with it, and while
     an automation still uses it. Audit entries stay (they are the record that it existed).
@@ -221,6 +223,7 @@ async def delete_chatbot(
     )
     if keyed and secrets is None:
         raise ChatbotError("the secret store is not available")
+    await budgets.delete_for_scope(db, ctx, BudgetScope.CHATBOT, str(bot.id))
     await ConfigService(db, ctx).delete(bot, action="chatbot.delete")
     for channel_id in keyed:
         await secrets.delete(f"channels/{channel_id}")  # type: ignore[union-attr]
