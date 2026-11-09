@@ -5004,6 +5004,8 @@ export interface components {
             name: string;
             /** Slug */
             slug: string;
+            /** Welcome Message */
+            welcome_message: string;
         };
         /** ChatbotUpdate */
         ChatbotUpdate: {
@@ -5013,6 +5015,8 @@ export interface components {
             description?: string | null;
             /** Name */
             name?: string | null;
+            /** Slug */
+            slug?: string | null;
             /** Status */
             status?: ("live" | "paused" | "archived") | null;
             /** Welcome Message */
@@ -6022,6 +6026,8 @@ export interface components {
             name: string;
             /** Theme */
             theme: string;
+            /** Welcome Message */
+            welcome_message: string;
         };
         /** GateSettings */
         "GateSettings-Input": {

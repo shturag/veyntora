@@ -111,6 +111,8 @@ class ChatbotSummary(BaseModel):
     slug: str
     name: str
     description: str
+    # Shown as the chatbot's first message when a chat starts.
+    welcome_message: str
     avatar: str | None
 
 
@@ -135,7 +137,12 @@ async def my_chatbots(
     )
     return [
         ChatbotSummary(
-            id=b.id, slug=b.slug, name=b.name, description=b.description, avatar=b.avatar
+            id=b.id,
+            slug=b.slug,
+            name=b.name,
+            description=b.description,
+            welcome_message=b.welcome_message,
+            avatar=b.avatar,
         )
         for b in bots
     ]

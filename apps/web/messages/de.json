@@ -2471,7 +2471,18 @@
     "deleteBlocked": "{count, plural, one {Eine Automation nutzt diesen Chatbot. Stellen Sie sie auf einen anderen Chatbot um oder löschen Sie sie zuerst:} other {# Automationen nutzen diesen Chatbot. Stellen Sie sie auf einen anderen Chatbot um oder löschen Sie sie zuerst:}}",
     "createdOn": "erstellt am {day}",
     "showAutomations": "Automationen zeigen",
-    "includedIn": "Enthalten in {role}"
+    "includedIn": "Enthalten in {role}",
+    "details": {
+      "title": "Details",
+      "text": "Name, Adresse und die Texte, die Personen sehen. Änderungen gelten sofort, ohne Veröffentlichung.",
+      "save": "Details speichern",
+      "saved": "Details gespeichert.",
+      "failed": "Die Details konnten nicht gespeichert werden.",
+      "slugHint": "Wird in Adressen des Website-Widgets und der API verwendet. Kleinbuchstaben, Ziffern und Bindestriche.",
+      "slugConfirm": "Kurznamen ändern? Website-Widgets und API-Aufrufe mit dem alten Namen funktionieren erst wieder, wenn sie angepasst sind.",
+      "languageChange": "In Generierung ändern",
+      "languageHint": "Teil der Pipeline: Eine Änderung gilt, sobald die nächste Version veröffentlicht ist."
+    }
   },
   "widget": {
     "notAvailable": "Dieser Assistent ist hier nicht verfügbar.",

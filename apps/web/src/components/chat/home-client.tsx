@@ -13,7 +13,7 @@ import type { AttachedFile, ChatFeatures, Mode } from "@/lib/chat";
 import { ChatExtras, ModelPicker } from "./chat-extras";
 import { Composer } from "./composer";
 
-type Assistant = { id: string; name: string; description: string };
+type Assistant = { id: string; name: string; description: string; welcome_message?: string };
 
 // The tile shows the assistant's first letter (or digit).
 const letterOf = (name: string) => (/[\p{L}\p{N}]/u.exec(name)?.[0] ?? "?").toUpperCase();
@@ -46,6 +46,8 @@ export function HomeClient({
   const [webSearch, setWebSearch] = useState(false);
   const [code, setCode] = useState(false);
   const accept = features.attachments ?? [];
+  const current = assistants.find((a) => a.id === selected);
+  const welcome = current?.welcome_message?.trim();
 
   useEffect(() => {
     if (!selected) return;
@@ -141,6 +143,21 @@ export function HomeClient({
           ))}
         </div>
       </div>
+      {welcome ? (
+        // The chatbot's welcome message opens the chat, as its first message.
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent-soft text-sm font-semibold text-accent"
+          >
+            {letterOf(current?.name ?? "")}
+          </span>
+          <p className="m-0 min-w-0 rounded-lg rounded-tl-sm border border-line bg-surface px-4 py-3 text-[15px] leading-relaxed whitespace-pre-wrap">
+            <span className="sr-only">{current?.name}: </span>
+            {welcome}
+          </p>
+        </div>
+      ) : null}
       <Composer
         // Files belong to one assistant: switching starts the attachments over.
         key={selected}

@@ -279,12 +279,14 @@ async def test_creating_a_chatbot_writes_owner_and_draft(world: World) -> None:
         world.db,
         CTX,
         world.authz,  # type: ignore[arg-type]
-        bots.ChatbotInput(slug="hr-helper", name="HR"),
+        bots.ChatbotInput(slug="hr-helper", name="HR", answer_language="de"),
         world.user.id,
     )
     assert Tuple(f"user:{world.user.id}", "owner", f"chatbot:{bot.id}") in world.authz.tuples
     assert Tuple("platform:default", "platform", f"chatbot:{bot.id}") in world.authz.tuples
-    assert (await bots.draft_of(world.db, bot)).number == 1
+    draft = await bots.draft_of(world.db, bot)
+    # The language chosen when creating is the pipeline's answer language.
+    assert draft.number == 1 and draft.spec["generation"]["answer_language"] == "de"
     with pytest.raises(bots.ChatbotError, match="already taken"):
         await bots.create_chatbot(
             world.db,

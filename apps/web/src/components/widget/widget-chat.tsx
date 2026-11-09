@@ -16,7 +16,16 @@ type Answer = {
 };
 
 /** The chat inside the widget: sign in through a pop-up, then ask through the public API. */
-export function WidgetChat({ bot, name }: { bot: string; name: string }) {
+export function WidgetChat({
+  bot,
+  name,
+  welcome,
+}: {
+  bot: string;
+  name: string;
+  /** The chatbot's welcome message, shown first. */
+  welcome?: string;
+}) {
   const t = useTranslations("widget");
   const token = useRef<{ value: string; until: number } | null>(null);
   const popup = useRef<Window | null>(null);
@@ -100,6 +109,9 @@ export function WidgetChat({ bot, name }: { bot: string; name: string }) {
         aria-label={t("conversation")}
         className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"
       >
+        {welcome?.trim() ? (
+          <p className="m-0 text-sm leading-relaxed whitespace-pre-wrap">{welcome.trim()}</p>
+        ) : null}
         {turns.map((turn, i) =>
           turn.role === "user" ? (
             <p

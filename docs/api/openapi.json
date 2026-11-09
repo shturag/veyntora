@@ -3436,6 +3436,10 @@
           "slug": {
             "title": "Slug",
             "type": "string"
+          },
+          "welcome_message": {
+            "title": "Welcome Message",
+            "type": "string"
           }
         },
         "required": [
@@ -3443,6 +3447,7 @@
           "slug",
           "name",
           "description",
+          "welcome_message",
           "avatar"
         ],
         "title": "ChatbotSummary",
@@ -3487,6 +3492,18 @@
               }
             ],
             "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9-]{1,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
           },
           "status": {
             "anyOf": [
@@ -6598,11 +6615,16 @@
           "theme": {
             "title": "Theme",
             "type": "string"
+          },
+          "welcome_message": {
+            "title": "Welcome Message",
+            "type": "string"
           }
         },
         "required": [
           "chatbot_id",
           "name",
+          "welcome_message",
           "enabled",
           "allowed_origins",
           "theme"

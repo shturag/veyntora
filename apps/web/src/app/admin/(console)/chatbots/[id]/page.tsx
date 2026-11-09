@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Panel } from "@/components/admin/panel";
+import { BotDetails } from "@/components/bots/bot-details";
 import { BotHeader } from "@/components/bots/bot-header";
 import { Forbidden } from "@/components/forbidden";
 import { screenMetadata } from "@/components/screen-placeholder";
@@ -59,7 +60,11 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
   if (!o || !bot) notFound();
   const base = `/admin/chatbots/${o.id}`;
   // What people may switch in the chat (the draft: what the next publish gives them).
-  const chat = (bot.draft.spec as { chat?: Record<string, unknown> }).chat ?? {};
+  const spec = bot.draft.spec as {
+    chat?: Record<string, unknown>;
+    generation?: { answer_language?: string };
+  };
+  const chat = spec.chat ?? {};
   const models = Array.isArray(chat.llm_instance_ids) ? chat.llm_instance_ids.length : 0;
   const offered = [
     models ? t("offers.models", { count: models + 1 }) : null,
@@ -278,6 +283,11 @@ export default async function BotOverviewPage({ params }: { params: Promise<{ id
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
+          <BotDetails
+            bot={bot}
+            language={spec.generation?.answer_language ?? "auto"}
+            canEdit={access.level !== "viewer"}
+          />
           <Panel
             id="ov-access"
             title={t("tabNames.access")}

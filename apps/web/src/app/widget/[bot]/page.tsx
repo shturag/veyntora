@@ -16,11 +16,16 @@ export default async function WidgetPage({ params }: { params: Promise<{ bot: st
     () => null,
   );
   const config = res?.ok
-    ? ((await res.json()) as { chatbot_id: string; name: string; enabled: boolean })
+    ? ((await res.json()) as {
+        chatbot_id: string;
+        name: string;
+        welcome_message?: string;
+        enabled: boolean;
+      })
     : null;
   const t = await getTranslations("widget");
   if (!config?.enabled) {
     return <p className="m-0 p-4 text-sm text-fg-secondary">{t("notAvailable")}</p>;
   }
-  return <WidgetChat bot={bot} name={config.name} />;
+  return <WidgetChat bot={bot} name={config.name} welcome={config.welcome_message} />;
 }

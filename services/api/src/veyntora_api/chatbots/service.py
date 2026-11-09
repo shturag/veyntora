@@ -68,6 +68,8 @@ class ChatbotUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
+    # The short name in widget and API addresses: links with the old one stop working.
+    slug: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9-]{1,63}$")
     description: str | None = Field(default=None, max_length=2000)
     welcome_message: str | None = Field(default=None, max_length=2000)
     answer_language: str | None = Field(default=None, max_length=16)
@@ -135,11 +137,14 @@ async def create_chatbot(
         raise ChatbotError(f"the address {data.slug!r} is already taken")
     bot = Chatbot(**data.model_dump(), status=ChatbotStatus.DRAFT, owner_id=owner_id)
     await ConfigService(db, ctx).create(bot, action="chatbot.create")
+    # The language chosen here is the pipeline's answer language (changed later in Generation).
+    spec = PipelineSpec()
+    spec.generation.answer_language = data.answer_language
     db.add(
         PipelineVersion(
             chatbot_id=bot.id,
             number=1,
-            spec=PipelineSpec().model_dump(mode="json"),
+            spec=spec.model_dump(mode="json"),
             status=PipelineStatus.DRAFT,
             created_by=owner_id,
         )
@@ -163,6 +168,12 @@ async def update_chatbot(
 ) -> Chatbot:
     if data.status == "live" and bot.live_version_id is None:
         raise ChatbotError("publish a pipeline version before going live")
+    if data.slug and data.slug != bot.slug:
+        taken = await db.scalar(
+            sa.select(Chatbot.id).where(Chatbot.slug == data.slug, Chatbot.id != bot.id)
+        )
+        if taken:
+            raise ChatbotError(f"the address {data.slug!r} is already taken")
     return await ConfigService(db, ctx).update(
         bot, data, expected_version=expected_version, action="chatbot.update"
     )

@@ -40,6 +40,7 @@ async def _bot(db: DbSession, ref: str) -> Chatbot:
 class FrameConfig(BaseModel):
     chatbot_id: UUID
     name: str
+    welcome_message: str
     enabled: bool
     allowed_origins: list[str]
     theme: str
@@ -54,6 +55,7 @@ async def frame_config(chatbot: str, db: DbSession) -> FrameConfig:
     return FrameConfig(
         chatbot_id=bot.id,
         name=bot.name,
+        welcome_message=bot.welcome_message if enabled else "",
         enabled=enabled,
         allowed_origins=cfg.allowed_origins if enabled else [],
         theme=cfg.theme,

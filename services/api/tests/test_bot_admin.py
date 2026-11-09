@@ -116,9 +116,27 @@ async def test_cards_overview_duplicate_and_preview(db: AsyncSession) -> None:
         "Willkommen",
         "de",
     )
+    # The language typed for the copy is what its answers use.
+    assert (await bots.draft_of(db, essen)).spec["generation"]["answer_language"] == "de"
+
+    # Everything typed when creating can be changed later; the address stays unique.
+    await bots.update_chatbot(
+        db,
+        CTX,
+        essen,
+        bots.ChatbotUpdate(name="Essen Service", slug="essen-service", welcome_message="Hallo"),
+        None,
+    )
+    assert (essen.name, essen.slug, essen.welcome_message) == (
+        "Essen Service",
+        "essen-service",
+        "Hallo",
+    )
+    with pytest.raises(bots.ChatbotError, match="already taken"):
+        await bots.update_chatbot(db, CTX, essen, bots.ChatbotUpdate(slug="support-copy"), None)
 
     seen = await insights.preview(bot.id, w.user.id, me, state, db)
-    assert {p.chatbot for p in seen} == {bot.name, "Support copy", "Essen"}
+    assert {p.chatbot for p in seen} == {bot.name, "Support copy", "Essen Service"}
     with pytest.raises(Exception, match="Person not found"):
         await insights.preview(bot.id, team.id, me, state, db)
 

@@ -38,6 +38,7 @@ export default async function HomePage({
             id: b.id,
             name: b.name,
             description: b.description,
+            welcome_message: b.welcome_message,
           }))}
         />
       </div>

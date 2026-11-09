@@ -526,11 +526,14 @@ async def duplicate(
             principal.user_id,
         )
         source = await svc.draft_of(db, original)
+        spec = PipelineSpec.model_validate(source.spec)
+        if data.answer_language:
+            spec.generation.answer_language = data.answer_language
         await svc.save_draft(
             db,
             ctx,
             copy,
-            PipelineSpec.model_validate(source.spec),
+            spec,
             expected_version=None,
             change_note=f"copied from {original.name}",
         )

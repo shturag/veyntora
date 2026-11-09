@@ -2471,7 +2471,18 @@
     "deleteBlocked": "{count, plural, one {An automation uses this chatbot. Change it to another chatbot or delete it first:} other {# automations use this chatbot. Change them to another chatbot or delete them first:}}",
     "createdOn": "created {day}",
     "showAutomations": "Show the automations",
-    "includedIn": "Included with {role}"
+    "includedIn": "Included with {role}",
+    "details": {
+      "title": "Details",
+      "text": "Name, address and the texts people see. Changes apply at once, without publishing.",
+      "save": "Save details",
+      "saved": "Details saved.",
+      "failed": "Could not save the details.",
+      "slugHint": "Used in the website widget and API addresses. Lowercase letters, digits and dashes.",
+      "slugConfirm": "Change the short name? Website widgets and API calls that use the old one stop working until they are updated.",
+      "languageChange": "Change in Generation",
+      "languageHint": "Part of the pipeline: a change takes effect when the next version is published."
+    }
   },
   "widget": {
     "notAvailable": "This assistant is not available here.",
