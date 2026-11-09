@@ -4110,7 +4110,8 @@
       "approved": "Von DSB freigegeben",
       "started": "Ausgeführt",
       "blocked_legal_hold": "Durch Legal Hold blockiert",
-      "completed": "Erledigt, Bericht signiert"
+      "completed": "Erledigt, Bericht signiert",
+      "rejected": "Anfrage abgelehnt"
     },
     "accessReviews": "Zugriffsprüfungen",
     "reviewEvery": "Prüfen alle (Tage)",
@@ -4155,7 +4156,12 @@
       "legal": "Setzt und hebt rechtliche Sperren auf",
       "dpo": "Genehmigt Löschungen und Exporte"
     },
-    "personalDataHint": "Was Veyntora verlässt und wo externe Modelle laufen dürfen."
+    "personalDataHint": "Was Veyntora verlässt und wo externe Modelle laufen dürfen.",
+    "rejectRequest": "Anfrage ablehnen",
+    "reject": "Ablehnen",
+    "rejectedDone": "Anfrage abgelehnt.",
+    "rejectHint": "Die Anfrage wird geschlossen, ohne sie auszuführen, etwa bei einem Duplikat oder einer Identität, die sich nicht prüfen ließ. Der Grund bleibt im Verlauf und im Audit-Log.",
+    "rejectReason": "Grund"
   },
   "audit": {
     "title": "Audit-Log",

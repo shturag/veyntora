@@ -174,3 +174,25 @@ async def test_access_export_and_trace_deletion(
     async with httpx.AsyncClient(base_url="http://lf", transport=httpx.MockTransport(handler)) as h:
         assert await delete_traces(h, str(subject.id)) == 2
     assert f"userId={subject.id}" in calls[0][1] and calls[1][0] == "DELETE"
+
+
+async def test_a_request_is_rejected_with_a_reason_before_it_is_carried_out(
+    db: AsyncSession, people: tuple[User, User, User]
+) -> None:
+    subject, handler, _ = people
+    req = await dsr.create(
+        db,
+        CTX,
+        kind=GdprKind.ACCESS,
+        email=subject.email,  # type: ignore[arg-type]
+        received_via="duplicate",
+        due_at=None,
+        by=handler.id,
+    )
+    with pytest.raises(dsr.RequestError, match="reason"):
+        await dsr.reject(db, CTX, req, handler.id, "  ")
+    await dsr.reject(db, CTX, req, handler.id, "Duplicate of an earlier request")
+    assert req.status is GdprStatus.REJECTED and req.completed_at is not None
+    assert req.history[-1]["event"] == "rejected"
+    with pytest.raises(dsr.RequestError, match="not been carried out"):
+        await dsr.reject(db, CTX, req, handler.id, "again")

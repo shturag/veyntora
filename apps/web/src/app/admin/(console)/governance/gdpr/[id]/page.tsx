@@ -150,6 +150,9 @@ export default async function RequestPage({ params }: { params: Promise<{ id: st
               {d.history.map((h, i) => (
                 <li key={i}>
                   {date(String(h.at))} · {t(`events.${String(h.event) as "received"}`)}
+                  {h.reason ? (
+                    <span className="block text-xs text-fg-muted">{String(h.reason)}</span>
+                  ) : null}
                 </li>
               ))}
             </ol>

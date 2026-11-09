@@ -100,7 +100,7 @@ export function RequestSteps({ d }: { d: Detail }) {
             />
             {d.kind === "erasure" ? t("confirmErase") : t("confirmExport")}
           </label>
-          <div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Button
               variant={d.kind === "erasure" ? "danger" : "primary"}
               disabled={!d.can_handle || !d.approved || !sure || state.busy}
@@ -108,10 +108,40 @@ export function RequestSteps({ d }: { d: Detail }) {
             >
               {d.kind === "erasure" ? t("erase") : t("export")}
             </Button>
+            {d.can_handle ? <RejectRequest id={d.id} state={state} /> : null}
           </div>
         </>
       ) : null}
       <Result message={state.message} />
     </div>
+  );
+}
+
+/** Refuse a request that will not be carried out (a duplicate, an unverifiable identity). */
+function RejectRequest({ id, state }: { id: string; state: ReturnType<typeof useAction> }) {
+  const { t } = state;
+  return (
+    <FormDialog
+      label={t("rejectRequest")}
+      title={t("rejectRequest")}
+      submit={t("reject")}
+      state={state}
+      onSubmit={(f) =>
+        state.run(
+          () =>
+            api(`/v1/admin/governance/requests/${id}/reject`, {
+              method: "POST",
+              body: JSON.stringify({ reason: f.get("reason") }),
+            }),
+          t("rejectedDone"),
+        )
+      }
+    >
+      <p className="m-0 text-sm text-fg-secondary">{t("rejectHint")}</p>
+      <label className={field}>
+        {t("rejectReason")}
+        <textarea name="reason" required maxLength={2000} rows={3} className={control} />
+      </label>
+    </FormDialog>
   );
 }

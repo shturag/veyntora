@@ -14,7 +14,7 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from veyntora_api.auth.deps import (
     Ctx,
@@ -362,6 +362,31 @@ async def get_request(
 
 
 Step = Literal["verify", "approve", "carry-out"]
+
+
+class RejectInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+@router.post("/requests/{request_id}/reject", summary="Reject a request, with a reason")
+async def reject_request(
+    request_id: UUID,
+    data: RejectInput,
+    principal: CurrentPrincipal,
+    ctx: Ctx,
+    db: DbSession,
+    state: State,
+) -> RequestRow:
+    r = await _request(db, request_id)
+    if not await _handler(state, principal):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Not allowed")
+    try:
+        await dsr.reject(db, ctx, r, principal.user_id, data.reason)
+    except dsr.RequestError as exc:
+        raise _bad(exc) from exc
+    await db.commit()
+    return _row(r)
 
 
 @router.post("/requests/{request_id}/{step}", summary="Verify identity, approve, carry out")

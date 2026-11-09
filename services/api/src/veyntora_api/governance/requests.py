@@ -2,6 +2,8 @@
 
 Steps: received → identity verified (by whoever handles it) → approved by a data
 protection officer who did not create the request → carried out → a signed report.
+Before it is carried out, whoever handles it may reject it, with a reason (for example a
+duplicate, or an identity that could not be verified).
 
 - Erasure: chats (with their messages, citations, feedback and hand-offs), saved answers,
   notifications, channel links and own model keys are deleted; uploads are removed from
@@ -203,6 +205,27 @@ async def approve(
     _event(req, "approved", by)
     await audit.record(
         db, ctx, action="gdpr.approve", target_type="gdpr_request", target_id=str(req.id)
+    )
+
+
+async def reject(
+    db: AsyncSession, ctx: RequestContext, req: GdprRequest, by: UUID, reason: str
+) -> None:
+    if req.status not in (GdprStatus.RECEIVED, GdprStatus.BLOCKED_LEGAL_HOLD):
+        raise RequestError("only a request that has not been carried out can be rejected")
+    reason = reason.strip()
+    if not reason:
+        raise RequestError("give a reason")
+    req.status = GdprStatus.REJECTED
+    req.completed_at = datetime.now(UTC)
+    _event(req, "rejected", by, reason=reason)
+    await audit.record(
+        db,
+        ctx,
+        action="gdpr.reject",
+        target_type="gdpr_request",
+        target_id=str(req.id),
+        after={"reason": reason},
     )
 
 

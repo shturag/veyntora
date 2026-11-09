@@ -4110,7 +4110,8 @@
       "approved": "Approved by the DPO",
       "started": "Carried out",
       "blocked_legal_hold": "Blocked by a legal hold",
-      "completed": "Completed, report signed"
+      "completed": "Completed, report signed",
+      "rejected": "Request rejected"
     },
     "accessReviews": "Access reviews",
     "reviewEvery": "Review every (days)",
@@ -4155,7 +4156,12 @@
       "legal": "Places and lifts legal holds",
       "dpo": "Approves erasures and exports"
     },
-    "personalDataHint": "What leaves Veyntora, and where external models may run."
+    "personalDataHint": "What leaves Veyntora, and where external models may run.",
+    "rejectRequest": "Reject request",
+    "reject": "Reject",
+    "rejectedDone": "Request rejected.",
+    "rejectHint": "The request is closed without carrying it out, for example a duplicate or an identity that could not be verified. The reason is kept in its history and the audit log.",
+    "rejectReason": "Reason"
   },
   "audit": {
     "title": "Audit log",

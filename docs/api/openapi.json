@@ -12635,6 +12635,22 @@
         "title": "Refreshed",
         "type": "object"
       },
+      "RejectInput": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "RejectInput",
+        "type": "object"
+      },
       "Repeat": {
         "enum": [
           "daily",
@@ -23990,6 +24006,59 @@
           }
         },
         "summary": "The person's data (ZIP; DPO or the requester)",
+        "tags": [
+          "admin: governance"
+        ]
+      }
+    },
+    "/v1/admin/governance/requests/{request_id}/reject": {
+      "post": {
+        "operationId": "reject_request_v1_admin_governance_requests__request_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestRow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject a request, with a reason",
         "tags": [
           "admin: governance"
         ]

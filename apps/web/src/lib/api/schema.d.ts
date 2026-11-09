@@ -1421,6 +1421,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/governance/requests/{request_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a request, with a reason */
+        post: operations["reject_request_v1_admin_governance_requests__request_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/governance/requests/{request_id}/report": {
         parameters: {
             query?: never;
@@ -8339,6 +8356,11 @@ export interface components {
             /** Changed */
             changed: boolean;
         };
+        /** RejectInput */
+        RejectInput: {
+            /** Reason */
+            reason: string;
+        };
         /**
          * Repeat
          * @enum {string}
@@ -13769,6 +13791,41 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_request_v1_admin_governance_requests__request_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestRow"];
+                };
             };
             /** @description Validation Error */
             422: {
