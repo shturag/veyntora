@@ -212,5 +212,11 @@ With way B, your own services and their data are not touched by either command.
 | Uploaded documents stay "Waiting" | Add a virus scanner, a document parser and an embedding model, and check them with **Test connection**. |
 | The virus scanner restarts with exit 137 | Give Docker more memory. |
 | Answers appear all at once, not word by word | Turn off response buffering in your reverse proxy. |
+| A chatbot answers "I couldn't find this" to "Hi" or "What can you do?" | Turn on **Reply to small talk** in its Pipeline → Generation, and give it a description. |
+| Scanned PDFs come out empty | The source reads them with **Fast text**; choose **Auto** or **Layout** under *How documents are read*. |
+| A website's pages come out nearly empty | The site is built by JavaScript: start the browser service and turn on **Render JavaScript** on the source. |
+| A website needs a sign-in | Choose the sign-in on the source (token, user name and password, cookie or header); start pages must be `https://`. |
+| Files a source should skip are still there | Check **Which files** on the source; skipped files are removed at its next complete sync (**Sync now**). |
+| A document has an author name or "Abstract" as its title | Read it again (Knowledge health or the source page); titles that are not titles are replaced by one from the file name. |
 
 More in [runbooks/local-dev.md](runbooks/local-dev.md#troubleshooting). Service status: `make ps`; logs: `make logs`.

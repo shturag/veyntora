@@ -15,6 +15,8 @@
 
 </div>
 
+<p align="center"><img src="docs/walkthroughs/tour.gif" alt="A five-minute tour of Veyntora: the chat, the admin console and every area" width="900"></p>
+
 Open-source, self-hosted enterprise knowledge platform. Employees ask questions and get answers with sources they can check, or hand an agent a task that it carries out with their approval. Admins set up every step in a web console; nothing needs a code change.
 
 ## What it does
@@ -27,44 +29,78 @@ Open-source, self-hosted enterprise knowledge platform. Employees ask questions 
 - **Governance.** Write-only secrets in OpenBao, permission-aware retrieval, PII masking, data rules for anything that leaves the network, a tamper-evident audit log, GDPR requests and access reviews.
 - **Operations.** Evaluation with a publish gate, monitoring, knowledge health, usage and budgets, automations, and channels: web, Microsoft Teams, Slack, a web widget and a REST API.
 
-## See it
-
-**The whole tour** in about 5 minutes: the chat, the admin console, and every area from simple chatbots to the audit log.
-
-![The Veyntora tour](docs/walkthroughs/tour.gif)
-
-**Ask a question.** Employees choose an assistant and get answers with numbered sources from documents they may read.
-
-![Chat for employees](docs/walkthroughs/chat.gif)
-
-**Build a chatbot that answers from documents:** knowledge, retrieval, reranking, grounded generation and guardrails.
-
-![A chatbot that answers from documents](docs/walkthroughs/02-rag-chatbot.gif)
-
-**Connect a data source.** Pick the system, choose how documents are read and which files, and who may read them.
-
-![Connecting a data source](docs/walkthroughs/05-data-sources.gif)
-
-**Add providers.** Language models, embeddings, rerankers, vector store, parsers, vision models, guardrails, web search and a code sandbox.
-
-![Providers and keys](docs/walkthroughs/06-providers.gif)
-
-All 20 recordings, from simple chatbots and tools to governance and the audit log, are in [docs/walkthroughs](docs/walkthroughs/README.md).
-
 ## Quick start
 
+You need Docker with Compose and `make`.
+
 ```bash
-make env                          # .env with the config keys
-make up                           # builds and starts Veyntora's own services
-make setup-code                   # the code for the Setup page
-open http://localhost:3000        # set up PostgreSQL, Valkey, S3, OpenBao, OpenFGA, Keycloak
+git clone https://github.com/shturag/veyntora.git && cd veyntora
+make env-ci && make up            # Veyntora plus throwaway PostgreSQL, Keycloak, OpenBao, …
+open http://localhost:3000        # sign in as admin (the password is in .env)
 ```
 
-No services of your own yet? `make env-ci && make up` starts throwaway copies too. Then add a language model, an embedding model, a vector store and a document parser under **Admin → Providers & keys**, connect a data source and create a chatbot.
+Then add a language model, an embedding model, a vector store and a document parser under **Admin → Providers & keys**, connect a data source and create a chatbot.
 
-**Installing for a team or company?** Follow [docs/installation.md](docs/installation.md): requirements, a trial on your computer, a server with Docker Compose, Kubernetes, first steps, updates and backups.
+**Ways to run it**
 
-More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md), [docs/runbooks/infrastructure.md](docs/runbooks/infrastructure.md) and [docs/runbooks/external-services.md](docs/runbooks/external-services.md).
+| Way | Commands | For |
+|---|---|---|
+| Try it | `make env-ci && make up` | Your computer; throwaway copies of every service |
+| Your own services | `make env && make up`, then the Setup page (`make setup-code`) | A server; PostgreSQL, Valkey, S3, OpenBao, OpenFGA and Keycloak you run |
+| Kubernetes | Helm chart and Argo CD apps in `deploy/` | Clusters; see [installation](docs/installation.md#c-kubernetes) |
+
+**Optional services**
+
+| Service | Start | Adds |
+|---|---|---|
+| Docling | your own docling-serve | Layout, tables and OCR for PDFs and Office files |
+| Apache Tika | `docker run -p 9998:9998 apache/tika:4.2.0-full` | Fast text from almost any file type |
+| Browser | `docker compose --profile browser up -d` and `VEY_BROWSER_URL=ws://browser:3000/` | Websites built by JavaScript |
+| ClamAV | `clamd` on port 3310 | Virus scanning of every file before it is read |
+| Langfuse, Grafana | your own | Traces per answer; dashboards on the Monitoring page |
+
+Installing for a team or company: [docs/installation.md](docs/installation.md) covers requirements, a server with Docker Compose, Kubernetes, a reverse proxy, first steps, updates and backups.
+
+## See it
+
+| | |
+|---|---|
+| [The chat](docs/walkthroughs/chat.gif) | [A chatbot that answers from documents](docs/walkthroughs/02-rag-chatbot.gif) |
+| [A simple chatbot](docs/walkthroughs/01-simple-chatbot.gif) | [A chatbot with tools](docs/walkthroughs/03-tools-chatbot.gif) |
+| [Data sources](docs/walkthroughs/05-data-sources.gif) | [Providers & keys](docs/walkthroughs/06-providers.gif) |
+| [Automations](docs/walkthroughs/04-automations.gif) | [Knowledge health](docs/walkthroughs/10-knowledge-health.gif) |
+
+All 20 recordings, from simple chatbots to the audit log: [docs/walkthroughs](docs/walkthroughs/README.md).
+
+## Documentation
+
+- [Installation](docs/installation.md): Docker Compose, Kubernetes, first steps, updates, backups
+- [Walkthroughs](docs/walkthroughs/README.md): every area of the app, recorded
+- [User and admin flows](docs/user-flows.md) and [use cases](docs/use-cases.md)
+- [Architecture decisions](docs/adr/README.md): why Veyntora works the way it does
+- [API reference](docs/api/openapi.json) (OpenAPI) and the runbooks in [docs/runbooks](docs/runbooks)
+- [Changelog](CHANGELOG.md)
+
+## Troubleshooting and updates
+
+- Common problems and their fixes: [installation → Common problems](docs/installation.md#common-problems)
+- Updating: back up, then `git pull && make up`; the migrate service updates the database ([details](docs/installation.md#updating))
+- Service status: `make ps`; logs: `make logs`
+
+## Support
+
+- Found a bug or want a feature? [Open an issue](https://github.com/shturag/veyntora/issues/new/choose).
+- Questions and ideas: [Discussions](https://github.com/shturag/veyntora/discussions).
+
+## Security
+
+Please don't report security problems in public issues. Report them privately through [GitHub security advisories](https://github.com/shturag/veyntora/security/advisories/new); [SECURITY.md](SECURITY.md) says what to include and what Veyntora promises about your data.
+
+## Contributing
+
+Contributions are welcome: bug reports, fixes, connectors, providers and translations. Read [CONTRIBUTING.md](CONTRIBUTING.md) to get set up, and the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+`make help` lists the commands. `make lint`, `make test` and `make e2e-stack` check the code (the last one on its own throwaway stack); `make gen` regenerates the OpenAPI reference and the TypeScript types; `make ci` runs what CI runs before images are built.
 
 ## Layout
 
@@ -85,14 +121,6 @@ More in [docs/runbooks/local-dev.md](docs/runbooks/local-dev.md), [docs/runbooks
 | `deploy/openfga` | Authorization model, tests, bootstrap mapping |
 | `deploy/observability` | Prometheus scrape config and a Grafana dashboard for your own monitoring |
 | `docs` | [Installation](docs/installation.md), [ADRs](docs/adr/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md) |
-
-## Development
-
-`make help` lists the commands. `make lint`, `make test` and `make e2e` check the code; `make gen` regenerates the OpenAPI reference and the TypeScript types; `make ci` runs what CI runs before images are built.
-
-## Contributing
-
-Contributions are welcome: bug reports, fixes, connectors, providers and translations. Read [CONTRIBUTING.md](CONTRIBUTING.md) to get set up, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
