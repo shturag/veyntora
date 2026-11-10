@@ -1,6 +1,6 @@
 # 0005 · Authorization model (OpenFGA)
 
-Status: accepted · 2026-10-30 · Phase 0
+Status: accepted · 2026-10-30
 
 Model: `deploy/openfga/model.fga` (tests: `model.tests.fga.yaml`, run in CI). Object ids are Veyntora UUIDs.
 
@@ -14,6 +14,6 @@ Model: `deploy/openfga/model.fga` (tests: `model.tests.fga.yaml`, run in CI). Ob
 | `source` | `reader`, `manager` (knowledge admins) |
 
 - The chatbot relations follow the prototype's Roles & permissions matrix (User, Approver, Editor, Chatbot admin, Platform admin). A person's highest role across their groups applies, because relations are unions.
-- Which platform roles may edit or view which admin areas is **data, not code** (`deploy/openfga/bootstrap.json`). It is applied idempotently by `veyntora-api bootstrap` and becomes editable in the Roles & permissions UI (Phase 4).
-- The API checks OpenFGA on every protected endpoint (`require_admin_area`, and per-object checks from Phase 1). The web app hides what the user cannot open but never relies on that for security.
-- Document-level permissions are **not** modelled in OpenFGA. Source ACLs go into each chunk's Qdrant payload and are filtered at query time (Phase 1). OpenFGA decides who may attach and manage sources.
+- Which platform roles may edit or view which admin areas is **data, not code** (`deploy/openfga/bootstrap.json`). It is applied idempotently by `veyntora-api bootstrap` and becomes editable in the Roles & permissions UI (people and channels (ADR 0020)).
+- The API checks OpenFGA on every protected endpoint (`require_admin_area`, and per-object checks since ADR 0010–0014). The web app hides what the user cannot open but never relies on that for security.
+- Document-level permissions are **not** modelled in OpenFGA. Source ACLs go into each chunk's Qdrant payload and are filtered at query time (ADR 0010–0014). OpenFGA decides who may attach and manage sources.

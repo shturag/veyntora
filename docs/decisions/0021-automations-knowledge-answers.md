@@ -1,6 +1,6 @@
-# 0021 · Automations, knowledge health, saved answers, hand-offs, delegated tools (Phase 5)
+# 0021 · Automations, knowledge health, saved answers, hand-offs, delegated tools
 
-Status: accepted · 2026-10-31 · Phase 5
+Status: accepted · 2026-10-31
 
 ## Product owner decisions
 
@@ -12,7 +12,7 @@ Status: accepted · 2026-10-31 · Phase 5
 - **Expert answers can join the knowledge base** for groups the expert chooses, after a chatbot owner or knowledge admin reviews them.
 - **Holidays:** schedules may skip public holidays (`holidays` 0.106, offline).
 - **Approve / Reject in Teams and Slack** are built.
-- **Connectors** (Confluence, file share, S3, websites, databases) move to Phase 6.
+- **Connectors** (Confluence, file share, S3, websites, databases) move to operations (ADR 0022).
 - **Follow-up suggestions** are built, off by default per chatbot.
 
 ## Automations

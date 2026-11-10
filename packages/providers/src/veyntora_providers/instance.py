@@ -2,7 +2,7 @@
 
 The secret value itself is never part of this object: adapters receive `secret_ref` and
 resolve it through the runtime secret reader, which only the graphs and workers services
-are allowed to use (see docs/adr/0004-secrets-write-only.md).
+are allowed to use (see docs/decisions/0004-secrets-write-only.md).
 """
 
 from __future__ import annotations

@@ -5,7 +5,7 @@ Thanks for helping. This page covers how to set up, what a change needs, and how
 ## Before you start
 
 - **Bugs and small fixes:** open a pull request, or an issue first if you're unsure.
-- **Larger changes** (a new connector, provider, screen or service): open an issue to agree on the approach first. Decisions that shape the product are written down as an [ADR](docs/adr/README.md); add one with your change.
+- **Larger changes** (a new connector, provider, screen or service): open an issue to agree on the approach first. Decisions that shape the product are written down as an [ADR](docs/decisions/README.md); add one with your change.
 - **Security problems:** don't open an issue. See [SECURITY.md](SECURITY.md).
 
 ## Set up

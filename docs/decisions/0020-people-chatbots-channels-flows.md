@@ -1,6 +1,6 @@
-# 0020 · Users & groups, chatbot management, channels and custom flows (Phase 4)
+# 0020 · Users & groups, chatbot management, channels and custom flows
 
-Status: accepted · 2026-10-31 · Phase 4
+Status: accepted · 2026-10-31
 
 ## Product owner decisions
 
@@ -82,4 +82,4 @@ Status: accepted · 2026-10-31 · Phase 4
 
 - **Not tested live yet:** Teams, Slack and widget sign-ins need a real tenant, workspace and intranet page.
 - **Not built:** approval cards in Teams and Slack, proactive messages after a decision, and usage records linked to app keys.
-- **Phase 7:** access reviews and GDPR export.
+- **Later (ADR 0023):** access reviews and GDPR export.

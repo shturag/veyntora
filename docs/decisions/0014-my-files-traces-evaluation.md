@@ -1,6 +1,6 @@
-# 0014 · My files, answer traces, evaluation runner (Phase 1)
+# 0014 · My files, answer traces, evaluation runner
 
-Status: accepted · 2026-10-30 · Phase 1
+Status: accepted · 2026-10-30
 
 ## My files
 
@@ -8,7 +8,7 @@ Status: accepted · 2026-10-30 · Phase 1
 - **How they're searched:** every chat of the owner searches them, next to the chatbot's attached sources. The ACL filter keeps them invisible to everyone else, colleagues in the same groups included.
 - **Indexing:** they are indexed for the live chatbots' published versions (not drafts). The same data-rule check as other sources applies before a file reaches an external provider. Upload checks, virus scan and size limits are those of admin uploads.
 - **API and screens:** `GET/POST/DELETE /v1/me/files`. Both the Library panel and the paper clip in the composer upload there.
-- **Retention:** no automatic deletion yet. Retention jobs arrive with governance (Phase 6), and the Help page says nothing about it until then.
+- **Retention:** no automatic deletion yet. Retention jobs arrive with governance (ADR 0022), and the Help page says nothing about it until then.
 
 ## Answer traces in Langfuse
 

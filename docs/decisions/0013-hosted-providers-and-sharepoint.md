@@ -1,6 +1,6 @@
 # 0013 · Hosted model APIs for local development, Providers page, SharePoint connector
 
-Status: accepted · 2026-10-30 · Phase 1
+Status: accepted · 2026-10-30
 
 ## No model servers hosted locally
 
@@ -17,11 +17,11 @@ The product owner decided that local development hosts no model servers. Embeddi
 
 ## Documents only reach an external provider with the data rule
 
-Draft pipelines are indexed before publishing (ADR 0011), so an external embedder would receive document text before anyone could approve it. Ingestion now skips a profile whose parser, embedder or vector store is external unless the chatbot's data rule lists the provider and PII masking is switched off (masking arrives in Phase 2). The same rule applies at publish and at run time (ADR 0012).
+Draft pipelines are indexed before publishing (ADR 0011), so an external embedder would receive document text before anyone could approve it. Ingestion now skips a profile whose parser, embedder or vector store is external unless the chatbot's data rule lists the provider and PII masking is switched off (masking arrives with the pipeline editor (ADR 0015–0017)). The same rule applies at publish and at run time (ADR 0012).
 
-## Providers page pulled forward from Phase 2
+## Providers page pulled forward
 
-The product owner wants keys entered in the admin console instead of the CLI. The Providers list (by capability, hosting, key last 4, health), the editor (name, endpoint, model, replace key, test connection) and Add provider are built now. The adapter choices come from the backend registry (`GET /v1/admin/providers/adapters`). Keys stay write-only (ADR 0004). Fallbacks, rotation grace periods, usage and cost come with the rest of Phase 2.
+The product owner wants keys entered in the admin console instead of the CLI. The Providers list (by capability, hosting, key last 4, health), the editor (name, endpoint, model, replace key, test connection) and Add provider are built now. The adapter choices come from the backend registry (`GET /v1/admin/providers/adapters`). Keys stay write-only (ADR 0004). Fallbacks, rotation grace periods, usage and cost come with the rest of the pipeline editor (ADR 0015–0017).
 
 ## SharePoint connector
 
@@ -41,4 +41,4 @@ The product owner wants keys entered in the admin console instead of the CLI. Th
   - a document without mapped readers is visible to nobody.
 - **Scanning:** SharePoint Online scans uploads itself, so documents are marked `not_required`.
 - **Schedules:** presets (hourly, every 4 hours, daily 06:00 UTC), checked every minute by the scheduler.
-- **Not yet tested against a live tenant.** Tests use mocked Graph responses in the documented shapes. Phase 1 is reported complete only after a live run.
+- **Not yet tested against a live tenant.** Tests use mocked Graph responses in the documented shapes. This work is reported complete only after a live run.

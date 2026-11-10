@@ -1,6 +1,6 @@
-# 0012 · Fast RAG graph, chat proxy and grounding (Phase 1)
+# 0012 · Fast RAG graph, chat proxy and grounding
 
-Status: accepted · 2026-10-30 · Phase 1
+Status: accepted · 2026-10-30
 
 ## The graph reads Veyntora's database
 
@@ -11,7 +11,7 @@ The `fast_rag` graph runs in the graph server (Aegra) and imports `veyntora-api`
 - chat access comes from OpenFGA (`can_chat`);
 - the pipeline is the chatbot's live version, or the canary version for a stable hash bucket of users.
 
-The alternative, having the API compute a "run context" and pass it as run input, would let anyone holding a token call the graph server directly with forged principals. The graph server connects with the same database role as the API. A narrower role is a Phase 7 hardening item.
+The alternative, having the API compute a "run context" and pass it as run input, would let anyone holding a token call the graph server directly with forged principals. The graph server connects with the same database role as the API. A narrower role is a governance (ADR 0023) hardening item.
 
 ## Retrieval is permission-aware twice
 
@@ -24,12 +24,12 @@ If no source passes the reranker's minimum score, the model is not called and th
 
 - The model sees numbered sources and must cite them as `[n]`, or reply `NO_ANSWER`.
 - In the default mode (`if_ungrounded: no_answer`, `groundedness_action: block`) **nothing is streamed before the check passes**. The user sees progress events (searching, writing), then the checked answer. An answer is blocked when it cites nothing (citations required), cites a source number it was not given, or its groundedness is below the threshold (default 0.7).
-- Groundedness in Phase 1 is lexical: the share of sentences with at least half of their content words (compared by 5-letter prefix, for German and English inflection) in a source they cite. A model-based judge can be added as an output guardrail instance with the Guardrails page (Phase 2).
+- Groundedness here is lexical: the share of sentences with at least half of their content words (compared by 5-letter prefix, for German and English inflection) in a source they cite. A model-based judge can be added as an output guardrail instance with the Guardrails page (the pipeline editor (ADR 0015–0017)).
 - In "warn" mode tokens stream live and the answer carries a warning.
 
 ## External models
 
-The run refuses an external provider (embedding, reranker or LLM) unless the chatbot's data rule lists it, even if this was checked at publish time. Data rules default to "mask personal data before external providers". PII masking (Presidio) arrives with guardrails in Phase 2, so until then such a chatbot cannot publish or run with an external model. Switching masking off is an explicit, audited data-rule change. Every stored answer records `external_egress`.
+The run refuses an external provider (embedding, reranker or LLM) unless the chatbot's data rule lists it, even if this was checked at publish time. Data rules default to "mask personal data before external providers". PII masking (Presidio) arrives with guardrails with the pipeline editor (ADR 0015–0017), so until then such a chatbot cannot publish or run with an external model. Switching masking off is an explicit, audited data-rule change. Every stored answer records `external_egress`.
 
 ## Chat proxy
 
@@ -54,7 +54,7 @@ The chat uses the LangGraph client's `useStream` (`@langchain/langgraph-sdk` 1.1
 - the citation chips, no-answer and hand-off states, and data-egress badge are custom anyway;
 - adding it later only changes the presentation layer.
 
-**Open question for the product owner:** should assistant-ui be adopted for the agent screens in Phase 3?
+**Open question for the product owner:** should assistant-ui be adopted for the agent screens (ADR 0018–0019)?
 
 - Answer text is parsed into paragraphs, bold runs and `[n]` citation chips and rendered as React text. Model output is never inserted as HTML.
 - A new chat starts on Home: a thread is created, then `/chat/<thread>` sends the first question once. The conversation row is written with the first answer.

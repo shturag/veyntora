@@ -1,6 +1,6 @@
-# 0019 · MCP tools, the agent, approvals and Auto mode (Phase 3)
+# 0019 · MCP tools, the agent, approvals and Auto mode
 
-Status: accepted · 2026-10-31 · Phase 3
+Status: accepted · 2026-10-31
 
 ## Product owner decisions
 
@@ -13,7 +13,7 @@ Status: accepted · 2026-10-31 · Phase 3
 
 - **Auth:** none, an API key, or OAuth client credentials.
   - Keys are in OpenBao at `mcp/{id}` and are read only by runtime services.
-  - "Pass the user's token through" needs Keycloak token exchange and is planned for Phase 5, with automations. It is shown disabled.
+  - "Pass the user's token through" needs Keycloak token exchange and is planned with automations (ADR 0021). It is shown disabled.
 - **Discovery** runs in a worker.
   - New tools arrive disabled.
   - Their class starts from the server's hints and fails safe: without a read-only hint, a tool is write.
@@ -46,7 +46,7 @@ Status: accepted · 2026-10-31 · Phase 3
 - **Who resumes:** the asker's own chat resumes the run once the request is decided. The chat card checks the request every few seconds.
   - The resume carries only the approval id. The graph reads the decision from PostgreSQL, so sending a resume cannot approve anything.
   - Threads stay owned by their user, and no service identity can resume other people's runs.
-  - **Limit:** if the asker closes the chat, the run continues when they next open it. Automations (Phase 5) will run under a service identity.
+  - **Limit:** if the asker closes the chat, the run continues when they next open it. Automations (ADR 0021) will run under a service identity.
 - **Stop** ends the run, and the request expires.
 
 ## Auto mode
@@ -62,6 +62,6 @@ Status: accepted · 2026-10-31 · Phase 3
 ## Not in this phase
 
 - The Playground tests Fast only.
-- Follow-up suggestions are shown for Phase 5.
+- Follow-up suggestions are shown with automations (ADR 0021).
 - Testing a tool from its server page is not built.
-- Delegated (user-token) MCP auth is planned for Phase 5.
+- Delegated (user-token) MCP auth is planned with automations (ADR 0021).

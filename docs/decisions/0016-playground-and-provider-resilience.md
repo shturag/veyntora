@@ -1,6 +1,6 @@
-# 0016 · Playground and provider resilience (Phase 2, parts 2 and 3)
+# 0016 · Playground and provider resilience
 
-Status: accepted · 2026-10-31 · Phase 2
+Status: accepted · 2026-10-31
 
 ## Playground
 
@@ -10,7 +10,7 @@ Status: accepted · 2026-10-31 · Phase 2
 - **What is kept:** no conversation is stored. Model usage is recorded, since tests cost money too. The audit log gets one entry per run, with the versions and outcomes but not the question text.
 - **Step by step:** a `Trace` can keep its steps in memory (`collect=True`): name, duration, and the attributes the step already sends to Langfuse. The Playground shows these, so it and Langfuse never disagree about a run.
 - **Failures:** a provider error ends that column with "Failed" and the adapter's status-only message. The other column still runs.
-- **Mode:** Fast only. Agent and Auto are shown disabled until Phase 3.
+- **Mode:** Fast only. Agent and Auto are shown disabled until the agent (ADR 0018–0019).
 
 ## Replacing a key with a grace period (product owner: choosable, 24 h default)
 
@@ -33,4 +33,4 @@ Status: accepted · 2026-10-31 · Phase 2
 - **Where it is recorded:** the existing `usage_records` table gets one row per model call (answer generation, question rewrite), for chat and Playground runs.
 - **Attribution:** each row names the instance that actually served the call (its fallback when it fell back or is disabled).
 - **Cost:** the prices set on the instance (options `price_in_per_mtok_eur` and `price_out_per_mtok_eur`, EUR per million tokens) at the time of the call. Instances without prices count tokens at cost 0.
-- **Not counted yet:** embedding, rerank and guardrail calls report no token usage through the adapters. That is open for the Usage & budgets screen (Phase 5).
+- **Not counted yet:** embedding, rerank and guardrail calls report no token usage through the adapters. That is open for the Usage & budgets screen (ADR 0021).

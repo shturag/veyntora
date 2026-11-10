@@ -1,6 +1,6 @@
-# 0023 · Governance, data subject requests, audit archive, access reviews, Confluence/database/file-share connectors, hardening (Phase 7)
+# 0023 · Governance, data subject requests, audit archive, access reviews, Confluence/database/file-share connectors, hardening
 
-Status: accepted · 2026-11-01 · Phase 7
+Status: accepted · 2026-11-01
 
 ## Product owner decisions
 

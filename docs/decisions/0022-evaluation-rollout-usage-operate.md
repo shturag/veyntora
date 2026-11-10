@@ -1,13 +1,13 @@
-# 0022 · Evaluation, canary roll-out, usage and budgets, operating screens, S3 and website connectors (Phase 6)
+# 0022 · Evaluation, canary roll-out, usage and budgets, operating screens, S3 and website connectors
 
-Status: accepted · 2026-10-31 · Phase 6
+Status: accepted · 2026-10-31
 
 ## Product owner decisions
 
 - **Evaluation metrics:** the Ragas metric definitions (faithfulness, answer relevance, context recall and precision) are implemented in our own code, with the judge model called through our providers. No new dependency; data rules apply to the judge like to any model.
 - **Conversations review** shows only answers people rated. Opening one is recorded in the audit log.
 - **Canary:** steps are manual (10% → 50% → everyone), plus an automatic rollback guard.
-- **Connectors now:** S3, websites and file shares (SMB). Confluence and databases move to Phase 7. SMB waits for approval of its library (see Open).
+- **Connectors now:** S3, websites and file shares (SMB). Confluence and databases move to governance (ADR 0023). SMB waits for approval of its library (see Open).
 
 ## Evaluation and the publish gate
 

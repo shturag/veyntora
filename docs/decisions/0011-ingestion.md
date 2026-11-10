@@ -1,6 +1,6 @@
-# 0011 · Ingestion, index profiles and chatbot setup (Phase 1)
+# 0011 · Ingestion, index profiles and chatbot setup
 
-Status: accepted · 2026-10-30 · Phase 1
+Status: accepted · 2026-10-30
 
 ## Index profiles
 
@@ -36,10 +36,10 @@ Jobs are rows in `ingest_jobs`. Workers claim the oldest queued job with `FOR UP
 
 ## Chatbot setup before the admin screens
 
-`/v1/admin/chatbots` (create, draft spec, publish, rollback, sources, data rules, access) and `/v1/admin/sources` (upload sources, documents, jobs) are the backend of the Phase 2-4 screens.
+`/v1/admin/chatbots` (create, draft spec, publish, rollback, sources, data rules, access) and `/v1/admin/sources` (upload sources, documents, jobs) are the backend of the admin screens (ADR 0015–0020).
 
 - Creating a chatbot needs `admin_area:chatbots#editor`. The creator becomes owner in OpenFGA. Per-chatbot actions check the chatbot's relations (`can_edit_draft`, `can_publish`, `can_manage_access`, `can_view_admin`).
-- Saving a draft checks that every provider reference exists, is enabled and has the right capability. Semantic chunking is refused until Phase 2.
+- Saving a draft checks that every provider reference exists, is enabled and has the right capability. Semantic chunking is refused until the pipeline editor (ADR 0015–0017).
 - **Publishing is refused while the spec uses an external provider that the chatbot's data rule does not allow.** Data rules are edited by `admin_area:governance#editor` (security reviewers), not by chatbot owners.
 - Pipeline versions are immutable once published. Publishing archives the previous live version and starts a new draft. Rollback makes an earlier published version live again. Each step is audited.
 

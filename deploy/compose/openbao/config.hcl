@@ -1,5 +1,5 @@
 # Local development only. Production (deploy/helm) runs a 3-node raft cluster with TLS,
-# Kubernetes auth and auto-unseal; see docs/adr/0004-secrets-write-only.md.
+# Kubernetes auth and auto-unseal; see docs/decisions/0004-secrets-write-only.md.
 ui = false
 
 storage "raft" {

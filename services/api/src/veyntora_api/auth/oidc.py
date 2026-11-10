@@ -1,7 +1,7 @@
 """OIDC authorization-code flow with PKCE (S256), run server-side by the API (BFF).
 
 Tokens never reach the browser: the API keeps them in the session store and the browser
-holds only an opaque, httpOnly session cookie. See docs/adr/0003-auth-bff.md.
+holds only an opaque, httpOnly session cookie. See docs/decisions/0003-auth-bff.md.
 """
 
 from __future__ import annotations

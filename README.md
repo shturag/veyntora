@@ -11,7 +11,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Self-hosted](https://img.shields.io/badge/self--hosted-yes-5b3df5.svg)
 
-[Install](docs/installation.md) · [Walkthroughs](docs/walkthroughs/README.md) · [Architecture decisions](docs/adr/README.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+[Install](docs/installation.md) · [Walkthroughs](docs/walkthroughs/README.md) · [Architecture decisions](docs/decisions/README.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
 </div>
 
@@ -77,7 +77,7 @@ All 20 recordings, from simple chatbots to the audit log: [docs/walkthroughs](do
 - [Installation](docs/installation.md): Docker Compose, Kubernetes, first steps, updates, backups
 - [Walkthroughs](docs/walkthroughs/README.md): every area of the app, recorded
 - [User and admin flows](docs/user-flows.md) and [use cases](docs/use-cases.md)
-- [Architecture decisions](docs/adr/README.md): why Veyntora works the way it does
+- [Architecture decisions](docs/decisions/README.md): why Veyntora works the way it does
 - [API reference](docs/api/openapi.json) (OpenAPI) and the runbooks in [docs/runbooks](docs/runbooks)
 - [Changelog](CHANGELOG.md)
 
@@ -120,7 +120,7 @@ Contributions are welcome: bug reports, fixes, connectors, providers and transla
 | `deploy/helm`, `deploy/argocd` | Kubernetes chart, values per environment, app-of-apps |
 | `deploy/openfga` | Authorization model, tests, bootstrap mapping |
 | `deploy/observability` | Prometheus scrape config and a Grafana dashboard for your own monitoring |
-| `docs` | [Installation](docs/installation.md), [ADRs](docs/adr/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md) |
+| `docs` | [Installation](docs/installation.md), [ADRs](docs/decisions/README.md), [walkthroughs](docs/walkthroughs/README.md), runbooks, API reference, [user and admin flows](docs/user-flows.md), [use cases](docs/use-cases.md) |
 
 ## License
 

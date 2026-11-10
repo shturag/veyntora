@@ -1,6 +1,6 @@
 # 0007 · Append-only, hash-chained audit log
 
-Status: accepted · 2026-10-30 · Phase 0
+Status: accepted · 2026-10-30
 
 ## Decision
 
@@ -11,8 +11,8 @@ Status: accepted · 2026-10-30 · Phase 0
 - Before/after values are scrubbed of secrets before they are written.
 - Requires READ COMMITTED isolation (the PostgreSQL default) so the trigger sees the latest committed row.
 
-## Phase 7
+## Later: governance (ADR 0023)
 
 - Periodic export of chain segments with their head hash to a WORM (S3 Object Lock) bucket, so even a database superuser cannot rewrite history unnoticed.
 - The application connects as a role that does not own the table, so it cannot disable the triggers.
-- GDPR erasure vs. audit retention: the audit log keeps actor ids, not content. How names in old entries are pseudonymised without breaking the chain is an open question for Phase 7.
+- GDPR erasure vs. audit retention: the audit log keeps actor ids, not content. How names in old entries are pseudonymised without breaking the chain is an open question with governance (ADR 0023).

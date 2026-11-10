@@ -1,6 +1,6 @@
 # 0008 · One write path for configuration
 
-Status: accepted · 2026-10-30 · Phase 0
+Status: accepted · 2026-10-30
 
 ## Decision
 
@@ -13,7 +13,7 @@ Status: accepted · 2026-10-30 · Phase 0
 
 A worker job (`veyntora.relay_outbox`, every 10 s) publishes outbox rows with `NOTIFY veyntora_config` so graphs, workers and the scheduler can reload.
 
-Pipeline specs are versioned as whole documents (`pipeline_versions`). Other config rows keep their history in the audit log; one-click rollback (Phase 6/7) re-applies an audit entry's `before` through the same service.
+Pipeline specs are versioned as whole documents (`pipeline_versions`). Other config rows keep their history in the audit log; one-click rollback (ADR 0022, 0023) re-applies an audit entry's `before` through the same service.
 
 ## Why an outbox
 

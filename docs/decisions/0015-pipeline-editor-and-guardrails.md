@@ -1,6 +1,6 @@
-# 0015 · Pipeline editor and guardrails (Phase 2, part 1)
+# 0015 · Pipeline editor and guardrails
 
-Status: accepted · 2026-10-30 · Phase 2
+Status: accepted · 2026-10-30
 
 ## Pipeline editor
 
@@ -8,7 +8,7 @@ Status: accepted · 2026-10-30 · Phase 2
 - **One form for all:** a single form is driven by field descriptors (`apps/web/src/lib/pipeline.ts`), with the generated `PipelineSpec` types.
 - **Saving:** a save replaces the draft (`If-Match`: chatbot version) and is audited.
 - **Publishing:** the side panel lists what still blocks publishing, and Publish uses the API's checks.
-- **Agent and Router:** these settings are saved now; their runtime arrives in Phase 3, and the pages say so.
+- **Agent and Router:** these settings are saved now; their runtime arrives with the agent (ADR 0018–0019), and the pages say so.
 - **Errors:** the API's validation reasons are shown to the user as written.
 
 ## Retrieval settings that were stored but not applied
@@ -16,7 +16,7 @@ Status: accepted · 2026-10-30 · Phase 2
 - **Metadata filter:** a strict language, `key = value` and `key in [a, b]` joined by AND (`veyntora_spec.filters`). Keys are limited to indexed payload fields (`language`, `source_id`, `document_id`). The filter can only narrow a search: `source_id` is intersected with the chatbot's own sources, and permission filters are always added. Invalid filters are refused when the draft is saved.
 - **Minimum matching terms:** candidates must contain at least N distinct words of the question (compared by 5-letter prefix, as in grounding).
 - **Semantic chunking:** sections are split where neighbouring sentences stop being similar (cosine over the pipeline's own embeddings) or before the size limit. The threshold is part of the index profile only for semantic chunking, so other profiles keep their keys.
-- **German compound splitting:** not applied in part 1; applied since Phase 3 with an own splitter built from the documents' vocabulary (ADR 0018).
+- **German compound splitting:** not applied in part 1; applied since ADR 0018, with an own splitter built from the documents' vocabulary.
 
 ## Guardrails (product owner: external PII API, Llama Guard via API)
 

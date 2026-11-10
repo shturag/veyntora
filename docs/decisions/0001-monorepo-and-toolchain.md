@@ -1,6 +1,6 @@
 # 0001 · Monorepo and toolchain
 
-Status: accepted · 2026-10-30 · Phase 0
+Status: accepted · 2026-10-30
 
 ## Decision
 

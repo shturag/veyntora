@@ -1,6 +1,6 @@
 # 0018 · German compound splitting from the documents' vocabulary
 
-Status: accepted · 2026-10-31 · Phase 3 (open item from Phase 2)
+Status: accepted · 2026-10-31
 
 ## Decision (product owner)
 

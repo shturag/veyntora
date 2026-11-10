@@ -1,6 +1,6 @@
 # 0004 · Secrets are write-only
 
-Status: accepted · 2026-10-30 · Phase 0
+Status: accepted · 2026-10-30
 
 ## Decision
 
@@ -11,7 +11,7 @@ Status: accepted · 2026-10-30 · Phase 0
   2. The API's OpenBao token has policy `veyntora-api` with no `read` on `kv/data/*` or `kv/metadata/*` (integration test: write 200, read 403).
 - Graphs and workers get a separate token (`veyntora-runtime`) that can read but not write.
 - In compose, each token is in its own volume. Only the init job mounts the root token and unseal key.
-- A shared scrubber (`veyntora_providers.scrub`) removes secrets by key name and by shape (JWT, Bearer, `sk-…`, Vault tokens, AWS keys, Slack tokens, Veyntora app keys) from logs, audit before/after values and, from Phase 1, Langfuse traces.
+- A shared scrubber (`veyntora_providers.scrub`) removes secrets by key name and by shape (JWT, Bearer, `sk-…`, Vault tokens, AWS keys, Slack tokens, Veyntora app keys) from logs, audit before/after values and, since document answers (ADR 0010–0014), Langfuse traces.
 
 ## Production
 
@@ -19,4 +19,4 @@ OpenBao runs as a 3-node raft cluster with TLS and auto-unseal. Services authent
 
 ## Later phases
 
-Rotation with a grace period (`previous_secret_ref`, `previous_secret_valid_until`) and expiry alerts 14 days ahead arrive with Providers (Phase 2).
+Rotation with a grace period (`previous_secret_ref`, `previous_secret_valid_until`) and expiry alerts 14 days ahead arrive with the Providers page (ADR 0015–0017).

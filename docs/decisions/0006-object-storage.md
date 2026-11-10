@@ -9,9 +9,9 @@ The brief names MinIO. MinIO's community edition no longer ships images: `minio/
 ## Decision
 
 - Veyntora talks to object storage only through the **S3 API** (aioboto3), with endpoint, region, bucket and credentials as configuration.
-- **Production (Helm):** no bundled object store. Customers provide S3 (AWS S3, Ceph RGW, NetApp StorageGRID, …). The WORM audit bucket (Phase 7) needs S3 Object Lock.
+- **Production (Helm):** no bundled object store. Customers provide S3 (AWS S3, Ceph RGW, NetApp StorageGRID, …). The WORM audit bucket (ADR 0023) needs S3 Object Lock.
 - **Local development (compose):** SeaweedFS 4.51 (Apache-2.0) with one identity per bucket (`veyntora`, `langfuse`), each limited to its own bucket.
 
 ## Consequences
 
-Contract tests for storage run against SeaweedFS in CI. Object-lock behaviour is verified against the customer's store during Phase 7 acceptance.
+Contract tests for storage run against SeaweedFS in CI. Object-lock behaviour is verified against the customer's store when the governance work (ADR 0023) is accepted.

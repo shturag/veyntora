@@ -21,7 +21,7 @@ What the design relies on, so a report can say which promise breaks:
 - **Data rules per chatbot.** External providers, traces and answers without documents are off unless allowed; personal data can be masked before anything leaves the network.
 - **A tamper-evident audit log** with a hash chain and write-once archive.
 
-The architecture decisions are in [docs/adr](docs/adr/README.md); ADR 0004 covers secrets and ADR 0005 authorization.
+The architecture decisions are in [docs/decisions](docs/decisions/README.md); ADR 0004 covers secrets and ADR 0005 authorization.
 
 ## Running it safely
 
