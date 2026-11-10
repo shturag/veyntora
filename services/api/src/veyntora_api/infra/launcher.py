@@ -104,6 +104,7 @@ class Launcher:
         self.token_dir = Path(tempfile.mkdtemp(prefix="veyntora-"))
         self.last_renew = time.monotonic()
         self.tail: deque[str] = deque(maxlen=30)
+        self.echo: threading.Thread | None = None
         # Why the service could not be started for a version (OpenBao unreachable, ...).
         self.error: tuple[str | None, str] | None = None
         self.error_at = 0.0
@@ -183,7 +184,8 @@ class Launcher:
         )
         if capture:
             self.tail.clear()
-            threading.Thread(target=self._echo, daemon=True).start()
+            self.echo = threading.Thread(target=self._echo, daemon=True)
+            self.echo.start()
         self.running = plan
 
     def _echo(self) -> None:
@@ -211,6 +213,10 @@ class Launcher:
         return code
 
     def bootstrap_error(self) -> str:
+        # The child has exited; let the echo thread read its last lines first (on a slow
+        # machine they would be missing and the real error lost).
+        if self.echo is not None:
+            self.echo.join(timeout=5)
         lines = [x for x in self.tail if x]
         errors = [x for x in lines if "error" in x.lower()]
         return scrub((errors or lines or ["bootstrap failed"])[-1])
