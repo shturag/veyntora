@@ -69,6 +69,7 @@ from veyntora_workers.connectors.connected import close as close_reader
 from veyntora_workers.connectors.connected import reader_for
 from veyntora_workers.connectors.listing import resync_readers, sync_listing
 from veyntora_workers.connectors.sync import resync_sharepoint_acl, sync_sharepoint
+from veyntora_workers.titles import best_title
 
 log = structlog.get_logger()
 
@@ -382,7 +383,7 @@ class Ingestor:
         chunks = await _chunks(profile, parsed, embedder, spent)
         if not chunks:
             raise ParseFailedError("no text extracted")
-        title = parsed.title if parsed.title and parsed.title != doc.path else doc.title
+        title = best_title(parsed.title, doc.path, doc.title)
         doc.title = (title or doc.path)[:1024]
         doc.language = parsed.language or detect_language(" ".join(c.text for c in chunks))
 

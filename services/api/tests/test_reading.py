@@ -16,6 +16,7 @@ from veyntora_spec.extraction import ExtractionMethod, ExtractionSpec, FileFilte
 from veyntora_workers import textlayer
 from veyntora_workers.connectors.listing import sync_listing
 from veyntora_workers.connectors.website import WebsiteReader
+from veyntora_workers.titles import best_title
 
 from tests.test_connectors import PAGES, SITE, _site, _website
 from tests.test_fast_rag import Authz
@@ -264,3 +265,19 @@ async def test_chunks_no_chatbot_needs_are_removed_after_a_grace_period(world: W
     assert await ing.prune_unused() == 0, "kept within the grace period (rollbacks)"
     assert await ing.prune_unused(grace=timedelta(0)) == 1
     assert {p.payload["profile"] for p in world.vectors.of(doc.id)} == {new}
+
+
+def test_titles_that_are_not_titles_are_replaced() -> None:
+    path = "Library/Agentic_AI/22_Reflexion_Language_Agents_with_Verbal_Reinforcement_Learning.pdf"
+    named = "Reflexion Language Agents with Verbal Reinforcement Learning"
+    assert best_title("Noah Shinn", path, "x.pdf") == named
+    assert best_title("Abstract", path, "x.pdf") == named
+    authors = "Timo Schick Jane Dwivedi-Yu Roberto Dessì† Roberta Raileanu"
+    assert best_title(authors, path, "x.pdf") == named
+    # Real titles stay, short ones too.
+    assert best_title("Attention Is All You Need", path, "x.pdf") == "Attention Is All You Need"
+    assert best_title("Deep Residual Learning", "a/resnet.pdf", "resnet.pdf") == (
+        "Deep Residual Learning"
+    )
+    # A name with nothing better to replace it keeps the current title.
+    assert best_title("Abstract", "a/notes.pdf", "notes.pdf") == "notes.pdf"
