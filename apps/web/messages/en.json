@@ -873,7 +873,8 @@
       "searxng": "SearXNG",
       "brave": "Brave Search",
       "tavily": "Tavily",
-      "sandbox": "Veyntora sandbox"
+      "sandbox": "Veyntora sandbox",
+      "tika": "Apache Tika"
     },
     "health": {
       "unknown": "Not tested",
@@ -4819,7 +4820,8 @@
       "docling": "Docling",
       "sandbox": "Code sandbox",
       "clamav": "Virus scanner (ClamAV)",
-      "email": "Email (SMTP)"
+      "email": "Email (SMTP)",
+      "tika": "Apache Tika"
     },
     "summaries": {
       "postgres": "Settings, chats and documents' metadata: three databases. The services use the runtime role; migrations run as the owner.",
@@ -4938,7 +4940,8 @@
       "docling": "Reads PDFs, Office files and scans",
       "sandbox": "Runs code for agents, without internet",
       "clamav": "Checks uploads for viruses",
-      "email": "Sends notifications and approvals"
+      "email": "Sends notifications and approvals",
+      "tika": "Reads almost any file type, fast, in-house"
     },
     "pages": {
       "providers": "Providers & keys",

@@ -873,7 +873,8 @@
       "searxng": "SearXNG",
       "brave": "Brave Search",
       "tavily": "Tavily",
-      "sandbox": "Veyntora-Sandbox"
+      "sandbox": "Veyntora-Sandbox",
+      "tika": "Apache Tika"
     },
     "health": {
       "unknown": "Nicht getestet",
@@ -4819,7 +4820,8 @@
       "docling": "Docling",
       "sandbox": "Code-Sandbox",
       "clamav": "Virenscanner (ClamAV)",
-      "email": "E-Mail (SMTP)"
+      "email": "E-Mail (SMTP)",
+      "tika": "Apache Tika"
     },
     "summaries": {
       "postgres": "Einstellungen, Chats und Metadaten der Dokumente: drei Datenbanken. Die Dienste nutzen die Laufzeitrolle; Migrationen laufen als Eigentümer.",
@@ -4938,7 +4940,8 @@
       "docling": "Liest PDFs, Office-Dateien und Scans",
       "sandbox": "Führt Code für Agenten aus, ohne Internet",
       "clamav": "Prüft Uploads auf Viren",
-      "email": "Versendet Benachrichtigungen und Freigaben"
+      "email": "Versendet Benachrichtigungen und Freigaben",
+      "tika": "Liest fast jedes Dateiformat, schnell, im Haus"
     },
     "pages": {
       "providers": "Anbieter & Schlüssel",

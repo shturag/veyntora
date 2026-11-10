@@ -147,9 +147,11 @@ Open the admin console from the account menu (bottom left). Short recordings of 
    | Language model (LLM) | Every chatbot: it writes the answers |
    | Embedding model | Chatbots that answer from documents |
    | Vector store (e.g. Qdrant) | Chatbots that answer from documents |
-   | Document parser (e.g. Docling) | Reading PDFs, Word files and pages |
+   | Document parser: Docling or Apache Tika | Reading PDFs, Word files and pages. **Docling** reads layout, tables and scans; **Apache Tika** reads almost any file type, fast (`docker run -p 9998:9998 apache/tika:4.2.0-full`, endpoint `http://host.docker.internal:9998`; the `-full` image adds OCR). Each data source chooses its reader under **How documents are read** |
    | Reranker | Optional: better ordering of search results |
-   | Vision model (VLM) | Optional: describes pictures and charts, and can read scans and forms. Choose it in the chatbot's **Pipeline → Ingestion**. Docling calls it itself, so start Docling with `DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true` |
+   | Vision model (VLM) | Optional: describes pictures and charts, and can read scans and forms. Choose it on the data source (**How documents are read**) or in the chatbot's **Pipeline → Ingestion**. Docling calls it itself, so start Docling with `DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true` |
+
+   Websites built by scripts need the optional browser service: `docker compose --profile browser up -d`, and `VEY_BROWSER_URL=ws://browser:3000/` in `.env` (then `make up`). Turn on **Render JavaScript** on the website source.
 
    Keys go straight to OpenBao and are never shown again; the page shows only their last 4 characters.
 3. **Connect a data source** under **Data sources → Connect data source**: SharePoint, Confluence, a file share, Nextcloud, S3, Git, a website, ServiceNow, Jira, a database, or files you upload. Sources with their own permissions keep them. Wait until the documents show **Indexed**.
