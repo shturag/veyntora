@@ -4,7 +4,7 @@
 
 FROM ghcr.io/astral-sh/uv:0.13.6 AS uv
 
-FROM python:3.12.16-slim-trixie AS build
+FROM python:3.15.0-slim-trixie AS build
 COPY --from=uv /uv /usr/local/bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -30,7 +30,7 @@ COPY services/workers services/workers
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable --package veyntora-workers
 
-FROM python:3.12.16-slim-trixie
+FROM python:3.15.0-slim-trixie
 # Security updates published after the base image was built (CI fails on fixable HIGH/CRITICAL).
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 RUN groupadd --gid 10001 app && useradd --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app \
