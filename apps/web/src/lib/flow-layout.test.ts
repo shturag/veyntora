@@ -77,10 +77,10 @@ describe("publish checks in people's words", () => {
       kind: "missing",
       section: "ingestion",
       field: "parser_instance_id",
-      href: "/admin/chatbots/b/settings/ingestion",
+      href: "/admin/chatbots/b/settings",
     });
     expect(describeProblem("retrieval.vector_store_instance_id is not set", "b")).toMatchObject({
-      href: "/admin/chatbots/b/settings",
+      href: "/admin/chatbots/b/settings/retrieval",
     });
     expect(describeProblem("generation.system_prompt is empty", "b")).toMatchObject({
       kind: "known",

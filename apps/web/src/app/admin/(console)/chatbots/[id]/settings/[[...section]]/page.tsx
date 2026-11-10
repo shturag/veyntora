@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { PipelinePage } from "@/components/pipeline/pipeline-page";
 import { screenMetadata } from "@/components/screen-placeholder";
@@ -14,6 +14,8 @@ export default async function Page({
 }) {
   const { id, section } = await params;
   const path = section?.join("/") ?? "";
+  // Ingestion, step 1, is the first page; its old address still leads there.
+  if (path === "ingestion") redirect(`/admin/chatbots/${id}/settings`);
   const found = SECTIONS.find((s) => s.path === path);
   if (!found) notFound();
   return <PipelinePage botId={id} sectionKey={found.key} />;

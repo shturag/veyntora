@@ -11,7 +11,11 @@ test.describe("pipeline editor as a platform admin", () => {
     const first = page.getByRole("main").getByRole("link").first();
     if ((await first.count()) === 0) test.skip(true, "no chatbots in this database");
     await first.click();
-    await expect(page.getByRole("navigation", { name: "Pipeline steps" })).toBeVisible();
+    const steps = page.getByRole("navigation", { name: "Pipeline steps" });
+    await expect(steps).toBeVisible();
+    // Ingestion, step 1, opens first.
+    await expect(page.getByRole("heading", { level: 2, name: "Ingestion" })).toBeVisible();
+    await steps.getByRole("link", { name: /Retrieval/ }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Retrieval" })).toBeVisible();
 
     const form = page.getByRole("form", { name: "Retrieval" });

@@ -34,7 +34,7 @@ export type Field =
 type Section = {
   key: SectionKey;
   spec: keyof PipelineSpec;
-  /** URL segment under /admin/chatbots/[id]/settings; retrieval is the first page. */
+  /** URL segment under /admin/chatbots/[id]/settings; ingestion (step 1) is the first page. */
   path: string;
   /** Runtime arrives in this phase; settings are saved now. */
   runtimePhase?: number;
@@ -45,7 +45,7 @@ export const SECTIONS: readonly Section[] = [
   {
     key: "ingestion",
     spec: "ingestion",
-    path: "ingestion",
+    path: "",
     fields: [
       { name: "parser_instance_id", kind: "instance", capability: "parser" },
       { name: "embedding_instance_id", kind: "instance", capability: "embedding" },
@@ -75,7 +75,7 @@ export const SECTIONS: readonly Section[] = [
   {
     key: "retrieval",
     spec: "retrieval",
-    path: "",
+    path: "retrieval",
     fields: [
       { name: "enabled", kind: "toggle" },
       { name: "vector_store_instance_id", kind: "instance", capability: "vector_store" },
