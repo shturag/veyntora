@@ -505,6 +505,20 @@ async def _attachments_of(db: DbSession, bot_id: UUID) -> list[svc.Attachment]:
     ]
 
 
+async def _check_readable(
+    state: State, principal: Principal, attachments: list[svc.Attachment]
+) -> None:
+    """Attaching a source needs read access to it, as on the Knowledge tab."""
+    authz = state.require_authz()
+    for item in attachments:
+        ref = f"source:{item.source_id}"
+        if not (
+            await authz.check(principal.fga, "manager", ref)
+            or await authz.check(principal.fga, "reader", ref)
+        ):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, f"No access to source {item.source_id}")
+
+
 class DuplicateIn(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     slug: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{1,63}$")
@@ -556,9 +570,9 @@ async def duplicate(
             change_note=f"copied from {original.name}",
         )
         if data.copy_sources:
-            await svc.set_sources(
-                db, ctx, copy, await _attachments_of(db, original.id), principal.user_id
-            )
+            attachments = await _attachments_of(db, original.id)
+            await _check_readable(state, principal, attachments)
+            await svc.set_sources(db, ctx, copy, attachments, principal.user_id)
         if data.copy_access:
             grants = await svc.read_access(authz, original.id)
             mine = svc.Grant(principal=f"user:{principal.user_id}", role="owner")
@@ -619,17 +633,7 @@ async def copy_from(
             current = await _attachments_of(db, bot.id)
             have = {a.source_id for a in current}
             new = [a for a in await _attachments_of(db, original.id) if a.source_id not in have]
-            # Attaching a source needs read access to it, as on the Knowledge tab.
-            authz = state.require_authz()
-            for item in new:
-                ref = f"source:{item.source_id}"
-                if not (
-                    await authz.check(principal.fga, "manager", ref)
-                    or await authz.check(principal.fga, "reader", ref)
-                ):
-                    raise HTTPException(
-                        status.HTTP_403_FORBIDDEN, f"No access to source {item.source_id}"
-                    )
+            await _check_readable(state, principal, new)
             if new:
                 await svc.set_sources(db, ctx, bot, [*current, *new], principal.user_id)
             added = len(new)

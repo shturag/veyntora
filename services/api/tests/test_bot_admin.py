@@ -183,3 +183,30 @@ async def test_everything_typed_when_creating_can_change_later(db: AsyncSession)
         await insights.copy_from(
             other.id, insights.CopyFromIn(from_id=other.id, sources=True), me, state, db, CTX
         )
+
+
+class NoSourceAccess(Authz):
+    async def check(self, user: str, relation: str, obj: str) -> bool:
+        return not obj.startswith("source:")
+
+
+async def test_copying_sources_needs_read_access_to_them(db: AsyncSession) -> None:
+    w = await World(db).setup()
+    bot, _ = await _bot_with_source(w)
+    await bots.save_draft(db, CTX, bot, w.spec(), expected_version=None)
+    state: Any = State(NoSourceAccess())
+    me = _principal(w.user)
+    with pytest.raises(Exception, match="No access to source"):
+        await insights.duplicate(
+            bot.id, insights.DuplicateIn(name="Copy", slug="copy-no-read"), me, state, db, CTX
+        )
+    # Without its sources the copy is fine.
+    made = await insights.duplicate(
+        bot.id,
+        insights.DuplicateIn(name="Copy", slug="copy-settings", copy_sources=False),
+        me,
+        state,
+        db,
+        CTX,
+    )
+    assert made["id"]
