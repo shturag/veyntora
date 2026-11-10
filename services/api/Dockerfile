@@ -2,7 +2,7 @@
 # Image for the API, the migrate/bootstrap job, Celery workers and the scheduler.
 # Build from the repository root: docker build -f services/api/Dockerfile .
 
-FROM ghcr.io/astral-sh/uv:0.13.6 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.7 AS uv
 
 FROM python:3.12.16-slim-trixie AS build
 COPY --from=uv /uv /usr/local/bin/uv
