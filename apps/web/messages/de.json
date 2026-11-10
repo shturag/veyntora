@@ -3525,7 +3525,16 @@
     },
     "subtitle": "Freigaben, die auf Sie warten, Antworten von Fachleuten, Laufberichte und Wissenshinweise.",
     "emptyHint": "Wenn eine Freigabe auf Sie wartet, eine Fachperson Ihre Frage beantwortet oder ein Bericht fertig ist, erscheint es hier.",
-    "unread": "Ungelesen"
+    "unread": "Ungelesen",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "filter": "Anzeigen",
+    "all": "Alle",
+    "unreadTab": "Ungelesen",
+    "allRead": "Alles gelesen",
+    "allReadHint": "Keine ungelesenen Benachrichtigungen. Frühere finden Sie unter Alle.",
+    "list": "Benachrichtigungen",
+    "alsoSentLabel": "Auch gesendet:"
   },
   "evaluation": {
     "title": "Evaluierung",

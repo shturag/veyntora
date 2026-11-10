@@ -3525,7 +3525,16 @@
     },
     "subtitle": "Approvals waiting for you, expert replies, run reports and knowledge issues.",
     "emptyHint": "When an approval waits for you, an expert answers your question or a report is ready, it appears here.",
-    "unread": "Unread"
+    "unread": "Unread",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "filter": "Show",
+    "all": "All",
+    "unreadTab": "Unread",
+    "allRead": "You're all caught up",
+    "allReadHint": "No unread notifications. Earlier ones are under All.",
+    "list": "Notifications",
+    "alsoSentLabel": "Also sent:"
   },
   "evaluation": {
     "title": "Evaluation",
