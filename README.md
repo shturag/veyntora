@@ -18,6 +18,10 @@ Open-source, self-hosted enterprise knowledge platform. Employees ask questions 
 
 ## See it
 
+**The whole tour** in about 5 minutes: the chat, the admin console, and every area from simple chatbots to the audit log.
+
+![The Veyntora tour](docs/walkthroughs/tour.gif)
+
 **Ask a question.** Employees choose an assistant and get answers with numbered sources from documents they may read.
 
 ![Chat for employees](docs/walkthroughs/chat.gif)

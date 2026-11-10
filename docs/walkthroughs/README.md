@@ -2,6 +2,14 @@
 
 Short screen recordings of Veyntora, made from a running install. They fill in forms to show them but never save, create or publish anything.
 
+## The whole tour
+
+All 20 walkthroughs in one recording (about 5 minutes), each after a title card: the chat, the admin console, then chapters 1 to 18.
+
+![The Veyntora tour](tour.gif)
+
+The same walkthroughs one by one:
+
 ## Build chatbots
 
 | GIF | Shows |
@@ -55,4 +63,4 @@ With the stack running:
 make walkthroughs
 ```
 
-This signs in the e2e users, drives the UI with Playwright (`apps/web/scripts/record-walkthroughs.mjs`) and turns the frames into GIFs with Pillow (`scripts/walkthrough-gifs.py`). Steps for something an install does not have are skipped. The recordings show what is on the install, so record them on one without real people's data.
+This signs in the e2e users, drives the UI with Playwright (`apps/web/scripts/record-walkthroughs.mjs`) and turns the frames into GIFs with Pillow (`scripts/walkthrough-gifs.py`), one per walkthrough and `tour.gif` with all of them. Steps for something an install does not have are skipped. The recordings show what is on the install, so record them on one without real people's data.

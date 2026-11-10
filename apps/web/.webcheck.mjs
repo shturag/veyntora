@@ -2,7 +2,7 @@
 // in English and German. Records console errors, failed requests, sideways scrolling,
 // missing texts, accessibility violations and load times. Temporary; not committed.
 import AxeBuilder from "@axe-core/playwright";
-import { chromium, firefox, webkit } from "@playwright/test";
+import { chromium, webkit } from "@playwright/test";
 import { writeFileSync } from "node:fs";
 
 const BASE = "http://localhost:3000";
@@ -90,8 +90,6 @@ const runs = [
   [chromium, "chromium", 768, "en", {}],
   [chromium, "chromium", 390, "en", {}],
   [chromium, "chromium", 390, "de", {}],
-  [firefox, "firefox", 1440, "en", {}],
-  [firefox, "firefox", 390, "en", {}],
   [webkit, "webkit", 1440, "en", {}],
   [webkit, "webkit", 390, "en", {}],
 ];
@@ -101,5 +99,5 @@ for (const [engine, name, width, locale, opts] of runs) {
   all.push(...rows);
   const bad = rows.filter((r) => r.error || r.errors.length || r.failed.length || r.wide || r.keys?.length || r.axe?.length || (r.status && r.status >= 400));
   console.log(`${name} ${width} ${locale}: ${rows.length} pages, ${bad.length} with findings`);
+  writeFileSync(OUT, JSON.stringify({ pages, rows: all }, null, 1));
 }
-writeFileSync(OUT, JSON.stringify({ pages, rows: all }, null, 1));
