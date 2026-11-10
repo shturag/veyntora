@@ -39,6 +39,8 @@ type Section = {
   /** Runtime arrives in this phase; settings are saved now. */
   runtimePhase?: number;
   fields: readonly Field[];
+  /** Fields shown together under a sub-heading (pipeline.groups.<key>), in this order. */
+  groups: readonly (readonly [string, readonly string[]])[];
 };
 
 export const SECTIONS: readonly Section[] = [
@@ -71,6 +73,30 @@ export const SECTIONS: readonly Section[] = [
         locked: ["acl"],
       },
     ],
+    groups: [
+      [
+        "reading",
+        [
+          "parser_instance_id",
+          "vision_instance_id",
+          "ocr",
+          "extract_tables",
+          "describe_images",
+          "vision_pages",
+        ],
+      ],
+      [
+        "chunking",
+        [
+          "chunking",
+          "parent_chunk",
+          "chunk_size_tokens",
+          "chunk_overlap_tokens",
+          "semantic_similarity_threshold",
+        ],
+      ],
+      ["index", ["embedding_instance_id", "metadata"]],
+    ],
   },
   {
     key: "retrieval",
@@ -89,6 +115,21 @@ export const SECTIONS: readonly Section[] = [
       { name: "metadata_filter", kind: "text" },
       { name: "tool_ids", kind: "tool_ids" },
     ],
+    groups: [
+      ["source", ["enabled", "vector_store_instance_id", "embedding_instance_id"]],
+      [
+        "search",
+        [
+          "search_type",
+          "top_k",
+          "dense_weight",
+          "sparse_min_term_match",
+          "german_compound_splitting",
+          "query_rewrite",
+        ],
+      ],
+      ["filters", ["metadata_filter", "tool_ids"]],
+    ],
   },
   {
     key: "rerank",
@@ -103,6 +144,10 @@ export const SECTIONS: readonly Section[] = [
       { name: "min_score", kind: "number", min: 0, max: 1, step: 0.05 },
       { name: "max_chunks_per_document", kind: "number", min: 1, max: 50, optional: true },
       { name: "prefer_newer", kind: "toggle" },
+    ],
+    groups: [
+      ["model", ["enabled", "reranker_instance_id", "fallback", "fallback_instance_id"]],
+      ["selection", ["top_n", "min_score", "max_chunks_per_document", "prefer_newer"]],
     ],
   },
   {
@@ -120,6 +165,12 @@ export const SECTIONS: readonly Section[] = [
       { name: "suggest_follow_ups", kind: "toggle" },
       { name: "small_talk", kind: "toggle" },
     ],
+    groups: [
+      ["model", ["llm_instance_id", "temperature", "max_answer_tokens", "answer_language"]],
+      ["instructions", ["system_prompt"]],
+      ["grounding", ["citations", "if_ungrounded"]],
+      ["extras", ["suggest_follow_ups", "small_talk"]],
+    ],
   },
   {
     key: "agent",
@@ -132,6 +183,11 @@ export const SECTIONS: readonly Section[] = [
       { name: "max_steps", kind: "number", min: 1, max: 50 },
       { name: "timeout_seconds", kind: "number", min: 5, max: 3600 },
       { name: "token_budget", kind: "number", min: 1000, max: 2000000, step: 1000 },
+    ],
+    groups: [
+      ["model", ["llm_instance_id"]],
+      ["tools", ["tools", "lookup_first"]],
+      ["limits", ["max_steps", "timeout_seconds", "token_budget"]],
     ],
   },
   {
@@ -148,6 +204,20 @@ export const SECTIONS: readonly Section[] = [
       { name: "agent_when_low_confidence", kind: "toggle" },
       { name: "escalate_below", kind: "number", min: 0, max: 1, step: 0.05 },
       { name: "instructions", kind: "textarea", rows: 4 },
+    ],
+    groups: [
+      ["modes", ["allowed_modes", "default_mode", "router_instance_id"]],
+      [
+        "escalation",
+        [
+          "agent_when_live_data",
+          "agent_when_multi_source",
+          "agent_when_action",
+          "agent_when_low_confidence",
+          "escalate_below",
+        ],
+      ],
+      ["instructions", ["instructions"]],
     ],
   },
   {
@@ -186,6 +256,18 @@ export const SECTIONS: readonly Section[] = [
       { name: "no_promises", kind: "toggle" },
       { name: "blocked_message", kind: "textarea", rows: 2 },
     ],
+    groups: [
+      [
+        "models",
+        ["input_guardrail_instance_id", "output_guardrail_instance_id", "pii_instance_id", "pii"],
+      ],
+      ["rules", ["injection", "blocked_topic_action", "blocked_topics"]],
+      [
+        "grounding",
+        ["groundedness_threshold", "groundedness_action", "citation_required", "no_promises"],
+      ],
+      ["message", ["blocked_message"]],
+    ],
   },
   {
     key: "chat",
@@ -207,6 +289,11 @@ export const SECTIONS: readonly Section[] = [
         capability: "code_interpreter",
         optional: true,
       },
+    ],
+    groups: [
+      ["models", ["llm_instance_ids"]],
+      ["tools", ["web_search_instance_id", "code_instance_id"]],
+      ["options", ["thinking", "attachments"]],
     ],
   },
 ];

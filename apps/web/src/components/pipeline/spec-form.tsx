@@ -1,7 +1,7 @@
 "use client";
 
 import type { PipelineSpec } from "@veyntora/spec";
-import { Button } from "@veyntora/ui";
+import { Badge, Button } from "@veyntora/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -23,6 +23,28 @@ export type ProviderOption = {
 const input =
   "h-10 w-full rounded-md border border-line-strong bg-surface px-3 text-sm disabled:opacity-60";
 const label = "flex flex-col gap-1 text-[13px] font-medium";
+
+// Fields that take the whole row: long text and lists of choices.
+const WIDE = new Set<Field["kind"]>([
+  "textarea",
+  "list",
+  "instances",
+  "tools",
+  "tool_ids",
+  "multi",
+]);
+
+/** A group's fields in order; switches next to each other become one list. */
+function blocks(fields: readonly Field[]): (Field | Field[])[] {
+  const out: (Field | Field[])[] = [];
+  for (const f of fields) {
+    const last = out.at(-1);
+    if (f.kind !== "toggle") out.push(f);
+    else if (Array.isArray(last)) last.push(f);
+    else out.push([f]);
+  }
+  return out;
+}
 
 function read(field: Field, form: FormData): unknown {
   const raw = form.get(field.name);
@@ -104,6 +126,12 @@ export function SpecForm({
     }
   }
 
+  const byName = new Map(sec.fields.map((f) => [f.name, f]));
+  const groups = sec.groups.map(([key, names]) => ({
+    key,
+    fields: names.map((n) => byName.get(n)).filter((f): f is Field => f !== undefined),
+  }));
+
   function control(f: Field) {
     const v = values[f.name];
     const id = `f-${f.name}`;
@@ -116,16 +144,20 @@ export function SpecForm({
     ) : null;
     switch (f.kind) {
       case "toggle":
+        // A row of the group's list of switches.
         return (
-          <label key={f.name} className="flex items-start gap-2 text-sm">
+          <label
+            key={f.name}
+            className="flex cursor-pointer items-start gap-3 px-4 py-3 text-sm hover:bg-sunken/50"
+          >
             <input
               type="checkbox"
               name={f.name}
               defaultChecked={Boolean(v)}
               disabled={disabled}
-              className="mt-1"
+              className="mt-0.5 size-4 shrink-0"
             />
-            <span className="flex flex-col gap-0.5">
+            <span className="flex min-w-0 flex-col gap-0.5">
               <span className="font-medium">{title}</span>
               {help}
             </span>
@@ -233,25 +265,31 @@ export function SpecForm({
       case "multi": {
         const chosen = (v as string[] | undefined) ?? [];
         return (
-          <fieldset key={f.name} className="m-0 flex flex-col gap-1.5 border-0 p-0">
-            <legend className="mb-1 text-[13px] font-medium">{title}</legend>
-            {f.options.map((o) => {
-              const locked = f.locked?.includes(o);
-              return (
-                <label key={o} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    name={f.name}
-                    value={o}
-                    defaultChecked={chosen.includes(o) || locked}
-                    disabled={disabled || locked}
-                  />
-                  {locked ? <input type="hidden" name={f.name} value={o} /> : null}
-                  {t(`o.${o}`)}
-                  {locked ? <span className="text-xs text-fg-muted">{t("locked")}</span> : null}
-                </label>
-              );
-            })}
+          <fieldset key={f.name} className="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0">
+            <legend className="mb-1.5 text-[13px] font-medium">{title}</legend>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-2">
+              {f.options.map((o) => {
+                const locked = f.locked?.includes(o);
+                return (
+                  <label
+                    key={o}
+                    className={`flex items-center gap-2.5 rounded-md border border-line px-3 py-2 text-sm ${locked ? "bg-sunken/60 text-fg-secondary" : "cursor-pointer hover:bg-sunken/50"}`}
+                  >
+                    <input
+                      type="checkbox"
+                      name={f.name}
+                      value={o}
+                      defaultChecked={chosen.includes(o) || locked}
+                      disabled={disabled || locked}
+                      className="size-4 shrink-0"
+                    />
+                    {locked ? <input type="hidden" name={f.name} value={o} /> : null}
+                    <span className="min-w-0 flex-1">{t(`o.${o}`)}</span>
+                    {locked ? <span className="text-xs text-fg-muted">{t("locked")}</span> : null}
+                  </label>
+                );
+              })}
+            </div>
             {help}
           </fieldset>
         );
@@ -268,42 +306,41 @@ export function SpecForm({
           (p) => p.capability === f.capability && p.enabled && p.id !== fixed?.id,
         );
         return (
-          // A list of providers: the whole row, so long names do not run into the next field.
-          <fieldset
-            key={f.name}
-            className="col-span-full m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0"
-          >
-            <legend className="mb-1 text-[13px] font-medium">{title}</legend>
-            {fixed ? (
-              <label className="flex min-w-0 items-start gap-2 text-sm text-fg-secondary">
-                <input type="checkbox" checked disabled className="mt-1" />
-                <span className="min-w-0 break-words">
-                  {fixed.name}
-                  <span className="text-xs text-fg-muted"> · {t("defaultModel")}</span>
-                </span>
-              </label>
-            ) : null}
+          <fieldset key={f.name} className="m-0 flex min-w-0 flex-col gap-1.5 border-0 p-0">
+            <legend className="mb-1.5 text-[13px] font-medium">{title}</legend>
             {options.length === 0 && !fixed ? (
               <p className="m-0 text-sm text-fg-muted">{t("none")}</p>
             ) : (
-              options.map((p) => (
-                <label key={p.id} className="flex min-w-0 items-start gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    name={f.name}
-                    value={p.id}
-                    defaultChecked={chosen.includes(p.id)}
-                    disabled={disabled}
-                    className="mt-1"
-                  />
-                  <span className="min-w-0 break-words">
-                    {p.name}
-                    {p.hosting === "external" ? (
-                      <span className="text-xs text-fg-muted"> · {t("external")}</span>
-                    ) : null}
-                  </span>
-                </label>
-              ))
+              <div className="flex flex-col divide-y divide-line rounded-md border border-line">
+                {fixed ? (
+                  <label className="flex min-w-0 items-center gap-3 px-4 py-2.5 text-sm">
+                    <input type="checkbox" checked disabled className="size-4 shrink-0" />
+                    <span className="min-w-0 flex-1 font-mono text-[13px] break-words">
+                      {fixed.name}
+                    </span>
+                    <Badge tone="neutral">{t("defaultModel")}</Badge>
+                  </label>
+                ) : null}
+                {options.map((p) => (
+                  <label
+                    key={p.id}
+                    className="flex min-w-0 cursor-pointer items-center gap-3 px-4 py-2.5 text-sm hover:bg-sunken/50"
+                  >
+                    <input
+                      type="checkbox"
+                      name={f.name}
+                      value={p.id}
+                      defaultChecked={chosen.includes(p.id)}
+                      disabled={disabled}
+                      className="size-4 shrink-0"
+                    />
+                    <span className="min-w-0 flex-1 font-mono text-[13px] break-words">
+                      {p.name}
+                    </span>
+                    {p.hosting === "external" ? <Badge tone="amber">{t("external")}</Badge> : null}
+                  </label>
+                ))}
+              </div>
             )}
             {help}
           </fieldset>
@@ -392,9 +429,37 @@ export function SpecForm({
             {t("runtimeLater", { phase: sec.runtimePhase })}
           </p>
         ) : null}
-        <div className="grid grid-cols-2 items-start gap-x-6 gap-y-5 max-[900px]:grid-cols-1">
-          {sec.fields.map(control)}
-        </div>
+        {groups.map(({ key, fields }, i) => (
+          <section
+            key={key}
+            aria-labelledby={`group-${key}`}
+            className={`flex flex-col gap-4 ${i ? "border-t border-divider pt-5" : ""}`}
+          >
+            <h3
+              id={`group-${key}`}
+              className="m-0 text-xs font-semibold tracking-wide text-fg-muted uppercase"
+            >
+              {t(`groups.${key}`)}
+            </h3>
+            <div className="grid grid-cols-2 items-start gap-x-6 gap-y-5 max-[900px]:grid-cols-1">
+              {blocks(fields).map((b) =>
+                Array.isArray(b) ? (
+                  // Switches next to each other: one list, the whole row.
+                  <div
+                    key={b[0]!.name}
+                    className="col-span-full flex flex-col divide-y divide-line rounded-md border border-line"
+                  >
+                    {b.map(control)}
+                  </div>
+                ) : (
+                  <div key={b.name} className={WIDE.has(b.kind) ? "col-span-full" : "min-w-0"}>
+                    {control(b)}
+                  </div>
+                ),
+              )}
+            </div>
+          </section>
+        ))}
       </div>
       {canEdit ? (
         <footer className="flex flex-col gap-3 rounded-b-lg border-t border-line bg-sunken/50 px-6 py-4">

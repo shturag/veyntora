@@ -1382,7 +1382,7 @@
       },
       "describe_images": {
         "label": "Describe images",
-        "hint": "Pictures and charts get a description, so their content can be found. Uses the vision model below if one is chosen, otherwise the parser's own (slow without a GPU)."
+        "hint": "Pictures and charts get a description, so their content can be found. Uses the vision model above if one is chosen, otherwise the parser's own (slow without a GPU)."
       },
       "metadata": {
         "label": "Metadata on every chunk"
@@ -1674,7 +1674,28 @@
     "changeNoteHint": "For example: shorter answers for the help desk",
     "prevSection": "Previous: {name}",
     "nextSection": "Next: {name}",
-    "stepOf": "Step {n} of {total}"
+    "stepOf": "Step {n} of {total}",
+    "groups": {
+      "reading": "Reading documents",
+      "chunking": "Passages",
+      "index": "Index",
+      "source": "Where it searches",
+      "search": "How it searches",
+      "filters": "Filters and knowledge tools",
+      "model": "Model",
+      "selection": "What is kept",
+      "instructions": "Instructions",
+      "grounding": "Grounding",
+      "extras": "Extras",
+      "tools": "Tools",
+      "limits": "Limits",
+      "modes": "Answer modes",
+      "escalation": "When Auto uses the agent",
+      "models": "Models",
+      "rules": "Rules",
+      "message": "Message when blocked",
+      "options": "Options"
+    }
   },
   "playground": {
     "title": "Playground",

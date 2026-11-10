@@ -1382,7 +1382,7 @@
       },
       "describe_images": {
         "label": "Bilder beschreiben",
-        "hint": "Bilder und Diagramme erhalten eine Beschreibung, damit ihr Inhalt gefunden wird. Nutzt das Vision-Modell unten, wenn eines gewählt ist, sonst das des Parsers (ohne GPU langsam)."
+        "hint": "Bilder und Diagramme erhalten eine Beschreibung, damit ihr Inhalt gefunden wird. Nutzt das Vision-Modell oben, wenn eines gewählt ist, sonst das des Parsers (ohne GPU langsam)."
       },
       "metadata": {
         "label": "Metadaten an jedem Abschnitt"
@@ -1674,7 +1674,28 @@
     "changeNoteHint": "Zum Beispiel: kürzere Antworten für den Helpdesk",
     "prevSection": "Zurück: {name}",
     "nextSection": "Weiter: {name}",
-    "stepOf": "Schritt {n} von {total}"
+    "stepOf": "Schritt {n} von {total}",
+    "groups": {
+      "reading": "Dokumente lesen",
+      "chunking": "Abschnitte",
+      "index": "Index",
+      "source": "Wo gesucht wird",
+      "search": "Wie gesucht wird",
+      "filters": "Filter und Wissenswerkzeuge",
+      "model": "Modell",
+      "selection": "Was behalten wird",
+      "instructions": "Anweisungen",
+      "grounding": "Belegtheit",
+      "extras": "Extras",
+      "tools": "Werkzeuge",
+      "limits": "Grenzen",
+      "modes": "Antwortmodi",
+      "escalation": "Wann Auto den Agenten nutzt",
+      "models": "Modelle",
+      "rules": "Regeln",
+      "message": "Meldung bei Sperrung",
+      "options": "Optionen"
+    }
   },
   "playground": {
     "title": "Playground",
