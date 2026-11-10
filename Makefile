@@ -114,6 +114,10 @@ test-integration: ## Tests against the running stack (secrets policy); OpenBao f
 e2e: ## Playwright end-to-end tests against the running stack
 	$(PNPM) --filter @veyntora/web exec playwright test
 
+.PHONY: e2e-stack
+e2e-stack: ## Every end-to-end test on its own throwaway stack (own data and ports), removed afterwards
+	@scripts/e2e-stack.sh
+
 .PHONY: ci
 ci: lint typecheck test fga-test ## Everything CI runs before building images
 

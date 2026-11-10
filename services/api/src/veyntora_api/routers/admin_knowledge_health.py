@@ -21,6 +21,7 @@ from veyntora_api.core import audit
 from veyntora_api.db.models.chatbots import Chatbot
 from veyntora_api.db.models.identity import User
 from veyntora_api.db.models.knowledge import (
+    DataSource,
     Document,
     IssueKind,
     IssueStatus,
@@ -29,6 +30,7 @@ from veyntora_api.db.models.knowledge import (
 )
 from veyntora_api.db.models.providers import ProviderInstance
 from veyntora_api.knowledge import health
+from veyntora_api.knowledge.service import reindex_document
 
 router = APIRouter(prefix="/v1/admin/knowledge-health", tags=["admin: knowledge health"])
 
@@ -41,6 +43,29 @@ class IssueDocument(BaseModel):
     title: str
     updated: datetime | None
     excluded: bool
+    # Where to find and fix it: its source, path and original (None for an upload).
+    source_id: UUID | None = None
+    source_name: str | None = None
+    path: str = ""
+    url: str | None = None
+    status: str = ""
+    error: str | None = None
+
+
+async def _document(db: DbSession, d: Document) -> IssueDocument:
+    source = await db.get(DataSource, d.source_id)
+    return IssueDocument(
+        id=d.id,
+        title=d.title or d.path,
+        updated=d.source_updated_at,
+        excluded=d.excluded_at is not None,
+        source_id=d.source_id,
+        source_name=source.name if source else None,
+        path=d.path,
+        url=d.url,
+        status=d.status.value,
+        error=d.error,
+    )
 
 
 class IssueOut(BaseModel):
@@ -89,15 +114,7 @@ async def _issue(db: DbSession, row: KnowledgeIssue) -> IssueOut:
         status=row.status,
         summary=row.summary,
         details=row.details or {},
-        documents=[
-            IssueDocument(
-                id=d.id,
-                title=d.title or d.path,
-                updated=d.source_updated_at,
-                excluded=d.excluded_at is not None,
-            )
-            for d in docs
-        ],
+        documents=[await _document(db, d) for d in docs],
         owner=await _name(db, row.owner_id),
         chatbot=bot.name if bot else None,
         created_at=row.created_at,
@@ -362,6 +379,24 @@ async def include(document_id: UUID, _: Editor, db: DbSession, ctx: Ctx) -> Issu
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
     await health.include(db, ctx, doc)
     await db.commit()
-    return IssueDocument(
-        id=doc.id, title=doc.title or doc.path, updated=doc.source_updated_at, excluded=False
-    )
+    return await _document(db, doc)
+
+
+class DocumentInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    document_id: UUID
+
+
+@router.post("/issues/{issue_id}/reread", summary="Read and index a document of an issue again")
+async def reread(
+    issue_id: UUID, data: DocumentInput, principal: Editor, db: DbSession, ctx: Ctx
+) -> IssueDocument:
+    row = await _row(db, issue_id)
+    doc = await db.get(Document, data.document_id) if data.document_id in row.document_ids else None
+    if doc is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "choose a document of this issue"
+        )
+    await reindex_document(db, ctx, doc, principal.user_id)
+    await db.commit()
+    return await _document(db, doc)

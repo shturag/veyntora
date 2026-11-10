@@ -1,16 +1,19 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 
+// A separate stack (make e2e-stack) keeps its sign-ins apart from the install you use.
+const AUTH = process.env.E2E_AUTH_DIR ?? "e2e/.auth";
+
 export const USERS = {
   admin: {
     username: "admin",
     password: process.env.VEY_DEV_ADMIN_PASSWORD ?? "dev-admin",
-    state: "e2e/.auth/admin.json",
+    state: `${AUTH}/admin.json`,
   },
   employee: {
     username: "employee",
     password: process.env.VEY_DEV_EMPLOYEE_PASSWORD ?? "dev-employee",
-    state: "e2e/.auth/employee.json",
+    state: `${AUTH}/employee.json`,
   },
 } as const;
 

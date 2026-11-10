@@ -3378,6 +3378,32 @@
       "key": "Der Dokument-Parser hat Veyntoras Schlüssel abgelehnt: Prüfen Sie den Parser unter Anbieter & Schlüssel und indexieren Sie neu.",
       "down": "Der Dokument-Parser war nicht erreichbar: Prüfen Sie ihn unter Anbieter & Schlüssel (Verbindung testen).",
       "empty": "Kein Text lesbar: Die Datei ist vielleicht leer, ein Bild ohne Text oder geschützt."
+    },
+    "docs": {
+      "fix": {
+        "duplicate": "Zwei Kopien sagen dasselbe. Behalten Sie eine: Schließen Sie die andere von Antworten aus oder entfernen Sie sie in ihrer Quelle.",
+        "conflict": "Diese Dokumente widersprechen sich. Schließen Sie das veraltete aus oder bitten Sie die verantwortliche Person, es zu korrigieren.",
+        "stale": "Oft zitiert, aber lange nicht aktualisiert. Öffnen Sie es und bitten Sie die verantwortliche Person, es zu prüfen.",
+        "parse_failure": "Der Leser konnte es nicht lesen. Lesen Sie es erneut oder wählen Sie an der Quelle eine andere Lesemethode (Wie Dokumente gelesen werden).",
+        "reported": "Jemand hat dieses Dokument als falsch gemeldet. Öffnen Sie es und korrigieren Sie es in der Quelle oder schließen Sie es aus.",
+        "gap": "Fragen, die kein Dokument beantwortet. Fügen Sie einer Quelle ein Dokument hinzu, das sie abdeckt."
+      },
+      "original": "Original",
+      "newTab": "öffnet in neuem Tab",
+      "reread": "Neu lesen",
+      "rereadLabel": "{title} neu lesen",
+      "exclude": "Ausschließen",
+      "excludeLabel": "{title} von Antworten ausschließen",
+      "include": "Wieder verwenden",
+      "includeLabel": "{title} wieder in Antworten verwenden",
+      "excludeConfirm": "„{title}“ nicht mehr in Antworten verwenden? Es bleibt in seiner Quelle und kann wieder verwendet werden.",
+      "excluded": "Ausgeschlossen",
+      "failed": "Nicht lesbar",
+      "done": {
+        "reread": "„{title}“ wird erneut gelesen.",
+        "exclude": "„{title}“ wird nicht mehr in Antworten verwendet.",
+        "include": "„{title}“ wird wieder in Antworten verwendet."
+      }
     }
   },
   "saved": {

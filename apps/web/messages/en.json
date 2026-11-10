@@ -3378,6 +3378,32 @@
       "key": "The document parser refused Veyntora's key: check the parser under Providers & keys, then re-index.",
       "down": "The document parser could not be reached: check it under Providers & keys (Test connection).",
       "empty": "No text could be read: the file may be empty, an image without text, or protected."
+    },
+    "docs": {
+      "fix": {
+        "duplicate": "Two copies say the same. Keep one: exclude the other from answers, or remove it in its source.",
+        "conflict": "These documents disagree. Exclude the outdated one, or ask its owner to correct it.",
+        "stale": "Often cited but not updated for a long time. Open it and ask its owner to check it is still right.",
+        "parse_failure": "The reader could not read it. Read it again, or choose another reading method on its source (How documents are read).",
+        "reported": "Someone reported this document as wrong. Open it, then correct it in its source or exclude it.",
+        "gap": "Questions nobody's documents answer. Add a document that covers them to a source."
+      },
+      "original": "Original",
+      "newTab": "opens in a new tab",
+      "reread": "Re-read",
+      "rereadLabel": "Re-read {title}",
+      "exclude": "Exclude",
+      "excludeLabel": "Exclude {title} from answers",
+      "include": "Use again",
+      "includeLabel": "Use {title} in answers again",
+      "excludeConfirm": "Stop using “{title}” in answers? It stays in its source and can be used again.",
+      "excluded": "Excluded",
+      "failed": "Could not be read",
+      "done": {
+        "reread": "“{title}” is queued to be read again.",
+        "exclude": "“{title}” is no longer used in answers.",
+        "include": "“{title}” is used in answers again."
+      }
     }
   },
   "saved": {

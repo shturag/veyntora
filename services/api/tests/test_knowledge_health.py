@@ -7,6 +7,7 @@ from __future__ import annotations
 import math
 from collections.abc import AsyncIterator, Sequence
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
@@ -375,3 +376,30 @@ async def test_a_document_that_indexes_again_is_no_longer_unreadable(db: AsyncSe
     await readable_again(db, doc)
     await db.refresh(issue)
     assert issue.status is IssueStatus.RESOLVED and issue.resolved_at is not None
+
+
+async def test_an_issue_leads_to_its_documents_and_can_read_them_again(rag: Rag) -> None:
+    from veyntora_api.db.models.knowledge import IngestJob, IngestJobKind  # noqa: PLC0415
+    from veyntora_api.routers import admin_knowledge_health as routes  # noqa: PLC0415
+
+    db = rag.w.db
+    rag.doc = await _replace(rag, REFUND_14)
+    await _second_policy(rag)
+    await _scan(rag, Judge())
+    issue = await db.scalar(
+        sa.select(KnowledgeIssue).where(KnowledgeIssue.kind == IssueKind.CONFLICT)
+    )
+    assert issue is not None
+    me: Any = SimpleNamespace(user_id=rag.w.user.id)
+    out = await routes._issue(db, issue)
+    first = out.documents[0]
+    assert first.source_id == rag.source.id and first.source_name == rag.source.name
+    assert first.path and first.status == "indexed"
+
+    await routes.reread(issue.id, routes.DocumentInput(document_id=first.id), me, db, CTX)
+    jobs = (
+        await db.execute(sa.select(IngestJob).where(IngestJob.document_id == first.id))
+    ).scalars()
+    assert any(j.kind is IngestJobKind.REINDEX for j in jobs)
+    with pytest.raises(Exception, match="choose a document"):
+        await routes.reread(issue.id, routes.DocumentInput(document_id=uuid4()), me, db, CTX)

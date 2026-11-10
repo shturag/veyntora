@@ -1874,6 +1874,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/knowledge-health/issues/{issue_id}/reread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read and index a document of an issue again */
+        post: operations["reread_v1_admin_knowledge_health_issues__issue_id__reread_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/knowledge-health/scan": {
         parameters: {
             query?: never;
@@ -5631,6 +5648,14 @@ export interface components {
              */
             suppress: boolean;
         };
+        /** DocumentInput */
+        DocumentInput: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+        };
         /** DocumentOut */
         DocumentOut: {
             /** Chunk Count */
@@ -7280,6 +7305,8 @@ export interface components {
         };
         /** IssueDocument */
         IssueDocument: {
+            /** Error */
+            error?: string | null;
             /** Excluded */
             excluded: boolean;
             /**
@@ -7287,10 +7314,26 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Path
+             * @default
+             */
+            path: string;
+            /** Source Id */
+            source_id?: string | null;
+            /** Source Name */
+            source_name?: string | null;
+            /**
+             * Status
+             * @default
+             */
+            status: string;
             /** Title */
             title: string;
             /** Updated */
             updated: string | null;
+            /** Url */
+            url?: string | null;
         };
         /**
          * IssueKind
@@ -14952,6 +14995,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Count"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reread_v1_admin_knowledge_health_issues__issue_id__reread_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                issue_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IssueDocument"];
                 };
             };
             /** @description Validation Error */

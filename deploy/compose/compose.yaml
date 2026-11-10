@@ -113,7 +113,7 @@ services:
       <<: [*app-env, *keys-api]
     volumes:
       - config:/var/lib/veyntora
-    ports: ["127.0.0.1:8000:8000"]
+    ports: ["127.0.0.1:${VEY_API_PORT:-8000}:8000"]
     <<: *host
     restart: unless-stopped
     depends_on:
@@ -165,7 +165,7 @@ services:
       - config:/var/lib/veyntora:ro
     <<: *host
     restart: unless-stopped
-    ports: ["127.0.0.1:8010:8010"]
+    ports: ["127.0.0.1:${VEY_CHANNELS_PORT:-8010}:8010"]
     healthcheck:
       # Healthy while it waits for the setup too: nothing to serve yet.
       test: ["CMD", "veyntora-api", "healthcheck", "--url", "http://127.0.0.1:8010/healthz"]
@@ -212,7 +212,7 @@ services:
       - config:/var/lib/veyntora:ro
     <<: *host
     restart: unless-stopped
-    ports: ["127.0.0.1:2026:2026"]
+    ports: ["127.0.0.1:${VEY_GRAPHS_PORT:-2026}:2026"]
     depends_on:
       migrate: { condition: service_started }
     healthcheck:
@@ -230,7 +230,7 @@ services:
     environment:
       API_INTERNAL_URL: http://api:8000
       VEY_PUBLIC_BASE_URL: ${VEY_PUBLIC_BASE_URL:-http://localhost:3000}
-    ports: ["127.0.0.1:3000:3000"]
+    ports: ["127.0.0.1:${VEY_WEB_PORT:-3000}:3000"]
     restart: unless-stopped
     depends_on:
       api: { condition: service_healthy }

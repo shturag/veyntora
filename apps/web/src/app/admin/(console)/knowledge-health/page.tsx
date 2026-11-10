@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Forbidden } from "@/components/forbidden";
 import { AskOwners, IssueActions, ScanControls } from "@/components/knowledge/issue-actions";
+import { IssueDocuments } from "@/components/knowledge/issue-documents";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { areaAccess } from "@/lib/admin";
 import { serverApi } from "@/lib/api/server";
@@ -153,17 +154,7 @@ export default async function KnowledgeHealthPage({
                 <li key={i.id} className="flex flex-col gap-2 px-4 py-3">
                   <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      {kind === "duplicate" && i.documents.length === 2 ? (
-                        <span className="flex flex-col text-sm font-medium">
-                          <span className="truncate">{i.documents[0]!.title}</span>
-                          <span className="truncate">
-                            <span className="text-fg-muted">≈ </span>
-                            {i.documents[1]!.title}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="text-sm font-medium">{i.summary}</span>
-                      )}
+                      <span className="text-sm font-medium">{i.summary}</span>
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted">
                         <Badge tone={i.status === "notified" ? "info" : "amber"}>
                           {t(`statuses.${i.status}`)}
@@ -181,6 +172,7 @@ export default async function KnowledgeHealthPage({
                     </div>
                     {editor ? <IssueActions issue={i} /> : null}
                   </div>
+                  <IssueDocuments issue={i} editor={editor} />
                   {examples.length ? (
                     <p className="m-0 text-xs text-fg-secondary">
                       {t("examples")} {examples.map((e) => `“${e}”`).join(" · ")}

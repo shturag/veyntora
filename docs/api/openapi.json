@@ -5365,6 +5365,21 @@
         "title": "DismissInput",
         "type": "object"
       },
+      "DocumentInput": {
+        "additionalProperties": false,
+        "properties": {
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_id"
+        ],
+        "title": "DocumentInput",
+        "type": "object"
+      },
       "DocumentOut": {
         "properties": {
           "chunk_count": {
@@ -9460,6 +9475,17 @@
       },
       "IssueDocument": {
         "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
           "excluded": {
             "title": "Excluded",
             "type": "boolean"
@@ -9467,6 +9493,39 @@
           "id": {
             "format": "uuid",
             "title": "Id",
+            "type": "string"
+          },
+          "path": {
+            "default": "",
+            "title": "Path",
+            "type": "string"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "source_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Name"
+          },
+          "status": {
+            "default": "",
+            "title": "Status",
             "type": "string"
           },
           "title": {
@@ -9484,6 +9543,17 @@
               }
             ],
             "title": "Updated"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
           }
         },
         "required": [
@@ -25693,6 +25763,59 @@
           }
         },
         "summary": "Message the owners of an issue",
+        "tags": [
+          "admin: knowledge health"
+        ]
+      }
+    },
+    "/v1/admin/knowledge-health/issues/{issue_id}/reread": {
+      "post": {
+        "operationId": "reread_v1_admin_knowledge_health_issues__issue_id__reread_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "issue_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Issue Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssueDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read and index a document of an issue again",
         "tags": [
           "admin: knowledge health"
         ]
