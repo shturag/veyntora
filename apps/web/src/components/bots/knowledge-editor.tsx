@@ -12,6 +12,7 @@ import { KindIcon } from "@/components/admin/source-icons";
 import { NewTabLink, useRefreshOnFocus } from "@/components/new-tab-link";
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
+import { sameText } from "@/lib/dates";
 
 type Attached = components["schemas"]["AttachmentOut"];
 type Option = components["schemas"]["SourceOption"];
@@ -82,7 +83,7 @@ export function KnowledgeEditor({
   const kindName = (kind: string) =>
     ts.has(`types.${kind}`) ? ts(`types.${kind}` as "types.upload") : kind;
   const when = (iso: string) =>
-    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
+    sameText(format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }));
   const weightName = (w: number) =>
     w === 1 ? t("normal") : w > 1 ? t("boost", { factor: w }) : t("lower", { factor: w });
 
@@ -247,7 +248,7 @@ export function KnowledgeEditor({
                         <div
                           role="radiogroup"
                           aria-label={t("weight")}
-                          className="flex gap-0.5 rounded-lg bg-sunken p-1"
+                          className="flex flex-wrap gap-0.5 rounded-lg bg-sunken p-1"
                         >
                           {[...new Set([...WEIGHTS, r.weight])]
                             .sort((a, b) => a - b)
