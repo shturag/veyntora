@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 import pytest
@@ -246,3 +247,20 @@ def test_website_settings_keep_old_sources_valid() -> None:
     old = connectors.settings_of(saved)
     assert isinstance(old, connectors.WebsiteSettings) and old.max_pages == 9
     assert old.use_sitemap is False and old.delay_seconds == 0.0
+
+
+async def test_chunks_no_chatbot_needs_are_removed_after_a_grace_period(world: World) -> None:
+    _, source = await _bot_with_source(world)
+    doc = await _upload_pdf(world, source, TEXT_PDF)
+    ing = world.ingestor()
+    await ing.index_document(doc, force=False)
+    old = {p.payload["profile"] for p in world.vectors.of(doc.id)}
+    await _set(world, source, method=ExtractionMethod.TEXT)
+    await ing.index_document(doc, force=False)
+    [new] = [p.key for p in (await index_plan(world.db, source.id))[0]]
+    both = {p.payload["profile"] for p in world.vectors.of(doc.id)}
+    assert both == old | {new}
+
+    assert await ing.prune_unused() == 0, "kept within the grace period (rollbacks)"
+    assert await ing.prune_unused(grace=timedelta(0)) == 1
+    assert {p.payload["profile"] for p in world.vectors.of(doc.id)} == {new}

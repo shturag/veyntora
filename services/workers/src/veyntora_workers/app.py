@@ -40,7 +40,12 @@ from veyntora_workers import (
     retention,
     saved_answers,
 )
-from veyntora_workers.ingest import purge_deleted_sources, requeue_stuck, run_pending
+from veyntora_workers.ingest import (
+    prune_unused_indexes,
+    purge_deleted_sources,
+    requeue_stuck,
+    run_pending,
+)
 from veyntora_workers.integration_tests import run_queued_integration_tests
 from veyntora_workers.mcp_discovery import run_queued_discovery, run_queued_tool_tests
 from veyntora_workers.provider_tests import run_queued_provider_tests
@@ -93,6 +98,8 @@ app.conf.update(
         "budget-alerts": {"task": "veyntora.budget_alerts", "schedule": timedelta(minutes=5)},
         # Nightly, UTC: chats, uploads and traces past their retention.
         "retention": {"task": "veyntora.retention", "schedule": crontab(hour=2, minute=30)},
+        # Chunks of index profiles no chatbot needs any more (ADR 0040).
+        "index-prune": {"task": "veyntora.index_prune", "schedule": crontab(hour=3, minute=15)},
         "access-reviews": {
             "task": "veyntora.access_reviews",
             "schedule": crontab(hour=6, minute=0),
@@ -209,6 +216,11 @@ def mcp_tool_tests() -> int:
 @app.task(name="veyntora.ingest")
 def ingest() -> int:
     return _run(run_pending(settings))
+
+
+@app.task(name="veyntora.index_prune")
+def index_prune() -> int:
+    return _run(prune_unused_indexes(settings))
 
 
 @app.task(name="veyntora.sources_purge")

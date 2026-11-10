@@ -97,6 +97,10 @@ RETRYABLE: tuple[type[BaseException], ...] = (
 )
 
 
+# Chunks of profiles no longer needed are kept this long, so a rollback needs no re-index.
+PRUNE_GRACE = timedelta(days=7)
+
+
 def chunk_id(document_id: UUID, profile_key: str, ordinal: int) -> str:
     return str(uuid.uuid5(CHUNK_NS, f"{document_id}:{profile_key}:{ordinal}"))
 
@@ -506,6 +510,55 @@ class Ingestor:
         source.last_acl_synced_at = datetime.now(UTC)
         return {"documents": len(docs)}
 
+    async def prune_unused(self, grace: timedelta = PRUNE_GRACE) -> int:
+        """Remove chunks of index profiles no chatbot needs any more (a changed pipeline or
+        reading), once they are older than `grace` (a rollback within it needs no re-index).
+        A source whose plan is empty (no chatbot, a provider missing) keeps everything."""
+        removed = 0
+        cutoff = datetime.now(UTC) - grace
+        sources = (
+            (
+                await self.db.execute(
+                    sa.select(DataSource.id).where(DataSource.status != SourceStatus.DELETING)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        for source_id in sources:
+            profiles, _ = await index_plan(self.db, source_id)
+            if not profiles:
+                continue
+            keep = {p.key for p in profiles}
+            stale = (
+                (
+                    await self.db.execute(
+                        sa.select(DocumentIndex)
+                        .join(Document, Document.id == DocumentIndex.document_id)
+                        .where(
+                            Document.source_id == source_id,
+                            DocumentIndex.profile_key.not_in(keep),
+                            DocumentIndex.indexed_at < cutoff,
+                        )
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            for idx in stale:
+                if idx.vector_store_instance_id is not None:
+                    store = await self.adapters.get(idx.vector_store_instance_id)
+                    await store.delete_by_document(
+                        idx.collection, str(idx.document_id), profile=idx.profile_key
+                    )
+                await vocabulary.update(self.db, idx.profile_key, idx.terms or [], [])
+                await self.db.delete(idx)
+                removed += 1
+            await self.commit()
+        if removed:
+            log.info("ingest.pruned", indexes=removed)
+        return removed
+
     async def remove_document(self, doc: Document) -> dict[str, Any]:
         removed = 0
         for idx in await self._indexes(doc):
@@ -640,6 +693,17 @@ async def requeue_stuck(db: AsyncSession) -> int:
     )
     await db.commit()
     return int(res.rowcount or 0)  # type: ignore[attr-defined]
+
+
+async def prune_unused_indexes(settings: Settings) -> int:
+    objects = ObjectStore(settings)
+    secrets = OpenBaoReader(settings.openbao_url, Path(settings.openbao_token_file))
+    async with get_sessionmaker()() as db:
+        ingestor = Ingestor(db, settings, objects, secrets)
+        try:
+            return await ingestor.prune_unused()
+        finally:
+            await ingestor.close()
 
 
 async def run_pending(settings: Settings, limit: int = 5) -> int:
