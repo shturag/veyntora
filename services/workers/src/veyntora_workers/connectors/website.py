@@ -6,11 +6,15 @@
 - HTML pages are stored as UTF-8 HTML and parsed like uploads; linked files of supported
   types (PDF, Office, text) are read too.
 - The page's content hash tells changed pages apart (websites rarely send stable ETags).
+- With `use_sitemap`, the pages the site's sitemaps list are crawled too (ADR 0040), and
+  `delay_seconds` spaces out requests.
 """
 
 from __future__ import annotations
 
+import asyncio
 import posixpath
+import xml.etree.ElementTree as ET
 from collections import deque
 from collections.abc import AsyncIterator
 from html.parser import HTMLParser
@@ -24,6 +28,9 @@ from veyntora_api.knowledge.service import UPLOAD_TYPES
 from veyntora_workers.connectors.listing import Entry, Listing
 
 USER_AGENT = "VeyntoraBot/1.0 (+knowledge sync)"
+# Sitemaps read at most (an index may list many), and pages taken from them.
+_MAX_SITEMAPS = 20
+_SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 _BY_MIME = {mime: ext for ext, mime in reversed(list(UPLOAD_TYPES.items()))}
 
 
@@ -80,6 +87,7 @@ class WebsiteReader:
         self._robots: dict[str, RobotFileParser] = {}
         self.complete_crawl = False
         self.errors = 0
+        self._requests = 0
 
     async def close(self) -> None:
         await self.http.aclose()
@@ -106,8 +114,50 @@ class WebsiteReader:
             self._robots[parts.netloc] = robots
         return robots.can_fetch(USER_AGENT, url)
 
+    async def _pause(self) -> None:
+        if self.cfg.delay_seconds and self._requests:
+            await asyncio.sleep(self.cfg.delay_seconds)
+        self._requests += 1
+
+    async def sitemap_urls(self) -> list[str]:
+        """Pages the sitemaps of the start pages' hosts list (sitemap indexes are followed)."""
+        todo: deque[str] = deque()
+        for host in sorted({urlsplit(u)[:2] for u in self.cfg.start_urls}):
+            base = f"{host[0]}://{host[1]}"
+            await self._allowed(base + "/")  # reads robots.txt, which may name sitemaps
+            named = self._robots[host[1]].site_maps() or []
+            todo.extend(named or [base + "/sitemap.xml"])
+        pages: list[str] = []
+        read = 0
+        while todo and read < _MAX_SITEMAPS and len(pages) < self.cfg.max_pages:
+            url = todo.popleft()
+            read += 1
+            if urlsplit(url).netloc.lower() not in self.hosts:
+                continue
+            await self._pause()
+            try:
+                res = await self.http.get(url)
+            except httpx.HTTPError:
+                continue
+            body = res.content
+            if res.status_code != 200 or len(body) > self.max_bytes:
+                continue
+            if b"<!DOCTYPE" in body or b"<!ENTITY" in body:
+                continue  # no DTDs, so no entity expansion
+            try:
+                root = ET.fromstring(body)  # noqa: S314 - no DTD (checked above)
+            except ET.ParseError:
+                continue
+            locs = [(el.text or "").strip() for el in root.iter(f"{_SITEMAP_NS}loc")]
+            if root.tag == f"{_SITEMAP_NS}sitemapindex":
+                todo.extend(locs)
+            else:
+                pages += [u for u in locs if u and self._wanted(u)]
+        return pages[: self.cfg.max_pages]
+
     async def _get(self, url: str) -> tuple[str, str, bytes] | None:
         """(final url, mime, body) or None when skipped."""
+        await self._pause()
         async with self.http.stream("GET", url) as res:
             final = str(res.url)
             if res.status_code != 200 or not self._wanted(final):
@@ -137,8 +187,11 @@ class WebsiteReader:
         return f"{found} of {len(self.cfg.start_urls)} start pages are readable."
 
     async def entries(self) -> AsyncIterator[Entry]:
-        queue = deque((u, 0) for u in self.cfg.start_urls)
-        seen: set[str] = set(self.cfg.start_urls)
+        starts = list(self.cfg.start_urls)
+        if self.cfg.use_sitemap:
+            starts += [u for u in await self.sitemap_urls() if u not in starts]
+        queue = deque((u, 0) for u in starts)
+        seen: set[str] = set(starts)
         read: set[str] = set()
         pages = 0
         while queue:

@@ -15,6 +15,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 from uuid import UUID
 
+from veyntora_spec.extraction import ExtractionMethod, ExtractionSpec
 from veyntora_spec.pipeline import ChunkingStrategy, ChunkMetadata, ParentChunk, PipelineSpec
 
 
@@ -36,6 +37,9 @@ class IndexProfile:
     # The vision model the parser calls, only while it is used (ADR 0037).
     vision_instance_id: UUID | None = None
     vision_pages: bool = False
+    # How PDFs are read (ADR 0040): "layout" by the parser, "text" from their text layer,
+    # "auto" by the text layer when there is one. Pages read by a vision model: vision_pages.
+    reading: str = "layout"
 
     def as_json(self) -> dict[str, Any]:
         out = asdict(self)
@@ -47,6 +51,8 @@ class IndexProfile:
             del out["vision_instance_id"]
         if not self.vision_pages:
             del out["vision_pages"]
+        if self.reading == "layout":
+            del out["reading"]
         plain: dict[str, Any] = json.loads(json.dumps(out, default=str))
         return plain
 
@@ -78,6 +84,7 @@ class IndexProfile:
                 UUID(data["vision_instance_id"]) if data.get("vision_instance_id") else None
             ),
             vision_pages=bool(data.get("vision_pages", False)),
+            reading=str(data.get("reading", "layout")),
         )
 
 
@@ -85,34 +92,43 @@ def collection_for(embedding_instance_id: UUID) -> str:
     return f"vey_{embedding_instance_id.hex}"
 
 
-def index_profile(spec: PipelineSpec) -> IndexProfile | None:
-    """The profile a spec indexes into, or None while parser, embedding or store are unset."""
+def index_profile(
+    spec: PipelineSpec, extraction: ExtractionSpec | None = None
+) -> IndexProfile | None:
+    """The profile a spec indexes a source into, or None while parser, embedding or store are
+    unset. `extraction`: how the source reads its documents (ADR 0040); None reads them as the
+    pipeline's ingestion settings say."""
     ing, ret = spec.ingestion, spec.retrieval
+    ex = extraction or ExtractionSpec.of_pipeline(ing)
     if (
-        ing.parser_instance_id is None
+        ex.parser_instance_id is None
         or ing.embedding_instance_id is None
         or ret.vector_store_instance_id is None
     ):
         return None
     fixed = ing.chunking is ChunkingStrategy.FIXED
+    pages = ex.method is ExtractionMethod.VISION
     # A chosen vision model counts only while something uses it.
-    vision = ing.vision_instance_id if (ing.describe_images or ing.vision_pages) else None
+    vision = ex.vision_instance_id if (ex.describe_images or pages) else None
     return IndexProfile(
-        parser_instance_id=ing.parser_instance_id,
+        parser_instance_id=ex.parser_instance_id,
         embedding_instance_id=ing.embedding_instance_id,
         vector_store_instance_id=ret.vector_store_instance_id,
         chunking=ing.chunking,
         chunk_size_tokens=ing.chunk_size_tokens,
         # The structure-aware chunker does not overlap; keep the key independent of it.
         chunk_overlap_tokens=ing.chunk_overlap_tokens if fixed else 0,
-        ocr=ing.ocr,
-        extract_tables=ing.extract_tables,
-        describe_images=ing.describe_images,
+        ocr=ex.ocr,
+        extract_tables=ex.extract_tables,
+        describe_images=ex.describe_images,
         parent_chunk=ing.parent_chunk,
         metadata=tuple(sorted(set(ing.metadata), key=lambda m: m.value)),
         semantic_threshold=(
             ing.semantic_similarity_threshold if ing.chunking is ChunkingStrategy.SEMANTIC else 0.0
         ),
         vision_instance_id=vision,
-        vision_pages=bool(vision and ing.vision_pages),
+        vision_pages=bool(vision and pages),
+        reading=ex.method.value
+        if ex.method in (ExtractionMethod.AUTO, ExtractionMethod.TEXT)
+        else "layout",
     )

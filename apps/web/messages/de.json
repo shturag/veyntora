@@ -1269,8 +1269,66 @@
       "syncOnlyText": "Wann Veyntora Änderungen liest.",
       "afterConnect": "Veyntora prüft die Verbindung und liest dann die Dokumente.",
       "afterUpload": "Dateien fügen Sie auf der nächsten Seite hinzu.",
-      "cancel": "Abbrechen"
-    }
+      "cancel": "Abbrechen",
+      "reading": "Wie Dokumente gelesen werden",
+      "readingText": "Der Leser, durch den die Dokumente dieser Quelle gehen; Sie können ihn später ändern.",
+      "files": "Welche Dateien",
+      "filesText": "Beschränken Sie die Quelle auf bestimmte Dateitypen, Größen oder Pfade. Leer lassen, um alles zu lesen."
+    },
+    "reading": {
+      "title": "Wie Dokumente gelesen werden",
+      "text": "Der Leser, durch den die Dokumente dieser Quelle gehen. Abschnitte, Embeddings und Suche bleiben in der Pipeline jedes Chatbots.",
+      "method": "Lesemethode",
+      "methods": {
+        "auto": "Automatisch",
+        "text": "Schneller Text",
+        "layout": "Layout (Docling)",
+        "vision": "Vision-Modell pro Seite",
+        "pipeline": "Wie die Pipeline jedes Chatbots"
+      },
+      "methodHints": {
+        "auto": "Empfohlen. PDFs mit Textebene werden direkt gelesen; Scans und andere Formate gehen an den Parser, mit OCR.",
+        "text": "Nur die Textebene von PDFs (pypdf, im Haus): am schnellsten, ohne Layout, Tabellen oder OCR. Andere Formate gehen an den Parser.",
+        "layout": "Der Parser liest Überschriften, Tabellen und Lesereihenfolge und führt OCR für Scans aus. Langsamer als Text.",
+        "vision": "Ein Vision-Modell überträgt jede PDF- und Bildseite: am besten für Scans, Formulare und Handschrift; am langsamsten.",
+        "pipeline": "Keine eigene Einstellung: gelesen mit den Aufbereitungs-Einstellungen jedes verbundenen Chatbots, wie bisher."
+      },
+      "parser": "Dokumentparser",
+      "parserHint": "Docling. Bei jeder Methode nötig für Word, PowerPoint, Excel, HTML und Bilder.",
+      "noParser": "Noch kein Parser (Anbieter & Schlüssel)",
+      "vision": "Vision-Modell",
+      "visionHint": "Liest Seiten (Vision-Methode) und beschreibt Bilder. Ein externes Modell braucht die Datenregel des Chatbots.",
+      "none": "Keins",
+      "external": "extern",
+      "options": {
+        "ocr": "OCR für gescannte Seiten",
+        "extract_tables": "Tabellen erkennen",
+        "describe_images": "Bilder beschreiben"
+      },
+      "optionHints": {
+        "ocr": "Liest Text in Bildern von Seiten (mit dem Parser).",
+        "extract_tables": "Behält Tabellen als Tabellen, damit Zeilen und Spalten zusammenbleiben.",
+        "describe_images": "Bilder und Diagramme erhalten eine Beschreibung vom Vision-Modell oder vom Parser."
+      },
+      "pipelineNote": "Jeder Chatbot, mit dem diese Quelle verbunden ist, liest sie mit seinen eigenen Einstellungen unter Pipeline → Aufbereitung. Wählen Sie eine Methode, um der Quelle eine eigene zu geben.",
+      "filesTitle": "Welche Dateien",
+      "fileTypes": "Dateitypen",
+      "fileTypesHint": "Keiner angekreuzt: jeder Typ, den Veyntora liest.",
+      "maxSize": "Größte Datei (MB)",
+      "maxSizePlaceholder": "Plattformgrenze",
+      "include": "Nur diese Pfade",
+      "exclude": "Diese Pfade überspringen",
+      "patternsHint": "Ein Muster pro Zeile. Mit Schrägstrich passt es auf den Pfad (/policies/*), ohne auf den Dateinamen (*.pdf). Übersprungene Dateien, die schon gelesen wurden, werden beim nächsten Abgleich entfernt.",
+      "save": "Leseeinstellungen speichern",
+      "saved": "Gespeichert. Die Quelle wird mit den neuen Einstellungen erneut abgeglichen.",
+      "reread": "Alles neu lesen",
+      "rereadConfirm": "Alle {count} Dokumente erneut lesen und indexieren, ob geändert oder nicht? Das dauert eine Weile und ruft für jedes Dokument Parser und Embedding-Modell auf.",
+      "rereadQueued": "{count, plural, one {# Dokument} other {# Dokumente}} zum erneuten Lesen eingereiht."
+    },
+    "useSitemap": "Sitemap verwenden",
+    "useSitemapHint": "Liest auch die Seiten, die die sitemap.xml der Website auflistet (und die Sitemaps aus robots.txt), damit Seiten gefunden werden, auf die kein Link führt.",
+    "delaySeconds": "Pause zwischen Anfragen (s)",
+    "delaySecondsHint": "Schont die Website; 0 liest so schnell, wie die Website antwortet."
   },
   "myFiles": {
     "title": "Meine Dateien",
@@ -1662,7 +1720,7 @@
     },
     "defaultModel": "Standard, immer dabei",
     "sectionText": {
-      "ingestion": "Wie Dokumente gelesen und in Abschnitte zerlegt werden, bevor sie durchsucht werden.",
+      "ingestion": "Wie Dokumente gelesen und in Abschnitte zerlegt werden. Eine Datenquelle kann ihren eigenen Leser wählen (Datenquellen → Quelle → Wie Dokumente gelesen werden); diese Leseeinstellungen gelten für Quellen ohne eigenen, „Meine Dateien“ und im Chat angehängte Dateien.",
       "retrieval": "Wie Abschnitte zu einer Frage gefunden werden: der Index, die Suchart und ihre Filter.",
       "rerank": "Ein zweites Modell ordnet die gefundenen Abschnitte und verwirft die, die nicht zur Frage passen.",
       "generation": "Das Modell, das die Antwort schreibt, seine Anweisungen und was geschieht, wenn sie nicht belegt ist.",

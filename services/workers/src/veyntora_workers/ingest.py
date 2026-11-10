@@ -56,6 +56,7 @@ from veyntora_providers.secrets import OpenBaoReader, SecretReader, SecretUnavai
 from veyntora_spec.pipeline import ChunkingStrategy, ChunkMetadata, ParentChunk
 from veyntora_spec.profile import IndexProfile
 
+from veyntora_workers import textlayer
 from veyntora_workers.chunking import (
     Chunk,
     as_chunks,
@@ -330,6 +331,22 @@ class Ingestor:
 
     async def _parse(self, doc: Document, profile: IndexProfile, work: _Work) -> ParsedDoc:
         structure = profile.chunking is ChunkingStrategy.STRUCTURE
+        if profile.reading in {"text", "auto"} and doc.mime_type == "application/pdf":
+            # The PDF's text layer (ADR 0040): "text" always, "auto" when every page has text.
+            key: tuple[Any, ...] = ("textlayer", structure and profile.chunk_size_tokens)
+            if key not in work.parsed:
+                title, texts = textlayer.pages(await self._content(doc, work))
+                if profile.reading == "auto" and not textlayer.has_text_layer(texts):
+                    return await self._parse_with_parser(doc, profile, work, structure)
+                work.parsed[key] = textlayer.parsed(
+                    title, texts, profile.chunk_size_tokens if structure else None
+                )
+            return work.parsed[key]
+        return await self._parse_with_parser(doc, profile, work, structure)
+
+    async def _parse_with_parser(
+        self, doc: Document, profile: IndexProfile, work: _Work, structure: bool
+    ) -> ParsedDoc:
         # The parser calls the vision model itself, with the address and key it hands over.
         vision = (
             await (await self.adapters.get(profile.vision_instance_id)).remote()
@@ -344,7 +361,7 @@ class Ingestor:
             vision_pages=profile.vision_pages,
             chunk_max_tokens=profile.chunk_size_tokens if structure else None,
         )
-        key = (profile.parser_instance_id, opts)
+        key: tuple[Any, ...] = (profile.parser_instance_id, opts)
         if key not in work.parsed:
             parser = await self.adapters.get(profile.parser_instance_id)
             content = await self._content(doc, work)

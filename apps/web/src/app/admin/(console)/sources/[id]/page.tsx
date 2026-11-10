@@ -8,6 +8,7 @@ import {
   ConnectionSettingsForm,
   DocumentActions,
   ReadersForm,
+  ReadingForm,
   ReindexFailed,
   SharePointSettingsForm,
   SourceActions,
@@ -56,19 +57,21 @@ export default async function SourceDetailPage({
   const path = { params: { path: { source_id: id } } };
   const { data: source } = await api.GET("/v1/admin/sources/{source_id}", path);
   if (!source) notFound();
-  const [{ data: docs }, { data: summary }, { data: jobs }, { data: groups }] = await Promise.all([
-    api.GET("/v1/admin/sources/{source_id}/documents", {
-      params: {
-        path: { source_id: id },
-        query: { q: q || undefined, status: statusFilter, limit },
-      },
-    }),
-    api.GET("/v1/admin/sources/{source_id}/documents/summary", path),
-    api.GET("/v1/admin/sources/{source_id}/jobs", {
-      params: { path: { source_id: id }, query: { limit: 10 } },
-    }),
-    api.GET("/v1/admin/sources/groups"),
-  ]);
+  const [{ data: docs }, { data: summary }, { data: jobs }, { data: groups }, { data: readers }] =
+    await Promise.all([
+      api.GET("/v1/admin/sources/{source_id}/documents", {
+        params: {
+          path: { source_id: id },
+          query: { q: q || undefined, status: statusFilter, limit },
+        },
+      }),
+      api.GET("/v1/admin/sources/{source_id}/documents/summary", path),
+      api.GET("/v1/admin/sources/{source_id}/jobs", {
+        params: { path: { source_id: id }, query: { limit: 10 } },
+      }),
+      api.GET("/v1/admin/sources/groups"),
+      api.GET("/v1/admin/sources/readers"),
+    ]);
   const canEdit = access.level === "editor";
   const sp = source.sharepoint;
   const conn = source.connection;
@@ -348,6 +351,15 @@ export default async function SourceDetailPage({
               ) : null}
             </Panel>
           ) : null}
+          <Panel id="reading" title={t("reading.title")} description={t("reading.text")}>
+            {canEdit ? (
+              <ReadingForm source={source} readers={readers ?? []} />
+            ) : (
+              <p className="m-0 text-sm text-fg-secondary">
+                {t(`reading.methods.${source.reading.extraction?.method ?? "pipeline"}`)}
+              </p>
+            )}
+          </Panel>
           {conn ? (
             <Panel id="connection" title={t("connectionTitle")}>
               {conn.last_test ? (

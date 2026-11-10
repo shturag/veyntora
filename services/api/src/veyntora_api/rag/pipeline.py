@@ -72,6 +72,7 @@ from veyntora_api.db.models.providers import ByokKey, ProviderInstance
 from veyntora_api.db.models.quality import BudgetAction
 from veyntora_api.governance import service as governance
 from veyntora_api.knowledge import vocabulary
+from veyntora_api.knowledge.reading import extraction_of
 from veyntora_api.knowledge.service import principals_of
 from veyntora_api.providers.service import with_fallbacks
 from veyntora_api.rag import grounding
@@ -159,6 +160,9 @@ class RunContext:
     # Per attached source: score multiplier, and folders it is limited to (empty: all).
     source_weights: dict[str, float] = field(default_factory=dict)
     source_paths: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # Index profiles of the chatbot's sources (each reads its documents its own way, ADR 0040);
+    # empty: the profile's own key.
+    profile_keys: tuple[str, ...] = ()
     # The chatbot's one-line description: what small-talk replies say it helps with.
     chatbot_description: str = ""
     # Whether the chatbot has expert teams for "Ask a human expert".
@@ -370,8 +374,7 @@ async def _context(
     """`personal`: apply the asker's own model and preferences, budgets and limits (chat,
     not the Playground, which tests the chatbot as configured)."""
     spec = PipelineSpec.model_validate(version.spec)
-    profile = index_profile(spec)
-    if spec.generation.llm_instance_id is None or (spec.retrieval.enabled and profile is None):
+    if spec.generation.llm_instance_id is None:
         raise RunRefusedError("This assistant is not set up completely yet.")
 
     groups = (
@@ -418,6 +421,19 @@ async def _context(
             + [str(s) for s in (await db.execute(own)).scalars()]
         )
     )
+    # Each source is indexed as it reads its documents (ADR 0040): one profile key per source.
+    keyed = [
+        p
+        for src in (
+            await db.execute(
+                sa.select(DataSource).where(DataSource.id.in_([UUID(i) for i in source_ids]))
+            )
+        ).scalars()
+        if (p := index_profile(spec, None if src.uploaded_by else extraction_of(src))) is not None
+    ]
+    profile = index_profile(spec) or (keyed[0] if keyed else None)
+    if spec.retrieval.enabled and profile is None:
+        raise RunRefusedError("This assistant is not set up completely yet.")
     weights = {str(a.source_id): a.weight for a in attachments if a.weight != 1.0}
     paths = {
         str(a.source_id): tuple((a.scope or {}).get("paths") or ())
@@ -474,6 +490,7 @@ async def _context(
         version_number=version.number,
         spec=spec,
         profile=profile,
+        profile_keys=tuple(dict.fromkeys(p.key for p in keyed)),
         source_ids=source_ids,
         providers=providers,
         company=settings.company_name if settings else "",
@@ -562,7 +579,9 @@ async def retrieve(
     sparse_text = query
     if ret.german_compound_splitting and ret.search_type is not SearchType.DENSE:
         # Keyword search also gets the compounds' parts and compounds ending in the words.
-        extra = await vocabulary.expand(db, profile.key, query)
+        extra: list[str] = []
+        for key in ctx.profile_keys or (profile.key,):
+            extra += [w for w in await vocabulary.expand(db, key, query) if w not in extra]
         sparse_text = " ".join([query, *extra])
     store = await adapters.get(profile.vector_store_instance_id)
     hits: list[Hit] = await store.hybrid_search(
@@ -572,7 +591,11 @@ async def retrieve(
             dense=dense,
             dense_weight=ret.dense_weight if ret.search_type is SearchType.HYBRID else 1.0,
             sparse=ret.search_type is not SearchType.DENSE,
-            must_match={**narrowing, "profile": (profile.key,), "source_id": sources},
+            must_match={
+                **narrowing,
+                "profile": ctx.profile_keys or (profile.key,),
+                "source_id": sources,
+            },
         ),
         AclFilter(ctx.principals),
         k=ret.top_k,

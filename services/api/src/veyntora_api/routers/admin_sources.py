@@ -12,9 +12,12 @@ from uuid import UUID
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, SecretStr
+from veyntora_providers.interfaces import Capability, Hosting
+from veyntora_spec.extraction import SourceReading
 
 from veyntora_api.auth.deps import Ctx, DbSession, Principal, State, require_admin_area
 from veyntora_api.authz.fga import PLATFORM, Tuple
+from veyntora_api.core import audit
 from veyntora_api.db.models.identity import Group
 from veyntora_api.db.models.knowledge import (
     DataSource,
@@ -28,7 +31,8 @@ from veyntora_api.db.models.knowledge import (
     SourceStatus,
     SourceType,
 )
-from veyntora_api.knowledge import connectors
+from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.knowledge import connectors, reading
 from veyntora_api.knowledge import service as svc
 from veyntora_api.storage import ObjectStore
 
@@ -86,6 +90,8 @@ class SourceOut(BaseModel):
     documents: int
     version: int
     last_synced_at: datetime | None
+    # How documents are read and which files (ADR 0040).
+    reading: SourceReading
 
 
 class DocumentOut(BaseModel):
@@ -151,6 +157,7 @@ async def _source_out(db: DbSession, s: DataSource) -> SourceOut:
         documents=int(count or 0),
         version=s.version,
         last_synced_at=s.last_synced_at,
+        reading=reading.reading_of(s),
     )
 
 
@@ -254,6 +261,35 @@ async def groups(_: Viewer, db: DbSession) -> list[GroupOption]:
     return [GroupOption(id=g.id, name=g.name, path=g.keycloak_path) for g in rows]
 
 
+class ReaderOption(BaseModel):
+    id: UUID
+    name: str
+    capability: str
+    external: bool
+    enabled: bool
+
+
+@router.get("/readers", summary="Parsers and vision models a source can read documents with")
+async def reader_options(_: Viewer, db: DbSession) -> list[ReaderOption]:
+    rows = (
+        await db.execute(
+            sa.select(ProviderInstance)
+            .where(ProviderInstance.capability.in_([Capability.PARSER, Capability.VISION]))
+            .order_by(ProviderInstance.name)
+        )
+    ).scalars()
+    return [
+        ReaderOption(
+            id=r.id,
+            name=r.name,
+            capability=r.capability.value,
+            external=r.hosting is Hosting.EXTERNAL,
+            enabled=r.enabled,
+        )
+        for r in rows
+    ]
+
+
 @router.get("/{source_id}", summary="One data source")
 async def get_source(source_id: UUID, _: Viewer, db: DbSession) -> SourceOut:
     return await _source_out(db, await _source(db, source_id))
@@ -263,6 +299,8 @@ async def get_source(source_id: UUID, _: Viewer, db: DbSession) -> SourceOut:
 async def create_source(
     data: svc.UploadSourceInput, principal: Editor, ctx: Ctx, db: DbSession, state: State
 ) -> SourceOut:
+    if data.reading is not None:
+        await reading.check_reading(db, data.reading)
     row = await svc.create_upload_source(db, ctx, data, principal.user_id)
     await state.require_authz().write([Tuple(PLATFORM, "platform", f"source:{row.id}")])
     out = await _source_out(db, row)
@@ -276,6 +314,8 @@ async def create_source(
 async def create_sharepoint(
     data: svc.SharePointSourceInput, principal: Editor, ctx: Ctx, db: DbSession, state: State
 ) -> SourceOut:
+    if data.reading is not None:
+        await reading.check_reading(db, data.reading)
     row = await svc.create_sharepoint_source(db, ctx, state.secrets, data, principal.user_id)
     await state.require_authz().write([Tuple(PLATFORM, "platform", f"source:{row.id}")])
     await state.redis.rpush(SOURCE_TEST_QUEUE, str(row.id))
@@ -358,6 +398,66 @@ async def test_source(source_id: UUID, _: Editor, db: DbSession, state: State) -
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Nothing to test for uploads")
     await state.redis.rpush(SOURCE_TEST_QUEUE, str(row.id))
     return await _source_out(db, row)
+
+
+class Requeued(BaseModel):
+    queued: int
+
+
+@router.put("/{source_id}/reading", summary="How documents are read, and which files")
+async def change_reading(
+    source_id: UUID,
+    data: SourceReading,
+    principal: Editor,
+    ctx: Ctx,
+    db: DbSession,
+    if_match: Annotated[int | None, Header(alias="If-Match")] = None,
+) -> SourceOut:
+    row = await reading.set_reading(
+        db,
+        ctx,
+        await _source(db, source_id),
+        data,
+        expected_version=if_match,
+        triggered_by=principal.user_id,
+    )
+    out = await _source_out(db, row)
+    await db.commit()
+    return out
+
+
+@router.post(
+    "/{source_id}/documents/reread",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Read and index every document again, changed or not",
+)
+async def reread_all(source_id: UUID, principal: Editor, ctx: Ctx, db: DbSession) -> Requeued:
+    await _source(db, source_id)
+    docs = (
+        (
+            await db.execute(
+                sa.select(Document).where(
+                    Document.source_id == source_id, Document.status != DocumentStatus.DELETED
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    await audit.record(
+        db,
+        ctx,
+        action="source.reread",
+        target_type="source",
+        target_id=str(source_id),
+        after={"documents": len(docs)},
+    )
+    for doc in docs:
+        await svc.enqueue(
+            db, source_id, IngestJobKind.REINDEX, document_id=doc.id, triggered_by=principal.user_id
+        )
+    await db.commit()
+    return Requeued(queued=len(docs))
 
 
 @router.patch("/{source_id}", summary="Rename, pause or change who may read")
@@ -492,10 +592,6 @@ async def documents_summary(source_id: UUID, _: Viewer, db: DbSession) -> Docume
     )
 
 
-class Requeued(BaseModel):
-    queued: int
-
-
 @router.post(
     "/{source_id}/documents/reindex-failed",
     status_code=status.HTTP_202_ACCEPTED,
@@ -540,9 +636,16 @@ async def upload_documents(
 ) -> list[UploadResult]:
     source = await _source(db, source_id)
     store = ObjectStore(state.settings)
-    limit = state.settings.upload_max_bytes
+    # The source's file types, size and name patterns apply to uploads too (ADR 0040).
+    filters = reading.reading_of(source).filters
+    limit = reading.size_limit(filters, state.settings.upload_max_bytes)
     out = []
     for f in files:
+        if reading.skipped(filters, f.filename or "", None, limit) == "filtered":
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                f"{f.filename}: this source's file filters do not take this file",
+            )
         content = await f.read(limit + 1)
         doc, job = await svc.add_upload(
             db,

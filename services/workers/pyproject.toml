@@ -14,6 +14,8 @@ dependencies = [
   "python-tds==1.17.1",
   "aiomysql==0.3.2",
   "oracledb==26.0.1",
+  # Fast text extraction from PDFs' text layer (ADR 0040), in-house, BSD-3-Clause.
+  "pypdf==6.21.4",
 ]
 
 [project.scripts]

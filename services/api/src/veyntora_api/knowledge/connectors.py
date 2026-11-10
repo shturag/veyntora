@@ -31,11 +31,13 @@ from uuid import UUID
 import sqlalchemy as sa
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
+from veyntora_spec.extraction import SourceReading
 
 from veyntora_api.core.config_service import ConfigService
 from veyntora_api.core.context import RequestContext
 from veyntora_api.db.models.identity import Group
 from veyntora_api.db.models.knowledge import DataSource, IngestJobKind, SourceStatus, SourceType
+from veyntora_api.knowledge.reading import check_reading
 from veyntora_api.knowledge.service import (
     SCHEDULES,
     KnowledgeError,
@@ -90,6 +92,11 @@ class WebsiteSettings(BaseModel):
     include_paths: list[str] = Field(default_factory=list, max_length=50)
     max_pages: int = Field(500, ge=1, le=5000)
     max_depth: int = Field(3, ge=0, le=10)
+    # Also start from the pages listed in the site's sitemap (sitemap.xml and the sitemaps
+    # robots.txt names): finds pages no link leads to (ADR 0040).
+    use_sitemap: bool = False
+    # Seconds to wait between two requests, to spare the site.
+    delay_seconds: float = Field(0.0, ge=0.0, le=30.0)
 
     @model_validator(mode="after")
     def _urls(self) -> WebsiteSettings:
@@ -338,6 +345,7 @@ class ConnectedSourceInput(BaseModel):
     secret: SecretStr | None = None
     secret_expires_at: datetime | None = None
     schedule: str | None = None
+    reading: SourceReading | None = None
 
     @model_validator(mode="after")
     def _matches(self) -> ConnectedSourceInput:
@@ -417,7 +425,10 @@ MODELS: dict[SourceType, type[Connection]] = {
 
 def settings_of(source: DataSource) -> Connection:
     model = MODELS[source.type]
-    return model.model_validate({k: source.config.get(k) for k in model.model_fields})
+    # Only saved keys: settings added later take their defaults for older sources.
+    return model.model_validate(
+        {k: source.config[k] for k in model.model_fields if k in source.config}
+    )
 
 
 async def create_connected_source(
@@ -433,6 +444,8 @@ async def create_connected_source(
         await _check_acl(db, data.acl)
     await _check_folders(db, data.folders)
     await _check_maps(db, data.settings())
+    if data.reading is not None:
+        await check_reading(db, data.reading)
     if await db.scalar(sa.select(DataSource.id).where(DataSource.name == data.name)):
         raise KnowledgeError(f"a source named {data.name!r} already exists")
     settings = data.settings()
@@ -444,6 +457,11 @@ async def create_connected_source(
             "acl": data.acl.model_dump(mode="json"),
             "folders": [f.model_dump(mode="json") for f in data.folders],
             "state": {},
+            **(
+                {"reading": data.reading.model_dump(mode="json", exclude_none=True)}
+                if data.reading
+                else {}
+            ),
         },
         schedule=data.schedule,
         status=SourceStatus.ACTIVE,

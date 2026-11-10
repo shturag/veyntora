@@ -23,6 +23,7 @@ from veyntora_api.db.models.knowledge import (
     IngestJobKind,
     ScanStatus,
 )
+from veyntora_api.knowledge.reading import reading_of, size_limit, skipped
 from veyntora_api.knowledge.service import (
     KnowledgeError,
     SharePointSettings,
@@ -105,6 +106,18 @@ def _skip(run: _Run, doc: Document | None, item: DriveItem) -> str | None:
     return None
 
 
+async def _filtered(run: _Run, doc: Document | None, item: DriveItem) -> str | None:
+    """The source's file types, size and path patterns (ADR 0040). A document the filters
+    now exclude is removed."""
+    filters = reading_of(run.source).filters
+    limit = size_limit(filters, run.ing.settings.upload_max_bytes)
+    why = skipped(filters, item.path, item.size, limit)
+    if why == "filtered" and doc is not None and doc.status is not DocumentStatus.DELETED:
+        doc.status = DocumentStatus.DELETED
+        await enqueue(run.ing.db, run.source.id, IngestJobKind.DELETE, document_id=doc.id)
+    return why
+
+
 async def _apply_item(run: _Run, item: DriveItem) -> str:
     ing, client, source, cfg, unmapped = run.ing, run.client, run.source, run.cfg, run.unmapped
     external_id = f"{item.drive_id}/{item.item_id}"
@@ -119,7 +132,7 @@ async def _apply_item(run: _Run, item: DriveItem) -> str:
         doc.status = DocumentStatus.DELETED
         await enqueue(ing.db, source.id, IngestJobKind.DELETE, document_id=doc.id)
         return "deleted"
-    if reason := _skip(run, doc, item):
+    if reason := await _filtered(run, doc, item) or _skip(run, doc, item):
         return reason
     content = await client.download(item)
     try:

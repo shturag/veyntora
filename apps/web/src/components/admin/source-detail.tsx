@@ -37,6 +37,7 @@ import {
   type GroupOption,
   type SharePointSettings,
 } from "./source-forms";
+import { FileFilterFields, ReadingFields, readingFrom, type ReaderOption } from "./reading-fields";
 
 type Source = components["schemas"]["SourceOut"];
 
@@ -545,5 +546,61 @@ export function ReindexFailed({ sourceId, count }: { sourceId: string; count: nu
         {t("reindexFailed", { count })}
       </Button>
     </div>
+  );
+}
+
+/** How the source reads its documents and which files (ADR 0040), and re-reading them all. */
+export function ReadingForm({ source, readers }: { source: Source; readers: ReaderOption[] }) {
+  const t = useTranslations("sources.reading");
+  const router = useRouter();
+  const { error, busy, run } = useAction();
+  const [done, setDone] = useState<string | null>(null);
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    void run(async () => {
+      await api(`/v1/admin/sources/${source.id}/reading`, {
+        method: "PUT",
+        headers: { "If-Match": String(source.version) },
+        body: JSON.stringify(readingFrom(form)),
+      });
+      setDone(t("saved"));
+      router.refresh();
+    });
+  }
+  function reread() {
+    if (!window.confirm(t("rereadConfirm", { count: source.documents }))) return;
+    void run(async () => {
+      const r = await api<{ queued: number }>(`/v1/admin/sources/${source.id}/documents/reread`, {
+        method: "POST",
+        body: "{}",
+      });
+      setDone(t("rereadQueued", { count: r.queued }));
+      router.refresh();
+    });
+  }
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      <ReadingFields options={readers} value={source.reading} allowPipeline />
+      <h3 className="m-0 border-t border-divider pt-4 text-xs font-semibold tracking-wide text-fg-muted uppercase">
+        {t("filesTitle")}
+      </h3>
+      <FileFilterFields value={source.reading} />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-4">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={busy || source.documents === 0}
+          onClick={reread}
+        >
+          <RotateCw aria-hidden className="size-4" />
+          {t("reread")}
+        </Button>
+        <Button type="submit" variant="primary" disabled={busy}>
+          {t("save")}
+        </Button>
+      </div>
+      <Feedback error={error} done={done} />
+    </form>
   );
 }

@@ -41,3 +41,4 @@
 | [0037](0037-vision-models.md) | Vision models (VLMs) for reading documents |
 | [0038](0038-open-source.md) | Open source under the Apache License 2.0 |
 | [0039](0039-small-talk.md) | Small talk gets a labelled reply |
+| [0040](0040-reading-per-source.md) | Each data source chooses how its documents are read |

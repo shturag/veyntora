@@ -1,5 +1,6 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
+from veyntora_spec.extraction import ExtractionMethod, ExtractionSpec
 from veyntora_spec.pipeline import ChunkingStrategy, PipelineSpec
 from veyntora_spec.profile import IndexProfile, collection_for, index_profile
 
@@ -81,3 +82,41 @@ def test_reading_pages_needs_a_vision_model_to_publish() -> None:
     assert "ingestion.vision_instance_id is not set" in spec.publish_problems()
     spec.ingestion.vision_instance_id = uuid4()
     assert "ingestion.vision_instance_id is not set" not in spec.publish_problems()
+
+
+def test_keys_from_before_reading_per_source_stay_the_same() -> None:
+    p, e, s, v = (UUID(int=i) for i in (1, 2, 3, 4))
+
+    def key(**ingestion: object) -> str:
+        spec = PipelineSpec.model_validate(
+            {
+                "ingestion": {"parser_instance_id": p, "embedding_instance_id": e, **ingestion},
+                "retrieval": {"vector_store_instance_id": s, "embedding_instance_id": e},
+            }
+        )
+        profile = index_profile(spec)
+        assert profile is not None
+        return profile.key
+
+    # Computed before ADR 0040: chunks indexed then must still be found.
+    assert key() == "c60b40348ec4874772859b249352f703"
+    assert key(ocr=False, describe_images=True, vision_instance_id=v) == (
+        "bc2197f8b223edb2d9c89670c2aa2245"
+    )
+    assert key(vision_instance_id=v, vision_pages=True) == "20c533af282e04cc94e2618e2b266788"
+
+
+def test_a_source_reads_its_documents_its_own_way() -> None:
+    spec = _spec()
+    pipeline = index_profile(spec)
+    assert pipeline is not None
+    parser = spec.ingestion.parser_instance_id
+    # The same settings as the pipeline give the same profile, so nothing is indexed again.
+    same = ExtractionSpec(method=ExtractionMethod.LAYOUT, parser_instance_id=parser)
+    assert index_profile(spec, same) == pipeline
+    auto = index_profile(spec, ExtractionSpec(parser_instance_id=parser))
+    assert auto is not None and auto.reading == "auto" and auto.key != pipeline.key
+    # Chunking and embeddings stay the pipeline's.
+    assert auto.chunk_size_tokens == pipeline.chunk_size_tokens
+    assert auto.embedding_instance_id == pipeline.embedding_instance_id
+    assert index_profile(spec, ExtractionSpec()) is None, "no parser yet"

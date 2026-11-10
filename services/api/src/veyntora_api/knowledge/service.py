@@ -16,6 +16,7 @@ from uuid import UUID
 import sqlalchemy as sa
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
+from veyntora_spec.extraction import SourceReading
 
 from veyntora_api.core import audit
 from veyntora_api.core.config_service import ConfigService
@@ -80,11 +81,17 @@ class SourceAcl(BaseModel):
         return [f"user:{u}" for u in self.users] + [f"group:{g}" for g in self.groups]
 
 
+def _reading_config(reading: SourceReading | None) -> dict[str, Any]:
+    return {"reading": reading.model_dump(mode="json", exclude_none=True)} if reading else {}
+
+
 class UploadSourceInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1, max_length=255)
     acl: SourceAcl
+    # How documents are read and which files (ADR 0040); None: as each chatbot's pipeline says.
+    reading: SourceReading | None = None
 
 
 # Sync schedules offered in the console (cron, UTC). Null means manual sync only.
@@ -113,6 +120,7 @@ class SharePointSourceInput(BaseModel):
     client_secret: SecretStr
     secret_expires_at: datetime | None = None
     schedule: str | None = None
+    reading: SourceReading | None = None
 
 
 class SourceUpdate(BaseModel):
@@ -160,7 +168,7 @@ async def create_upload_source(
     row = DataSource(
         type=SourceType.UPLOAD,
         name=data.name,
-        config={"acl": data.acl.model_dump(mode="json")},
+        config={"acl": data.acl.model_dump(mode="json"), **_reading_config(data.reading)},
         status=SourceStatus.ACTIVE,
         owner_id=owner_id,
     )
@@ -244,7 +252,11 @@ async def create_sharepoint_source(
     row = DataSource(
         type=SourceType.SHAREPOINT,
         name=data.name,
-        config={**data.settings.model_dump(mode="json"), "state": {}},
+        config={
+            **data.settings.model_dump(mode="json"),
+            "state": {},
+            **_reading_config(data.reading),
+        },
         schedule=data.schedule,
         status=SourceStatus.ACTIVE,
         owner_id=owner_id,

@@ -1269,8 +1269,66 @@
       "syncOnlyText": "When Veyntora reads changes.",
       "afterConnect": "Veyntora tests the connection, then reads the documents.",
       "afterUpload": "Add files on the next page.",
-      "cancel": "Cancel"
-    }
+      "cancel": "Cancel",
+      "reading": "How documents are read",
+      "readingText": "The reader this source's documents go through; you can change it later.",
+      "files": "Which files",
+      "filesText": "Limit the source to some file types, sizes or paths. Leave empty to read everything."
+    },
+    "reading": {
+      "title": "How documents are read",
+      "text": "The reader this source's documents go through. Chunking, embeddings and search stay in each chatbot's pipeline.",
+      "method": "Reading method",
+      "methods": {
+        "auto": "Auto",
+        "text": "Fast text",
+        "layout": "Layout (Docling)",
+        "vision": "Vision model per page",
+        "pipeline": "As each chatbot's pipeline says"
+      },
+      "methodHints": {
+        "auto": "Recommended. PDFs with a text layer are read directly; scans and other formats go to the parser, with OCR.",
+        "text": "Only the text layer of PDFs (pypdf, in-house): fastest, no layout, tables or OCR. Other formats go to the parser.",
+        "layout": "The parser reads headings, tables and reading order, and runs OCR on scans. Slower than text.",
+        "vision": "A vision model transcribes every PDF and image page: best for scans, forms and handwriting; slowest.",
+        "pipeline": "No setting of its own: read with each attached chatbot's Ingestion settings, as before."
+      },
+      "parser": "Document parser",
+      "parserHint": "Docling. Needed for Word, PowerPoint, Excel, HTML and images with every method.",
+      "noParser": "No parser yet (Providers & keys)",
+      "vision": "Vision model",
+      "visionHint": "Reads pages (vision method) and describes pictures. An external model needs the chatbot's data rule.",
+      "none": "None",
+      "external": "external",
+      "options": {
+        "ocr": "OCR for scanned pages",
+        "extract_tables": "Extract tables",
+        "describe_images": "Describe images"
+      },
+      "optionHints": {
+        "ocr": "Reads text in images of pages (with the parser).",
+        "extract_tables": "Keeps tables as tables, so rows and columns stay together.",
+        "describe_images": "Pictures and charts get a description from the vision model or the parser."
+      },
+      "pipelineNote": "Each chatbot this source is attached to reads it with its own Pipeline → Ingestion settings. Choose a method to give this source its own.",
+      "filesTitle": "Which files",
+      "fileTypes": "File types",
+      "fileTypesHint": "None ticked: every type Veyntora reads.",
+      "maxSize": "Largest file (MB)",
+      "maxSizePlaceholder": "Platform limit",
+      "include": "Only these paths",
+      "exclude": "Skip these paths",
+      "patternsHint": "One pattern per line. With a slash it matches the path (/policies/*), without one the file name (*.pdf). Skipped files that were read before are removed at the next sync.",
+      "save": "Save reading settings",
+      "saved": "Saved. The source syncs again with the new settings.",
+      "reread": "Re-read everything",
+      "rereadConfirm": "Read and index all {count} documents again, changed or not? This takes a while and calls the parser and embedding model for every document.",
+      "rereadQueued": "{count, plural, one {# document} other {# documents}} queued to be read again."
+    },
+    "useSitemap": "Use the sitemap",
+    "useSitemapHint": "Also reads the pages the site's sitemap.xml lists (and the sitemaps robots.txt names), so pages no link leads to are found.",
+    "delaySeconds": "Wait between requests (s)",
+    "delaySecondsHint": "Spares the site; 0 reads as fast as the site answers."
   },
   "myFiles": {
     "title": "My files",
@@ -1662,7 +1720,7 @@
     },
     "defaultModel": "default, always offered",
     "sectionText": {
-      "ingestion": "How documents are read and cut into passages before they are searched.",
+      "ingestion": "How documents are read and cut into passages. A data source can choose its own reader (Data sources → source → How documents are read); these reading settings apply to sources without one, My files and files attached in the chat.",
       "retrieval": "How passages are found for a question: the index, the search type and its filters.",
       "rerank": "A second model orders the passages found and drops those that do not fit the question.",
       "generation": "The model that writes the answer, its instructions, and what happens when it is not grounded.",

@@ -15,7 +15,11 @@ export default async function ConnectSourcePage() {
   const access = await areaAccess("sources");
   if (!access || access.level !== "editor") return <Forbidden />;
   const t = await getTranslations("sources");
-  const { data } = await (await serverApi()).GET("/v1/admin/sources/groups");
+  const api = await serverApi();
+  const [{ data }, { data: readers }] = await Promise.all([
+    api.GET("/v1/admin/sources/groups"),
+    api.GET("/v1/admin/sources/readers"),
+  ]);
   return (
     <div className="flex flex-col gap-5">
       <nav aria-label="Breadcrumb" className="text-sm text-fg-muted">
@@ -25,7 +29,7 @@ export default async function ConnectSourcePage() {
         / {t("connectTitle")}
       </nav>
       <PageHeader title={t("connectTitle")} subtitle={t("connectSubtitle")} />
-      <ConnectSourceForm groups={(data ?? []) as GroupOption[]} />
+      <ConnectSourceForm groups={(data ?? []) as GroupOption[]} readers={readers ?? []} />
     </div>
   );
 }

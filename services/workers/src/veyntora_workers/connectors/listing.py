@@ -26,6 +26,7 @@ from veyntora_api.db.models.knowledge import (
     ScanStatus,
 )
 from veyntora_api.knowledge.connectors import OWN_PERMISSIONS, readers_for
+from veyntora_api.knowledge.reading import reading_of, size_limit, skipped
 from veyntora_api.knowledge.service import KnowledgeError, enqueue, upload_type
 from veyntora_api.storage import object_key
 
@@ -72,7 +73,9 @@ def _same(doc: Document, acl: dict[str, list[str]]) -> str:
     return "unchanged"
 
 
-async def _apply(ing: Ingestor, source: DataSource, listing: Listing, entry: Entry) -> str:
+async def _apply(
+    ing: Ingestor, source: DataSource, listing: Listing, entry: Entry, limit: int
+) -> str:
     doc = await ing.db.scalar(
         sa.select(Document).where(
             Document.source_id == source.id, Document.external_id == entry.external_id
@@ -82,10 +85,10 @@ async def _apply(ing: Ingestor, source: DataSource, listing: Listing, entry: Ent
     acl = entry.acl if entry.acl is not None else readers_for(source, entry.path)
     if live and doc and entry.version and doc.external_version == entry.version:
         return _same(doc, acl)
-    if entry.size and entry.size > ing.settings.upload_max_bytes:
+    if entry.size and entry.size > limit:
         return "too_large"
     content = entry.content if entry.content is not None else await listing.download(entry)
-    if len(content) > ing.settings.upload_max_bytes:
+    if len(content) > limit:
         return "too_large"
     digest = hashlib.sha256(content).hexdigest()
     if live and doc and doc.hash == digest:
@@ -125,10 +128,18 @@ async def sync_listing(ing: Ingestor, source: DataSource, listing: Listing) -> d
     counts: dict[str, int] = {}
     seen: set[str] = set()
     n = 0
+    # The source's file types, size and path patterns (ADR 0040).
+    filters = reading_of(source).filters
+    limit = size_limit(filters, ing.settings.upload_max_bytes)
     async for entry in listing.entries:
+        why = skipped(filters, entry.path, None, limit)
+        if why == "filtered":
+            # Not read; a document read before the filter is removed like a deleted file.
+            counts["filtered"] = counts.get("filtered", 0) + 1
+            continue
         seen.add(entry.external_id)
         try:
-            result = await _apply(ing, source, listing, entry)
+            result = await _apply(ing, source, listing, entry, limit)
         except Exception as exc:  # one bad file never stops the sync
             log.info("listing.entry_failed", path=entry.path, error=str(exc)[:300])
             result = "failed"

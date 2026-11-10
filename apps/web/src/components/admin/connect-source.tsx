@@ -39,6 +39,7 @@ import {
   useAction,
   type GroupOption,
 } from "./source-forms";
+import { FileFilterFields, ReadingFields, readingFrom, type ReaderOption } from "./reading-fields";
 
 // The type picker, by what the source holds.
 const KIND_GROUPS = {
@@ -100,7 +101,14 @@ function TypePicker({ type, onChange }: { type: Kind; onChange: (k: Kind) => voi
 }
 
 /** Connect data source: pick a type, then its settings. */
-export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
+export function ConnectSourceForm({
+  groups,
+  readers,
+}: {
+  groups: GroupOption[];
+  /** Parsers and vision models documents can be read with. */
+  readers: ReaderOption[];
+}) {
   const t = useTranslations("sources");
   const tc = useTranslations("sources.connectUi");
   const router = useRouter();
@@ -119,11 +127,12 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
     void run(async () => {
       const name = String(form.get("name"));
       const acl = { groups: form.getAll("readers").map(String), users: [] };
+      const reading = readingFrom(form);
       let created: { id: string };
       if (type === "upload") {
         created = await api("/v1/admin/sources", {
           method: "POST",
-          body: JSON.stringify({ name, acl }),
+          body: JSON.stringify({ name, acl, reading }),
         });
       } else if (type === "sharepoint") {
         created = await api("/v1/admin/sources/sharepoint", {
@@ -134,6 +143,7 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
             client_secret: String(form.get("client_secret")),
             secret_expires_at: secretExpires,
             schedule,
+            reading,
           }),
         });
       } else {
@@ -148,6 +158,7 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
             secret: needsSecret ? String(form.get("client_secret")) : null,
             secret_expires_at: secretExpires,
             schedule,
+            reading,
           }),
         });
       }
@@ -251,6 +262,14 @@ export function ConnectSourceForm({ groups }: { groups: GroupOption[] }) {
                 ) : null}
               </>
             )}
+          </Panel>
+
+          <Panel id="connect-reading" title={tc("reading")} description={tc("readingText")}>
+            <ReadingFields options={readers} />
+          </Panel>
+
+          <Panel id="connect-files" title={tc("files")} description={tc("filesText")}>
+            <FileFilterFields />
           </Panel>
 
           {type !== "upload" ? (

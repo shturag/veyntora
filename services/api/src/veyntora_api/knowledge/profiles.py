@@ -26,6 +26,7 @@ from veyntora_api.db.models.chatbots import (
 from veyntora_api.db.models.governance import GovernanceRule
 from veyntora_api.db.models.knowledge import DataSource, SourceAttachment
 from veyntora_api.db.models.providers import ProviderInstance
+from veyntora_api.knowledge.reading import extraction_of
 
 log = structlog.get_logger()
 
@@ -104,7 +105,10 @@ async def index_plan(db: AsyncSession, source_id: UUID) -> tuple[list[IndexProfi
     candidates: list[tuple[UUID, IndexProfile]] = []
     for chatbot_id, raw in versions:
         try:
-            profile = index_profile(PipelineSpec.model_validate(raw))
+            # The source's own reading (ADR 0040); "My files" read as the pipeline says.
+            profile = index_profile(
+                PipelineSpec.model_validate(raw), None if personal else extraction_of(source)
+            )
         except ValidationError:
             continue
         if profile is not None:
@@ -154,7 +158,8 @@ async def index_plan(db: AsyncSession, source_id: UUID) -> tuple[list[IndexProfi
         return list(profiles.values()), None
     if not candidates:
         return [], (
-            f"the pipeline of {', '.join(sorted(names.values()))} has no document parser, "
-            "embedding model or vector store yet"
+            f"the pipeline of {', '.join(sorted(names.values()))} has no embedding model or "
+            "vector store yet, or no document parser is chosen (on the source, or in the "
+            "pipeline when the source has no reading setting)"
         )
     return [], "; ".join(dict.fromkeys(reasons))

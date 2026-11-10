@@ -2328,6 +2328,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/sources/readers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Parsers and vision models a source can read documents with */
+        get: operations["reader_options_v1_admin_sources_readers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/sources/sharepoint": {
         parameters: {
             query?: never;
@@ -2416,6 +2433,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/sources/{source_id}/documents/reread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read and index every document again, changed or not */
+        post: operations["reread_all_v1_admin_sources__source_id__documents_reread_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/sources/{source_id}/documents/summary": {
         parameters: {
             query?: never;
@@ -2477,6 +2511,23 @@ export interface paths {
         /** Recent ingestion jobs of a source */
         get: operations["list_jobs_v1_admin_sources__source_id__jobs_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sources/{source_id}/reading": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** How documents are read, and which files */
+        put: operations["change_reading_v1_admin_sources__source_id__reading_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -5235,6 +5286,7 @@ export interface components {
             jira?: components["schemas"]["JiraSettings"] | null;
             /** Name */
             name: string;
+            reading?: components["schemas"]["SourceReading"] | null;
             s3?: components["schemas"]["S3Settings"] | null;
             /** Schedule */
             schedule?: string | null;
@@ -5875,6 +5927,35 @@ export interface components {
             /** Teams */
             teams: components["schemas"]["GroupRef"][];
         };
+        /**
+         * ExtractionMethod
+         * @enum {string}
+         */
+        ExtractionMethod: "auto" | "text" | "layout" | "vision";
+        /** ExtractionSpec */
+        ExtractionSpec: {
+            /**
+             * Describe Images
+             * @default false
+             */
+            describe_images: boolean;
+            /**
+             * Extract Tables
+             * @default true
+             */
+            extract_tables: boolean;
+            /** @default auto */
+            method: components["schemas"]["ExtractionMethod"];
+            /**
+             * Ocr
+             * @default true
+             */
+            ocr: boolean;
+            /** Parser Instance Id */
+            parser_instance_id?: string | null;
+            /** Vision Instance Id */
+            vision_instance_id?: string | null;
+        };
         /** FailingCase */
         FailingCase: {
             /** Metrics */
@@ -5893,6 +5974,20 @@ export interface components {
             rating: components["schemas"]["Rating"];
             /** Reason */
             reason?: ("wrong" | "outdated" | "incomplete" | "not_relevant" | "other") | null;
+        };
+        /**
+         * FileFilters
+         * @description Which of a source's files are read; the others are skipped (and removed if indexed).
+         */
+        FileFilters: {
+            /** Exclude */
+            exclude?: string[];
+            /** File Types */
+            file_types?: string[];
+            /** Include */
+            include?: string[];
+            /** Max File Mb */
+            max_file_mb?: number | null;
         };
         /** FileOut */
         FileOut: {
@@ -8407,6 +8502,22 @@ export interface components {
          * @enum {string}
          */
         Rating: "up" | "down";
+        /** ReaderOption */
+        ReaderOption: {
+            /** Capability */
+            capability: string;
+            /** Enabled */
+            enabled: boolean;
+            /** External */
+            external: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+        };
         /** ReasonInput */
         ReasonInput: {
             /** Reason */
@@ -9739,6 +9850,7 @@ export interface components {
             client_secret: string;
             /** Name */
             name: string;
+            reading?: components["schemas"]["SourceReading"] | null;
             /** Schedule */
             schedule?: string | null;
             /** Secret Expires At */
@@ -9866,6 +9978,7 @@ export interface components {
             last_synced_at: string | null;
             /** Name */
             name: string;
+            reading: components["schemas"]["SourceReading"];
             /** Schedule */
             schedule: string | null;
             sharepoint: components["schemas"]["SharePointOut"] | null;
@@ -9873,6 +9986,14 @@ export interface components {
             type: components["schemas"]["SourceType"];
             /** Version */
             version: number;
+        };
+        /**
+         * SourceReading
+         * @description A source's reading settings, stored in its config under "reading".
+         */
+        SourceReading: {
+            extraction?: components["schemas"]["ExtractionSpec"] | null;
+            filters?: components["schemas"]["FileFilters"];
         };
         /**
          * SourceStatus
@@ -10181,6 +10302,7 @@ export interface components {
             acl: components["schemas"]["SourceAcl"];
             /** Name */
             name: string;
+            reading?: components["schemas"]["SourceReading"] | null;
         };
         /** UsageModelRef */
         UsageModelRef: {
@@ -10446,6 +10568,11 @@ export interface components {
         };
         /** WebsiteSettings */
         WebsiteSettings: {
+            /**
+             * Delay Seconds
+             * @default 0
+             */
+            delay_seconds: number;
             /** Include Paths */
             include_paths?: string[];
             /**
@@ -10460,6 +10587,11 @@ export interface components {
             max_pages: number;
             /** Start Urls */
             start_urls: string[];
+            /**
+             * Use Sitemap
+             * @default false
+             */
+            use_sitemap: boolean;
         };
         /** WidgetConfig */
         WidgetConfig: {
@@ -15778,6 +15910,26 @@ export interface operations {
             };
         };
     };
+    reader_options_v1_admin_sources_readers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReaderOption"][];
+                };
+            };
+        };
+    };
     create_sharepoint_v1_admin_sources_sharepoint_post: {
         parameters: {
             query?: never;
@@ -16051,6 +16203,37 @@ export interface operations {
             };
         };
     };
+    reread_all_v1_admin_sources__source_id__documents_reread_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Requeued"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     documents_summary_v1_admin_sources__source_id__documents_summary_get: {
         parameters: {
             query?: never;
@@ -16166,6 +16349,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_reading_v1_admin_sources__source_id__reading_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: number | null;
+            };
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceReading"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceOut"];
                 };
             };
             /** @description Validation Error */

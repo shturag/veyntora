@@ -31,6 +31,8 @@ type S3Settings = {
   access_key_id: string;
 };
 type WebsiteSettings = {
+  use_sitemap?: boolean;
+  delay_seconds?: number;
   start_urls: string[];
   include_paths: string[];
   max_pages: number;
@@ -240,6 +242,8 @@ function websiteFrom(form: FormData): WebsiteSettings {
     include_paths: lines(form.get("web_paths")),
     max_pages: Number(form.get("max_pages")),
     max_depth: Number(form.get("max_depth")),
+    use_sitemap: form.get("use_sitemap") === "on",
+    delay_seconds: Number(form.get("delay_seconds")) || 0,
   };
 }
 
@@ -363,6 +367,33 @@ export function WebsiteFields({ value }: { value?: WebsiteSettings }) {
             defaultValue={value?.max_depth ?? 3}
             className={input}
           />
+        </label>
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_200px] items-start gap-3 max-[760px]:grid-cols-1">
+        <label className="flex cursor-pointer items-start gap-3 rounded-md border border-line px-4 py-3 text-sm hover:bg-sunken/50">
+          <input
+            type="checkbox"
+            name="use_sitemap"
+            defaultChecked={value?.use_sitemap ?? false}
+            className="mt-0.5 size-4 shrink-0"
+          />
+          <span className="flex flex-col gap-0.5">
+            <span className="font-medium">{t("useSitemap")}</span>
+            <span className="text-xs text-fg-muted">{t("useSitemapHint")}</span>
+          </span>
+        </label>
+        <label className={label}>
+          {t("delaySeconds")}
+          <input
+            name="delay_seconds"
+            type="number"
+            min={0}
+            max={30}
+            step={0.5}
+            defaultValue={value?.delay_seconds ?? 0}
+            className={input}
+          />
+          <span className="text-xs font-normal text-fg-muted">{t("delaySecondsHint")}</span>
         </label>
       </div>
     </>

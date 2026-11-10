@@ -4139,6 +4139,16 @@
             "title": "Name",
             "type": "string"
           },
+          "reading": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceReading"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "s3": {
             "anyOf": [
               {
@@ -6214,6 +6224,66 @@
         "title": "ExpertsOut",
         "type": "object"
       },
+      "ExtractionMethod": {
+        "enum": [
+          "auto",
+          "text",
+          "layout",
+          "vision"
+        ],
+        "title": "ExtractionMethod",
+        "type": "string"
+      },
+      "ExtractionSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "describe_images": {
+            "default": false,
+            "title": "Describe Images",
+            "type": "boolean"
+          },
+          "extract_tables": {
+            "default": true,
+            "title": "Extract Tables",
+            "type": "boolean"
+          },
+          "method": {
+            "$ref": "#/components/schemas/ExtractionMethod",
+            "default": "auto"
+          },
+          "ocr": {
+            "default": true,
+            "title": "Ocr",
+            "type": "boolean"
+          },
+          "parser_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parser Instance Id"
+          },
+          "vision_instance_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vision Instance Id"
+          }
+        },
+        "title": "ExtractionSpec",
+        "type": "object"
+      },
       "FailingCase": {
         "properties": {
           "metrics": {
@@ -6278,6 +6348,51 @@
           "rating"
         ],
         "title": "FeedbackInput",
+        "type": "object"
+      },
+      "FileFilters": {
+        "additionalProperties": false,
+        "description": "Which of a source's files are read; the others are skipped (and removed if indexed).",
+        "properties": {
+          "exclude": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Exclude",
+            "type": "array"
+          },
+          "file_types": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "File Types",
+            "type": "array"
+          },
+          "include": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Include",
+            "type": "array"
+          },
+          "max_file_mb": {
+            "anyOf": [
+              {
+                "maximum": 2048.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max File Mb"
+          }
+        },
+        "title": "FileFilters",
         "type": "object"
       },
       "FileOut": {
@@ -12680,6 +12795,40 @@
         "title": "Rating",
         "type": "string"
       },
+      "ReaderOption": {
+        "properties": {
+          "capability": {
+            "title": "Capability",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "external": {
+            "title": "External",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "capability",
+          "external",
+          "enabled"
+        ],
+        "title": "ReaderOption",
+        "type": "object"
+      },
       "ReasonInput": {
         "additionalProperties": false,
         "properties": {
@@ -16424,6 +16573,16 @@
             "title": "Name",
             "type": "string"
           },
+          "reading": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceReading"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "schedule": {
             "anyOf": [
               {
@@ -16792,6 +16951,9 @@
             "title": "Name",
             "type": "string"
           },
+          "reading": {
+            "$ref": "#/components/schemas/SourceReading"
+          },
           "schedule": {
             "anyOf": [
               {
@@ -16835,9 +16997,31 @@
           "schedule",
           "documents",
           "version",
-          "last_synced_at"
+          "last_synced_at",
+          "reading"
         ],
         "title": "SourceOut",
+        "type": "object"
+      },
+      "SourceReading": {
+        "additionalProperties": false,
+        "description": "A source's reading settings, stored in its config under \"reading\".",
+        "properties": {
+          "extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExtractionSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filters": {
+            "$ref": "#/components/schemas/FileFilters"
+          }
+        },
+        "title": "SourceReading",
         "type": "object"
       },
       "SourceStatus": {
@@ -17740,6 +17924,16 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "reading": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceReading"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -18418,6 +18612,13 @@
       "WebsiteSettings": {
         "additionalProperties": false,
         "properties": {
+          "delay_seconds": {
+            "default": 0.0,
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Delay Seconds",
+            "type": "number"
+          },
           "include_paths": {
             "items": {
               "type": "string"
@@ -18448,6 +18649,11 @@
             "minItems": 1,
             "title": "Start Urls",
             "type": "array"
+          },
+          "use_sitemap": {
+            "default": false,
+            "title": "Use Sitemap",
+            "type": "boolean"
           }
         },
         "required": [
@@ -26772,6 +26978,31 @@
         ]
       }
     },
+    "/v1/admin/sources/readers": {
+      "get": {
+        "operationId": "reader_options_v1_admin_sources_readers_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReaderOption"
+                  },
+                  "title": "Response Reader Options V1 Admin Sources Readers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Parsers and vision models a source can read documents with",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
     "/v1/admin/sources/sharepoint": {
       "post": {
         "operationId": "create_sharepoint_v1_admin_sources_sharepoint_post",
@@ -27239,6 +27470,49 @@
         ]
       }
     },
+    "/v1/admin/sources/{source_id}/documents/reread": {
+      "post": {
+        "operationId": "reread_all_v1_admin_sources__source_id__documents_reread_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Requeued"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read and index every document again, changed or not",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
     "/v1/admin/sources/{source_id}/documents/summary": {
       "get": {
         "operationId": "documents_summary_v1_admin_sources__source_id__documents_summary_get",
@@ -27440,6 +27714,75 @@
           }
         },
         "summary": "Recent ingestion jobs of a source",
+        "tags": [
+          "admin: sources"
+        ]
+      }
+    },
+    "/v1/admin/sources/{source_id}/reading": {
+      "put": {
+        "operationId": "change_reading_v1_admin_sources__source_id__reading_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceReading"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "How documents are read, and which files",
         "tags": [
           "admin: sources"
         ]
