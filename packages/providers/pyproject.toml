@@ -5,7 +5,7 @@ description = "Veyntora provider interfaces, adapters and the shared contract te
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
 dependencies = [
-  "pydantic==2.14.2",
+  "pydantic==2.14.3",
   "httpx==0.28.1",
   "anthropic==2.3.0",
   "qdrant-client==1.20.0",
