@@ -111,7 +111,7 @@ async def _filtered(run: _Run, doc: Document | None, item: DriveItem) -> str | N
     now exclude is removed."""
     filters = reading_of(run.source).filters
     limit = size_limit(filters, run.ing.settings.upload_max_bytes)
-    why = skipped(filters, item.path, item.size, limit)
+    why = skipped(filters, item.path, item.size, limit, name=item.name)
     if why == "filtered" and doc is not None and doc.status is not DocumentStatus.DELETED:
         doc.status = DocumentStatus.DELETED
         await enqueue(run.ing.db, run.source.id, IngestJobKind.DELETE, document_id=doc.id)

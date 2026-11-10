@@ -69,6 +69,10 @@ def test_filters_choose_the_files() -> None:
     small = FileFilters(max_file_mb=1)
     assert reading.size_limit(small, limit) == 1024 * 1024
     assert reading.skipped(small, "/a.pdf", 2 * 1024 * 1024, limit) == "too_large"
+    # Web pages are typed by their content ("index.html"), not their address ("/handbook/").
+    html = FileFilters(file_types=["html"])
+    assert reading.skipped(html, "/handbook/", None, limit, name="handbook.html") is None
+    assert reading.skipped(html, "/handbook/a.pdf", None, limit, name="a.pdf") == "filtered"
     # A pattern without a slash matches the name anywhere.
     assert reading.skipped(FileFilters(exclude=["*.tmp"]), "/x/y/z.tmp", None, limit)
     with pytest.raises(ValueError, match="vision model"):
@@ -190,7 +194,7 @@ async def test_filters_skip_files_and_remove_them(world: World) -> None:
         world.db,
         CTX,
         source,
-        SourceReading(filters=FileFilters(exclude=["*.md"])),
+        SourceReading(filters=FileFilters(file_types=["html"])),
         expected_version=None,
         triggered_by=None,
     )

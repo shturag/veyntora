@@ -132,7 +132,7 @@ async def sync_listing(ing: Ingestor, source: DataSource, listing: Listing) -> d
     filters = reading_of(source).filters
     limit = size_limit(filters, ing.settings.upload_max_bytes)
     async for entry in listing.entries:
-        why = skipped(filters, entry.path, None, limit)
+        why = skipped(filters, entry.path, None, limit, name=entry.name)
         if why == "filtered":
             # Not read; a document read before the filter is removed like a deleted file.
             counts["filtered"] = counts.get("filtered", 0) + 1

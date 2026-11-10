@@ -31,9 +31,12 @@ def extraction_of(source: DataSource) -> ExtractionSpec | None:
     return reading_of(source).extraction
 
 
-def skipped(filters: FileFilters, path: str, size: int | None, limit: int) -> str | None:
-    """Why a file is not read ("filtered", "too_large"), or None to read it."""
-    name = posixpath.basename(path.rstrip("/")) or path
+def skipped(
+    filters: FileFilters, path: str, size: int | None, limit: int, name: str | None = None
+) -> str | None:
+    """Why a file is not read ("filtered", "too_large"), or None to read it. `name`: the file
+    name with the extension of its type, when the path has none (web pages like /handbook/)."""
+    name = name or posixpath.basename(path.rstrip("/")) or path
     ext = posixpath.splitext(name)[1].lower().lstrip(".")
     if filters.file_types and ext not in filters.file_types:
         return "filtered"
