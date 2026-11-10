@@ -2,7 +2,7 @@
 
 import { cn } from "@veyntora/ui";
 import { Check, MessageSquare, MessagesSquare, Pencil, Search, Trash2, X } from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTimeZone, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
@@ -21,13 +21,27 @@ type HistoryChat = {
 type Bucket = "today" | "yesterday" | "week" | "month" | "older";
 const DAY = 86_400_000;
 
-function bucketOf(when: Date, now: Date): Bucket {
-  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const t = when.getTime();
-  if (t >= midnight) return "today";
-  if (t >= midnight - DAY) return "yesterday";
-  if (t >= midnight - 6 * DAY) return "week";
-  if (t >= midnight - 29 * DAY) return "month";
+/** The calendar day in the app's time zone (not the machine's), so the server and the
+ * browser put a chat in the same group. */
+function dayOf(when: Date, timeZone: string): number {
+  const [y, m, d] = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(when)
+    .split("-")
+    .map(Number);
+  return Date.UTC(y!, m! - 1, d!) / DAY;
+}
+
+function bucketOf(when: Date, now: Date, timeZone: string): Bucket {
+  const days = dayOf(now, timeZone) - dayOf(when, timeZone);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days <= 6) return "week";
+  if (days <= 29) return "month";
   return "older";
 }
 
@@ -39,6 +53,7 @@ export function ChatHistory({ initial }: { initial: HistoryChat[] }) {
   const t = useTranslations("library");
   const format = useFormatter();
   const now = useNow({ updateInterval: 60_000 });
+  const timeZone = useTimeZone() ?? "UTC";
   const router = useRouter();
   const [chats, setChats] = useState(initial);
   const [query, setQuery] = useState("");
@@ -62,8 +77,11 @@ export function ChatHistory({ initial }: { initial: HistoryChat[] }) {
   const groups: { key: string; label: string; items: HistoryChat[] }[] = [];
   for (const chat of shown) {
     const when = new Date(chat.updated_at);
-    const bucket = bucketOf(when, now);
-    const key = bucket === "older" ? `m-${when.getFullYear()}-${when.getMonth()}` : bucket;
+    const bucket = bucketOf(when, now, timeZone);
+    const key =
+      bucket === "older"
+        ? `m-${format.dateTime(when, { month: "numeric", year: "numeric" })}`
+        : bucket;
     const label =
       bucket === "older"
         ? format.dateTime(when, { month: "long", year: "numeric" })
@@ -213,7 +231,7 @@ function Row({
   const format = useFormatter();
   const [editing, setEditing] = useState(false);
   const when = new Date(chat.updated_at);
-  const today = bucketOf(when, now) === "today";
+  const today = bucketOf(when, now, useTimeZone() ?? "UTC") === "today";
   const title = chat.title || t("untitled");
 
   async function save(event: FormEvent<HTMLFormElement>) {

@@ -773,7 +773,9 @@
     "stepFromMemory": "Answered from memory again: not shown",
     "smallTalk": "Small talk, not from the documents",
     "smallTalkBadge": "Small talk",
-    "smallTalkExplained": "A reply to a greeting or a question about this chatbot. It does not come from the documents and states no facts."
+    "smallTalkExplained": "A reply to a greeting or a question about this chatbot. It does not come from the documents and states no facts.",
+    "webSearchHint": "Search the web for this question; results are cited like documents.",
+    "codeHint": "Let the model run Python in a sandbox to calculate or draw charts."
   },
   "source": {
     "updated": "updated {date}",

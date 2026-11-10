@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { api } from "@/lib/chat";
+import { sameText } from "@/lib/dates";
 
 export type ProviderRow = {
   id: string;
@@ -375,10 +376,12 @@ export function ProviderEditor({
           {provider.previous_key_valid_until ? (
             <p className="m-0 text-xs text-fg-muted">
               {t("previousKeyUntil", {
-                until: format.dateTime(new Date(provider.previous_key_valid_until), {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }),
+                until: sameText(
+                  format.dateTime(new Date(provider.previous_key_valid_until), {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }),
+                ),
               })}
             </p>
           ) : null}

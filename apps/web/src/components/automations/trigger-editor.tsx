@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/chat";
+import { sameText } from "@/lib/dates";
 
 import { RulesEditor } from "./rules-editor";
 import {
@@ -165,13 +166,15 @@ export function TriggerEditor({
   }
 
   const when = (iso: string) =>
-    format.dateTime(new Date(iso), {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    sameText(
+      format.dateTime(new Date(iso), {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    );
   const eventFields = [
     "{event.key}",
     "{event.project}",

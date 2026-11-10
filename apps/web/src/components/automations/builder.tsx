@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { api } from "@/lib/chat";
+import { sameText } from "@/lib/dates";
 
 import { DeleteAutomation, PauseResume, RunNow } from "./list-actions";
 import { StepEditor } from "./step-editor";
@@ -331,13 +332,15 @@ export function Builder({
                   ? t("nextRuns", {
                       runs: automation.next_runs
                         .map((r) =>
-                          format.dateTime(new Date(r), {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }),
+                          sameText(
+                            format.dateTime(new Date(r), {
+                              weekday: "short",
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }),
+                          ),
                         )
                         .join(" · "),
                     })
@@ -670,10 +673,12 @@ export function Builder({
                   <span className="text-xs text-fg-muted">
                     {" "}
                     ·{" "}
-                    {format.dateTime(new Date(v.created_at), {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {sameText(
+                      format.dateTime(new Date(v.created_at), {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }),
+                    )}
                     {v.change_note ? ` · ${v.change_note}` : ""}
                   </span>
                 </span>

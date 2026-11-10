@@ -353,7 +353,12 @@ export default async function AuditPage({
               <h2 className="m-0 text-base font-bold">{label(detail.action)}</h2>
               <span className="font-mono text-xs text-fg-muted">{detail.action}</span>
             </header>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            {/* Focusable, so keyboard users can scroll a long entry. */}
+            <div
+              className="relative min-h-0 flex-1 overflow-y-auto"
+              tabIndex={0}
+              aria-label={t("detail")}
+            >
               <dl className="m-0 grid grid-cols-[6rem_minmax(0,1fr)] gap-x-3 gap-y-2 border-b border-line px-4 py-3 text-sm">
                 <dt className="text-fg-muted">{t("when")}</dt>
                 <dd className="m-0">{when(detail.ts)}</dd>

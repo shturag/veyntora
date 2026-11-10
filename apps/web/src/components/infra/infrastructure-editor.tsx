@@ -21,6 +21,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import type { components } from "@/lib/api/schema";
 import { api } from "@/lib/chat";
 import { initialValues, toSettings, type InfraService, type Values } from "@/lib/infra-fields";
+import { sameText } from "@/lib/dates";
 
 import { ServiceFields } from "./service-fields";
 
@@ -330,7 +331,7 @@ export function InfrastructureEditor({ infra }: { infra: Infra }) {
   // Formatted by next-intl, so the server and the browser render the same text.
   const format = useFormatter();
   const when = (iso: string) =>
-    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
+    sameText(format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }));
   const [restarting, restart] = useRestart();
   const [message, setMessage] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);

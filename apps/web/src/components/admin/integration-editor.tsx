@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { api } from "@/lib/chat";
+import { sameText } from "@/lib/dates";
 
 export type IntegrationRow = {
   kind: "langfuse" | "grafana";
@@ -231,10 +232,12 @@ export function IntegrationEditor({
             {row.health_checked_at ? (
               <span className="text-xs">
                 {t("checkedAt", {
-                  when: format.dateTime(new Date(row.health_checked_at), {
-                    dateStyle: "medium",
-                    timeStyle: "short",
-                  }),
+                  when: sameText(
+                    format.dateTime(new Date(row.health_checked_at), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }),
+                  ),
                 })}
               </span>
             ) : null}

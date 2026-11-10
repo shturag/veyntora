@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { api } from "@/lib/chat";
+import { sameText } from "@/lib/dates";
 import {
   INFRA_SERVICES,
   SECRETS,
@@ -44,7 +45,7 @@ export function SetupWizard({ initial }: { initial: SetupState }) {
   // Formatted by next-intl, so the server and the browser render the same text.
   const format = useFormatter();
   const when = (iso: string) =>
-    format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
+    sameText(format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }));
   const [state, setState] = useState<SetupState>(initial);
   const [code, setCode] = useState("");
   const [unlocked, setUnlocked] = useState(false);
