@@ -3,9 +3,9 @@
 //   node scripts/record-walkthroughs.mjs <frames-dir> [name ...]
 //   uv run --with pillow ../../scripts/walkthrough-gifs.py <frames-dir> ../../docs/walkthroughs
 //
-// Uses the sessions saved by the e2e setup (e2e/.auth); WALKTHROUGH_BOT names the chatbot whose
-// wizard steps are shown (default: the first). Read-only: forms are filled in to show
-// them, but nothing is saved, created or published.
+// Uses the sessions saved by the e2e setup (e2e/.auth). Read-only: forms are filled in to show
+// them, but nothing is saved, created or published. Steps on what an install does not have
+// are skipped.
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -154,213 +154,495 @@ const field = (page, label) =>
     .locator("main")
     .getByLabel(new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`))
     .first();
+const main = (page) => page.locator("main");
 
-/** The admin console: what each area is for. */
+/** Steps on what may not exist on every install are skipped, not failed. */
+async function maybe(target, action) {
+  if ((await target.count()) && (await target.first().isVisible())) await action(target.first());
+}
+
+/** A page with its caption, scrolled through. */
+async function tour(r, route, caption, { scroll = 0, ms = 2000 } = {}) {
+  await r.go(route, 300);
+  await r.caption(caption, ms);
+  if (scroll) await r.scroll(scroll, 10, 1400);
+}
+
+/** Point at a section heading of the page, with its caption. */
+async function section(r, heading, caption, ms = 1800) {
+  r.text = caption;
+  const h = r.page.locator("main h2", { hasText: heading }).first();
+  if (await h.count()) await r.point(h, ms);
+}
+
+/** Click through the page's tabs or filters, each with its caption. */
+async function tabs(r, items, ms = 1500) {
+  for (const [name, caption] of items) {
+    r.text = caption;
+    const re = new RegExp(`^${name}`);
+    const m = r.page.locator("main");
+    const t = m
+      .getByRole("link", { name: re })
+      .or(m.getByRole("radio", { name: re }))
+      .or(m.getByRole("button", { name: re }))
+      .first();
+    if ((await t.count()) && (await t.isVisible())) await r.click(t, ms);
+  }
+}
+
+const botId = (bots, name) => bots.find((b) => b.name === name)?.id ?? bots[0]?.id;
+
+/** 1. A simple chatbot: general chat with a language model, no documents. */
+async function simpleChatbot(r, bots) {
+  const { page } = r;
+  await r.go("/admin/chatbots", 600);
+  await r.caption("Chatbots: each with its own models, knowledge and audience", 1800);
+  r.text = "New chatbot · Step 1: name, description and welcome message";
+  await r.click(
+    main(page)
+      .getByRole("link", { name: /New chatbot/ })
+      .first(),
+    900,
+  );
+  await r.type(field(page, "Name"), "Writing helper");
+  await r.type(field(page, "Description"), "Drafts, rewrites and translations");
+  await r.type(field(page, "Welcome message"), "Hi! What should we write today?");
+  await r.caption("Shown for an existing general chatbot (nothing is created here)", 1600);
+  const id = botId(bots, "veyntora-gpt");
+  await r.go(`/admin/chatbots/${id}/settings/retrieval`, 300);
+  r.text = "Retrieval: turn Answer from documents off for general chat";
+  await r.point(page.getByLabel(/^Answer from documents/).first(), 2000);
+  await r.go(`/admin/chatbots/${id}/settings/generation`, 300);
+  await r.caption("Generation: the model, its instructions and how long answers may be", 2000);
+  await r.scroll(500, 8, 1400);
+  await r.go(`/admin/chatbots/${id}/settings/chat`, 300);
+  await r.caption("Chat features: models people may switch to, thinking, attachments", 2200);
+  await r.go(`/admin/chatbots/${id}`, 300);
+  await r.caption("Details: name, address and welcome message can change at any time", 2200);
+}
+
+/** 2. A chatbot that answers from documents (RAG). */
+async function ragChatbot(r, bots) {
+  const { page } = r;
+  const id = botId(bots, "AI research paper");
+  await r.go(`/admin/chatbots/new/knowledge?id=${id}`, 300);
+  await r.caption("Step 2 · Knowledge: the sources it answers from, weighed and limited", 1800);
+  await maybe(page.getByRole("radio", { name: "Boost ×1.5" }), (t) => r.click(t, 1200));
+  await maybe(page.getByRole("radio", { name: "Normal" }), (t) => r.click(t, 600));
+  await r.go(`/admin/chatbots/${id}/settings`, 300);
+  await r.caption("Ingestion: how documents become passages", 1800);
+  await r.go(`/admin/chatbots/${id}/settings/retrieval`, 300);
+  await r.caption("Retrieval: hybrid search over the passages people may read", 1800);
+  await r.go(`/admin/chatbots/${id}/settings/rerank`, 300);
+  await r.caption("Reranking: a second model keeps only the passages that fit", 1800);
+  await r.go(`/admin/chatbots/${id}/settings/generation`, 300);
+  await r.caption(
+    "Generation: citations required; ungrounded answers are held back or flagged",
+    2000,
+  );
+  await r.scroll(600, 8, 1200);
+  await r.go(`/admin/chatbots/${id}/settings/guardrails`, 300);
+  await r.caption("Guardrails: personal data, prompt injection and groundedness checks", 2000);
+  await r.go("/admin/playground", 300);
+  await r.caption("Playground: try the draft against the live version before publishing", 2200);
+}
+
+/** 3. A chatbot with tools: agent mode, MCP tools, web search and code. */
+async function toolsChatbot(r, bots) {
+  const { page } = r;
+  const id = botId(bots, "AI research paper");
+  await r.go(`/admin/chatbots/${id}/settings/agent`, 300);
+  await r.caption("Agent: the model plans, searches and calls tools within limits", 2000);
+  await r.scroll(500, 8, 1400);
+  await r.go(`/admin/chatbots/${id}/settings/router`, 300);
+  await r.caption("Router: Fast, Agent, or Auto choosing per question", 2000);
+  await r.go(`/admin/chatbots/${id}/settings/retrieval`, 300);
+  r.text = "Knowledge tools: read-only MCP tools searched with every question";
+  await maybe(page.getByText("Knowledge tools", { exact: true }), (t) => r.point(t, 2000));
+  await r.go(`/admin/chatbots/${id}/settings/chat`, 300);
+  await r.caption("Chat features: web search and the code sandbox, switched on by people", 2200);
+  await r.go(`/admin/chatbots/${id}/flow`, 300);
+  await r.caption("The pipeline as a flow: every step and where it leads", 2400);
+}
+
+/** 4. Automations. */
+async function automations(r) {
+  const { page } = r;
+  await tour(
+    r,
+    "/admin/automations",
+    "Automations: work that runs on a schedule, an event or by hand",
+    { ms: 1800 },
+  );
+  r.text = "Start from a template or from scratch";
+  await maybe(main(page).getByRole("link", { name: /New automation/ }), (t) => r.click(t, 1600));
+  await r.scroll(400, 8, 1400);
+  await r.go("/admin/automations", 300);
+  r.text = "Each automation: its trigger, steps on a timeline, safety limits and runs";
+  await maybe(
+    main(page).locator("a[href^='/admin/automations/']").filter({ hasNotText: /New/ }),
+    (t) => r.click(t, 1800),
+  );
+  await r.scroll(600, 10, 1600);
+}
+
+/** 5. Data sources. */
+async function dataSources(r) {
+  const { page } = r;
+  await tour(r, "/admin/sources", "Data sources: everything Veyntora reads, kept in step", {
+    ms: 1800,
+  });
+  r.text = "Connect a source: pick where the documents live";
+  await r.click(
+    main(page)
+      .getByRole("link", { name: /Connect/ })
+      .first(),
+    1200,
+  );
+  const kind = (name) => page.getByRole("radio", { name: new RegExp(`^${name}`) });
+  await r.click(kind("SharePoint Online"), 600);
+  r.text = "SharePoint Online keeps its own permissions";
+  await r.type(field(page, "Name"), "Intranet – HR");
+  await r.type(field(page, "Tenant (ID or domain)"), "contoso.onmicrosoft.com");
+  await r.click(kind("Website"), 600);
+  r.text = "Websites: start pages, sitemap, sign-in and JavaScript rendering";
+  await r.type(field(page, "Start pages"), "https://intranet.example.com/handbook/");
+  await r.scroll(500, 8, 1200);
+  r.text = "How documents are read: Auto, fast text, layout or a vision model";
+  await r.point(page.getByText("How documents are read", { exact: true }).first(), 1600);
+  await r.scroll(500, 8, 1200);
+  r.text = "Which files: types, size and paths (not saved in this recording)";
+  await r.scroll(500, 8, 1400);
+  await r.go("/admin/sources", 300);
+  r.text = "Each source: its documents, sync jobs, readers and reading settings";
+  await r.click(main(page).locator("table a[href^='/admin/sources/']").first(), 1600);
+  await r.scroll(700, 10, 1600);
+}
+
+/** 6. Providers and keys. */
+async function providers(r) {
+  const { page } = r;
+  await tour(
+    r,
+    "/admin/providers",
+    "Providers & keys: every model and service, tested and health-checked",
+    { ms: 2000 },
+  );
+  r.text = "Add a provider: choose what it does";
+  await r.click(
+    main(page)
+      .getByRole("link", { name: /Add provider/ })
+      .first(),
+    1000,
+  );
+  for (const [kind, text] of [
+    [
+      "LLM",
+      "Language models: self-hosted (vLLM, Ollama) or external (Anthropic, OpenAI-compatible)",
+    ],
+    ["Embeddings", "Embeddings: turn passages into vectors for search"],
+    ["Reranker", "Rerankers: order the passages found by how well they fit"],
+    ["Vector store", "Vector store: Qdrant keeps the passages and their permissions"],
+    ["Document parser", "Document parsers: Docling or Apache Tika"],
+    ["Vision model", "Vision models: read scans, forms and pictures"],
+    ["Guardrail", "Guardrails: Llama Guard, Presidio or Azure for safety and personal data"],
+    ["Web search", "Web search: SearXNG, Brave or Tavily, for people who switch it on"],
+    [
+      "Code interpreter",
+      "Code interpreter: a sandbox without internet for calculations and charts",
+    ],
+  ]) {
+    r.text = text;
+    const radio = page.getByRole("radio", { name: new RegExp(`^${kind}`) }).first();
+    if (await radio.count()) await r.click(radio, 1300);
+  }
+  await r.caption("Keys go straight to OpenBao and are never shown again (not saved here)", 2200);
+}
+
+/** 7. Tools (MCP). */
+async function tools(r) {
+  const { page } = r;
+  await tour(r, "/admin/tools", "Tools (MCP): servers whose tools agents may call", { ms: 1800 });
+  r.text = "A server's tools: read or write, approval, who may call them";
+  await maybe(
+    main(page)
+      .locator("a[href^='/admin/tools/']")
+      .filter({ hasNotText: /New|Add/ }),
+    (t) => r.click(t, 1800),
+  );
+  await r.scroll(600, 10, 1400);
+  await r.go("/admin/tools", 300);
+  r.text = "Add an MCP server: its address and how it signs in";
+  await maybe(main(page).getByRole("link", { name: /(Add|New|Connect)/ }), (t) => r.click(t, 1200));
+  await maybe(field(page, "Name"), (t) => r.type(t, "Ticket system"));
+  await r.caption("Tools that change data always wait for a person's approval", 2200);
+}
+
+/** 8. Channels and the API. */
+async function channels(r) {
+  await tour(r, "/admin/channels", "Channels & API: where people reach the chatbots", { ms: 1600 });
+  await section(
+    r,
+    "Website widget",
+    "Website widget: a chat on your intranet, only on allowed sites",
+  );
+  await section(r, "Microsoft Teams", "Microsoft Teams: the chatbots in chats and channels");
+  await section(r, "Slack", "Slack: the same chatbots in your workspace");
+  await section(r, "Where bots can post", "Where automations and bots may post their messages");
+  await section(r, "Email", "Email: notifications and reports through your mail server");
+  await section(r, "App keys", "App keys: the REST API for your own applications", 2200);
+}
+
+/** 10. Knowledge health. */
+async function knowledgeHealth(r) {
+  await tour(
+    r,
+    "/admin/knowledge-health",
+    "Knowledge health: nightly scans; nothing changes without an owner",
+    { ms: 1800 },
+  );
+  await tabs(r, [
+    ["Knowledge gaps", "Knowledge gaps: questions nobody's documents answer"],
+    ["Contradictions", "Contradictions: documents that disagree"],
+    ["Stale but popular", "Stale but popular: cited often, not updated in months"],
+    ["Could not be read", "Could not be read: documents the reader failed on"],
+    ["Duplicates", "Duplicates: each finding lists its documents and how to fix them"],
+  ]);
+  r.text = "Open the document, read it again, or exclude it from answers";
+  const doc = r.page.locator("main ul a[href^='/admin/sources/']").first();
+  if (await doc.count()) await r.point(doc, 2200);
+}
+
+/** 11. Evaluation. */
+async function evaluation(r, bots) {
+  await tour(r, "/admin/evaluation", "Evaluation: scores by version and a gate before publishing", {
+    ms: 1800,
+  });
+  await tabs(
+    r,
+    bots.slice(0, 2).map((b) => [b.name, `Scores and runs for ${b.name}`]),
+  );
+  await section(r, "Publish gate", "Publish gate: a version must pass before it goes live");
+  r.text = "Eval sets: test questions, written, imported or generated from documents";
+  const sets = r.page.locator("main a[href^='/admin/evaluation/sets']").first();
+  if (await sets.count()) {
+    await r.click(sets, 1600);
+    const set = r.page.locator("main a[href^='/admin/evaluation/sets/']").first();
+    if (await set.count()) {
+      r.text = "A set's questions with their expected answers and sources";
+      await r.click(set, 1600);
+      await r.scroll(500, 8, 1400);
+    }
+  }
+}
+
+/** 12. Monitoring. */
+async function monitoring(r) {
+  await tour(r, "/admin/monitoring", "Monitoring: answers, latency, errors and modes", {
+    ms: 1600,
+  });
+  await tabs(r, [
+    ["7 days", "The last 7 days"],
+    ["30 days", "The last 30 days"],
+    ["AI research paper", "One chatbot at a time"],
+  ]);
+  await section(r, "Requests per hour", "Requests per hour by mode: Fast, Agent, Auto");
+  await section(r, "Alerts", "Alerts: what crossed a threshold");
+  await section(r, "Providers", "Providers: health and latency of every model and service");
+  await section(r, "Grafana", "Grafana dashboards, linked from here", 2000);
+}
+
+/** 13. Integrations. */
+async function integrations(r) {
+  await tour(r, "/admin/integrations", "Integrations: tracing, dashboards and virus scanning", {
+    ms: 1600,
+  });
+  await section(r, "Langfuse", "Langfuse: every answer's steps, masked, for tracing and cost");
+  await section(r, "Grafana", "Grafana: Veyntora's metrics on your own dashboards");
+  await section(
+    r,
+    "Virus scanner",
+    "Virus scanner: ClamAV checks every file before it is read",
+    2000,
+  );
+}
+
+/** 14. Infrastructure. */
+async function infrastructure(r) {
+  await tour(
+    r,
+    "/admin/infrastructure",
+    "Infrastructure: the services Veyntora runs on, and their health",
+    { ms: 1800 },
+  );
+  await section(
+    r,
+    "Veyntora needs these",
+    "Required: PostgreSQL, Valkey, S3, OpenBao, OpenFGA and Keycloak",
+  );
+  await section(
+    r,
+    "Set up in the console",
+    "Set up in the console: Qdrant, Docling, Tika, the scanner and more",
+  );
+  await section(r, "Versions", "Versions: every change of settings, with a way back", 2000);
+}
+
+/** 15. Usage and budgets. */
+async function usage(r) {
+  await tour(r, "/admin/usage", "Usage & budgets: tokens and cost, with limits", { ms: 1600 });
+  await tabs(r, [
+    ["Chatbot", "Spend per chatbot"],
+    ["Provider", "Spend per provider and model"],
+    ["Group", "Spend per group"],
+    ["Cost centre", "Spend per cost centre"],
+  ]);
+  await section(r, "Budgets", "Budgets: warn, switch to a cheaper model or pause at a limit");
+  await section(r, "Limits per user", "Limits per user: questions and agent runs per day", 2000);
+}
+
+/** 17. Governance. */
+async function governance(r) {
+  await tour(r, "/admin/governance", "Governance: data rules, retention, legal holds and GDPR", {
+    ms: 1600,
+  });
+  await section(r, "Policies", "Policies: how long chats, traces and uploads are kept");
+  await section(
+    r,
+    "Data subject requests",
+    "Data subject requests: access, deletion and correction, with deadlines",
+  );
+  await section(
+    r,
+    "Data rules by chatbot",
+    "Data rules: which external providers each chatbot may use",
+  );
+  await section(r, "Legal holds", "Legal holds: keep what a case needs, past its retention");
+  await section(r, "Platform roles", "Platform roles: who may administer which area", 1600);
+  r.text = "A request's history, steps and evidence";
+  const req = r.page.locator("main a[href^='/admin/governance/gdpr/']").first();
+  if (await req.count()) {
+    await r.click(req, 1800);
+    await r.scroll(400, 8, 1400);
+  }
+}
+
+/** 18. Audit log. */
+async function audit(r) {
+  const { page } = r;
+  await tour(r, "/admin/audit", "Audit log: every change, hash-chained and archived write-once", {
+    ms: 1800,
+  });
+  r.text = "Filter by category and time";
+  const cat = page.getByLabel(/^Category/).first();
+  if (await cat.count()) {
+    const options = await cat.locator("option").allTextContents();
+    if (options[1]) await r.choose(cat, options[1], 1400);
+    await r.choose(cat, options[0], 600);
+  }
+  r.text = "Each entry: who, what, before and after";
+  const row = page.locator("main li button, main table tbody tr").nth(1);
+  if (await row.count()) await r.click(row, 2000);
+  await r.scroll(500, 8, 1400);
+}
+
+/** 9. Conversations. */
+async function conversations(r) {
+  await tour(r, "/admin/conversations", "Conversations: answers to review, with what went wrong", {
+    ms: 1800,
+  });
+  await tabs(r, [
+    ["AI research paper", "Filter by chatbot"],
+    ["Not helpful", "Answers rated not helpful"],
+    ["No answer found", "Questions nothing answered"],
+    ["All chatbots", "Every chatbot"],
+  ]);
+  await section(r, "Question", "The question, the answer and its rating");
+  await section(r, "Retrieved sources", "The sources it found, and what may have gone wrong", 2200);
+}
+
+/** 16. Users & groups. */
+async function users(r) {
+  const { page } = r;
+  await tour(
+    r,
+    "/admin/users",
+    "Users & groups: access goes to groups; Keycloak stays the source of identities",
+    { ms: 2200 },
+  );
+  const tab = (name) => main(page).getByRole("link", { name, exact: true }).first();
+  r.text = "People: who has access, through which groups";
+  await maybe(tab("People"), (t) => r.click(t, 1600));
+  r.text = "Roles & permissions: who may administer what";
+  await maybe(tab("Roles & permissions"), (t) => r.click(t, 1800));
+  await r.scroll(500, 8, 1200);
+  r.text = "Access reviews: owners confirm who still needs access";
+  await maybe(tab("Access reviews"), (t) => r.click(t, 1800));
+  await r.click(nav(page, "Users & groups"), 300);
+  r.text = "A new group: a list of people, or everyone matching a rule (not saved)";
+  await maybe(page.getByRole("link", { name: /New group/ }), (t) => r.click(t, 1000));
+  await maybe(field(page, "Group name"), (t) => r.type(t, "Finance pilot"));
+  await maybe(field(page, "Description"), (t) =>
+    r.type(t, "Early users of the finance assistant", 1400),
+  );
+}
+
+/** The chat for employees. */
+async function chat(r) {
+  const { page } = r;
+  await r.go("/home", 600);
+  await r.caption("Home: choose an assistant and ask a question", 1600);
+  await r.type(page.getByRole("textbox").first(), "What does the ReAct paper propose?", 1200);
+  r.text = "Answers come only from documents you may read, with numbered sources";
+  const thread = page.locator('a[href^="/chat/"]').first();
+  if (await thread.count()) {
+    await r.click(thread, 800);
+    await r.scroll(-3000, 4, 600);
+    await r.scroll(700, 10, 1600);
+  }
+  for (const [link, text] of [
+    ["Chats & knowledge", "Chats & knowledge: past chats, saved answers and your own files"],
+    ["Notifications", "Notifications: approvals, expert replies and reports, by day"],
+    ["Settings", "Settings: language, answer length, notifications and privacy"],
+  ]) {
+    await r.click(nav(page, link), 0);
+    await r.caption(text, 2000);
+  }
+}
+
+/** The admin console at a glance. */
 async function adminConsole(r) {
   const { page } = r;
   await r.go("/admin", 600);
   await r.caption("Admin console: health, usage and what needs attention", 2200);
   await r.scroll(500, 8, 1200);
-  for (const [link, text] of [
-    ["Chatbots", "Chatbots: each with its own knowledge, models and audience"],
-    ["Pipelines", "Pipelines: how every chatbot searches and answers"],
-    ["Data sources", "Data sources: everything Veyntora reads, kept in step"],
-    ["Providers & keys", "Providers: language models, embeddings, rerankers, vector store, parser"],
-    ["Tools (MCP)", "Tools: MCP servers that agents may call, with approval for writes"],
-    ["Knowledge health", "Knowledge health: stale, duplicate and unanswered topics"],
-    ["Evaluation", "Evaluation: test questions that gate publishing"],
-    ["Monitoring", "Monitoring: answers, latency and errors"],
-    ["Usage & budgets", "Usage and budgets per chatbot, team and model"],
-    ["Governance", "Governance: data rules, PII, retention and GDPR requests"],
-    ["Audit log", "Audit log: every change, tamper-evident"],
-  ]) {
-    await r.click(nav(page, link), 0);
-    await r.caption(text, 2000);
-  }
-  r.text = "Drag the edge to resize the sidebar, or fold it into a rail";
-  const handle = page.getByRole("separator", { name: "Resize the sidebar" });
-  await r.move(handle);
-  r.pressed = true;
-  await page.mouse.down();
-  for (const dx of [20, 40, 60, 80, 60, 30, 0]) {
-    r.x = 240 + dx;
-    await page.mouse.move(r.x, r.y);
-    await r.shot(70);
-  }
-  await page.mouse.up();
-  r.pressed = false;
-  await r.click(page.getByRole("button", { name: "Collapse sidebar" }), 1600);
+  r.text = "Areas grouped by what you do: build, knowledge, connections, operate, govern";
+  await r.point(page.getByRole("navigation", { name: "Admin" }).first(), 2200);
+  await r.click(page.getByRole("button", { name: "Collapse sidebar" }), 1400);
   await r.click(page.getByRole("button", { name: /Expand sidebar/ }), 1200);
 }
 
-/** Connecting a data source: pick the system, fill in the connection, choose readers. */
-async function connectSource(r) {
-  const { page } = r;
-  await r.go("/admin/sources", 600);
-  await r.caption("Data sources: sync status and documents at a glance", 2000);
-  r.text = "Connect a new source";
-  await r.click(
-    page
-      .locator("main")
-      .getByRole("link", { name: /Connect/ })
-      .first(),
-    1200,
-  );
-  await r.caption("Pick where the documents live: files, pages or tickets", 1800);
-  const kind = (name) => page.getByRole("radio", { name: new RegExp(`^${name}`) });
-  await r.click(kind("SharePoint Online"), 1000);
-  r.text = "SharePoint Online keeps its own permissions";
-  await r.type(field(page, "Name"), "Intranet – HR");
-  await r.type(field(page, "Tenant (ID or domain)"), "contoso.onmicrosoft.com");
-  await r.type(field(page, "Application (client) ID"), "5f1c2e7a-0b9d-4c51-9a3e-8d27c0f4b6a1");
-  await r.type(field(page, "Site address"), "https://contoso.sharepoint.com/sites/hr");
-  r.text = "Map SharePoint groups to Veyntora groups, choose a schedule";
-  await r.scroll(420, 8, 600);
-  await r.choose(page.getByLabel("Sync schedule (UTC)"), "Every 4 hours", 1400);
-  await r.caption("Secrets are write-only: stored in OpenBao, never shown again", 2000);
-  await r.scroll(-900, 8, 400);
-  r.text = "Other systems work the same way";
-  await r.click(kind("Git \\(GitHub, GitLab\\)"), 600);
-  await r.type(field(page, "Repositories (one per line)"), "acme/handbook");
-  await r.click(kind("Jira"), 600);
-  await r.type(field(page, "Project keys (one per line)"), "SUP");
-  await r.scroll(380, 6, 400);
-  await r.click(page.getByLabel(/^Include comments/), 1000);
-  r.text = "Choose who may read, then connect (not saved in this recording)";
-  await r.click(page.getByLabel(/^all-employees/).first(), 600);
-  await r.point(
-    page
-      .locator("main")
-      .getByRole("button", { name: /^(Connect|Create)/ })
-      .last(),
-    2000,
-  );
-  await r.go("/admin/sources", 300);
-  r.text = "Each source shows its documents, sync jobs and readers";
-  const first = page.locator("main table a[href^='/admin/sources/']").first();
-  await r.click(first, 1600);
-  const list = page.getByRole("region", { name: "Document list" });
-  if (await list.count()) {
-    await r.point(list, 400);
-    await r.scroll(500, 8, 1400);
-  }
-}
-
-/** Creating a chatbot: the five wizard steps. */
-async function createChatbot(r, bot) {
-  const { page } = r;
-  await r.go("/admin/chatbots", 600);
-  await r.caption("Chatbots: who uses them, which version is live", 1800);
-  r.text = "Create a chatbot";
-  await r.click(
-    page
-      .locator("main")
-      .getByRole("link", { name: /New chatbot/ })
-      .first(),
-    1000,
-  );
-  r.text = "Step 1 · Basics: name, welcome message, answer language";
-  await r.type(field(page, "Name"), "HR assistant");
-  await r.type(field(page, "Description"), "Leave, payroll and benefits");
-  await r.type(field(page, "Welcome message"), "Hi! Ask me about leave, payroll or benefits.");
-  await r.choose(field(page, "Answer language"), "Same as the question", 1600);
-  await r.caption("Steps 2 to 5, shown for an existing chatbot", 1600);
-  await r.go(`/admin/chatbots/new/knowledge?id=${bot}`, 300);
-  await r.caption("Step 2 · Knowledge: attach sources, limit folders, weigh them", 1200);
-  await r.click(page.getByRole("radio", { name: "Boost ×1.5" }).first(), 1400);
-  await r.click(page.getByRole("radio", { name: "Normal" }).first(), 800);
-  await r.go(`/admin/chatbots/new/pipeline?id=${bot}`, 300);
-  await r.caption("Step 3 · Pipeline: documents or general chat, models, behaviour", 1600);
-  await r.scroll(700, 10, 1400);
-  await r.scroll(700, 10, 1400);
-  await r.go(`/admin/chatbots/new/access?id=${bot}`, 300);
-  await r.caption("Step 4 · Access: who may chat, approve, edit or administer", 2400);
-  await r.go(`/admin/chatbots/new/publish?id=${bot}`, 300);
-  await r.caption(
-    "Step 5 · Test & publish: a summary of every step, checks before going live",
-    1800,
-  );
-  r.text = "Test in the Playground first; every version can be rolled back";
-  await r.point(page.getByRole("link", { name: /Test/ }).first(), 1400);
-  await r.point(page.locator("aside").getByRole("button").first(), 2000);
-}
-
-/** The chat for employees: ask, read the answer, check the sources. */
-async function chat(r) {
-  const { page } = r;
-  await r.go("/home", 600);
-  await r.caption("Home: choose an assistant and ask a question", 1600);
-  const box = page.getByRole("textbox").first();
-  await r.type(box, "What is the AGENTS framework for language agents?", 1200);
-  r.text = "Answers come only from documents you may read, with numbered sources";
-  // An existing conversation with sources (recording never sends a question).
-  const named = page.locator('a[href^="/chat/"]', { hasText: "Open-source Framework" }).first();
-  const thread = (await named.count()) ? named : page.locator('a[href^="/chat/"]').first();
-  if (!(await thread.count())) throw new Error("chat: needs an existing conversation with sources");
-  await r.click(thread, 600);
-  await r.move(page.locator("main p").first());
-  await r.scroll(-3000, 6, 1200);
-  await r.scroll(600, 10, 900);
-  await r.scroll(600, 10, 1200);
-  r.text = "Each source shows the passage it came from and opens the document";
-  await r.point(page.getByRole("link", { name: "Open document" }).first(), 2000);
-  r.text = "Rate, save or copy an answer; regenerate it";
-  await r.point(page.getByRole("button", { name: /Regenerate/ }).last(), 1600);
-  r.text = "Fast for document answers, Agent for tasks, Auto picks for you";
-  await r.point(page.getByRole("radio", { name: "Agent" }).first(), 1800);
-  for (const [link, text] of [
-    ["Chats & knowledge", "Chats & knowledge: past chats and saved answers"],
-    ["Approvals", "Approvals: actions an agent wants to carry out wait for you"],
-    ["Settings", "Settings: language, notifications, connected accounts, privacy"],
-  ]) {
-    await r.click(nav(page, link), 0);
-    await r.caption(text, 2000);
-  }
-}
-
-/** Users, groups, roles and access reviews. */
-async function userManagement(r) {
-  const { page } = r;
-  await r.go("/admin/users", 600);
-  await r.caption(
-    "Users & groups: access is given to groups; Keycloak stays the source of identities",
-    2400,
-  );
-  const tab = (name) => page.locator("main").getByRole("link", { name, exact: true }).first();
-  r.text = "People: who has access, through which groups";
-  await r.click(tab("People"), 1600);
-  const person = page
-    .locator("main tr", { hasText: "@" })
-    .locator("a[href^='/admin/users/']")
-    .first();
-  if (await person.count()) {
-    r.text = "A person's groups, chatbots and roles in one place";
-    await r.click(person, 2200);
-    await page.goBack();
-    await r.settle();
-  }
-  r.text = "Roles & permissions: who may administer what";
-  await r.click(tab("Roles & permissions"), 2000);
-  await r.scroll(500, 8, 1200);
-  r.text = "Access reviews: owners confirm who still needs access";
-  await r.click(tab("Access reviews"), 2000);
-  await r.click(nav(page, "Users & groups"), 400);
-  r.text = "Groups from Keycloak, rules on attributes, or lists of people";
-  await r.click(page.getByRole("link", { name: /New group/ }).first(), 1000);
-  await r.type(field(page, "Group name"), "Finance pilot");
-  await r.type(field(page, "Description"), "Early users of the finance assistant");
-  await r.click(page.getByLabel(/^A list of people/), 600);
-  await r.type(field(page, "Add a person"), "emp", 1600);
-  r.text = "Memberships can end on a date (not saved in this recording)";
-  await r.point(field(page, "Memberships end (optional)"), 2200);
-}
-
 const REELS = {
-  "admin-console": { user: "admin", run: adminConsole },
-  "connect-data-source": { user: "admin", run: connectSource },
-  "create-chatbot": { user: "admin", run: createChatbot },
+  "01-simple-chatbot": { user: "admin", run: simpleChatbot },
+  "02-rag-chatbot": { user: "admin", run: ragChatbot },
+  "03-tools-chatbot": { user: "admin", run: toolsChatbot },
+  "04-automations": { user: "admin", run: automations },
+  "05-data-sources": { user: "admin", run: dataSources },
+  "06-providers": { user: "admin", run: providers },
+  "07-tools-mcp": { user: "admin", run: tools },
+  "08-channels-api": { user: "admin", run: channels },
+  "09-conversations": { user: "admin", run: conversations },
+  "10-knowledge-health": { user: "admin", run: knowledgeHealth },
+  "11-evaluation": { user: "admin", run: evaluation },
+  "12-monitoring": { user: "admin", run: monitoring },
+  "13-integrations": { user: "admin", run: integrations },
+  "14-infrastructure": { user: "admin", run: infrastructure },
+  "15-usage-budgets": { user: "admin", run: usage },
+  "16-users-groups": { user: "admin", run: users },
+  "17-governance": { user: "admin", run: governance },
+  "18-audit-log": { user: "admin", run: audit },
   chat: { user: "admin", run: chat },
-  "user-management": { user: "admin", run: userManagement },
+  "admin-console": { user: "admin", run: adminConsole },
 };
 
 const [out, ...only] = process.argv.slice(2);
@@ -376,10 +658,13 @@ try {
       colorScheme: "light",
     });
     const page = await context.newPage();
-    const bots = await (await page.request.get(`${BASE}/api/v1/admin/chatbots`)).json();
+    const bots = await (await page.request.get(`${BASE}/api/v1/admin/chatbots/cards`)).json();
     const r = new Reel(page);
-    const bot = bots.find((b) => b.name === process.env.WALKTHROUGH_BOT) ?? bots[0];
-    await reel.run(r, bot?.id);
+    try {
+      await reel.run(r, bots);
+    } catch (e) {
+      console.error(`${name}: ${String(e).split("\n")[0]}`);
+    }
     await r.save(path.join(out, name));
     console.log(`${name}: ${r.frames.length} frames`);
     await context.close();

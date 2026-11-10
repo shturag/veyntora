@@ -22,23 +22,19 @@ Open-source, self-hosted enterprise knowledge platform. Employees ask questions 
 
 ![Chat for employees](docs/walkthroughs/chat.gif)
 
-**Connect a data source.** Pick the system, fill in the connection, choose who may read and how often to sync.
+**Build a chatbot that answers from documents:** knowledge, retrieval, reranking, grounded generation and guardrails.
 
-![Connecting a data source](docs/walkthroughs/connect-data-source.gif)
+![A chatbot that answers from documents](docs/walkthroughs/02-rag-chatbot.gif)
 
-**Create a chatbot.** Five steps: basics, knowledge, pipeline, access, then test and publish.
+**Connect a data source.** Pick the system, choose how documents are read and which files, and who may read them.
 
-![Creating a chatbot](docs/walkthroughs/create-chatbot.gif)
+![Connecting a data source](docs/walkthroughs/05-data-sources.gif)
 
-**Manage users and groups.** Access is given to groups; Keycloak stays the source of identities.
+**Add providers.** Language models, embeddings, rerankers, vector store, parsers, vision models, guardrails, web search and a code sandbox.
 
-![Users and groups](docs/walkthroughs/user-management.gif)
+![Providers and keys](docs/walkthroughs/06-providers.gif)
 
-**The admin console.** Chatbots, pipelines, sources, providers, tools, monitoring, usage, governance and the audit log.
-
-![Admin console](docs/walkthroughs/admin-console.gif)
-
-More in [docs/walkthroughs](docs/walkthroughs/README.md).
+All 20 recordings, from simple chatbots and tools to governance and the audit log, are in [docs/walkthroughs](docs/walkthroughs/README.md).
 
 ## Quick start
 
