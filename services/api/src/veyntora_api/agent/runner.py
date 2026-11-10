@@ -37,13 +37,16 @@ from veyntora_api.rag.pipeline import (
     Source,
     _adapter,
     _llm,
+    _Run,
     blocks_ungrounded,
     no_answer_text,
     rerank,
     retrieve,
+    small_talk_reply,
     system_prompt,
     verdict,
 )
+from veyntora_api.rag.tracing import Trace
 
 Emit = Callable[[dict[str, Any]], None]
 _RESULT_CHARS = 6000
@@ -439,6 +442,37 @@ def tool_of(offered: list[BoundTool], name: str) -> BoundTool | None:
 # ---------------------------------------------------------------- finish
 
 
+async def _small_talk(env: Env, st: AgentState, base: Answer) -> Answer | None:
+    """The chatbot's small-talk reply, or None for a real question (or when it is off)."""
+    if not env.ctx.spec.generation.small_talk:
+        return None
+    run = _Run(started=time.perf_counter())
+    masking = None
+    if st.get("need_mask"):
+        pii = await _adapter(env.adapters, env.ctx.spec.guardrails.pii_instance_id)
+        masking = (_masker(st), pii)
+    reply = await small_talk_reply(
+        env.adapters,
+        env.ctx,
+        run,
+        question=st["question"],
+        history=(),
+        masking=masking,
+        language=st.get("language", "en"),
+        tr=Trace(None),
+    )
+    if reply is None:
+        return None
+    reply.usage = Usage(
+        base.usage.prompt_tokens + run.usage.prompt_tokens,
+        base.usage.completion_tokens + run.usage.completion_tokens,
+    )
+    reply.calls = [*base.calls, *run.calls]
+    reply.external_egress = base.external_egress or run.egress
+    reply.latency_ms = base.latency_ms
+    return reply
+
+
 async def finish(env: Env, st: AgentState) -> Answer:
     """Check the final answer like a Fast answer: citations, groundedness, output check."""
     spec = env.ctx.spec
@@ -471,9 +505,14 @@ async def finish(env: Env, st: AgentState) -> Answer:
         calls=calls,
         warning=st.get("warning"),
     )
-    if not text or grounding.is_no_answer(text):
-        if st.get("stopped"):
+    if st.get("stopped"):
+        if not text or grounding.is_no_answer(text):
             base.warning = f"The agent stopped at its {st['stopped']}."
+            return base
+    elif not sources and (chat := await _small_talk(env, st, base)) is not None:
+        # Nothing was looked up or found: a greeting gets the small-talk reply (ADR 0039).
+        return chat
+    if not text or grounding.is_no_answer(text):
         return base
     result, problem, check = verdict(spec, text, sources, blocking=blocks_ungrounded(spec))
     base.groundedness = check.score

@@ -1342,7 +1342,7 @@ async def answer(  # noqa: PLR0911 - one return per outcome
     sources = [*attached, *tools, *sources]
     # Small talk ("hi", "what can you do?") finds nothing; the chatbot may reply to it.
     chat_back = partial(
-        _small_talk,
+        small_talk_reply,
         adapters,
         ctx,
         run,
@@ -1479,7 +1479,7 @@ async def _without_documents(
     return run.finish(Answer("answered", text.strip(), no_sources=True))
 
 
-async def _small_talk(
+async def small_talk_reply(
     adapters: AdapterSource,
     ctx: RunContext,
     run: _Run,
@@ -1512,6 +1512,7 @@ async def _small_talk(
         tr=tr,
         rules=rules,
     )
+    run.egress |= _llm_external(ctx)
     if grounding.is_no_answer(text) or not text.strip():
         return None
     g = ctx.spec.guardrails

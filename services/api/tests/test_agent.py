@@ -712,3 +712,33 @@ async def test_an_agent_answer_from_memory_is_sent_back_then_refused(rag: Rag) -
     )
     plain = await runner.think(replace(env, lookup_first=False), plain)
     assert plain["final"].strip() == rag.llm.reply
+
+
+async def test_small_talk_in_agent_mode_gets_the_labelled_reply(rag: Rag) -> None:
+    rag.llm.reply = "Hello! I answer questions about refunds and products."
+    ctx = await load_context(rag.w.db, rag.authz, rag.w.user.keycloak_sub, rag.bot.id)
+    ctx.spec.generation.small_talk = True
+    env = runner.Env(
+        db=rag.w.db,
+        adapters=rag.adapters(),
+        ctx=ctx,
+        secrets=None,  # type: ignore[arg-type]
+        group_ids=set(),
+        lookup_first=False,
+    )
+    st = runner.start(
+        ctx,
+        UUID(int=11),
+        "hi there",
+        guarded="hi there",
+        history=[],
+        language="en",
+        masker=Masker(by_value={}, by_token={}),
+        need_mask=False,
+    )
+    st = await runner.think(env, st)
+    answer = await runner.finish(env, st)
+    assert answer.outcome == "answered" and answer.small_talk and answer.no_sources
+    assert "small talk" in rag.llm.calls[-1][0].content
+    # Both model calls are counted.
+    assert answer.usage.prompt_tokens >= st.get("tokens_in", 0)

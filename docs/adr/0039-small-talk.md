@@ -12,7 +12,7 @@ A system prompt cannot change this: the model is not called when nothing is foun
 
 **1. A per-chatbot setting, off by default.** `generation.small_talk` (Pipeline → Generation, "Reply to small talk"). Like every pipeline setting it is part of the draft and takes effect when published, for new and existing chatbots.
 
-**2. Only when nothing was found.** It runs only where the answer would be "no answer": no passage passed reranking, or the model replied `NO_ANSWER`. Questions answered from the documents are unchanged.
+**2. Only when nothing was found.** It runs only where the answer would be "no answer": no passage passed reranking, or the model replied `NO_ANSWER`. Questions answered from the documents are unchanged. In Agent mode it runs when the agent ends without any source: it found nothing, or answered without looking anything up.
 
 **3. One call, narrow rules.** The chatbot's answer model gets the message with no sources and rules that:
 - allow a reply of one to three sentences only to small talk or questions about the chatbot;
