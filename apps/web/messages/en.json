@@ -876,7 +876,8 @@
       "brave": "Brave Search",
       "tavily": "Tavily",
       "sandbox": "Veyntora sandbox",
-      "tika": "Apache Tika"
+      "tika": "Apache Tika",
+      "pgvector": "pgvector (PostgreSQL)"
     },
     "health": {
       "unknown": "Not tested",
@@ -963,7 +964,9 @@
     "shown": "{count, plural, one {# instance} other {# instances}}",
     "connection": "Connection",
     "whereItRuns": "Where it runs",
-    "modelSettings": "Model settings"
+    "modelSettings": "Model settings",
+    "databaseHint": "The PostgreSQL database with the pgvector extension, without the password (that goes below). Chunks are kept in their own schema.",
+    "databasePassword": "Database password"
   },
   "sources": {
     "title": "Data sources",
@@ -4858,7 +4861,8 @@
       "sandbox": "Code sandbox",
       "clamav": "Virus scanner (ClamAV)",
       "email": "Email (SMTP)",
-      "tika": "Apache Tika"
+      "tika": "Apache Tika",
+      "pgvector": "pgvector"
     },
     "summaries": {
       "postgres": "Settings, chats and documents' metadata: three databases. The services use the runtime role; migrations run as the owner.",
@@ -4978,7 +4982,8 @@
       "sandbox": "Runs code for agents, without internet",
       "clamav": "Checks uploads for viruses",
       "email": "Sends notifications and approvals",
-      "tika": "Reads almost any file type, fast, in-house"
+      "tika": "Reads almost any file type, fast, in-house",
+      "pgvector": "Vectors in PostgreSQL, no separate database"
     },
     "pages": {
       "providers": "Providers & keys",

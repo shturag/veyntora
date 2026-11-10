@@ -876,7 +876,8 @@
       "brave": "Brave Search",
       "tavily": "Tavily",
       "sandbox": "Veyntora-Sandbox",
-      "tika": "Apache Tika"
+      "tika": "Apache Tika",
+      "pgvector": "pgvector (PostgreSQL)"
     },
     "health": {
       "unknown": "Nicht getestet",
@@ -963,7 +964,9 @@
     "shown": "{count, plural, one {# Instanz} other {# Instanzen}}",
     "connection": "Verbindung",
     "whereItRuns": "Betrieb",
-    "modelSettings": "Modell-Einstellungen"
+    "modelSettings": "Modell-Einstellungen",
+    "databaseHint": "Die PostgreSQL-Datenbank mit der Erweiterung pgvector, ohne Passwort (das gehört unten hin). Abschnitte liegen in einem eigenen Schema.",
+    "databasePassword": "Datenbank-Passwort"
   },
   "sources": {
     "title": "Datenquellen",
@@ -4858,7 +4861,8 @@
       "sandbox": "Code-Sandbox",
       "clamav": "Virenscanner (ClamAV)",
       "email": "E-Mail (SMTP)",
-      "tika": "Apache Tika"
+      "tika": "Apache Tika",
+      "pgvector": "pgvector"
     },
     "summaries": {
       "postgres": "Einstellungen, Chats und Metadaten der Dokumente: drei Datenbanken. Die Dienste nutzen die Laufzeitrolle; Migrationen laufen als Eigentümer.",
@@ -4978,7 +4982,8 @@
       "sandbox": "Führt Code für Agenten aus, ohne Internet",
       "clamav": "Prüft Uploads auf Viren",
       "email": "Versendet Benachrichtigungen und Freigaben",
-      "tika": "Liest fast jedes Dateiformat, schnell, im Haus"
+      "tika": "Liest fast jedes Dateiformat, schnell, im Haus",
+      "pgvector": "Vektoren in PostgreSQL, ohne eigene Datenbank"
     },
     "pages": {
       "providers": "Anbieter & Schlüssel",

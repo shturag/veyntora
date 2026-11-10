@@ -10,10 +10,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol, cast
+from urllib.parse import urlsplit
 from uuid import UUID
 
 import sqlalchemy as sa
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_providers import (
     adapters,  # noqa: F401 - registers adapters
@@ -40,6 +41,12 @@ _OPERATIONS = ("/chat/completions", "/completions", "/embeddings", "/rerank", "/
 def _check_endpoint(v: str | None) -> str | None:
     if v is None or v == "":
         return None
+    if v.startswith(("postgresql://", "postgres://")):
+        # pgvector (ADR 0042). The endpoint is shown in the console; the password is the
+        # write-only secret, never part of the address.
+        if urlsplit(v).password:
+            raise ValueError("put the password in the secret, not in the address")
+        return v
     if not v.startswith(("http://", "https://")):
         raise ValueError("endpoint must be an http(s) URL")
     trimmed = v.rstrip("/")
@@ -72,6 +79,17 @@ class ProviderInput(BaseModel):
     @classmethod
     def _endpoint(cls, v: str | None) -> str | None:
         return _check_endpoint(v)
+
+    @model_validator(mode="after")
+    def _database_only_for_pgvector(self) -> ProviderInput:
+        database = (self.endpoint or "").startswith(("postgresql://", "postgres://"))
+        if database != (self.adapter == "pgvector"):
+            raise ValueError(
+                "pgvector takes a postgresql:// address"
+                if self.adapter == "pgvector"
+                else "this adapter takes an http(s) address"
+            )
+        return self
 
 
 class ProviderUpdate(BaseModel):

@@ -99,9 +99,9 @@ services:
     <<: *host
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "veyntora-api", "healthcheck", "--bootstrapped"]
+      test: ["CMD", "python", "-m", "veyntora_api.infra.healthcheck", "--bootstrapped"]
       interval: 5s
-      timeout: 3s
+      timeout: 10s
       retries: 120
 
   api:
@@ -168,9 +168,9 @@ services:
     ports: ["127.0.0.1:${VEY_CHANNELS_PORT:-8010}:8010"]
     healthcheck:
       # Healthy while it waits for the setup too: nothing to serve yet.
-      test: ["CMD", "veyntora-api", "healthcheck", "--url", "http://127.0.0.1:8010/healthz"]
+      test: ["CMD", "python", "-m", "veyntora_api.infra.healthcheck", "--url", "http://127.0.0.1:8010/healthz"]
       interval: 10s
-      timeout: 3s
+      timeout: 10s
       retries: 10
     depends_on:
       migrate: { condition: service_started }
@@ -216,7 +216,7 @@ services:
     depends_on:
       migrate: { condition: service_started }
     healthcheck:
-      test: ["CMD", "veyntora-api", "healthcheck", "--url", "http://127.0.0.1:2026/health"]
+      test: ["CMD", "python", "-m", "veyntora_api.infra.healthcheck", "--url", "http://127.0.0.1:2026/health"]
       interval: 5s
       # The check starts a Python process: on a busy machine (CI building images) 3 s was
       # too short and the stack was reported unhealthy while it was fine.

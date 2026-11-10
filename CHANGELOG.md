@@ -8,6 +8,7 @@ Notable changes, newest first. Versions follow [Semantic Versioning](https://sem
 
 - **Reading per data source** (ADR 0040): Auto, fast text (pypdf), layout (Docling) or a vision model per page; file types, size and include/exclude patterns; re-read everything.
 - **Apache Tika** as a second document parser.
+- **pgvector** as a second vector store (ADR 0042): chunks in PostgreSQL, hybrid search with full-text search, permissions in every query.
 - **Websites** (ADR 0041): sign-in (token, basic, cookie, header), JavaScript rendering through an optional browser service, sitemaps (also compressed), ignore `?query`, subdomains, a delay between requests.
 - **Small talk** (ADR 0039): a labelled reply to greetings and "what can you do?", in Fast and Agent mode.
 - **Chatbot details** editable after creating: name, short name, description, welcome message; copy settings or sources from another chatbot.

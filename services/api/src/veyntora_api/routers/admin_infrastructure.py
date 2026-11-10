@@ -152,6 +152,7 @@ async def _console(db: DbSession) -> list[ConsoleServiceOut]:
         provider("presidio", lambda p: p.adapter == "presidio"),
         provider("searxng", lambda p: p.adapter == "searxng"),
         provider("qdrant", lambda p: p.adapter == "qdrant"),
+        provider("pgvector", lambda p: p.adapter == "pgvector"),
         provider("docling", lambda p: p.adapter == "docling"),
         provider("tika", lambda p: p.adapter == "tika"),
         provider("sandbox", lambda p: p.capability is Capability.CODE_INTERPRETER),

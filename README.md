@@ -25,7 +25,7 @@ Open-source, self-hosted enterprise knowledge platform. Employees ask questions 
 - **Agents that ask first.** Agent mode plans, calls tools over MCP and waits for approval before anything that writes. Auto mode picks Fast or Agent for each question.
 - **Many chatbots.** Each has its own knowledge, pipeline, models and audience. Versions are published, tested as canaries and rolled back from the console.
 - **Your data sources.** SharePoint Online and Server, Confluence, file shares (SMB), document management (CMIS), Nextcloud/WebDAV, S3, Git (GitHub, GitLab), websites, ServiceNow knowledge, Jira, databases and uploads. Sources with their own permissions keep them; read-only MCP tools can be searched like documents.
-- **Your infrastructure.** PostgreSQL, Valkey, S3, OpenBao, OpenFGA and Keycloak run where you choose and are set up in the browser. Models, embeddings, rerankers, vision models, vector store and parser are providers you connect: local (vLLM, Ollama, TEI, Qdrant, Docling) or external.
+- **Your infrastructure.** PostgreSQL, Valkey, S3, OpenBao, OpenFGA and Keycloak run where you choose and are set up in the browser. Models, embeddings, rerankers, vision models, vector store and parser are providers you connect: local (vLLM, Ollama, TEI, Qdrant or pgvector, Docling or Tika) or external.
 - **Governance.** Write-only secrets in OpenBao, permission-aware retrieval, PII masking, data rules for anything that leaves the network, a tamper-evident audit log, GDPR requests and access reviews.
 - **Operations.** Evaluation with a publish gate, monitoring, knowledge health, usage and budgets, automations, and channels: web, Microsoft Teams, Slack, a web widget and a REST API.
 
@@ -54,6 +54,7 @@ Then add a language model, an embedding model, a vector store and a document par
 | Service | Start | Adds |
 |---|---|---|
 | Docling | your own docling-serve | Layout, tables and OCR for PDFs and Office files |
+| pgvector | the `vector` extension in a PostgreSQL you run | The vector store in PostgreSQL instead of Qdrant |
 | Apache Tika | `docker run -p 9998:9998 apache/tika:4.2.0-full` | Fast text from almost any file type |
 | Browser | `docker compose --profile browser up -d` and `VEY_BROWSER_URL=ws://browser:3000/` | Websites built by JavaScript |
 | ClamAV | `clamd` on port 3310 | Virus scanning of every file before it is read |

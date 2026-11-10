@@ -17,6 +17,9 @@ const ENDPOINT_OPTIONAL = new Set([
   "web_search/tavily",
 ]);
 
+// Adapters whose address is not a web address (ADR 0042): an example, and what the secret is.
+const DATABASE = new Set(["vector_store/pgvector"]);
+
 // External services that work without a key (a gateway in front may still want one).
 const KEY_OPTIONAL = new Set(["web_search/searxng"]);
 
@@ -152,9 +155,14 @@ export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
               name="endpoint"
               type="url"
               required={!ENDPOINT_OPTIONAL.has(key)}
+              placeholder={
+                DATABASE.has(key) ? "postgresql://veyntora@db.example.com:5432/veyntora" : undefined
+              }
               className={`${input} font-mono`}
             />
-            <span className="text-xs font-normal text-fg-muted">{t("endpointHint")}</span>
+            <span className="text-xs font-normal text-fg-muted">
+              {DATABASE.has(key) ? t("databaseHint") : t("endpointHint")}
+            </span>
           </label>
           {current.external_only ? (
             <p role="note" className="m-0 rounded-md bg-amber-soft px-3 py-2 text-sm text-amber">
@@ -172,7 +180,7 @@ export function AddProviderForm({ adapters }: { adapters: AdapterOption[] }) {
           )}
           <div className="grid grid-cols-[1fr_auto] gap-3 max-[760px]:grid-cols-1">
             <label className={label}>
-              {t("apiKey")}
+              {DATABASE.has(key) ? t("databasePassword") : t("apiKey")}
               <input
                 name="secret"
                 type="password"

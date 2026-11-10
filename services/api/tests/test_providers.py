@@ -298,3 +298,23 @@ async def test_presidio_fills_only_the_pii_slot(db: AsyncSession) -> None:
     spec.guardrails.input_guardrail_instance_id = presidio.id
     [problem] = (await reference_problems(db, spec))[0]
     assert "needs a safety check" in problem and "Presidio" in problem
+
+
+def test_pgvector_takes_a_database_address_without_its_password() -> None:
+    from veyntora_api.providers.service import ProviderInput  # noqa: PLC0415
+
+    base = {"capability": "vector_store", "name": "pg", "hosting": "self_hosted"}
+    ok = ProviderInput.model_validate(
+        {**base, "adapter": "pgvector", "endpoint": "postgresql://veyntora@db:5432/veyntora"}
+    )
+    assert ok.endpoint == "postgresql://veyntora@db:5432/veyntora"
+    with pytest.raises(ValueError, match="secret, not in the address"):
+        ProviderInput.model_validate(
+            {**base, "adapter": "pgvector", "endpoint": "postgresql://u:hunter2@db/v"}
+        )
+    with pytest.raises(ValueError, match="postgresql://"):
+        ProviderInput.model_validate({**base, "adapter": "pgvector", "endpoint": "http://db"})
+    with pytest.raises(ValueError, match="http"):
+        ProviderInput.model_validate(
+            {**base, "adapter": "qdrant", "endpoint": "postgresql://veyntora@db/v"}
+        )

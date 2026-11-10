@@ -6,6 +6,7 @@ from veyntora_providers.adapters import (  # noqa: F401
     guardrails,
     hosted,
     openai_compat,
+    pgvector_store,
     qdrant_store,
     sandbox,
     tei,
