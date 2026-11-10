@@ -1,8 +1,19 @@
-<p align="center"><img src="apps/web/public/brand/veyntora-logo.png" alt="Veyntora" width="360"></p>
+<div align="center">
 
-# Veyntora
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/brand/veyntora-logo-dark.png">
+  <img src="apps/web/public/brand/veyntora-logo.png" alt="Veyntora" width="360">
+</picture>
 
-[![CI](https://github.com/shturag/veyntora/actions/workflows/ci.yml/badge.svg)](https://github.com/shturag/veyntora/actions/workflows/ci.yml) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+**Answers your company can check. Agents that ask first. All on your own infrastructure.**
+
+[![CI](https://github.com/shturag/veyntora/actions/workflows/ci.yml/badge.svg)](https://github.com/shturag/veyntora/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+![Self-hosted](https://img.shields.io/badge/self--hosted-yes-5b3df5.svg)
+
+[Install](docs/installation.md) · [Walkthroughs](docs/walkthroughs/README.md) · [Architecture decisions](docs/adr/README.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+
+</div>
 
 Open-source, self-hosted enterprise knowledge platform. Employees ask questions and get answers with sources they can check, or hand an agent a task that it carries out with their approval. Admins set up every step in a web console; nothing needs a code change.
 
