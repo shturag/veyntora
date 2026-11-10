@@ -29,6 +29,15 @@ Open-source, self-hosted enterprise knowledge platform. Employees ask questions 
 - **Governance.** Write-only secrets in OpenBao, permission-aware retrieval, PII masking, data rules for anything that leaves the network, a tamper-evident audit log, GDPR requests and access reviews.
 - **Operations.** Evaluation with a publish gate, monitoring, knowledge health, usage and budgets, automations, and channels: web, Microsoft Teams, Slack, a web widget and a REST API.
 
+## Roadmap
+
+Planned next, not in 1.0 yet:
+
+- **Voice.** Speech-to-text and text-to-speech models as providers, like every other model: self-hosted (for example Whisper or Kokoro behind an OpenAI-compatible API) or external, under the same data rules. People ask by voice in the chat and the website widget and can have answers read aloud, with the citations kept.
+- **More ways in:** a Firefox-tested web app, and more connectors as people ask for them.
+
+Something missing for you? Say so in [Discussions](https://github.com/shturag/veyntora/discussions) or open an issue; the [decision records](docs/decisions/README.md) show how features are shaped.
+
 ## Quick start
 
 You need Docker with Compose and `make`.

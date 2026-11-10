@@ -4,6 +4,8 @@ Notable changes, newest first. Versions follow [Semantic Versioning](https://sem
 
 ## Unreleased
 
+Planned: voice (speech-to-text and text-to-speech providers; ask by voice, hear answers). See the README's Roadmap.
+
 ## 1.0.0 · 2026-11-10
 
 The first release: a self-hosted knowledge platform with answers from documents people may read, agents that ask before they act, and a web console for every setting. What changed most in the weeks before it:
