@@ -1,6 +1,6 @@
 [project]
 name = "veyntora-api"
-version = "0.1.0"
+version = "1.0.0"
 description = "Veyntora API: auth, config, admin endpoints, MCP gateway"
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"

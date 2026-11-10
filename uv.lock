@@ -2581,7 +2581,7 @@ wheels = [
 
 [[package]]
 name = "veyntora-api"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "services/api" }
 dependencies = [
     { name = "aioboto3" },
@@ -2640,7 +2640,7 @@ requires-dist = [
 
 [[package]]
 name = "veyntora-channels"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "services/channels" }
 dependencies = [
     { name = "fastapi" },
@@ -2669,7 +2669,7 @@ requires-dist = [
 
 [[package]]
 name = "veyntora-graphs"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "services/graphs" }
 dependencies = [
     { name = "aegra-api" },
@@ -2698,7 +2698,7 @@ requires-dist = [
 
 [[package]]
 name = "veyntora-providers"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "packages/providers" }
 dependencies = [
     { name = "anthropic" },
@@ -2721,7 +2721,7 @@ requires-dist = [
 
 [[package]]
 name = "veyntora-spec"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "packages/spec" }
 dependencies = [
     { name = "pydantic" },
@@ -2732,7 +2732,7 @@ requires-dist = [{ name = "pydantic", specifier = "==2.14.2" }]
 
 [[package]]
 name = "veyntora-workers"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "services/workers" }
 dependencies = [
     { name = "aiomysql" },
@@ -2761,7 +2761,7 @@ requires-dist = [
 
 [[package]]
 name = "veyntora-workspace"
-version = "0.0.0"
+version = "1.0.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]

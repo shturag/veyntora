@@ -157,7 +157,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     configure_logging(settings.log_level, json=settings.environment != "local")
     app = FastAPI(
         title="Veyntora API",
-        version="0.1.0",
+        version="1.0.0",
         lifespan=build_lifespan(settings),  # type: ignore[arg-type]
         docs_url="/docs" if settings.environment in ("local", "dev") else None,
         redoc_url=None,

@@ -1,6 +1,6 @@
 [project]
 name = "veyntora-graphs"
-version = "0.1.0"
+version = "1.0.0"
 description = "Veyntora LangGraph graphs (fast_rag, agent, router) served by Aegra"
 requires-python = ">=3.12,<3.13"
 license = "Apache-2.0"
