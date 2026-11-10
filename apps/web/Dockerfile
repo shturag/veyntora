@@ -2,7 +2,7 @@
 # Next.js app (landing, user app, admin console) as a standalone server.
 # Build from the repository root: docker build -f apps/web/Dockerfile .
 
-FROM node:24.22.2-alpine3.24 AS build
+FROM node:26.13.0-alpine3.24 AS build
 RUN npm install -g pnpm@12.16.1
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /src
@@ -19,7 +19,7 @@ COPY packages/spec/tsconfig.json packages/spec/
 COPY apps/web apps/web
 RUN pnpm --filter @veyntora/web build
 
-FROM node:24.22.2-alpine3.24
+FROM node:26.13.0-alpine3.24
 # The server needs node only. The package managers bundled with the base image (npm,
 # corepack, yarn) are removed: unused, and their own dependencies carry CVEs.
 RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
