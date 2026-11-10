@@ -1,0 +1,12 @@
+# Gitleaks configuration: the default rules, plus the made-up keys the tests use.
+# Every value allowed here is a fixture (0123456789-style or a documented example), never a
+# real credential. Real secrets live in OpenBao and are never committed (ADR 0004).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures"
+paths = [
+  '''services/api/tests/.*\.py$''',
+  '''packages/[a-z]+/tests/.*\.py$''',
+]

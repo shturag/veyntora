@@ -1,0 +1,22 @@
+# Weekly update pull requests for every ecosystem in the repository. Updates of one kind are
+# grouped, so a week brings a few pull requests, not dozens.
+version: 2
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    groups:
+      python: { patterns: ["*"] }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    groups:
+      javascript: { patterns: ["*"] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    groups:
+      actions: { patterns: ["*"] }
+  - package-ecosystem: docker
+    directories: ["/services/api", "/services/graphs", "/apps/web"]
+    schedule: { interval: weekly, day: monday }
