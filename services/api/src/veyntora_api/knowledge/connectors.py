@@ -97,12 +97,30 @@ class WebsiteSettings(BaseModel):
     use_sitemap: bool = False
     # Seconds to wait between two requests, to spare the site.
     delay_seconds: float = Field(0.0, ge=0.0, le=30.0)
+    # Pages behind a sign-in (ADR 0041). The secret (token, password or cookie) is the
+    # source's secret; it is sent only to the site's own hosts, and only over HTTPS.
+    auth: Literal["none", "bearer", "basic", "cookie", "header"] = "none"
+    auth_username: str | None = Field(None, max_length=255)
+    auth_header: str | None = Field(None, max_length=100, pattern=r"^[A-Za-z0-9-]+$")
+    # Pages built in the browser by scripts are read after a headless browser ran them
+    # (the browser service, VEY_BROWSER_URL).
+    render_js: bool = False
+    # One page per address without its ?query (sorting, tracking and session parameters).
+    ignore_query: bool = False
+    # Subdomains of the start pages' hosts are crawled too (docs.example.com for example.com).
+    include_subdomains: bool = False
 
     @model_validator(mode="after")
     def _urls(self) -> WebsiteSettings:
         for url in self.start_urls:
             if len(url) > 2048 or not re.match(_URL, url):
                 raise ValueError(f"{url!r} is not an http(s) address")
+            if self.auth != "none" and not url.lower().startswith("https://"):
+                raise ValueError("signing in needs https:// start pages")
+        if self.auth == "basic" and not self.auth_username:
+            raise ValueError("basic sign-in needs a user name")
+        if self.auth == "header" and not self.auth_header:
+            raise ValueError("choose the header the secret is sent in")
         return self
 
 
@@ -352,7 +370,8 @@ class ConnectedSourceInput(BaseModel):
         given = [k for k in KINDS if getattr(self, k)]
         if given != [self.type]:
             raise ValueError(f"a {self.type} source needs {self.type} settings (only those)")
-        if self.type != "website" and self.secret is None:
+        signs_in = self.website is not None and self.website.auth != "none"
+        if (self.type != "website" or signs_in) and self.secret is None:
             raise ValueError("this source needs its secret (key, token or password)")
         return self
 

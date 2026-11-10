@@ -30,9 +30,16 @@ type S3Settings = {
   prefixes: string[];
   access_key_id: string;
 };
+type WebAuth = "none" | "bearer" | "basic" | "cookie" | "header";
 type WebsiteSettings = {
   use_sitemap?: boolean;
   delay_seconds?: number;
+  auth?: WebAuth;
+  auth_username?: string | null;
+  auth_header?: string | null;
+  render_js?: boolean;
+  ignore_query?: boolean;
+  include_subdomains?: boolean;
   start_urls: string[];
   include_paths: string[];
   max_pages: number;
@@ -244,6 +251,12 @@ function websiteFrom(form: FormData): WebsiteSettings {
     max_depth: Number(form.get("max_depth")),
     use_sitemap: form.get("use_sitemap") === "on",
     delay_seconds: Number(form.get("delay_seconds")) || 0,
+    auth: String(form.get("web_auth") || "none") as WebAuth,
+    auth_username: String(form.get("web_user") || "").trim() || null,
+    auth_header: String(form.get("web_header") || "").trim() || null,
+    render_js: form.get("render_js") === "on",
+    ignore_query: form.get("ignore_query") === "on",
+    include_subdomains: form.get("include_subdomains") === "on",
   };
 }
 
@@ -319,8 +332,18 @@ export function S3Fields({ value }: { value?: S3Settings }) {
   );
 }
 
-export function WebsiteFields({ value }: { value?: WebsiteSettings }) {
+const WEB_OPTIONS = ["render_js", "ignore_query", "include_subdomains"] as const;
+
+export function WebsiteFields({
+  value,
+  onAuth,
+}: {
+  value?: WebsiteSettings;
+  /** Called when the sign-in changes (the form then asks for the secret). */
+  onAuth?: (auth: WebAuth) => void;
+}) {
   const t = useTranslations("sources");
+  const [auth, setAuth] = useState<WebAuth>(value?.auth ?? "none");
   return (
     <>
       <label className={label}>
@@ -395,6 +418,72 @@ export function WebsiteFields({ value }: { value?: WebsiteSettings }) {
           />
           <span className="text-xs font-normal text-fg-muted">{t("delaySecondsHint")}</span>
         </label>
+      </div>
+      <div className="flex flex-col divide-y divide-line rounded-md border border-line">
+        {WEB_OPTIONS.map((k) => (
+          <label
+            key={k}
+            className="flex cursor-pointer items-start gap-3 px-4 py-3 text-sm hover:bg-sunken/50"
+          >
+            <input
+              type="checkbox"
+              name={k}
+              defaultChecked={Boolean(value?.[k])}
+              className="mt-0.5 size-4 shrink-0"
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="font-medium">{t(`web.${k}`)}</span>
+              <span className="text-xs text-fg-muted">{t(`web.${k}Hint`)}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3 max-[760px]:grid-cols-1">
+        <label className={label}>
+          {t("web.auth")}
+          <select
+            name="web_auth"
+            value={auth}
+            onChange={(e) => {
+              const next = e.target.value as WebAuth;
+              setAuth(next);
+              onAuth?.(next);
+            }}
+            className={input}
+          >
+            {(["none", "bearer", "basic", "cookie", "header"] as const).map((a) => (
+              <option key={a} value={a}>
+                {t(`web.auths.${a}`)}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs font-normal text-fg-muted">{t("web.authHint")}</span>
+        </label>
+        {auth === "basic" ? (
+          <label className={label}>
+            {t("web.user")}
+            <input
+              name="web_user"
+              required
+              defaultValue={value?.auth_username ?? ""}
+              autoComplete="off"
+              className={input}
+            />
+          </label>
+        ) : null}
+        {auth === "header" ? (
+          <label className={label}>
+            {t("web.header")}
+            <input
+              name="web_header"
+              required
+              pattern="[A-Za-z0-9\-]+"
+              defaultValue={value?.auth_header ?? ""}
+              placeholder="X-Api-Key"
+              className={`${input} font-mono`}
+            />
+          </label>
+        ) : null}
       </div>
     </>
   );

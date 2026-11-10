@@ -397,7 +397,7 @@ export function ConnectionSettingsForm({
         </div>
         <Feedback error={error} done={done} />
       </form>
-      {source.type !== "website" ? (
+      {source.type !== "website" || (c.website?.auth ?? "none") !== "none" ? (
         <SecretForm sourceId={source.id} meta={c} label={t(`secretLabel.${source.type as "s3"}`)} />
       ) : null}
       {c.unmapped.length ? (

@@ -60,7 +60,12 @@ async def _secret(ing: Ingestor, source: DataSource) -> str:
 async def reader_for(ing: Ingestor, source: DataSource) -> Reader:
     cfg = settings_of(source)
     if isinstance(cfg, WebsiteSettings):
-        return WebsiteReader(cfg, max_bytes=ing.settings.upload_max_bytes)
+        return WebsiteReader(
+            cfg,
+            max_bytes=ing.settings.upload_max_bytes,
+            secret=await _secret(ing, source) if cfg.auth != "none" else None,
+            browser_url=ing.settings.browser_url,
+        )
     secret = await _secret(ing, source)
     reader: Reader
     match cfg:

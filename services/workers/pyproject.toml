@@ -16,6 +16,9 @@ dependencies = [
   "oracledb==26.0.1",
   # Fast text extraction from PDFs' text layer (ADR 0040), in-house, BSD-3-Clause.
   "pypdf==6.21.4",
+  # Websites built by scripts, read through the browser service (ADR 0041); Apache-2.0.
+  # Must match the browser image (deploy/compose: mcr.microsoft.com/playwright:v1.64.1).
+  "playwright==1.64.1",
 ]
 
 [project.scripts]

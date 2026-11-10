@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     # Health targets for the status page. Empty means the component is not deployed. The
     # vector store, models and parser are providers (ADR 0032): their health is checked there.
     graphs_url: str = "http://localhost:2026"
+    # The headless browser websites are rendered with (Playwright server, `docker compose
+    # --profile browser`), e.g. ws://browser:3000/. Empty: no rendering (ADR 0041).
+    browser_url: str = ""
     # How runtime services reach the API inside the network (delegated tool tokens).
     api_internal_url: str = "http://localhost:8000"
     # Langfuse and Grafana are configured in the admin console (Integrations, ADR 0024).

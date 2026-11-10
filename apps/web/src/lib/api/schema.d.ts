@@ -10569,12 +10569,32 @@ export interface components {
         /** WebsiteSettings */
         WebsiteSettings: {
             /**
+             * Auth
+             * @default none
+             * @enum {string}
+             */
+            auth: "none" | "bearer" | "basic" | "cookie" | "header";
+            /** Auth Header */
+            auth_header?: string | null;
+            /** Auth Username */
+            auth_username?: string | null;
+            /**
              * Delay Seconds
              * @default 0
              */
             delay_seconds: number;
+            /**
+             * Ignore Query
+             * @default false
+             */
+            ignore_query: boolean;
             /** Include Paths */
             include_paths?: string[];
+            /**
+             * Include Subdomains
+             * @default false
+             */
+            include_subdomains: boolean;
             /**
              * Max Depth
              * @default 3
@@ -10585,6 +10605,11 @@ export interface components {
              * @default 500
              */
             max_pages: number;
+            /**
+             * Render Js
+             * @default false
+             */
+            render_js: boolean;
             /** Start Urls */
             start_urls: string[];
             /**

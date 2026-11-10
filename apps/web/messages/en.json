@@ -1172,7 +1172,8 @@
       "cmis": "Password",
       "git": "Access token",
       "servicenow": "Password",
-      "jira": "API token / personal access token"
+      "jira": "API token / personal access token",
+      "website": "Sign-in secret (token, password or cookie)"
     },
     "delete": "Delete",
     "deleteConfirm": "Delete the source {name}? Its documents are removed from every index and its stored files and key are deleted. Only possible when no chatbot uses it. This cannot be undone. Type the source's name to confirm:",
@@ -1328,7 +1329,26 @@
     "useSitemap": "Use the sitemap",
     "useSitemapHint": "Also reads the pages the site's sitemap.xml lists (and the sitemaps robots.txt names), so pages no link leads to are found.",
     "delaySeconds": "Wait between requests (s)",
-    "delaySecondsHint": "Spares the site; 0 reads as fast as the site answers."
+    "delaySecondsHint": "Spares the site; 0 reads as fast as the site answers.",
+    "web": {
+      "auth": "Sign-in",
+      "authHint": "For pages behind a login. The secret is sent only to the site's own hosts, over HTTPS.",
+      "auths": {
+        "none": "None (public pages)",
+        "bearer": "Bearer token",
+        "basic": "User name and password",
+        "cookie": "Session cookie",
+        "header": "Token in a header"
+      },
+      "user": "User name",
+      "header": "Header name",
+      "render_js": "Render JavaScript",
+      "render_jsHint": "For pages built in the browser by scripts: a headless browser runs them first. Needs the browser service (docker compose --profile browser).",
+      "ignore_query": "Ignore ?query in addresses",
+      "ignore_queryHint": "One page per address, without sorting, tracking or session parameters.",
+      "include_subdomains": "Include subdomains",
+      "include_subdomainsHint": "Also reads docs.example.com when a start page is on example.com."
+    }
   },
   "myFiles": {
     "title": "My files",

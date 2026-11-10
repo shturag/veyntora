@@ -115,7 +115,9 @@ export function ConnectSourceForm({
   const [type, setType] = useState<Kind>("upload");
   const { error, busy, run } = useAction();
   const own = OWN_PERMISSIONS.includes(type) || type === "sharepoint";
-  const needsSecret = type !== "upload" && type !== "website";
+  // Websites need a secret only to sign in.
+  const [webAuth, setWebAuth] = useState("none");
+  const needsSecret = type !== "upload" && (type !== "website" || webAuth !== "none");
   const typeName = t(`types.${type}`);
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -170,7 +172,13 @@ export function ConnectSourceForm({
   return (
     <div className="grid grid-cols-[340px_minmax(0,1fr)] items-start gap-5 max-[1100px]:grid-cols-1">
       <div className="sticky top-4 max-[1100px]:static">
-        <TypePicker type={type} onChange={setType} />
+        <TypePicker
+          type={type}
+          onChange={(k) => {
+            setType(k);
+            setWebAuth("none"); // each type's fields start over
+          }}
+        />
       </div>
 
       <form onSubmit={submit} className="flex min-w-0 flex-col gap-4" aria-label={typeName}>
@@ -231,7 +239,7 @@ export function ConnectSourceForm({
               <SharePointFields groups={groups} withSchedule={false} />
             ) : null}
             {type === "s3" ? <S3Fields /> : null}
-            {type === "website" ? <WebsiteFields /> : null}
+            {type === "website" ? <WebsiteFields onAuth={setWebAuth} /> : null}
             {type === "confluence" ? <ConfluenceFields groups={groups} /> : null}
             {type === "database" ? <DatabaseFields /> : null}
             {type === "smb" ? <SmbFields groups={groups} /> : null}

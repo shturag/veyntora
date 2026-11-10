@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import gzip
 from datetime import timedelta
 from typing import Any
 
+import httpx
 import pytest
 from veyntora_api.chatbots import service as bots
 from veyntora_api.db.models.knowledge import DataSource, DocumentStatus, IngestJobKind, SourceType
@@ -281,3 +283,78 @@ def test_titles_that_are_not_titles_are_replaced() -> None:
     )
     # A name with nothing better to replace it keeps the current title.
     assert best_title("Abstract", "a/notes.pdf", "notes.pdf") == "notes.pdf"
+
+
+async def test_sign_in_goes_only_to_the_site() -> None:
+    seen: list[tuple[str, str | None]] = []
+    pages = {
+        "https://wiki.example/": '<a href="/a?sort=1">a</a><a href="/a?sort=2">a</a>'
+        '<a href="https://docs.wiki.example/b">b</a><a href="https://cdn.other/c">c</a>',
+        "https://wiki.example/a": "<p>page a</p>",
+        "https://docs.wiki.example/b": "<p>page b</p>",
+        "https://wiki.example/away": None,  # redirects to another host
+    }
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        seen.append((req.url.host, req.headers.get("authorization")))
+        url = str(req.url.copy_with(query=None))
+        if req.url.path == "/robots.txt":
+            return httpx.Response(200, text="")
+        if url == "https://wiki.example/away":
+            return httpx.Response(302, headers={"location": "https://cdn.other/x"})
+        body = pages.get(url)
+        if body is None:
+            return httpx.Response(404)
+        return httpx.Response(200, headers={"content-type": "text/html"}, text=body)
+
+    def reader(**cfg: Any) -> WebsiteReader:
+        settings = connectors.WebsiteSettings(start_urls=["https://wiki.example/"], **cfg)
+        client = httpx.AsyncClient(transport=httpx.MockTransport(handler), follow_redirects=True)
+        return WebsiteReader(settings, max_bytes=100_000, http=client, secret="tok-123")
+
+    r = reader(auth="bearer", ignore_query=True, include_subdomains=True)
+    urls = {e.url async for e in r.entries()}
+    assert urls == {
+        "https://wiki.example/",
+        "https://wiki.example/a",
+        "https://docs.wiki.example/b",
+    }
+    assert all(auth == "Bearer tok-123" for host, auth in seen if host.endswith("wiki.example"))
+    seen.clear()
+    await r.http.get("https://wiki.example/away")
+    assert ("cdn.other", None) in seen, "a redirect to another host gets no secret"
+
+    narrow = reader(auth="bearer")
+    urls = {e.url async for e in narrow.entries()}
+    assert "https://docs.wiki.example/b" not in urls and len(urls) == 3  # two ?sort pages
+
+    with pytest.raises(ValueError, match="https"):
+        connectors.WebsiteSettings(start_urls=["http://wiki.example/"], auth="bearer")
+    with pytest.raises(ValueError, match="user name"):
+        connectors.WebsiteSettings(start_urls=["https://wiki.example/"], auth="basic")
+    with pytest.raises(RuntimeError, match="browser service"):
+        await reader(render_js=True).check()
+
+
+async def test_compressed_sitemaps_are_read() -> None:
+    sitemap = (
+        '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        f"<url><loc>{SITE}/handbook/hidden.html</loc></url></urlset>"
+    )
+    packed = gzip.compress(sitemap.encode())
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        if req.url.path == "/robots.txt":
+            return httpx.Response(200, text=f"Sitemap: {SITE}/sitemap.xml.gz")
+        if req.url.path == "/sitemap.xml.gz":
+            return httpx.Response(200, content=packed)
+        return httpx.Response(404)
+
+    cfg = connectors.WebsiteSettings(start_urls=[f"{SITE}/handbook/"], use_sitemap=True)
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    reader = WebsiteReader(cfg, max_bytes=100_000, http=client)
+    assert await reader.sitemap_urls() == [f"{SITE}/handbook/hidden.html"]
+    tiny = WebsiteReader(
+        cfg, max_bytes=50, http=httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    )
+    assert await tiny.sitemap_urls() == [], "a sitemap that unpacks too large is skipped"

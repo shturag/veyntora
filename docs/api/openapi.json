@@ -18612,12 +18612,54 @@
       "WebsiteSettings": {
         "additionalProperties": false,
         "properties": {
+          "auth": {
+            "default": "none",
+            "enum": [
+              "none",
+              "bearer",
+              "basic",
+              "cookie",
+              "header"
+            ],
+            "title": "Auth",
+            "type": "string"
+          },
+          "auth_header": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "pattern": "^[A-Za-z0-9-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auth Header"
+          },
+          "auth_username": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auth Username"
+          },
           "delay_seconds": {
             "default": 0.0,
             "maximum": 30.0,
             "minimum": 0.0,
             "title": "Delay Seconds",
             "type": "number"
+          },
+          "ignore_query": {
+            "default": false,
+            "title": "Ignore Query",
+            "type": "boolean"
           },
           "include_paths": {
             "items": {
@@ -18626,6 +18668,11 @@
             "maxItems": 50,
             "title": "Include Paths",
             "type": "array"
+          },
+          "include_subdomains": {
+            "default": false,
+            "title": "Include Subdomains",
+            "type": "boolean"
           },
           "max_depth": {
             "default": 3,
@@ -18640,6 +18687,11 @@
             "minimum": 1.0,
             "title": "Max Pages",
             "type": "integer"
+          },
+          "render_js": {
+            "default": false,
+            "title": "Render Js",
+            "type": "boolean"
           },
           "start_urls": {
             "items": {

@@ -55,6 +55,9 @@ x-app-env: &app-env
   VEY_GRAFANA_URL: ${VEY_GRAFANA_URL-}
   VEY_GRAFANA_BROWSER_URL: ${VEY_GRAFANA_BROWSER_URL-}
   VEY_ALEMBIC_INI: /app/services/api/alembic.ini
+  # The browser websites are rendered with (ADR 0041). Empty: no rendering. With
+  # `docker compose --profile browser up -d`, set it to ws://browser:3000/ in .env.
+  VEY_BROWSER_URL: ${VEY_BROWSER_URL-}
 
 # The config keys (ADR 0034): each container gets only those its role may hold, so no
 # service can open another's OpenBao token. Written to .env by `make env`.
@@ -135,6 +138,18 @@ services:
     restart: unless-stopped
     depends_on:
       migrate: { condition: service_started }
+
+  browser:
+    # Optional (ADR 0041): a headless browser for websites built by scripts. Only the
+    # workers reach it (no published port). Start with `docker compose --profile browser
+    # up -d`; the version must match the workers' playwright package.
+    image: mcr.microsoft.com/playwright:v1.64.1-noble
+    profiles: ["browser"]
+    init: true
+    user: pwuser
+    working_dir: /home/pwuser
+    command: ["/bin/sh", "-c", "npx -y playwright@1.64.1 run-server --port 3000 --host 0.0.0.0"]
+    restart: unless-stopped
 
   channels:
     # Teams and Slack bots (ADR 0020). A runtime service: reads its bots' credentials.

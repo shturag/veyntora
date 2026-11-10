@@ -1172,7 +1172,8 @@
       "cmis": "Passwort",
       "git": "Zugriffstoken",
       "servicenow": "Passwort",
-      "jira": "API-Token / persönliches Zugriffstoken"
+      "jira": "API-Token / persönliches Zugriffstoken",
+      "website": "Anmeldegeheimnis (Token, Passwort oder Cookie)"
     },
     "delete": "Löschen",
     "deleteConfirm": "Quelle {name} löschen? Ihre Dokumente werden aus allen Indizes entfernt, gespeicherte Dateien und Schlüssel gelöscht. Nur möglich, wenn kein Chatbot sie nutzt. Das lässt sich nicht rückgängig machen. Zum Bestätigen den Namen der Quelle eingeben:",
@@ -1328,7 +1329,26 @@
     "useSitemap": "Sitemap verwenden",
     "useSitemapHint": "Liest auch die Seiten, die die sitemap.xml der Website auflistet (und die Sitemaps aus robots.txt), damit Seiten gefunden werden, auf die kein Link führt.",
     "delaySeconds": "Pause zwischen Anfragen (s)",
-    "delaySecondsHint": "Schont die Website; 0 liest so schnell, wie die Website antwortet."
+    "delaySecondsHint": "Schont die Website; 0 liest so schnell, wie die Website antwortet.",
+    "web": {
+      "auth": "Anmeldung",
+      "authHint": "Für Seiten hinter einer Anmeldung. Das Geheimnis wird nur an die eigenen Hosts der Website gesendet, über HTTPS.",
+      "auths": {
+        "none": "Keine (öffentliche Seiten)",
+        "bearer": "Bearer-Token",
+        "basic": "Benutzername und Passwort",
+        "cookie": "Sitzungs-Cookie",
+        "header": "Token in einem Header"
+      },
+      "user": "Benutzername",
+      "header": "Header-Name",
+      "render_js": "JavaScript ausführen",
+      "render_jsHint": "Für Seiten, die Skripte im Browser aufbauen: Ein Headless-Browser führt sie vorher aus. Braucht den Browser-Dienst (docker compose --profile browser).",
+      "ignore_query": "?Parameter in Adressen ignorieren",
+      "ignore_queryHint": "Eine Seite pro Adresse, ohne Sortier-, Tracking- oder Sitzungsparameter.",
+      "include_subdomains": "Subdomains einbeziehen",
+      "include_subdomainsHint": "Liest auch docs.example.com, wenn eine Startseite auf example.com liegt."
+    }
   },
   "myFiles": {
     "title": "Meine Dateien",

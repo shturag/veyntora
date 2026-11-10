@@ -8,17 +8,24 @@
 - The page's content hash tells changed pages apart (websites rarely send stable ETags).
 - With `use_sitemap`, the pages the site's sitemaps list are crawled too (ADR 0040), and
   `delay_seconds` spaces out requests.
+- Sign-in (ADR 0041): the secret goes only to the site's own hosts, added to each request
+  there, never to other hosts a page links or redirects to. `render_js` reads HTML pages
+  after the browser service ran their scripts; `ignore_query` and `include_subdomains`
+  widen or narrow what counts as one page and one site.
 """
 
 from __future__ import annotations
 
 import asyncio
+import base64
 import posixpath
 import xml.etree.ElementTree as ET
+import zlib
 from collections import deque
 from collections.abc import AsyncIterator
 from html.parser import HTMLParser
-from urllib.parse import urldefrag, urljoin, urlsplit
+from typing import Any
+from urllib.parse import urldefrag, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 import httpx
@@ -77,6 +84,8 @@ class WebsiteReader:
         *,
         max_bytes: int,
         http: httpx.AsyncClient | None = None,
+        secret: str | None = None,
+        browser_url: str = "",
     ) -> None:
         self.cfg = cfg
         self.max_bytes = max_bytes
@@ -84,17 +93,44 @@ class WebsiteReader:
             timeout=20, follow_redirects=True, headers={"User-Agent": USER_AGENT}
         )
         self.hosts = {urlsplit(u).netloc.lower() for u in cfg.start_urls}
+        self.credentials = _credentials(cfg, secret)
+        # Added per request, so a redirect or link to another host never carries them.
+        self.http.event_hooks["request"].append(self._sign)
+        self.browser_url = browser_url
+        self._browser: Any = None
         self._robots: dict[str, RobotFileParser] = {}
         self.complete_crawl = False
         self.errors = 0
         self._requests = 0
 
     async def close(self) -> None:
+        if self._browser is not None:
+            pw, browser = self._browser
+            await browser.close()
+            await pw.stop()
         await self.http.aclose()
+
+    def on_site(self, netloc: str) -> bool:
+        host = netloc.lower()
+        if host in self.hosts:
+            return True
+        return self.cfg.include_subdomains and any(host.endswith("." + h) for h in self.hosts)
+
+    async def _sign(self, request: httpx.Request) -> None:
+        if self.credentials and self.on_site(request.url.netloc.decode()):
+            request.headers.update(self.credentials)
+
+    def page_url(self, url: str) -> str:
+        """One address per page: without the fragment, and without ?query if asked."""
+        url = urldefrag(url)[0]
+        if self.cfg.ignore_query:
+            p = urlsplit(url)
+            url = urlunsplit((p.scheme, p.netloc, p.path, "", ""))
+        return url
 
     def _wanted(self, url: str) -> bool:
         parts = urlsplit(url)
-        if parts.netloc.lower() not in self.hosts:
+        if not self.on_site(parts.netloc):
             return False
         if not self.cfg.include_paths:
             return True
@@ -132,7 +168,7 @@ class WebsiteReader:
         while todo and read < _MAX_SITEMAPS and len(pages) < self.cfg.max_pages:
             url = todo.popleft()
             read += 1
-            if urlsplit(url).netloc.lower() not in self.hosts:
+            if not self.on_site(urlsplit(url).netloc):
                 continue
             await self._pause()
             try:
@@ -142,6 +178,11 @@ class WebsiteReader:
             body = res.content
             if res.status_code != 200 or len(body) > self.max_bytes:
                 continue
+            if body[:2] == b"\x1f\x8b":  # sitemap.xml.gz
+                inflate = zlib.decompressobj(16 + zlib.MAX_WBITS)
+                body = inflate.decompress(body, self.max_bytes + 1)
+                if len(body) > self.max_bytes:
+                    continue  # unpacks larger than a file may be
             if b"<!DOCTYPE" in body or b"<!ENTITY" in body:
                 continue  # no DTDs, so no entity expansion
             try:
@@ -175,9 +216,47 @@ class WebsiteReader:
             if mime == "text/html":
                 # Stored as UTF-8 whatever the page's charset.
                 body = body.decode(res.encoding or "utf-8", errors="replace").encode()
-        return final, mime, body
+        if mime == "text/html" and self.cfg.render_js:
+            body = (await self._render(final)).encode()
+        return self.page_url(final), mime, body
+
+    async def _render(self, url: str) -> str:
+        """The page's HTML after its scripts ran, from the browser service."""
+        if self._browser is None:
+            if not self.browser_url:
+                raise RuntimeError(
+                    "rendering needs the browser service: start it with `docker compose "
+                    "--profile browser up -d` and set VEY_BROWSER_URL"
+                )
+            from playwright.async_api import async_playwright  # noqa: PLC0415 - only here
+
+            pw = await async_playwright().start()
+            browser = await pw.chromium.connect(self.browser_url)
+            self._browser = (pw, browser)
+        _, browser = self._browser
+        context = await browser.new_context(user_agent=USER_AGENT)
+        try:
+
+            async def sign(route: Any) -> None:
+                # The secret only for the site's own hosts, as without the browser.
+                headers = dict(route.request.headers)
+                if self.credentials and self.on_site(urlsplit(route.request.url).netloc):
+                    headers.update(self.credentials)
+                await route.continue_(headers=headers)
+
+            await context.route("**/*", sign)
+            page = await context.new_page()
+            await page.goto(url, wait_until="networkidle", timeout=30_000)
+            html: str = await page.content()
+        finally:
+            await context.close()
+        if len(html.encode()) > self.max_bytes:
+            raise RuntimeError(f"{url} is larger than a file may be once rendered")
+        return html
 
     async def check(self) -> str:
+        if self.cfg.render_js:
+            await self._render(self.cfg.start_urls[0])
         found = 0
         for url in self.cfg.start_urls:
             got = await self._get(url) if await self._allowed(url) else None
@@ -187,9 +266,9 @@ class WebsiteReader:
         return f"{found} of {len(self.cfg.start_urls)} start pages are readable."
 
     async def entries(self) -> AsyncIterator[Entry]:
-        starts = list(self.cfg.start_urls)
+        starts = [self.page_url(u) for u in self.cfg.start_urls]
         if self.cfg.use_sitemap:
-            starts += [u for u in await self.sitemap_urls() if u not in starts]
+            starts += [u for u in map(self.page_url, await self.sitemap_urls()) if u not in starts]
         queue = deque((u, 0) for u in starts)
         seen: set[str] = set(starts)
         read: set[str] = set()
@@ -228,7 +307,7 @@ class WebsiteReader:
             links, nofollow = links_of(body.decode(errors="replace"), final)
             if nofollow:
                 continue
-            for link in links:
+            for link in map(self.page_url, links):
                 if link not in seen and self._wanted(link):
                     seen.add(link)
                     queue.append((link, depth + 1))
@@ -243,3 +322,17 @@ class WebsiteReader:
             download=self._no_download,
             complete=lambda: self.complete_crawl,
         )
+
+
+def _credentials(cfg: WebsiteSettings, secret: str | None) -> dict[str, str]:
+    """The headers that sign a request in, for the source's kind of sign-in."""
+    if cfg.auth == "none" or not secret:
+        return {}
+    if cfg.auth == "bearer":
+        return {"Authorization": f"Bearer {secret}"}
+    if cfg.auth == "basic":
+        token = base64.b64encode(f"{cfg.auth_username}:{secret}".encode()).decode()
+        return {"Authorization": f"Basic {token}"}
+    if cfg.auth == "cookie":
+        return {"Cookie": secret}
+    return {str(cfg.auth_header): secret}

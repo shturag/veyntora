@@ -42,3 +42,4 @@
 | [0038](0038-open-source.md) | Open source under the Apache License 2.0 |
 | [0039](0039-small-talk.md) | Small talk gets a labelled reply |
 | [0040](0040-reading-per-source.md) | Each data source chooses how its documents are read |
+| [0041](0041-website-sign-in-and-rendering.md) | Websites behind a sign-in, built by scripts, or with messy addresses |
