@@ -15,6 +15,7 @@ from uuid import UUID
 
 import sqlalchemy as sa
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from veyntora_spec.extraction import SourceReading
 
@@ -572,14 +573,22 @@ async def ensure_personal_source(
     db: AsyncSession, ctx: RequestContext, user_id: UUID
 ) -> DataSource:
     row = await personal_source(db, user_id)
-    if row is None:
-        row = DataSource(
-            type=SourceType.UPLOAD,
-            name=f"My files · {user_id}",
-            config={"acl": {"users": [str(user_id)], "groups": []}},
-            status=SourceStatus.ACTIVE,
-            owner_id=user_id,
-            uploaded_by=user_id,
-        )
-        await ConfigService(db, ctx).create(row, action="source.create_personal")
+    if row is not None:
+        return row
+    try:
+        # Two uploads at once (two tabs) both find none; the second uses the first's.
+        async with db.begin_nested():
+            row = DataSource(
+                type=SourceType.UPLOAD,
+                name=f"My files · {user_id}",
+                config={"acl": {"users": [str(user_id)], "groups": []}},
+                status=SourceStatus.ACTIVE,
+                owner_id=user_id,
+                uploaded_by=user_id,
+            )
+            await ConfigService(db, ctx).create(row, action="source.create_personal")
+    except IntegrityError:
+        row = await personal_source(db, user_id)
+        if row is None:
+            raise
     return row

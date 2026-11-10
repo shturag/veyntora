@@ -324,7 +324,11 @@ export default async function MonitoringPage({
       ) : (
         <p className="m-0 text-xs text-fg-muted">
           {t.rich("grafana.setUp", {
-            link: (chunks) => <Link href="/admin/integrations">{chunks}</Link>,
+            link: (chunks) => (
+              <Link href="/admin/integrations" className="underline">
+                {chunks}
+              </Link>
+            ),
           })}
         </p>
       )}

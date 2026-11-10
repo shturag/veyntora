@@ -46,7 +46,9 @@ set_var VEY_OPENBAO_API_TOKEN_VOLUME "${project}_openbao-api-token"
 set_var VEY_OPENBAO_RUNTIME_TOKEN_VOLUME "${project}_openbao-runtime-token"
 
 echo "Starting $project on http://localhost:$web ..."
-"${compose[@]}" up -d --build --wait web graphs workers scheduler
+# Health checks can time out while images build on a busy machine: one more try.
+"${compose[@]}" up -d --build --wait web graphs workers scheduler ||
+  "${compose[@]}" up -d --wait web graphs workers scheduler
 
 # Healthy containers can still be bootstrapping (migrations, Keycloak sync): wait until the
 # sign-in page offers sign-in rather than the Setup page.

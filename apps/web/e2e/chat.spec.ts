@@ -17,8 +17,13 @@ test.describe("chat screens as an employee", () => {
   test("library lists the user's chats", async ({ page }) => {
     await page.goto("/library");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Chats & knowledge");
-    await expect(page.getByRole("searchbox").or(page.getByLabel("Search chats"))).toBeVisible();
-    await page.getByLabel("Search chats").fill("no such chat title");
+    // Someone without chats (a fresh install) gets a way to start one instead of a search.
+    const search = page.getByLabel("Search chats");
+    if ((await search.count()) === 0) {
+      await expect(page.getByRole("link", { name: "Start a chat" })).toBeVisible();
+      return;
+    }
+    await search.fill("no such chat title");
     await page.getByLabel("Search chats").press("Enter");
     await expect(page.getByText(/No chats/)).toBeVisible();
   });

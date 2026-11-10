@@ -35,12 +35,9 @@ export default async function AutomationBuilderPage({
         </Link>{" "}
         / {automation.name}
       </nav>
-      <Builder
-        key={automation.version}
-        automation={automation}
-        options={options}
-        editor={access.level === "editor"}
-      />
+      {/* Not keyed by version: a step just added stays open in its editor while the page
+          reloads; the builder takes over a newer version itself. */}
+      <Builder automation={automation} options={options} editor={access.level === "editor"} />
     </div>
   );
 }
