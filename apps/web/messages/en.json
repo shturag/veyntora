@@ -1660,7 +1660,21 @@
       "upToDate": "Draft matches live",
       "draftChanges": "Draft v{version}: {count, plural, one {# change} other {# changes}}"
     },
-    "defaultModel": "default, always offered"
+    "defaultModel": "default, always offered",
+    "sectionText": {
+      "ingestion": "How documents are read and cut into passages before they are searched.",
+      "retrieval": "How passages are found for a question: the index, the search type and its filters.",
+      "rerank": "A second model orders the passages found and drops those that do not fit the question.",
+      "generation": "The model that writes the answer, its instructions, and what happens when it is not grounded.",
+      "agent": "Agent mode: the model plans, searches several times and may call tools, within limits.",
+      "router": "Which answer modes people may choose, and when Auto switches from Fast to Agent.",
+      "guardrails": "Checks on the question and the answer: personal data, prompt injection, groundedness and safety models.",
+      "chat": "What people may switch on in the chat: other models, thinking, attachments, web search and code."
+    },
+    "changeNoteHint": "For example: shorter answers for the help desk",
+    "prevSection": "Previous: {name}",
+    "nextSection": "Next: {name}",
+    "stepOf": "Step {n} of {total}"
   },
   "playground": {
     "title": "Playground",

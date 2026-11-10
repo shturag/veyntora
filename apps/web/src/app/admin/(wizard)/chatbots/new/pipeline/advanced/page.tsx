@@ -1,10 +1,11 @@
 import type { PipelineSpec } from "@veyntora/spec";
 import { Button } from "@veyntora/ui";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 
 import { wizardBot } from "@/components/bots/wizard-bot";
+import { SectionNav } from "@/components/pipeline/section-nav";
 import { SpecForm, type ProviderOption, type ToolOption } from "@/components/pipeline/spec-form";
 import { screenMetadata } from "@/components/screen-placeholder";
 import { serverApi } from "@/lib/api/server";
@@ -31,6 +32,11 @@ export default async function Step({
       : Promise.resolve({ data: [] }),
   ]);
   const q = `?id=${bot.id}`;
+  const href = (key: string) => `/admin/chatbots/new/pipeline/advanced${q}&section=${key}`;
+  const at = SECTIONS.indexOf(section);
+  const prev = SECTIONS[at - 1];
+  const next = SECTIONS[at + 1];
+  const pager = "inline-flex items-center gap-1.5 text-sm font-medium no-underline";
 
   return (
     <div className="flex flex-col gap-5">
@@ -46,32 +52,52 @@ export default async function Step({
         <p className="m-0 text-sm text-fg-secondary">{t("tune.intro")}</p>
       </header>
 
-      <div className="grid grid-cols-[220px_minmax(0,1fr)] items-start gap-5 max-[760px]:grid-cols-1">
-        <nav aria-label={tp("steps")}>
-          <ol className="m-0 flex list-none flex-col gap-1 p-0 max-[760px]:flex-row max-[760px]:flex-wrap">
-            {SECTIONS.map((s, i) => (
-              <li key={s.key}>
-                <Link
-                  href={`/admin/chatbots/new/pipeline/advanced${q}&section=${s.key}`}
-                  aria-current={s.key === section.key ? "step" : undefined}
-                  className={`flex rounded-md px-3 py-2 text-sm no-underline ${s.key === section.key ? "bg-accent-soft font-medium text-fg" : "text-fg-secondary hover:bg-sunken"}`}
-                >
-                  {i + 1} · {tp(`sections.${s.key}`)}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </nav>
-        <SpecForm
-          key={section.key}
-          botId={bot.id}
-          version={bot.version}
-          spec={bot.draft.spec as unknown as PipelineSpec}
-          sectionKey={section.key}
-          providers={(providers ?? []) as ProviderOption[]}
-          tools={(tools ?? []) as ToolOption[]}
-          canEdit
+      <div className="grid grid-cols-[232px_minmax(0,1fr)] items-start gap-6 max-[760px]:grid-cols-1">
+        <SectionNav
+          label={tp("steps")}
+          current={section.key}
+          items={SECTIONS.map((s) => ({
+            key: s.key,
+            title: tp(`sections.${s.key}`),
+            href: href(s.key),
+          }))}
         />
+        <div className="flex min-w-0 flex-col gap-3">
+          <SpecForm
+            key={section.key}
+            botId={bot.id}
+            version={bot.version}
+            spec={bot.draft.spec as unknown as PipelineSpec}
+            sectionKey={section.key}
+            providers={(providers ?? []) as ProviderOption[]}
+            tools={(tools ?? []) as ToolOption[]}
+            canEdit
+          />
+          <nav
+            aria-label={tp("stepOf", { n: at + 1, total: SECTIONS.length })}
+            className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-1"
+          >
+            {prev ? (
+              <Link href={href(prev.key)} className={pager}>
+                <ArrowLeft aria-hidden className="size-4" />
+                {tp("prevSection", { name: tp(`sections.${prev.key}`) })}
+              </Link>
+            ) : (
+              <span />
+            )}
+            <span className="text-xs text-fg-muted tabular-nums">
+              {tp("stepOf", { n: at + 1, total: SECTIONS.length })}
+            </span>
+            {next ? (
+              <Link href={href(next.key)} className={`${pager} justify-self-end`}>
+                {tp("nextSection", { name: tp(`sections.${next.key}`) })}
+                <ArrowRight aria-hidden className="size-4" />
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface px-5 py-4">

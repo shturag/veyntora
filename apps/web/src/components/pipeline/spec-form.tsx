@@ -378,35 +378,51 @@ export function SpecForm({
     <form
       onSubmit={save}
       aria-labelledby="section-title"
-      className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5"
+      className="flex min-w-0 flex-col rounded-lg border border-line bg-surface"
     >
-      <h2 id="section-title" className="m-0 text-lg font-bold">
-        {t(`sections.${sectionKey}`)}
-      </h2>
-      {sec.runtimePhase ? (
-        <p role="note" className="m-0 rounded-md bg-info-soft px-3 py-2 text-sm text-info">
-          {t("runtimeLater", { phase: sec.runtimePhase })}
-        </p>
-      ) : null}
-      <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
-        {sec.fields.map(control)}
+      <header className="flex flex-col gap-1 border-b border-line px-6 py-4">
+        <h2 id="section-title" className="m-0 text-lg font-bold">
+          {t(`sections.${sectionKey}`)}
+        </h2>
+        <p className="m-0 text-sm text-fg-secondary">{t(`sectionText.${sectionKey}`)}</p>
+      </header>
+      <div className="flex flex-col gap-5 px-6 py-5">
+        {sec.runtimePhase ? (
+          <p role="note" className="m-0 rounded-md bg-info-soft px-3 py-2 text-sm text-info">
+            {t("runtimeLater", { phase: sec.runtimePhase })}
+          </p>
+        ) : null}
+        <div className="grid grid-cols-2 items-start gap-x-6 gap-y-5 max-[900px]:grid-cols-1">
+          {sec.fields.map(control)}
+        </div>
       </div>
       {canEdit ? (
-        <div className="flex flex-wrap items-end gap-3 border-t border-divider pt-4">
-          <label className={`${label} min-w-64 flex-1`}>
-            {t("changeNote")}
-            <input name="change_note" maxLength={2000} className={input} />
-          </label>
-          <Button type="submit" variant="primary" disabled={busy}>
-            {t("saveDraft")}
-          </Button>
-        </div>
-      ) : null}
-      {state ? (
-        <p
-          role={state.ok ? "status" : "alert"}
-          className={`m-0 text-sm ${state.ok ? "text-green" : "text-red"}`}
-        >
+        <footer className="flex flex-col gap-3 rounded-b-lg border-t border-line bg-sunken/50 px-6 py-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className={`${label} min-w-64 flex-1`}>
+              {t("changeNote")}
+              <input
+                name="change_note"
+                maxLength={2000}
+                placeholder={t("changeNoteHint")}
+                className={input}
+              />
+            </label>
+            <Button type="submit" variant="primary" disabled={busy}>
+              {t("saveDraft")}
+            </Button>
+          </div>
+          {state ? (
+            <p
+              role={state.ok ? "status" : "alert"}
+              className={`m-0 text-sm ${state.ok ? "text-green" : "text-red"}`}
+            >
+              {state.text}
+            </p>
+          ) : null}
+        </footer>
+      ) : state ? (
+        <p role="alert" className="m-0 px-6 pb-5 text-sm text-red">
           {state.text}
         </p>
       ) : null}

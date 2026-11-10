@@ -1,6 +1,5 @@
 import type { PipelineSpec } from "@veyntora/spec";
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BotHeader } from "@/components/bots/bot-header";
@@ -11,6 +10,8 @@ import { dataRuleOf } from "@/lib/data-rule";
 import { GuidedPanel } from "@/components/bots/guided-panel";
 import { PublishChecklist } from "@/components/pipeline/publish-checklist";
 import { SECTIONS, sectionHref, type SectionKey } from "@/lib/pipeline";
+
+import { SectionNav } from "./section-nav";
 
 import { PipelineToolbar } from "./view-switch";
 import { SpecForm, type ProviderOption, type ToolOption } from "./spec-form";
@@ -67,22 +68,16 @@ export async function PipelinePage({
           canAllow={access.me.admin_areas.governance === "editor"}
         />
       ) : null}
-      <div className="grid grid-cols-[220px_minmax(0,1fr)_280px] items-start gap-5 max-[1200px]:grid-cols-[200px_minmax(0,1fr)] max-[760px]:grid-cols-1">
-        <nav aria-label={t("steps")}>
-          <ol className="m-0 flex list-none flex-col gap-1 p-0">
-            {SECTIONS.map((s, i) => (
-              <li key={s.key}>
-                <Link
-                  href={sectionHref(bot.id, s)}
-                  aria-current={s.key === sectionKey ? "step" : undefined}
-                  className={`flex flex-col rounded-md px-3 py-2 text-sm no-underline ${s.key === sectionKey ? "bg-accent-soft font-medium text-fg" : "text-fg-secondary hover:bg-sunken"}`}
-                >
-                  {i + 1} · {t(`sections.${s.key}`)}
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </nav>
+      <div className="grid grid-cols-[232px_minmax(0,1fr)_280px] items-start gap-6 max-[1200px]:grid-cols-[220px_minmax(0,1fr)] max-[760px]:grid-cols-1">
+        <SectionNav
+          label={t("steps")}
+          current={sectionKey}
+          items={SECTIONS.map((s) => ({
+            key: s.key,
+            title: t(`sections.${s.key}`),
+            href: sectionHref(bot.id, s),
+          }))}
+        />
         <SpecForm
           key={sectionKey}
           botId={bot.id}

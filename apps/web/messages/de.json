@@ -1660,7 +1660,21 @@
       "upToDate": "Entwurf entspricht Live",
       "draftChanges": "Entwurf v{version}: {count, plural, one {# Änderung} other {# Änderungen}}"
     },
-    "defaultModel": "Standard, immer dabei"
+    "defaultModel": "Standard, immer dabei",
+    "sectionText": {
+      "ingestion": "Wie Dokumente gelesen und in Abschnitte zerlegt werden, bevor sie durchsucht werden.",
+      "retrieval": "Wie Abschnitte zu einer Frage gefunden werden: der Index, die Suchart und ihre Filter.",
+      "rerank": "Ein zweites Modell ordnet die gefundenen Abschnitte und verwirft die, die nicht zur Frage passen.",
+      "generation": "Das Modell, das die Antwort schreibt, seine Anweisungen und was geschieht, wenn sie nicht belegt ist.",
+      "agent": "Agent-Modus: Das Modell plant, sucht mehrmals und darf Werkzeuge aufrufen, in festen Grenzen.",
+      "router": "Welche Antwortmodi Personen wählen dürfen und wann Auto von Schnell zu Agent wechselt.",
+      "guardrails": "Prüfungen von Frage und Antwort: personenbezogene Daten, Prompt-Injection, Belegtheit und Schutzmodelle.",
+      "chat": "Was Personen im Chat einschalten dürfen: andere Modelle, Denken, Anhänge, Websuche und Code."
+    },
+    "changeNoteHint": "Zum Beispiel: kürzere Antworten für den Helpdesk",
+    "prevSection": "Zurück: {name}",
+    "nextSection": "Weiter: {name}",
+    "stepOf": "Schritt {n} von {total}"
   },
   "playground": {
     "title": "Playground",
@@ -2488,7 +2502,7 @@
       "failed": "Die Details konnten nicht gespeichert werden.",
       "slugHint": "Wird in Adressen des Website-Widgets und der API verwendet. Kleinbuchstaben, Ziffern und Bindestriche.",
       "slugConfirm": "Kurznamen ändern? Website-Widgets und API-Aufrufe mit dem alten Namen funktionieren erst wieder, wenn sie angepasst sind.",
-      "languageChange": "In Generierung ändern",
+      "languageChange": "Unter „Antwort“ ändern",
       "languageHint": "Teil der Pipeline: Eine Änderung gilt, sobald die nächste Version veröffentlicht ist."
     },
     "copyFrom": {
