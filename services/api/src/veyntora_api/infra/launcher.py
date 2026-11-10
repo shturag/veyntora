@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -53,11 +54,18 @@ SETUP_STATE_ENV = "VEY_SETUP_STATE"
 SETUP_ERROR_ENV = "VEY_SETUP_ERROR"
 
 
+def _where(url: str) -> str:
+    """An address without its user and password."""
+    return re.sub(r"(://)[^/@\s]*@", r"\1", url)
+
+
 def env_tag() -> str | None:
     """Env mode: a version that changes when the environment's infrastructure does."""
     if not os.environ.get("VEY_DATABASE_URL"):
         return None
-    digest = hashlib.sha256("\0".join(os.environ.get(k, "") for k in _ENV_INFRA).encode())
+    # Which services, not who signs in: the owner (migrate) and the runtime services use
+    # different database users, and must still agree on the version.
+    digest = hashlib.sha256("\0".join(_where(os.environ.get(k, "")) for k in _ENV_INFRA).encode())
     return "env:" + digest.hexdigest()[:16]
 
 

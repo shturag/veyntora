@@ -197,6 +197,13 @@ def test_env_mode_needs_no_file(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setenv("VEY_REDIS_URL", "redis://cache:6379/0")
     assert launcher.env_tag() != tag
+    # The owner (migrate) and the runtime services sign in as different database users and
+    # must agree on the version, or the services wait for a bootstrap that never comes.
+    tag = launcher.env_tag()
+    monkeypatch.setenv("VEY_DATABASE_URL", "postgresql+asyncpg://owner:secret@db/veyntora")
+    assert launcher.env_tag() == tag
+    monkeypatch.setenv("VEY_DATABASE_URL", "postgresql+asyncpg://u:p@other-db/veyntora")
+    assert launcher.env_tag() != tag
 
 
 def test_owner_records_what_bootstrap_did(monkeypatch: pytest.MonkeyPatch) -> None:
