@@ -218,9 +218,11 @@ services:
     healthcheck:
       test: ["CMD", "veyntora-api", "healthcheck", "--url", "http://127.0.0.1:2026/health"]
       interval: 5s
-      timeout: 3s
+      # The check starts a Python process: on a busy machine (CI building images) 3 s was
+      # too short and the stack was reported unhealthy while it was fine.
+      timeout: 10s
       retries: 40
-      start_period: 15s
+      start_period: 60s
 
   web:
     build:
