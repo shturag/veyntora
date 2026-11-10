@@ -2,7 +2,7 @@
 # LangGraph server (Aegra) with the fast_rag, agent and router graphs.
 # Build from the repository root: docker build -f services/graphs/Dockerfile .
 
-FROM ghcr.io/astral-sh/uv:0.13.6 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.7 AS uv
 
 FROM python:3.12.16-slim-trixie AS build
 COPY --from=uv /uv /usr/local/bin/uv
